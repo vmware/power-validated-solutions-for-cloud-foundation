@@ -1,0 +1,25 @@
+apiVersion: run.tanzu.vmware.com/v1alpha1 
+kind: TanzuKubernetesCluster
+metadata:
+  name: sfo-w01-tkc01
+  namespace: sfo-w01-tkc01
+spec:
+  topology:
+    controlPlane:
+      count: 3
+      class: guaranteed-small
+      storageClass: vsphere-with-tanzu-policy
+    workers:
+      count: 3
+      class: guaranteed-small
+      storageClass: vsphere-with-tanzu-policy
+  distribution:
+    version: v1.18
+  settings:
+    network: 
+      cni:
+        name: antrea
+      services:
+        cidrBlocks: ["198.51.100.0/12"]
+      pods:
+        cidrBlocks: ["192.0.2.0/16"]
