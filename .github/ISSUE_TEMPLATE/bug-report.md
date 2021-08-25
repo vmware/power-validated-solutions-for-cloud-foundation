@@ -62,17 +62,17 @@ VMware Cloud Foundation: <!-- Example: 4.3 Enterprise -->
 To verify that the modules have loaded, run the following command in the PowerShell console: 
 
 ```
-Get-Module
+Get-InstalledModule
 ```
 Provide the versions below.
 
 **Module Version**
-* `PowerValidatedSolutions`: <!-- Get-Module -->
+* `PowerValidatedSolutions`: <!-- Get-InstalledModule PowerValidatedSolutions -->
 
 **Module Dependency Versions**
-* `VMware.PowerCLI`: <!-- Get-Module -->
-* `VMware.vSphere.SsoAdmin`: <!-- Get-Module -->
-* `PowerVCF`: <!-- Get-Module -->
+* `VMware.PowerCLI`: <!-- Get-InstalledModule VMware.PowerCLI -->
+* `VMware.vSphere.SsoAdmin`: <!-- Get-InstalledModule VMware.vSphere.SsoAdmin-->
+* `PowerVCF`: <!-- Get-InstalledModule PowerVCF -->
 
 ## Issue Details
 
