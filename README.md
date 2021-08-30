@@ -1,3 +1,5 @@
+![](https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge)
+![](https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge)
 
 # PowerValidatedSolutions
 ## Overview
