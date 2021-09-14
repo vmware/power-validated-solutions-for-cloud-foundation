@@ -1946,9 +1946,9 @@ Function Add-ContentLibrary {
                 if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
 
                     #attribution to William Lam (https://gist.github.com/lamw/988e4599c0f88d9fc25c9f2af8b72c92) for this snippet
-                    Invoke-RestMethod -Uri $contentLibraryUrl -Method Get | Out-Null
+                    Invoke-RestMethod -Uri $subscriptionUrl -Method Get | Out-Null
 
-                    $endpointRequest = [System.Net.Webrequest]::Create("$contentLibraryUrl")
+                    $endpointRequest = [System.Net.Webrequest]::Create("$subscriptionUrl")
                     $sslThumbprint = $endpointRequest.ServicePoint.Certificate.GetCertHashString()
                     $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
 
