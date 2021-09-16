@@ -2892,7 +2892,7 @@ Function Add-VMFolder {
                     Write-Warning "The VM and Template Folder '$folderName' already exists"
                 }
                 else {
-                    $folder = (Get-View (Get-View -viewtype datacenter -filter @{"name" = [String]$datacenter }).vmfolder).CreateFolder($folderName)
+                    $folder = (Get-View -Server $vcenter.fqdn (Get-View -Server $vcenter.fqdn -viewtype datacenter -filter @{"name" = [String]$datacenter }).vmfolder).CreateFolder($folderName)
                     $folderExists = (Get-Folder -Name $folderName -Server $vcenter.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)
                     if ($folderExists) {
                         Write-Output  "Created VM and Template Folder '$folderName' in vCenter Server Successfully"

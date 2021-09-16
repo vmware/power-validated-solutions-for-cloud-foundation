@@ -50,6 +50,7 @@ Currently tracking no known issues.
 1.0.0 (2021-24-08)      - Initial Module Release
 1.0.1 (2021-16-09)      - Fixed the way Certificate file is read in Add-WSALdapDirectory to avoid truncation of certificate data
                         - Fixed Add-ContentLibrary where creation using subscription URL was failing
+                        - Fixed Add-VMFolder where it was creating a folder in every vCenter Server in the Single Sign-On Domain
                                     
 ## Contributing
 
