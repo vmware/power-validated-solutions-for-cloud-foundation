@@ -17,7 +17,7 @@ If you want to use this Microsoft PowerShell module to perform implementation an
 Install-Module -Name VMware.PowerCLI -MinimumVersion 12.3.0
 Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.1
 Install-Module -Name PowerVCF -MinimumVersion 2.1.3
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.0.0
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.0.1
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.
@@ -48,6 +48,8 @@ Currently tracking no known issues.
 ## Release History
 
 1.0.0 (2021-24-08)      - Initial Module Release
+1.0.1 (2021-16-09)      - Fixed the way Certificate file is read in Add-WSALdapDirectory to avoid truncation of certificate data
+                        - Fixed Add-ContentLibrary where creation using subscription URL was failing
                                     
 ## Contributing
 

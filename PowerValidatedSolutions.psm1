@@ -4116,8 +4116,7 @@ Function Add-WSALdapDirectory {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         if ($PsBoundParameters.ContainsKey("certificate")){
             #read certificate file contents as certdata
-            $certdata = Get-Content ($certificate) -Raw
-            $certdata = $certdata.replace("`n","\n")
+            $certdata = (Get-Content ($certificate)) -join "\n"
             $body = '{
                 "useSRV":true,
                 "directoryType":"ACTIVE_DIRECTORY_LDAP",
@@ -4132,8 +4131,8 @@ Function Add-WSALdapDirectory {
                 "bindDN":"' + $bindDn + '",
                 "sslCertificate":"' + $certdata + '"
             }'
-        }else{
-            #$body = '{"useSRV":true,"directoryType":"ACTIVE_DIRECTORY_LDAP","directorySearchAttribute":"sAMAccountName","directoryConfigId":null,"useGlobalCatalog":false,"syncConfigurationEnabled":false,"useStartTls":false,"userAttributeMappings":[],"name":"' + $domainName + '","baseDN":"' + $baseDn + '","bindDN":"' + $bindDn + '"}'
+        }
+        else {
             $body = '{
                 "useSRV":true,
                 "directoryType":"ACTIVE_DIRECTORY_LDAP",
