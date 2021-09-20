@@ -2615,7 +2615,7 @@ Function Set-vCenterPermission {
 			$objectCheck = Get-VIPermission -Server $vcenter.fqdn | Where-Object { $_.Principal -eq $principal }
             if ($objectCheck) {
                 if (!($objectCheck.Role -eq $role)) {
-                    New-VIPermission -Server $vcenter.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$workloadDomain+"*"}) | Out-Null
+                    New-VIPermission -Server $vcenter.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcenter.fqdn+"*"}) | Out-Null
                     $objectCheck = Get-VIPermission -Server $vcenter.fqdn | Where-Object { $_.Principal -eq $principal }
                     if ($objectCheck.Role -eq $role) {
                         Write-Output "Assigned $role permission to $principal Successfully"
