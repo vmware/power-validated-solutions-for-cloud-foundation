@@ -770,11 +770,10 @@ Function Install-WorkspaceOneCertificate {
         Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
         if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
             $vmName = $wsaFqdn.Split(".")[0]
-            $SecurePassword = ConvertTo-SecureString -String $sshUserPass -AsPlainText -Force
-            $secureCreds = New-Object System.Management.Automation.PSCredential ("sshuser", $SecurePassword)
-            Set-SCPFile -ComputerName $wsaFqdn -Credential $secureCreds -RemotePath '/tmp' -LocalFile $rootCa -NoProgress -AcceptKey $true -Force -WarningAction SilentlyContinue
-            Set-SCPFile -ComputerName $wsaFqdn -Credential $secureCreds -RemotePath '/tmp' -LocalFile $wsaCertKey -NoProgress -AcceptKey $true -Force -WarningAction SilentlyContinue
-            Set-SCPFile -ComputerName $wsaFqdn -Credential $secureCreds -RemotePath '/tmp' -LocalFile $wsaCert -NoProgress -AcceptKey $true -Force -WarningAction SilentlyContinue
+            Get-Item $rootCa | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
+            Get-Item $wsaCertKey | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
+            Get-Item $wsaCert | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
+
             $scriptCommand = 'echo "yes" | /usr/local/horizon/scripts/installExternalCertificate.hzn --ca /tmp/' + (Split-Path -Leaf $rootCa) + ' --cert /tmp/' + (Split-Path -Leaf $wsaCert) + ' --key /tmp/' + (Split-Path -Leaf $wsaCertKey)
             $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
             Write-Output "Installed Signed Certifcate $wsaCert on Workspace One Access Virtual Appliance $wsaFqdn Successfully"
@@ -1401,8 +1400,8 @@ Export-ModuleMember -Function Set-NsxtEdgeNodeAuthenticationPolicy
 ##########################################  E N D   O F   F U N C T I O N S  ##########################################
 #######################################################################################################################
 
-#######################################################################################################################
-#######################  S I T E  P R O T E C T I O N  &  R E C O V E R Y   F U N C T I O N S   #######################
+################################################################################################################
+##############  S I T E  P R O T E C T I O N  &  R E C O V E R Y   F U N C T I O N S   ##############
 
 Function Install-SiteRecoveryManager {
     <#
@@ -1410,22 +1409,23 @@ Function Install-SiteRecoveryManager {
     	Deploy Site Recovery Manager Virtual Appliance
 
     	.DESCRIPTION
-    	The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manage Virtual Appliance OVA.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
+    	The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
         - Deploys the Site Recovery Manage Virtual Appliance
 
     	.EXAMPLE
-    	PS C:\> Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmSubnetMask 255.255.255.0 -srmOvfPath F:\identity-manager.ova -srmFolder sfo-m01-fd-srm
-        This example deploys the Workspace ONE Access Virtual Appliance into the sfo-m01-fd-srm folder of the management domain
+    	Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmSubnetMask 255.255.255.0 -srmOvfPath F:\identity-manager.ova -srmFolder sfo-m01-fd-srm
+        This example deploys the Site Recovery Manager Virtual Appliance into the sfo-m01-fd-srm folder of the management domain
   	#>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmIpAddress,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmGateway,
@@ -1449,7 +1449,7 @@ Function Install-SiteRecoveryManager {
                 Break
             }
         }
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
         Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
         $srmHostname = $srmFqdn.Split(".")[0]
         $srmDomain = $srmFQDN.Substring($srmFQDN.IndexOf(".") + 1)
@@ -1461,64 +1461,39 @@ Function Install-SiteRecoveryManager {
             else {
                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).Name
-                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).primaryDatastoreName
+                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
                 $datacenter = (Get-Datacenter -Cluster $cluster).Name
-                $mgmtPortgroup = (Get-VM | Where-Object { $_.ExtensionData.Guest.Hostname -eq $vcenter.fqdn }).ExtensionData.Guest.Net.Network
+                $mgmtPortgroup = ((get-vmhost)[0] | Get-VMHostNetwork | Select Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object {$_.DeviceName -eq "vmk0"}).PortGroupName
                 $ntpServer = (Get-VCFConfigurationNTP).ipAddress
                 $netMode = "static"
                 $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $srmHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $srmFolder + ' --net:"Network 1"=' + $mgmtPortgroup + '  --datastore=' + $datastore + ' --deploymentOption=' + $deploymentOption + ' --prop:varoot-password=' + $srmVaRootPassword + ' --prop:vaadmin-password=' + $srmVaAdminPassword +' --prop:dbpassword=' + $srmDbPassword + ' --prop:network.netmode.VMware_Site_Recovery_Manager_Appliance=' + $netMode + ' --prop:network.ip0.VMware_Site_Recovery_Manager_Appliance=' + $srmIpAddress + ' --prop:network.netprefix0.VMware_Site_Recovery_Manager_Appliance=' + $srmNetPrefix + ' --prop:vami.hostname=' + $srmFqdn + ' --prop:network.domain.VMware_Site_Recovery_Manager_Appliance=' + $srmDomain + ' --prop:network.searchpath.VMware_Site_Recovery_Manager_Appliance=' + $srmNetworkSearchPath + ' --prop:ntpserver=' + $ntpServer +' --prop:network.gateway.VMware_Site_Recovery_Manager_Appliance=' + $srmGateway + ' --prop:network.DNS.VMware_Site_Recovery_Manager_Appliance=' + $dnsServer1 + ',' + $dnsServer2 + '  --prop:enableFileIntegrity= ' + $enableFileIntegrity +' ' + $srmOvfPath + '  "vi://' + $vcenter.ssoAdmin + ':' + $vcenter.ssoAdminPass + '@' + $vcenter.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
                 Invoke-Expression "& $command"
-                    $srmExists = Get-VM -Name $srmHostname -ErrorAction SilentlyContinue
-                    if ($srmExists) {
-                        $Timeout = 900  ## seconds
-                        $CheckEvery = 15  ## seconds
-                        Try {
-                            $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
-                            Write-Output "Waiting for $srmIpAddress to become pingable."
-                            While (-not (Test-Connection -ComputerName $srmIpAddress -Quiet -Count 1)) {
-                                ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
-                                if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                                    Throw "Timeout Exceeded. Giving up on ping availability to $srmIpAddress"
-                                }
-                                Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                $srmExists = Get-VM -Name $srmHostname -ErrorAction SilentlyContinue
+                if ($srmExists) {
+                    $Timeout = 900  ## seconds
+                    $CheckEvery = 15  ## seconds
+                    Try {
+                        $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                        Write-Output "Waiting for $srmIpAddress to become pingable."
+                        While (!(Test-NetConnection $srmIpAddress -Port 5480 -WarningAction silentlyContinue | ? { $_.TcpTestSucceeded -eq $True })) {
+                            ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                            if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                Throw "Timeout Exceeded. Giving up on ping availability to $srmIpAddress"
                             }
-                        }
-                        Catch {
-                            Write-Error "Failed to get a Response from $srmFqdn"
-                        }
-                        Finally {
-                            $timer.Stop()  ## Stop the timer
-                        }
-                        Try {
-                            # Polling for Completed Deployment
-                            $uri = "https://" + $srmFqdn + ":5480"
-                            Write-Output "Initial connection made, waiting for $srmFqdn to fully boot and services to start. Be warned, this takes a long time."
-                            Do {
-                                Start-Sleep 30
-                                $response = Invoke-RestMethod $uri -Method 'GET' -SessionVariable webSession
-                                if ($response.AllOk -eq "true") { $finished = $true }
-                            } Until ($finished)
-                            if ($response.AllOk -eq "true") {
-                                Write-Output "Deployment of $srmFqdn using $srmOvfPath completed Successfully"
-                            }
-                            else {
-                                Write-Error "$srmFqdn failed to initialize properly. Please delete the VM from $($vcenter.fqdn) and retry"
-                            }
-                        }
-                        Catch {
-                            Debug-ExceptionWriter -object $_
+                            Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                         }
                     }
-                    else {
-                        Write-Error "Site Recovery Manager Failed to deploy"
+                    Catch {
+                        Write-Error "Failed to get a Response from $srmFqdn"
                     }
-                #}
-            }
+                    Finally {
+                        $timer.Stop()  ## Stop the timer
+                        Write-Output "$srmHostname Deployed Successfully"
+                    }
+                }
             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-        }
-        else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            }
         }
     }
     Catch {
@@ -1527,86 +1502,782 @@ Function Install-SiteRecoveryManager {
 }
 Export-ModuleMember -Function Install-SiteRecoveryManager
 
-Function Install-SiteRecoveryManagerCertificate {
+Function Install-vSphereReplicationManager {
     <#
 		.SYNOPSIS
-    	Install a Signed Certificate on a Site Recovery Manager Appliance
+    	Deploy vSphere Replication Manager Virtual Appliance
 
     	.DESCRIPTION
-    	The Install-SiteRecoveryManagerCertificate cmdlet replaces the certificate on the Site Recovery Manager appliance
+    	The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        vCenter Server details from its inventory and then:
+        - Gathers vSphere configuration from vCenter Server
+        - Gathers DNS and NTP configuration from SDDC Manager
+        - Deploys the vSphere Replication Manager Virtual Appliance
 
     	.EXAMPLE
-    	PS C:\> Install-SiteRecoveryManagerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -rootPass VMw@re1! -sshUserPass VMw@re1!
-        This example configures the Workspace ONE Access Virtual Appliance with the same NTP Servers as SDDC Manager
+    	Install-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsIpAddress 192.168.31.60 -vrmsGateway 192.168.31.1 -vrmsSubnetMask 255.255.255.0 -vrmsOvfPath F:\vrms.ova -vrmsFolder sfo-m01-fd-vrms
+        This example deploys the vSphere Replication Manager Virtual Appliance into the sfo-m01-fd-vrms folder of the management domain
   	#>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sshUserPass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$rootCa,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaCertKey,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaCert
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsIpAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsNetPrefix,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsNetworkSearchPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsFolder,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vrmsOvfPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vrmsVaRootPassword,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vrmsVaAdminPassword
     )
 
     Try {
-
-        if (!$PsBoundParameters.ContainsKey("rootCa")) {
-            $rootCa = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer"
-        }
-        elseif ($PsBoundParameters.ContainsKey("rootCa")) {
-            if (!(Test-Path -Path $rootCa)) {
-                Write-Error  "Certificate (.cer) for Root Certificate Authority '$rootCa' File Not Found"
-                Break
-            }
-        }
-
-        if (!$PsBoundParameters.ContainsKey("wsaCertKey")) {
-            $wsaCertKey = Get-ExternalFileName -title "Select the Workspace ONE Access Certificate Key (.key)" -fileType "key"
-        }
-        elseif ($PsBoundParameters.ContainsKey("wsaCertKey")) {
-            if (!(Test-Path -Path $wsaCertKey)) {
-                Write-Error  "Certificate Key (.key) for Workspace ONE Access '$wsaCertKey' File Not Found"
-                Break
-            }
-        }
-
-        if (!$PsBoundParameters.ContainsKey("wsaCert")) {
-            $wsaCert = Get-ExternalFileName -title "Select the Workspace ONE Access Certificate File (.cer)" -fileType "cer"
-        }
-        elseif ($PsBoundParameters.ContainsKey("wsaCert")) {
-            if (!(Test-Path -Path $wsaCert)) {
-                Write-Error  "Certificate (.cer) for Workspace ONE Access '$wsaCert' File Not Found"
-                Break
-            }
-        }
-
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $vmName = $wsaFqdn.Split(".")[0]
-            $SecurePassword = ConvertTo-SecureString -String $sshUserPass -AsPlainText -Force
-            $secureCreds = New-Object System.Management.Automation.PSCredential ("sshuser", $SecurePassword)
-            Set-SCPFile -ComputerName $wsaFqdn -Credential $secureCreds -RemotePath '/tmp' -LocalFile $rootCa -NoProgress -AcceptKey $true -Force -WarningAction SilentlyContinue
-            Set-SCPFile -ComputerName $wsaFqdn -Credential $secureCreds -RemotePath '/tmp' -LocalFile $wsaCertKey -NoProgress -AcceptKey $true -Force -WarningAction SilentlyContinue
-            Set-SCPFile -ComputerName $wsaFqdn -Credential $secureCreds -RemotePath '/tmp' -LocalFile $wsaCert -NoProgress -AcceptKey $true -Force -WarningAction SilentlyContinue
-            $scriptCommand = 'echo "yes" | /usr/local/horizon/scripts/installExternalCertificate.hzn --ca /tmp/' + (Split-Path -Leaf $rootCa) + ' --cert /tmp/' + (Split-Path -Leaf $wsaCert) + ' --key /tmp/' + (Split-Path -Leaf $wsaCertKey)
-            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass
-            Write-Output "Installed Signed Certifcate $wsaCert on Workspace One Access Virtual Appliance $wsaFqdn Successfully"
-            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+        if (!$PsBoundParameters.ContainsKey("vrmsOvfPath")) {
+            $vrmsOvfPath = Get-ExternalFileName -title "Select the vSphere Replication Manager OVF file (.ovf)" -fileType "ovf"
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            if (!(Test-Path -Path $vrmsOvfPath)) {
+                Write-Error  "vSphere Replication Manager OVA '$vrmsOvfPath' File Not Found"
+                Break
+            }
+        }
+        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+        $vrmsHostname = $vrmsFqdn.Split(".")[0]
+        $vrmsDomain = $vrmsFQDN.Substring($vrmsFQDN.IndexOf(".") + 1)
+        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+            $vrmsExists = Get-VM -Name $vrmsHostname -ErrorAction SilentlyContinue
+            if ($vrmsExists) {
+                Write-Warning "A virtual machine called $vrmsHostname already exists in vCenter Server $vcServer"
+            }
+            else {
+                $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
+                $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
+                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
+                $datacenter = (Get-Datacenter -Cluster $cluster).Name
+                $mgmtPortgroup = ((get-vmhost)[0] | Get-VMHostNetwork | Select Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object {$_.DeviceName -eq "vmk0"}).PortGroupName
+                $ntpServer = (Get-VCFConfigurationNTP).ipAddress
+                $netMode = "static"
+                $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $vrmsHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $vrmsFolder + ' --net:"Network 1"=' + $mgmtPortgroup + '  --datastore=' + $datastore + ' --prop:varoot-password=' + $vrmsVaRootPassword + ' --prop:vaadmin-password=' + $vrmsVaAdminPassword +' --prop:network.netmode.vSphere_Replication_Appliance=' + $netMode + ' --prop:network.ip0.vSphere_Replication_Appliance=' + $vrmsIpAddress + ' --prop:network.netprefix0.vSphere_Replication_Appliance=' + $vrmsNetPrefix + ' --prop:vami.hostname=' + $vrmsFqdn + ' --prop:network.domain.vSphere_Replication_Appliance=' + $vrmsDomain + ' --prop:network.searchpath.vSphere_Replication_Appliance=' + $vrmsNetworkSearchPath + ' --prop:ntpserver=' + $ntpServer +' --prop:network.gateway.vSphere_Replication_Appliance=' + $vrmsGateway + ' --prop:network.DNS.vSphere_Replication_Appliance=' + $dnsServer1 + ',' + $dnsServer2 + '  --prop:enableFileIntegrity= ' + $enableFileIntegrity +' --vService:installation=com.vmware.vim.vsm:extension_vservice ' + $vrmsOvfPath + '  "vi://' + $vcenter.ssoAdmin + ':' + $vcenter.ssoAdminPass + '@' + $vcenter.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
+                Invoke-Expression "& $command"
+                $vrmsExists = Get-VM -Name $vrmsHostname -ErrorAction SilentlyContinue
+                if ($vrmsExists) {
+                    $Timeout = 900  ## seconds
+                    $CheckEvery = 15  ## seconds
+                    Try {
+                        $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                        Write-Output "Waiting for $vrmsIpAddress to become pingable."
+                        While (!(Test-NetConnection $vrmsIpAddress -Port 5480 -WarningAction silentlyContinue | ? { $_.TcpTestSucceeded -eq $True })) {
+                        ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                        if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                            Throw "Timeout Exceeded. Giving up on ping availability to $vrmsIpAddress"
+                        }
+                        Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                        }
+                    }
+                    Catch {
+                        Write-Error "Failed to get a Response from $vrmsFqdn"
+                    }
+                    Finally {
+                        $timer.Stop()  ## Stop the timer
+                        Write-Output "$vrmsHostname Deployed Successfully"
+                    }       
+                }
+                Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+            }
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Install-WorkspaceOneCertificate
 
-##########################################  E N D   O F   F U N C T I O N S  ##########################################
-#######################################################################################################################
+Export-ModuleMember -Function Install-vSphereReplicationManager
+
+Function Connect-DRSolutionTovCenter {
+    <#
+		.SYNOPSIS
+    	Register SRM & vRMS with vCenter
+
+    	.DESCRIPTION
+    	The Connect-DRSolutionTovCenter cmdlet deploys the Site Recovery Manage Virtual Appliance OVA. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        vCenter Server details from its inventory and then:
+        - Gathers vSphere configuration from vCenter Server
+        - Gathers DNS and NTP configuration from SDDC Manager
+        - Deploys the Site Recovery Manage Virtual Appliance
+
+    	.EXAMPLE
+    	Connect-DRSolutionTovCenter -solution SRM -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword 'VMw@re1!' -domainType MANAGEMENT -siteName SFO01 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword 'VMw@re1!' -adminEmail 'admin@rainpole.io'
+        This example registers Site Recovery Manager with the vCenter Server of the management domain
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,        
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
+        [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
+    )
+
+    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+    if ($solution -eq "SRM") {
+        $extensionKey = "com.vmware.vcDr"
+    }
+    else {
+        $extensionKey = "com.vmware.vcHms"
+    }
+    Try {
+        # Retireve the vCenter SSL Thumbprint
+        $vcenterFQDN = $vcenter.fqdn
+        $command = 'openssl s_client -connect ' + $vcenterFQDN + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
+        $thumbprint = (iex "& $command").Split("=")[1]
+        $vCenterInstanceUuid = Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Select-Object InstanceUuid
+        $vCenterInstanceUuid = $vCenterInstanceUuid.InstanceUuid
+        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+
+        # Register Site Recovery Manager with vCenter
+        $response = Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcenterFQDN -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $ssoAdminUser -ssoAdminPassword $ssoAdminPassword -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey
+        $validateRegistration = Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
+        if ($validateRegistration.data.drConfiguration.vcName -eq $vcenterFQDN) {
+            Write-output "Successfully Registered $solution instance $applianceFqdn to vCenter Server $vcenterFQDN"
+        }
+        else {
+            Write-Output "Something went wrong"
+        }
+    }              
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Connect-DRSolutionTovCenter
+
+Function Install-VAMICertificate {
+    <#
+		.SYNOPSIS
+    	Install a Signed Certificate Using VAMI Appliance interface
+
+    	.DESCRIPTION
+    	The Install-VAMICertificate cmdlet replaces the certificate on the Site Recovery Manager appliance
+
+    	.EXAMPLE
+    	Install-VAMICertificate -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1! -certFile C:\Certs\sfo-m01-srm01.4.p12 -certPassword VMw@re1!
+        This example configures the Site Recovery Manager Virtual Appliance with the with a signed cert
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+    )
+
+    Try {
+        
+        if (!$PsBoundParameters.ContainsKey("certFile")) {
+            $certFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType "p12"
+        }
+        elseif ($PsBoundParameters.ContainsKey("certFile")) {
+            if (!(Test-Path -Path $certFile)) {
+                Write-Error  "Certificate (.p12) '$certFile' File Not Found"
+            }
+        }
+        Try {
+            $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($certFile))
+            $body = '{
+                "certificateContent": "'+$base64string+'",
+                "certificatePassword": "'+$certPassword+'"
+              }'
+            $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
+            $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
+            $uri = "https://"+$fqdn+":5480/configure/requestHandlers/installPkcs12Certificate"
+            $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
+            #$response
+        }
+        Catch {
+            #TODO - Write function to query cert Thumbprint and compare to installed cert
+            #Debug-ExceptionWriter -object $_
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-VAMICertificate
+
+Function Get-DRSolutionSummary {
+    <#
+		.SYNOPSIS
+    	Retrieves the Site Recovery Manager summary
+
+    	.DESCRIPTION
+    	The Get-DRSolutionSummary cmdlet retrieves the Site Recovery Manager summary
+
+    	.EXAMPLE
+    	Get-DRSolutionSummary -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example retrieves the Site Recovery Manager summary
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
+        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
+        $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getSummaryInfo"
+        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
+        $response
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Get-DRSolutionSummary
+
+Function Register-DRSolutionTovCenter {
+    <#
+		.SYNOPSIS
+    	Registers SRM & vRMS with a given vCenter Server
+
+    	.DESCRIPTION
+    	The Register-DRSolutionTovCenter cmdlet registers SRM & vRMS with a given vCenter Server
+
+    	.EXAMPLE
+    	Register-DRSolutionTovCenter -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -pscHost sfo-m01-vc01.sfo.rainpole.io -thumbprint EA:0F:24:7E:B4:4C:5E:ED:38:AE:79:A6:9E:A2:E8:8F:EE:54:D8:AF:18:6A:A2:57:DC:87:09:68:D4:76:36:DD -vcInstanceId 53cad28c-4160-4956-b7c1-c7bbc5185a39 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword VMw@re1! -siteName SFO01 -adminEmail admin@rainpole.io -hostName sfo-m01-srm01.sfo.rainpole.io
+        This example registers the Site Recovery Manager Virtual Appliance with vCenter
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pscHost,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$thumbprint,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcInstanceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensionKey
+    )
+
+    Try {
+        $body = '{
+            "connection": {
+                "pscHost": "'+$pscHost+'",
+                "pscPort": 443,
+                "thumbprint": "'+$thumbprint+'",
+                "vcInstanceId": "'+$vcInstanceId+'",
+                "vcThumbprint": "'+$thumbprint+'"
+            },
+            "adminUser": "'+$ssoAdminUser+'",
+            "adminPassword": "'+$ssoAdminPassword+'",
+            "siteName": "'+$siteName+'",
+            "adminEmail": "'+$adminEmail+'",
+            "hostName": "'+$hostName+'",
+            "extensionKey": "'+$extensionKey+'"
+        }'
+        $body
+        $sessionId = Request-VAMISessionId -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
+        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
+        $uri = "https://"+$applianceFqdn+":5480/configure/requestHandlers/configureAppliance"
+        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
+        $response
+
+        }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Register-DRSolutionTovCenter
+
+Function Backup-VMOvfProperties {
+    <#
+		.SYNOPSIS
+    	Backup-VMOvfProperties
+
+    	.DESCRIPTION
+    	The Backup-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
+        - Creates a backup of the VM OVF environment
+
+    	.EXAMPLE
+    	Backup-VMOvfProperties -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example creates a backup of the OVF properties for each supplied VM.
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fileDir
+    )
+        
+    Try {
+        if (!$PsBoundParameters.ContainsKey("fileDir")) {
+            $fileDir = Get-ExternalDirectoryPath
+        }
+        else {
+            if (!(Test-Path -Path $fileDir)) {
+                Write-Error  "Directory '$fileDir' Not Found"
+                Break
+            }
+        } 
+        # Disconnect all connected vCenters to ensure only the desired vCenter is available
+        if ($defaultviservers) {
+            $server = $defaultviservers.Name
+            foreach ($server in $defaultviservers) {            
+                Disconnect-VIServer -Server $server -Confirm:$False
+            }
+        }
+        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+        # Retrieve vRSLCM VM Name
+        $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        if ($vrslcmDetails) {
+            Write-Output "Getting vRealize Suite Lifecycle Manager VM Name"
+            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+            $vrslcmVMName = Get-VM * | Where-Object {$_.Guest.Hostname -eq $vrslcmDetails.fqdn} | Select-Object Name
+            $vrslcmVMName = $vrslcmVMName.Name
+            $vmsToBackup = @("$vrslcmVMName")                
+            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
+        }
+        # Retrieve WSA VM Names
+        $wsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass
+        if ($wsaDetails) {
+            Write-Output "Getting Workspace ONE Access VM Names"
+            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+            Foreach ($wsaFQDN in $wsaDetails.fqdn) {
+                $wsaVMName = Get-VM * | Where-Object {$_.Guest.Hostname -eq $wsaFQDN} | Select-Object Name
+                $wsaVMName = $wsaVMName.Name
+                $vmsToBackup += ,$wsaVMName
+            }
+            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
+        }
+        # Retrieve vROPs VM Names
+        $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+        if ($vropsDetails) {
+            Write-Output "Getting vRealize Operations Manager VM Names"
+            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+            Foreach ($vropsFQDN in $vropsDetails.fqdn) {
+                $vropsVMName = Get-VM * | Where-Object{$_.Guest.Hostname -eq $vropsFQDN} | Select-Object Name
+                $vropsVMName = $vropsVMName.Name
+                $vmsToBackup += ,$vropsVMName
+            }
+            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
+        }
+        # Retrieve vRA VM Names
+        $vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass
+        if ($vraDetails) {
+            Write-Output "Getting vRealize Automation VM Names"
+            Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+            Foreach ($vraFQDN in $vraDetails.fqdn) {
+                $vraVMName = Get-VM * | Where-Object {$_.Guest.Hostname -eq $vraFQDN} | Select-Object Name
+                $vraVMName = $vraVMName.Name
+                $vmsToBackup += ,$vraVMName
+            }
+            Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
+        }
+        Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+        Foreach ($vm in $vmsToBackup) {
+            $vmToBackup = Get-VM -Name $vm
+            Get-VMvAppConfig -vm $vmToBackup
+        }
+        Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Backup-VMOvfProperties
+
+Function Restore-VMOvfProperties {
+    <#
+		.SYNOPSIS
+    	Restore-VMOvfProperties
+
+    	.DESCRIPTION
+    	The Restore-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
+        - Creates a restore of the VM OVF environment
+
+    	.EXAMPLE
+    	Restore-VMOvfProperties -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example creates a backup of the OVF properties for each supplied VM.
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fileDir
+    )
+  
+    Try {       
+        if (!$PsBoundParameters.ContainsKey("fileDir")) {
+            $fileDir = Get-ExternalDirectoryPath
+        }
+        else {
+            if (!(Test-Path -Path $fileDir)) {
+                Write-Error  "Directory '$fileDir' Not Found"
+                Break
+            }
+        } 
+        $fileNames = @()
+        $fileNames = Get-ChildItem -File "$($fileDir)\*-property-backup.json" -Recurse
+        # Disconnect all connected vCenters to ensure only the desired vCenter is available
+        if ($defaultviservers) {
+            $server = $defaultviservers.Name
+            foreach ($server in $defaultviservers) {            
+                Disconnect-VIServer -Server $server -Confirm:$False
+            }
+        }
+        $vCenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+        Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+        Foreach ($fileName in $fileNames) {
+            $fileName = $fileName.Name
+            $separator = "-property-backup.json"
+            $restoredVM = ($filename -split $separator)[0]
+
+            $vmSettings = Get-content "$($fileDir)\$($restoredVM)-property-backup.json" | convertfrom-json
+            if ($vmSettings) {
+                $foundVM = Get-VM -Name $restoredVM -ErrorAction SilentlyContinue
+                if ($foundVM) {
+                    Write-Output "Restoring VM OVF Settings for $restoredVM"
+                    Set-VMOvfIPAssignment -vm $foundVM -assignment $vmSettings.IpAssignment
+                    if ($vmSettings.eula) {
+                        Set-VMOvfEULA -vm $foundVM -eula $vmSettings.eula    
+                    }
+                    Set-VMOvfEnvTransport -vm $foundVM -transport $vmSettings.ovfEnvironmentTransport
+                    foreach ($product in $vmSettings.product) {
+                        New-VMOvfProduct -vm $foundVM -product $product
+                    }
+                    foreach ($property in $vmSettings.property) {
+                        New-VMOvfProperty -vm $foundVM -property $property
+                    }                   
+                }
+                else {
+                    Write-Output "Placeholder $restoredVM not found in $($vcenter.fqdn)"
+                }
+            }
+        }
+        Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Restore-VMOVFProperties
+
+Function Get-VMvAppConfig
+{
+    <#
+        .SYNOPSIS
+        Retrieves the full OVF environment settings from a standard VM.
+
+        .DESCRIPTION
+        Saves the setting of the passed VM object to a JSON file
+
+        .EXAMPLE
+        Get-VMAppConfig -vm $vm
+    #>
+    Param (
+        [Parameter (Mandatory=$true)] [PSObject]$vm
+    )
+
+    $targetFile = $fileDir + "\" + $vm.name + "-property-backup.json"
+    Write-Output "Initating Backup of OVF Properties for $vm"
+    Try {
+        if ($vm.ExtensionData.Config.VAppConfig) {
+            $vmVappConfig = $vm.ExtensionData.Config.VAppConfig | ConvertTo-Json | Out-File $targetFile
+            Write-Output "OVF Properties successfully captured"
+            return $vmVappConfig
+        }
+        else {
+            Write-Output "No OVF properties were detected on $($vm.name). You may ignore this message if this is correct." -colour magenta
+        }
+    }
+    Catch
+    {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-VMvAppConfig
+
+Function New-VMOvfProperty
+{
+    <#
+       .SYNOPSIS
+        Create a single OVF Property on a standard VM.
+
+        .DESCRIPTION
+        Accepts a object with propery details, parses it and adds it to supplied VM
+
+        .EXAMPLE
+        New-VMOvfProperty -vm $vm -property $propertyObject
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [PSObject]$property
+    )
+
+    #define spec
+    $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+    $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
+    $propertySpec = New-Object VMware.Vim.VAppPropertySpec
+    
+    #populate spec
+    $propertySpec.Operation = "Add"
+    $propertySpec.Info = New-Object VMware.Vim.VAppPropertyInfo
+    $propertySpec.info.category = $property.category 
+    $propertySpec.info.classId = $property.classId
+    $propertySpec.info.defaultValue = $property.defaultValue 
+    $propertySpec.info.description = $property.description   
+    $propertySpec.info.id = $property.id 
+    $propertySpec.info.instanceId = $property.instanceId      
+    $propertySpec.info.key = $property.key
+    $propertySpec.info.label = $property.label   
+    $propertySpec.info.type = $property.type 
+    $propertySpec.info.typeReference = $property.typeReference 
+    $propertySpec.info.userConfigurable = $property.userConfigurable 
+    $propertySpec.info.value = $property.value
+    $spec.VAppConfig.Property = $propertySpec
+
+    #write spec
+    Write-Output "Creating OVF Property $($property.id) on $($vm.name)"
+    $task = $vm.ExtensionData.ReconfigVM_Task($spec)
+    $task1 = Get-Task -Id ("Task-$($task.value)")
+    $waitask = $task1 | Wait-Task 
+}
+Export-ModuleMember -Function New-VMOvfProperty
+
+Function Set-VMOvfIPAssignment
+{
+    <#
+        .SYNOPSIS
+        Sets the IP Assignment OVF Setting
+
+        .DESCRIPTION
+        Accepts a object with IP Assigment details and assigns it to the supplied VM
+
+        .EXAMPLE
+        Set-VMOvfIPAssignment -vm $vm -assignment $assignmentObject
+
+    #>    
+    Param (
+        [Parameter (Mandatory=$true)] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [PSObject]$assignment
+    )
+    
+    #define spec
+    $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+    $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
+    $assignmentSpec = New-Object VMware.Vim.VAppIPAssignmentInfo
+
+    #populate spec
+    $assignmentSpec.ipAllocationPolicy = $assignment.ipAllocationPolicy
+    $assignmentSpec.SupportedAllocationScheme = $assignment.SupportedAllocationScheme
+    $assignmentSpec.SupportedIpProtocol = $assignment.SupportedIpProtocol
+    $assignmentSpec.IpProtocol = $assignment.IpProtocol
+    $spec.vAppConfig.IpAssignment = $assignmentSpec
+
+    #write spec
+    Write-Output "Configuring IP Assignment setting on $($vm.name)"
+    $task = $vm.ExtensionData.ReconfigVM_Task($spec)
+    $task1 = Get-Task -Id ("Task-$($task.value)")
+    $waitask = $task1 | Wait-Task 
+}
+Export-ModuleMember -Function Set-VMOvfIPAssignment
+
+Function Set-VMOvfEnvTransport
+{
+    <#
+        .SYNOPSIS
+        Sets the Environment Transport setting for OVF properties
+
+        .DESCRIPTION
+        Accepts a object with Environment Transport details and assigns it to the supplied VM
+
+        .EXAMPLE
+        Set-VMOvfEnvTransport -vm $vm -transport $transportObject
+
+    #> 
+
+    Param (
+        [Parameter (Mandatory=$true)] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [PSObject]$transport
+    )
+
+    #define spec
+    $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+    $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
+
+    #populate spec
+    $spec.vAppConfig.ovfEnvironmentTransport = $transport
+    
+    #write spec
+    Write-Output "Configuring Environment Transport setting on $($vm.name)"
+    $task = $vm.ExtensionData.ReconfigVM_Task($spec)
+    $task1 = Get-Task -Id ("Task-$($task.value)")
+    $waitask = $task1 | Wait-Task 
+}
+Export-ModuleMember -Function Set-VMOvfEnvTransport
+
+Function New-VMOvfProduct
+{
+    <#
+        .SYNOPSIS
+        Create a single OVF Product on a standard VM.
+
+        .DESCRIPTION
+        Accepts a object with produt details, parses it and adds it to supplied VM
+
+        .EXAMPLE
+        New-VMOvfProduct -vm $vm -product $productObject
+
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [PSObject]$product
+    )
+
+    #define spec
+    $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+    $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
+    $productSpec = New-Object VMware.Vim.VAppProductSpec
+
+    #populate spec
+    $productSpec.Operation = "Add"
+    $productSpec.Info = New-Object VMware.Vim.VAppProductInfo
+    $productSpec.info.appUrl = $product.appUrl
+    $productSpec.info.classId = $product.classId 
+    $productSpec.info.fullVersion = $product.fullVersion 
+    $productSpec.info.instanceId = $product.instanceId   
+    $productSpec.info.key = $product.key 
+    $productSpec.info.name = $product.name 
+    $productSpec.info.productUrl = $product.productUrl   
+    $productSpec.info.vendor = $product.vendor
+    $productSpec.info.vendorUrl = $product.vendorUrl
+    $productSpec.info.version = $product.version
+    $spec.VAppConfig.Product = $productSpec
+
+    #write spec
+    Write-Output "Adding Product Setting on $($vm.name)"
+    $task = $vm.ExtensionData.ReconfigVM_Task($spec)
+    $task1 = Get-Task -Id ("Task-$($task.value)")
+    $waitask = $task1 | Wait-Task 
+}
+Export-ModuleMember -Function New-VMOvfProduct
+
+Function Set-VMOvfEULA
+{
+    <#
+        .SYNOPSIS
+        Sets the EULA setting for OVF properties
+
+        .DESCRIPTION
+        Accepts a object with EULA details and assigns it to the supplied VM
+
+        .EXAMPLE
+        Set-VMOvfEULA -vm $vm -eula $eulaObject
+    #>    
+
+    Param (
+        [Parameter (Mandatory=$true)] [PSObject]$vm,
+        [Parameter(Mandatory=$true)] [PSObject]$eula
+    )
+
+    #define spec
+    $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
+    $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
+
+    #populate spec
+    $spec.vAppConfig.eula = $eula
+
+    #write spec
+    Write-Output "Setting EULA on $($vm.name)"
+    $task = $vm.ExtensionData.ReconfigVM_Task($spec)
+    $task1 = Get-Task -Id ("Task-$($task.value)")
+    $waitask = $task1 | Wait-Task 
+}
+Export-ModuleMember -Function Set-VMOvfEULA
+
+Function Get-NSXLBDetails {
+    <#
+		.SYNOPSIS
+    	Get-NSXLBDetails
+
+    	.DESCRIPTION
+    	The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs & pool members for the NSX-T Load Balancer for vRealize. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the NSX load balancer configurationn
+
+    	.EXAMPLE
+    	Get-NSXLBDetails -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example gets the IP addresses of the VIPs & pool members for the NSX-T Load Balancer for vRealize.
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+  
+    Try {
+        # Retrieve WSA VIP
+        $wsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass
+        if ($wsaDetails) {
+            Write-Output "Found Workspace ONE Access. Getting Virtual Server & Node IPs"
+                $wsaVIP = $wsaDetails.loadBalancerIpAddress
+                $wsaNode1IP = $wsaDetails.node1IpAddress
+                $wsaNode2IP = $wsaDetails.node2IpAddress
+                $wsaNode3IP = $wsaDetails.node3IpAddress
+            }
+        # Retrieve vROPs VM Names
+        $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+        if ($vropsDetails) {
+            Write-Output "Found vRealize Operations. Getting Virtual Server & Node IPs"                
+                $vropsVIP = $vropsDetails.loadBalancerIpAddress
+                $vopsNode1IP = $vropsDetails.node1IpAddress
+                $vopsNode2IP = $vropsDetails.node2IpAddress
+                $vopsNode3IP = $vropsDetails.node3IpAddress
+            }
+        # Retrieve vRA VM Names
+        $vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass
+        if ($vraDetails) {
+            Write-Output "Found vRealize Automation. Getting Virtual Server & Node IPs"
+                $vraVIP = $vraDetails.loadBalancerIpAddress
+                $vraNode1IP = $vraDetails.node1IpAddress
+                $vraNode2IP = $vraDetails.node2IpAddress
+                $vraNode3IP = $vraDetails.node3IpAddress
+        }
+        # Gather NSX-T Manager Details
+        Write-Output "Getting NSX-T Login Details"
+        $nsxt = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domainType MANAGEMENT
+        $nsxtFQDN = $nsxt.fqdn
+                
+    } 
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-NSXLBDetails
 
 #######################################################################################################################
 ##################  D E V E L O P E R   R E A D Y   I N F R A S T R U C T U R E   F U N C T I O N S   #################
@@ -1924,6 +2595,10 @@ Function Add-ContentLibrary {
         The Add-ContentLibrary cmdlet creates a subscribed content library
 
         .EXAMPLE
+        Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 published
+        This example creates published content library named sfo-w01-lib01 in workload domain sfo-w01
+
+        .EXAMPLE
         Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName Kubernetes -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json"
         This example creates subscribed content library named Kubernetes in workload domain sfo-w01
     #>
@@ -1934,7 +2609,8 @@ Function Add-ContentLibrary {
         [Parameter (Mandatory = $true)] [String]$pass,
         [Parameter (Mandatory = $true)] [String]$domain,
         [Parameter (Mandatory = $true)] [String]$contentLibraryName,
-        [Parameter (Mandatory = $true)] [String]$subscriptionUrl
+        [Parameter (ParameterSetName = 'Subscription', Mandatory = $false)] [String]$subscriptionUrl,
+        [Parameter (ParameterSetName = 'Local', Mandatory = $false)] [Switch]$published
     )
 
     Try {
@@ -1945,22 +2621,28 @@ Function Add-ContentLibrary {
                 $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
                 if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
 
-                    #attribution to William Lam (https://gist.github.com/lamw/988e4599c0f88d9fc25c9f2af8b72c92) for this snippet
-                    Invoke-RestMethod -Uri $subscriptionUrl -Method Get | Out-Null
+                    if ($subscriptionUrl) {
+                        #attribution to William Lam (https://gist.github.com/lamw/988e4599c0f88d9fc25c9f2af8b72c92) for this snippet
+                        Invoke-RestMethod -Uri $subscriptionUrl -Method Get | Out-Null
 
-                    $endpointRequest = [System.Net.Webrequest]::Create("$subscriptionUrl")
-                    $sslThumbprint = $endpointRequest.ServicePoint.Certificate.GetCertHashString()
-                    $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
+                        $endpointRequest = [System.Net.Webrequest]::Create("$subscriptionUrl")
+                        $sslThumbprint = $endpointRequest.ServicePoint.Certificate.GetCertHashString()
+                        $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
 
-                    $contentLibraryInput = @{
-                        Name            = $contentLibraryName
-                        Datastore       = $datastore
-                        AutomaticSync   = $true
-                        SubscriptionUrl = $subscriptionUrl
-                        SslThumbprint   = $sslThumbprint
+                        $contentLibraryInput = @{
+                            Name            = $contentLibraryName
+                            Datastore       = $datastore
+                            AutomaticSync   = $true
+                            SubscriptionUrl = $subscriptionUrl
+                            SslThumbprint   = $sslThumbprint
+                        }
+
+                        New-ContentLibrary @contentLibraryInput | Out-Null
+                    }
+                    elseif ($published) {
+                        New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcenter.fqdn | Out-Null
                     }
 
-                    New-ContentLibrary @contentLibraryInput | Out-Null
                     if ($getContentLibrary = Get-ContentLibrary -Name $contentLibraryName -ErrorAction SilentlyContinue) {
                         Write-Output  "Created Content Library $contentLibraryName in vCenter Server $($vcenter.fqdn) Successfully"
                     }
@@ -3076,20 +3758,32 @@ Function Add-VmStartupRule {
             Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
             if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
-                if ($ruleNameExists) {
-                    Write-Warning "The vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' already exists"
-                }
-                else {
-                    Add-DrsVmToVmGroup -name $ruleName -vmGroup $vmGroup -dependOnVmGroup $dependOnVmGroup -Enabled -cluster $cluster | Out-Null
-                    Start-Sleep 5
-                    $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
-                    if ($ruleNameExists) {
-                        Write-Output "Created the vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' Successfully"
+                $vmGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $vmGroup})
+                if ($vmGroupExists) {
+                    $dependOnVmGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $dependOnVmGroup})
+                    if ($dependOnVmGroupExists) {
+                        $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
+                        if ($ruleNameExists) {
+                            Write-Warning "The vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' already exists"
+                        }
+                        else {
+                            Add-DrsVmToVmGroup -name $ruleName -vmGroup $vmGroup -dependOnVmGroup $dependOnVmGroup -Enabled -cluster $cluster | Out-Null
+                            Start-Sleep 5
+                            $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
+                            if ($ruleNameExists) {
+                                Write-Output "Created the vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' Successfully"
+                            }
+                            else {
+                                Write-Error "Creating the vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' Failed, Please Retry"
+                            }
+                        }
                     }
                     else {
-                        Write-Error "Creating the vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' Failed, Please Retry"
+                        Write-Error "The vSphere DRS Group '$dependOnVmGroup' (VM Group to start after dependency) not found in vCenter Server inventory, create and try again" 
                     }
+                }
+                else {
+                    Write-Error "The vSphere DRS Group '$vmGroup' (VM Group to start first) not found in vCenter Server inventory, create and try again" 
                 }
                 Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
             }
@@ -3222,6 +3916,167 @@ Function Import-vRSLCMLockerCertificate {
     }
 }
 Export-ModuleMember -Function Import-vRSLCMLockerCertificate
+
+Function New-vRSLCMLockerPassword {
+    <#
+        .SYNOPSIS
+        Add a password to the vRSLCM locker
+
+        .DESCRIPTION
+        The New-vRSLCMLockerPassword cmdlet adds a password to the vRSLCM locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
+        to retrive the vRSLCM details from its inventory and then:
+        - Verifies that the password doesnt already exist
+        - Adds the password to the locker
+
+        .EXAMPLE
+        New-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin -password VMw@re1! -description "vRealize Operations Admin" -userName xint-vrops01-admin
+        This example adds the password
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$description,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userName
+    )
+
+    Try {
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (!(Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $alias})) {
+            if ($PsBoundParameters.ContainsKey("description")) {
+                $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -description $description -userName $userName
+            }
+            else {
+                $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
+            }
+            if ((Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $alias})) {
+                Write-Output "Password with alias $alias added to the locker successfully"
+            }
+            else {
+                Write-Error "Password with alias $alias failed to add to the locker"
+            }
+        }
+        else {
+            Write-Warning "Password with alias $alias already exists in the locker"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRSLCMLockerPassword
+
+Function New-vRSLCMLockerLicense {
+    <#
+        .SYNOPSIS
+        Add a license to the vRSLCM locker
+
+        .DESCRIPTION
+        The New-vRSLCMLockerLicense cmdlet adds a license to the vRSLCM locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
+        to retrive the vRSLCM details from its inventory and then:
+        - Verifies that the license doesnt already exist
+        - Adds the license to the locker
+
+        .EXAMPLE
+        New-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "vRealize Automation" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+        This example adds the password
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$license
+    )
+
+    Try {
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (!(Get-vRSLCMLockerLicense | Where-Object {$_.key -Like $key})) {
+            if (!(Get-vRSLCMLockerLicense | Where-Object {$_.alias -Like $alias})) {
+                $lockerLicense = Add-vRSLCMLockerLicense -alias $alias -license $license
+                Start-Sleep 3
+                if ((Get-vRSLCMLockerLicense | Where-Object {$_.key -Like $license})) {
+                    Write-Output "License with alias $alias added to the locker successfully"
+                }
+                else {
+                    Write-Error "License with alias $alias failed to add to the locker"
+                }
+            }
+            else {
+                Write-Warning "License with serial key $license already exists in the locker"
+            }
+        }
+        else {
+            Write-Warning "License with alias $alias already exists in the locker"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRSLCMLockerLicense
+
+Function Add-VmGroup {
+    <#
+		.SYNOPSIS
+    	Add a VM Group
+
+    	.DESCRIPTION
+    	The Add-VmGroup cmdlet adds a Virtual Machine to an existing VM Group.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Verifies a connection has been made to the vCenter Server
+        - Verifies that the the VM Group provided exists and that its a VM Group not a VM Host Group
+        - Adds the Virtual Machines provided using -vmList
+
+        .EXAMPLE
+    	Add-VmGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -name "primary_az_vmgroup" -vmList "xint-vra01a,xint-vra01b,xint-vra01c"
+        This example adds the vRealize Automation cluster VMs to the VM Group called primary_az_vmgroup
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmList
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Pass $vcenter.ssoAdminPass | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                $vmGroupExists = Get-DrsClusterGroup -Server $vcenter.fqdn -Name $name
+                if ($vmGroupExists.GroupType -eq "VMGroup") {
+                    $vmNames = $vmList.split(",")
+                    foreach ($vm in $vmNames) { Set-DrsClusterGroup -VM $vm -Server $vcenter.fqdn -DrsClusterGroup (Get-DrsClusterGroup | Where-Object {$_.Name -eq $name} -WarningAction SilentlyContinue -ErrorAction Ignore) -Add | Out-Null }
+                    Write-Output "Systems '$vmList' Added to VM/Host Group '$name' in vCenter Server '$($vcenter.fqdn)' Successfully"
+                }
+                else {
+                    Write-Error  "The DRS Cluster Group '$name' does not exist or is not a VM Group"
+                }
+            }
+            else {
+			    Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+		    }
+        }
+        else {
+            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-VmGroup
 
 ##########################################  E N D   O F   F U N C T I O N S  ##########################################
 #######################################################################################################################
@@ -3491,6 +4346,136 @@ Function Get-vRSLCMServerDetail {
     }
 }
 Export-ModuleMember -Function Get-vRSLCMServerDetail
+
+Function Get-WSAServerDetail {
+    Param (
+        [Parameter (Mandatory = $false)] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [String]$username,
+        [Parameter (Mandatory = $false)] [String]$password
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
+            # Request Credentials
+            $creds = Get-Credential
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        if (!$PsBoundParameters.ContainsKey("fqdn")) {
+            $fqdn = Read-Host "SDDC Manager access token not found. Please enter the SDDC Manager FQDN, e.g., sfo-vcf01.sfo.rainpole.io"
+        }
+        Request-VCFToken -fqdn $fqdn -Username $username -Password $password | Out-Null
+        
+        if ($accessToken) {
+                # Get WSA Server Details
+                $wsaFQDN = Get-VCFWSA
+                #$wsaCreds = Get-VCFCredential -resourceName $wsaFQDN.fqdn
+                $wsaDetails = New-Object -TypeName PSCustomObject
+                $wsaDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $wsaFQDN.elements.nodes.fqdn
+                $wsaDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $wsaFQDN.elements.loadBalancerIpAddress
+                $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $wsaFQDN.elements.nodes.ipAddress[0]
+                $wsaDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $wsaFQDN.elements.nodes.ipAddress[1]
+                $wsaDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $wsaFQDN.elements.nodes.ipAddress[2]
+                $wsaDetails
+            }
+        else {
+            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-WSAServerDetail
+
+Function Get-vRAServerDetail {
+    Param (
+        [Parameter (Mandatory = $false)] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [String]$username,
+        [Parameter (Mandatory = $false)] [String]$password
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
+            # Request Credentials
+            $creds = Get-Credential
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        if (!$PsBoundParameters.ContainsKey("fqdn")) {
+            $fqdn = Read-Host "SDDC Manager access token not found. Please enter the SDDC Manager FQDN, e.g., sfo-vcf01.sfo.rainpole.io"
+        }
+        Request-VCFToken -fqdn $fqdn -Username $username -Password $password | Out-Null
+        
+        if ($accessToken) {
+                # Get vRSLCM Server Details
+                $vraFQDN = Get-VCFvRA
+                #$vraCreds = Get-VCFCredential -resourceName $vraFQDN.fqdn
+                $vraDetails = New-Object -TypeName PSCustomObject
+                $vraDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vraFQDN.elements.nodes.fqdn
+                $vraDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vraFQDN.elements.loadBalancerIpAddress
+                $vraDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vraFQDN.elements.nodes.ipAddress[0]
+                $vraDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vraFQDN.elements.nodes.ipAddress[1]
+                $vraDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vraFQDN.elements.nodes.ipAddress[2]
+                $vraDetails
+            }
+        else {
+            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Break
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-vRAServerDetail
+
+Function Get-vROPsServerDetail {
+    Param (
+        [Parameter (Mandatory = $false)] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [String]$username,
+        [Parameter (Mandatory = $false)] [String]$password
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
+            # Request Credentials
+            $creds = Get-Credential
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        if (!$PsBoundParameters.ContainsKey("fqdn")) {
+            $fqdn = Read-Host "SDDC Manager access token not found. Please enter the SDDC Manager FQDN, e.g., sfo-vcf01.sfo.rainpole.io"
+        }
+        Request-VCFToken -fqdn $fqdn -Username $username -Password $password | Out-Null
+        
+        if ($accessToken) {
+            # Get vRSLCM Server Details
+            $vropsFQDN = Get-VCFvROPs
+            $vropsDetails = New-Object -TypeName PSCustomObject
+            $vropsDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vropsFQDN.elements.nodes.fqdn
+            $vropsDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vropsFQDN.elements.loadBalancerIp
+            $vropsNode1FQDN = $vropsFQDN.elements.nodes.fqdn[0]
+            $vropsNode1IP = [System.Net.Dns]::GetHostAddresses("$vropsNode1FQDN").IPAddressToString
+            $vropsDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vropsNode1IP
+            $vropsNode2FQDN = $vropsFQDN.elements.nodes.fqdn[1]
+            $vropsNode2IP = [System.Net.Dns]::GetHostAddresses("$vropsNode2FQDN").IPAddressToString
+            $vropsDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vropsNode2IP
+            $vropsNode3FQDN = $vropsFQDN.elements.nodes.fqdn[2]
+            $vropsNode3IP = [System.Net.Dns]::GetHostAddresses("$vropsNode3FQDN").IPAddressToString
+            $vropsDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vropsNode3IP
+            $vropsDetails
+        }
+        else {
+            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Break
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-vROPsServerDetail
 
 
 ##############  End Cloud Foundation Functions  ##############
@@ -4131,8 +5116,7 @@ Function Add-WSALdapDirectory {
                 "bindDN":"' + $bindDn + '",
                 "sslCertificate":"' + $certdata + '"
             }'
-        }
-        else {
+        }else{
             $body = '{
                 "useSRV":true,
                 "directoryType":"ACTIVE_DIRECTORY_LDAP",
@@ -6870,6 +7854,1262 @@ Function Remove-NsxtSyslogExporter {
 }
 Export-ModuleMember -Function Remove-NsxtSyslogExporter
 
+Function Copy-vRealizeLoadBalancer 
+{
+    <#
+        .SYNOPSIS
+        Creates a Load Balancer for vRealize component failover
+
+        .DESCRIPTION
+        Creates a new loadbalancer in a secondary VMware Cloud Foundation instance by duplicating the settings of the existing load balancer in the instance where the vRealize components are currently running
+
+        .EXAMPLE
+        Copy-vRealizeLoadBalancer -sddcManagerAFQDN sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPassword VMw@re1! -sddcManagerBFQDN lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPassword VMw@re1! -serviceInterfaceIP 192.168.11.3 -wsaCertName xint-wsa01
+        This example copies settings from Load Balancer in SDDC A to a new Load Balancer in SDDC B
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerAPassword,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerBPassword,
+        [Parameter (Mandatory = $true)] [String]$serviceInterfaceIp,
+        [Parameter (Mandatory = $true)] [String]$wsaCertName
+    )
+
+    Try {
+        # Setup Parameters
+        $t1Name = "recovery-t1-gw01"
+        $siName = "recovery-t1-gw01-si01"
+        $lbName = "recovery-lb01"
+
+        #Retrieve Edge Cluster Details from SDDC Manager B
+        Request-VCFToken -fqdn $sddcManagerBFqdn -Username $sddcManagerBUser -Password $sddcManagerBPassword | Out-Null
+        $mgmtNsxtClusterID = (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "Management"}).nsxtCluster.id
+        $edgeClusterName = (Get-VCFEdgeCluster | Where-Object {$_.nsxtCluster.id -eq $mgmtNsxtClusterID}).Name
+        
+        #Retrieve Segment, WSA, VRA and vROPS  Details from SDDC Manager A
+        Request-VCFToken -fqdn $sddcManagerAFqdn -Username $sddcManagerAUser -Password $sddcManagerAPassword | Out-Null
+        $xintSegmentDetails = Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}
+        $wsaDetailsObject = Get-WSAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
+        $vraDetailsObject = Get-vRAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
+        $vropsDetailsObject = Get-vROPsServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
+
+        #Add Cert to NSX
+        $nsxManager = Get-NsxtServerDetail -fqdn $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPassword -domainType MANAGEMENT
+        Request-NsxToken -fqdn $nsxManager.fqdn -username $nsxManager.adminUser -password $nsxManager.adminPass | Out-Null
+
+        #Get xint segment ID from NSX LM on recovery site
+        $segmentID = Get-NsxtGlobalSegmentID -segmentName $xintSegmentDetails.name
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+    
+    Try {
+        if ((!$edgeClusterName) -OR (!$xintSegmentDetails) -OR (!$wsaDetailsObject) -OR ((!$vraDetailsObject) -AND (!$vropsDetailsObject))) {
+            Write-Output "Requirements for Copying Load Balancer not Met".
+            if (!$wsaDetailsObject) {Write-Output "Clustered Workspace ONE Access was not discovered in the source SDDC Manager instance"}
+            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) {Write-Output "Neither vRealize Automation nor vRealize Operations Manager was discovered in the source SDDC Manager instance"}
+            if (!$xintSegmentDetails) {Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance"}
+            if (!$edgeClusterName) {Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance"}
+        }
+        else {    
+            #Create a Load Balancer Spec
+            if (!$vraDetailsObject) {
+                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
+            }
+            elseif (!$vropsDetailsObject) {
+                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
+            }
+            else {
+                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
+            }
+
+            $wsaCertPresent = Add-CertToNsxCertificateStore -certName $wsaCertName
+        
+            if ($wsaCertPresent -eq $true) {
+                $ConfigJson = $lbCustomObject.t1_spec.gw | ConvertTo-Json
+                New-NsxtTier1 -tier1Gateway $t1Name -json $ConfigJson
+                $edgeClusterID = (Get-NsxtEdgeCluster -name $edgeClusterName).id
+                $ConfigJson = '{"edge_cluster_path": "/infra/sites/default/enforcement-points/default/edge-clusters/' + $edgeClusterID + '"}'
+                Set-NsxtTier1 -tier1Gateway $t1name -json $ConfigJson
+                $ConfigJson = '{
+                    "segment_path": "'+ $lbCustomObject.t1_spec.service_interface.segment_path + '",
+                    "subnets": [
+                    {
+                        "ip_addresses": [ "'+ $lbCustomObject.t1_spec.service_interface.subnets.ip_addresses + '" ],
+                        "prefix_len": "'+ $lbCustomObject.t1_spec.service_interface.subnets.prefix_len + '"
+                    }
+                    ]
+                    }'
+                New-NsxtTier1ServiceInterface -tier1Gateway $t1name -interfaceId $lbCustomObject.t1_spec.service_interface.id -json $ConfigJson
+                $ConfigJson = '{
+                    "network": "'+ $lbCustomObject.t1_spec.static_routes.network + '",
+                    "next_hops": [
+                        {
+                            "ip_address": "'+ $lbCustomObject.t1_spec.static_routes.next_hops.ip_address + '",
+                            "admin_distance": '+ $lbCustomObject.t1_spec.static_routes.next_hops.admin_distance + ',
+                            "scope": [
+                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope +'"                    
+                            ]
+                        }
+                    ],
+                    "display_name": "'+ $lbCustomObject.t1_spec.static_routes.display_name + '"
+                    }'
+                New-NsxtTier1StaticRoute -tier1Gateway $t1name -segment $xintSegmentDetails.name -json $ConfigJson
+                $ConfigJson = $lbCustomObject.lb_spec.lb_service | ConvertTo-Json
+                New-NsxtLoadBalancer -lbName $lbName -json $ConfigJson
+                Foreach ($monitor in $lbCustomObject.lb_spec.service_monitors) {
+                    Try {
+                        $ConfigJson = $monitor | ConvertTo-Json -Depth 10
+                        New-NsxtLBServiceMonitor -monitorName $monitor.display_name -json $ConfigJson
+                    }
+                    Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($profile in $lbCustomObject.lb_spec.app_profiles) {
+                    Try {
+                        $ConfigJson = $profile | ConvertTo-Json
+                        New-NsxtLBAppProfile -appProfileName $profile.display_name -json $ConfigJson
+                    }
+                    Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($profile in $lbCustomObject.lb_spec.persistence_profiles) {
+                    Try {
+                        $ConfigJson = $profile | ConvertTo-Json
+                        New-NsxtLBPersistenceAppProfile -appProfileName $profile.display_name -json $ConfigJson
+                    }
+                    Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($pool in $lbCustomObject.lb_spec.pools) {
+                    Try {
+                        $ConfigJson = $pool | ConvertTo-Json
+                        New-NsxtLBPool -poolName $pool.display_name -json $ConfigJson
+                    }
+                    Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($virtualServer in $lbCustomObject.lb_spec.virtual_Servers) {
+                    Try {
+                        $ConfigJson = $virtualServer | ConvertTo-Json -Depth 10
+                        New-NsxtLBVirtualServer -virtualServerName $virtualServer.display_name -json $ConfigJson
+                    }
+                    Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+            }
+            else {
+                Write-Error "Aborting remainder of NSX-T Load Balancer configuration until certificate files present"
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Copy-vRealizeLoadBalancer
+
+Function New-vRealizeLoadBalancerSpec
+{
+    Param (
+        [Parameter (Mandatory = $true)] [Array]$xintSegmentDetails,
+        [Parameter (Mandatory = $true)] [Array]$serviceInterfaceIp,
+        [Parameter (Mandatory = $true)] [Array]$wsaDetailsObject,
+        [Parameter (Mandatory = $false)] [Array]$vraDetailsObject,
+        [Parameter (Mandatory = $false)] [Array]$vropsDetailsObject,
+        [Parameter (Mandatory = $true)] [String]$wsaCertName,
+        [Parameter (Mandatory = $true)] [String]$t1Name,
+        [Parameter (Mandatory = $true)] [String]$lbName,
+        [Parameter (Mandatory = $true)] [String]$siName,
+        [Parameter (Mandatory = $true)] [String]$segmentID
+    )
+
+    $xintSegmentName = $xintSegmentDetails.name
+    $xintSegmentServiceInterfacePrefixLength = cidrMaskLookup -source mask -value $xintSegmentDetails.subnetMask
+    $xintSegmentNextHopIP = $xintSegmentDetails.gateway
+
+    $xintWsaVip = $wsaDetailsObject.loadBalancerIpAddress
+    $xintWsaNode1Ip = $wsaDetailsObject.node1IpAddress
+    $xintWsaNode2Ip = $wsaDetailsObject.node2IpAddress
+    $xintWsaNode3Ip = $wsaDetailsObject.node3IpAddress
+    $xintWsaNode1Name = $wsaDetailsObject.fqdn[0].split(".")[0]
+    $xintWsaNode2Name = $wsaDetailsObject.fqdn[1].split(".")[0]
+    $xintWsaNode3Name = $wsaDetailsObject.fqdn[2].split(".")[0]
+
+    If ($vropsDetailsObject)
+    {
+        $xintVropsVip = $vropsDetailsObject.loadBalancerIpAddress
+        $xintVropsNode1Ip = $vropsDetailsObject.node1IpAddress
+        $xintVropsNode2Ip = $vropsDetailsObject.node2IpAddress
+        $xintVropsNode3Ip = $vropsDetailsObject.node3IpAddress
+        $xintVropsNode1Name = $vropsDetailsObject.fqdn[0].split(".")[0]
+        $xintVropsNode2Name = $vropsDetailsObject.fqdn[1].split(".")[0]
+        $xintVropsNode3Name = $vropsDetailsObject.fqdn[2].split(".")[0]    
+    }
+
+    If ($vraDetailsObject)
+    {
+        $xintVraVip = $vraDetailsObject.loadBalancerIpAddress
+        $xintVraNode1Ip = $vraDetailsObject.node1IpAddress
+        $xintVraNode2Ip = $vraDetailsObject.node2IpAddress
+        $xintVraNode3Ip = $vraDetailsObject.node3IpAddress
+        $xintVraNode1Name = $vraDetailsObject.fqdn[0].split(".")[0]
+        $xintVraNode2Name = $vraDetailsObject.fqdn[1].split(".")[0]
+        $xintVraNode3Name = $vraDetailsObject.fqdn[2].split(".")[0]   
+    }
+
+    $lbJson += '{'
+    $lbJson += '"t1_spec":{'
+        $lbJson += '"gw":{'
+            $lbJson += '"resource_type": "Tier1",'
+            $lbJson += '"id": "<!--REPLACE WITH T1NAME-->",'
+            $lbJson += '"force_whitelisting": false,'
+            $lbJson += '"tier0_path": ""'
+        $lbJson += '},'
+        $lbJson += '"service_interface":{'
+            $lbJson += '"segment_path": "/global-infra/segments/<!--REPLACE WITH SEGMENTID-->",'
+            $lbJson += '"id": "<!--REPLACE WITH siName-->",'
+            $lbJson += '"overridden": false,'
+            $lbJson += '"subnets": ['
+            $lbJson += '{'
+            $lbJson += '"ip_addresses": ['
+            $lbJson += '"<!--REPLACE WITH SI IP-->"'
+            $lbJson += '],'
+            $lbJson += '"prefix_len": <!--REPLACE WITH SI PREFIX-->'
+            $lbJson += '}'
+            $lbJson += ']'
+        $lbJson += '},'
+        $lbJson += '"static_routes":{'
+            $lbJson += '"network": "0.0.0.0/0",'
+            $lbJson += '"next_hops": ['
+                $lbJson += '{'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH NEXT HOP IP-->",'
+                    $lbJson += '"admin_distance": 1,'
+                    $lbJson += '"scope": ['
+                        $lbJson += '"/infra/tier-1s/<!--REPLACE WITH T1NAME-->/locale-services/default/interfaces/<!--REPLACE WITH siName-->"'
+                    $lbJson += ']           '
+                $lbJson += '}'
+            $lbJson += '],'
+            $lbJson += '"display_name": "default"'
+        $lbJson += '}'
+    $lbJson += '},'
+        $lbJson += '"lb_spec": {'
+            $lbJson += '"lb_service": ['
+                $lbJson += '{'
+                    $lbJson += '"display_name": "<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"resource_type": "LBService",'
+                    $lbJson += '"enabled": true,'
+                    $lbJson += '"size": "SMALL",'
+                    $lbJson += '"connectivity_path":""'
+                $lbJson += '}'
+            $lbJson += '],'
+            $lbJson += '"service_monitors": ['
+            If ($vropsDetailsObject)
+                {
+                    $lbJson += '{'
+                        $lbJson += '"display_name": "vrops-https-monitor",'
+                        $lbJson += '"description": "vRealize Operations Manager HTTPS Monitor",'
+                        $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
+                        $lbJson += '"monitor_port": "443",'
+                        $lbJson += '"interval": "5",'
+                        $lbJson += '"fall_count": "3",'
+                        $lbJson += '"rise_count": "3",'
+                        $lbJson += '"timeout": "16",'
+                        $lbJson += '"request_method": "GET",'
+                        $lbJson += '"request_url": "/suite-api/api/deployment/node/status?services=api&services=adminui&services=ui",'
+                        $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+                        $lbJson += '"response_status_codes": ['
+                            $lbJson += '"200","204","301"'
+                        $lbJson += '],'
+                        $lbJson += '"response_body": "ONLINE",'
+                        $lbJson += '"server_ssl_profile_binding": {'
+                            $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
+                        $lbJson += '}'
+                    $lbJson += '},'
+                }
+                If ($vraDetailsObject)
+                {
+                    $lbJson += '{'
+                        $lbJson += '"display_name": "vra-http-monitor",'
+                        $lbJson += '"description": "vRealize Automation HTTP Monitor",'
+                        $lbJson += '"resource_type": "LBHttpMonitorProfile",'
+                        $lbJson += '"monitor_port": "8008",'
+                        $lbJson += '"interval": "3",'
+                        $lbJson += '"fall_count": "3",'
+                        $lbJson += '"rise_count": "3",'
+                        $lbJson += '"timeout": "10",'
+                        $lbJson += '"request_method": "GET",'
+                        $lbJson += '"request_url": "/health",'
+                        $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+                        $lbJson += '"response_status_codes": ['
+                            $lbJson += '"200"'
+                        $lbJson += '],'
+                        $lbJson += '"response_body": ""'
+                    $lbJson += '},'
+                }
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-https-monitor",'
+                    $lbJson += '"description": "Clustered Workspace ONE Access HTTPS Monitor",'
+                    $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
+                    $lbJson += '"monitor_port": "443",'
+                    $lbJson += '"interval": "3",'
+                    $lbJson += '"fall_count": "3",'
+                    $lbJson += '"rise_count": "3",'
+                    $lbJson += '"timeout": "10",'
+                    $lbJson += '"request_method": "GET",'
+                    $lbJson += '"request_url": "/SAAS/API/1.0/REST/system/health/heartbeat",'
+                    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+                    $lbJson += '"response_status_codes": ['
+                        $lbJson += '"200","201"'
+                    $lbJson += '],'
+                    $lbJson += '"response_body": "ok",'
+                    $lbJson += '"server_ssl_profile_binding": {'
+                        $lbJson += '"client_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
+                        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
+                    $lbJson += '}'
+                $lbJson += '}'
+            $lbJson += '],'
+            $lbJson += '"app_profiles": ['
+            If ($vropsDetailsObject)
+            {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-http-app-profile-redirect",'
+                    $lbJson += '"description": "Cross-Instance vRealize Operations Manager redirect HTTP to HTTPs",'
+                    $lbJson += '"resource_type": "LBHttpProfile",'
+                    $lbJson += '"idle_timeout": "1800",'
+                    $lbJson += '"request_header_size": "1024",'
+                    $lbJson += '"response_header_size": "4096",'
+                    $lbJson += '"http_redirect_to_https": "True",'
+                    $lbJson += '"response_timeout": "60",'
+                    $lbJson += '"ntlm": "False"'
+                $lbJson += '},'
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-tcp-app-profile",'
+                    $lbJson += '"description": "vRealize Operations Manager TCP App Profile",'
+                    $lbJson += '"resource_type": "LBFastTcpProfile",'
+                    $lbJson += '"idle_timeout": "1800",'
+                    $lbJson += '"ha_flow_mirroring_enabled": "False",'
+                    $lbJson += '"close_timeout": "8"'
+                $lbJson += '},'
+            }
+            If ($vraDetailsObject)
+            {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vra-tcp-app-profile",'
+                    $lbJson += '"description": "vRealize Automation TCP App Profile",'
+                    $lbJson += '"resource_type": "LBFastTcpProfile",'
+                    $lbJson += '"idle_timeout": "1800",'
+                    $lbJson += '"ha_flow_mirroring_enabled": "False",'
+                    $lbJson += '"close_timeout": "8"'
+                $lbJson += '},'
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vra-http-app-profile-redirect",'
+                    $lbJson += '"description": "vRealize Automation Profile to redirect HTTP to HTTPs",'
+                    $lbJson += '"resource_type": "LBHttpProfile",'
+                    $lbJson += '"idle_timeout": "1800",'
+                    $lbJson += '"request_header_size": "1024",'
+                    $lbJson += '"response_header_size": "4096",'
+                    $lbJson += '"http_redirect_to_https": "True",'
+                    $lbJson += '"response_timeout": "60",'
+                    $lbJson += '"ntlm": "False"'
+                $lbJson += '},'
+            }
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-http-app-profile",'
+                    $lbJson += '"description": "Clustered Workspace ONE Access HTTP Redirect",'
+                    $lbJson += '"resource_type": "LBHttpProfile",'
+                    $lbJson += '"idle_timeout": "3600",'
+                    $lbJson += '"x_forwarded_for": "INSERT",'
+                    $lbJson += '"request_header_size": "1024",'
+                    $lbJson += '"response_header_size": "4096",'
+                    $lbJson += '"http_redirect_to_https": "False",'
+                    $lbJson += '"response_timeout": "60",'
+                    $lbJson += '"ntlm": "False"'
+                $lbJson += '},'
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-http-app-profile-redirect",'
+                    $lbJson += '"description": "Clustered Workspace ONE Access redirect HTTP to HTTPs",'
+                    $lbJson += '"resource_type": "LBHttpProfile",'
+                    $lbJson += '"idle_timeout": "3600",'
+                    $lbJson += '"request_header_size": "1024",'
+                    $lbJson += '"response_header_size": "4096",'
+                    $lbJson += '"http_redirect_to_https": "True",'
+                    $lbJson += '"response_timeout": "60",'
+                    $lbJson += '"ntlm": "False"'
+                $lbJson += '}'
+            $lbJson += '],'
+            $lbJson += '"persistence_profiles": ['
+            If ($vropsDetailsObject)
+            {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-source-ip-persistence-profile",'
+                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster Source IP Persistence Profile",'
+                    $lbJson += '"resource_type": "LBSourceIpPersistenceProfile",'
+                    $lbJson += '"persistence_shared": "False",'
+                    $lbJson += '"purge": "FULL",'
+                    $lbJson += '"ha_persistence_mirroring_enabled": "False"'
+                $lbJson += '},'
+            }
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-cookie-persistence-profile",'
+                    $lbJson += '"description": "Cookie Persistence Profile",'
+                    $lbJson += '"resource_type": "LBCookiePersistenceProfile",'
+                    $lbJson += '"persistence_shared": "False",'
+                    $lbJson += '"cookie_mode": "REWRITE",'
+                    $lbJson += '"cookie_name": "JSESSIONID",'
+                    $lbJson += '"cookie_fallback": "True",'
+                    $lbJson += '"cookie_garble": "True"'
+                $lbJson += '}'
+            $lbJson += '],'
+            $lbJson += '"pools": ['
+            If ($vropsDetailsObject)
+            {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-server-pool",'
+                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster Server Pool",'
+                    $lbJson += '"algorithm": "LEAST_CONNECTION",'
+                    $lbJson += '"active_monitor_paths": ['
+                        $lbJson += '"/infra/lb-monitor-profiles/vrops-https-monitor"'
+                    $lbJson += '],'
+                    $lbJson += '"snat_translation": {'
+                        $lbJson += '"type": "LBSnatAutoMap"'
+                    $lbJson += '},'
+                    $lbJson += '"members": ['
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 1 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 1 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '},'
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 2 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 2 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '},'
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 3 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 3 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '}'
+                    $lbJson += ']'
+                $lbJson += '},'
+            }
+            If ($vraDetailsObject)
+            {    
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vra-server-pool",'
+                    $lbJson += '"description": "vRealize Automation Cluster Pool",'
+                    $lbJson += '"algorithm": "LEAST_CONNECTION",'
+                    $lbJson += '"active_monitor_paths": ['
+                        $lbJson += '"/infra/lb-monitor-profiles/vra-http-monitor"'
+                        $lbJson += '],'
+                    $lbJson += '"snat_translation": {'
+                        $lbJson += '"type": "LBSnatAutoMap"'
+                    $lbJson += '},'
+                    $lbJson += '"members": ['
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 1 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 1 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '},'
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 2 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 2 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '},'
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 3 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 3 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '}'
+                    $lbJson += ']'
+                $lbJson += '},'
+            }
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-server-pool",'
+                    $lbJson += '"description": "Clustered Workspace ONE Access Server Pool",'
+                    $lbJson += '"algorithm": "LEAST_CONNECTION",'
+                    $lbJson += '"active_monitor_paths": ['
+                        $lbJson += '"/infra/lb-monitor-profiles/wsa-https-monitor"'
+                    $lbJson += '],'
+                    $lbJson += '"snat_translation": {'
+                        $lbJson += '"type": "LBSnatAutoMap"'
+                    $lbJson += '},'
+                    $lbJson += '"members": ['
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 1 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 1 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '},'
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 2 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 2 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '},'
+                        $lbJson += '{'
+                            $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 3 NAME-->",'
+                            $lbJson += '"backup_member": "false",'
+                            $lbJson += '"weight": 1,'
+                            $lbJson += '"admin_state": "ENABLED",'
+                            $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 3 IP-->",'
+                            $lbJson += '"port": "443"'
+                        $lbJson += '}'
+                    $lbJson += ']'
+                $lbJson += '}'
+            $lbJson += '],'
+            $lbJson += '"virtual_servers": ['
+            If ($vropsDetailsObject)
+            {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-https",'
+                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster UI",'
+                    $lbJson += '"resource_type": "LBVirtualServer",'
+                    $lbJson += '"enabled": "true",'
+                    $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/vrops-source-ip-persistence-profile",'
+                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-tcp-app-profile",'
+                    $lbJson += '"pool_path": "/infra/lb-pools/vrops-server-pool",'
+                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH VROPS VIP-->",'
+                    $lbJson += '"ports": ['
+                        $lbJson += '"443"'
+                    $lbJson += ']'
+                $lbJson += '},'
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-http-redirect",'
+                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster HTTP to HTTPS Redirect",'
+                    $lbJson += '"resource_type": "LBVirtualServer",'
+                    $lbJson += '"enabled": "true",'
+                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-http-app-profile-redirect",'
+                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH VROPS VIP-->",'
+                    $lbJson += '"ports": ['
+                        $lbJson += '"80"'
+                    $lbJson += ']'
+                $lbJson += '},'
+            }
+            If ($vraDetailsObject)
+            {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vra-https",'
+                    $lbJson += '"description": "vRealize Automation Cluster UI",'
+                    $lbJson += '"resource_type": "LBVirtualServer",'
+                    $lbJson += '"enabled": "true",'
+                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-tcp-app-profile",'
+                    $lbJson += '"pool_path": "/infra/lb-pools/vra-server-pool",'
+                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH VRA VIP-->",'
+                    $lbJson += '"ports": ['
+                        $lbJson += '"443"'
+                    $lbJson += ']'
+                $lbJson += '},'
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vra-http-redirect",'
+                    $lbJson += '"description": "vRealize Automation HTTP to HTTPS Redirect",'
+                    $lbJson += '"resource_type": "LBVirtualServer",'
+                    $lbJson += '"enabled": "true",'
+                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-http-app-profile-redirect",'
+                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH VRA VIP-->",'
+                    $lbJson += '"ports": ['
+                        $lbJson += '"80"'
+                    $lbJson += ']'
+                $lbJson += '},'
+            }
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-https",'
+                    $lbJson += '"description": "Clustered Workspace ONE Access Cluster UI",'
+                    $lbJson += '"resource_type": "LBVirtualServer",'
+                    $lbJson += '"enabled": "true",'
+                    $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/wsa-cookie-persistence-profile",'
+                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/wsa-http-app-profile",'
+                    $lbJson += '"pool_path": "/infra/lb-pools/wsa-server-pool",'
+                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH WSA VIP-->",'
+                    $lbJson += '"ports": ['
+                        $lbJson += '"443"'
+                    $lbJson += '],'
+                    $lbJson += '"client_ssl_profile_binding": {'
+                        $lbJson += '"default_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
+                        $lbJson += '"ssl_profile_path": "/infra/lb-client-ssl-profiles/default-balanced-client-ssl-profile"'
+                    $lbJson += '},'
+                    $lbJson += '"server_ssl_profile_binding": {'
+                        $lbJson += '"client_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
+                        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
+                    $lbJson += '},'
+                    $lbJson += '"rules": ['
+                        $lbJson += '{'
+                            $lbJson += '"match_strategy": "ALL",'
+                            $lbJson += '"phase": "HTTP_REQUEST_REWRITE",'
+                            $lbJson += '"actions": ['
+                                $lbJson += '{'
+                                    $lbJson += '"type": "LBHttpRequestHeaderRewriteAction",'
+                                    $lbJson += '"header_name": "Remoteport",'
+                                    $lbJson += '"header_value": "$_remote_port"'
+                                $lbJson += '}'
+                            $lbJson += ']'
+                        $lbJson += '}'
+                    $lbJson += ']'
+                $lbJson += '},'
+                $lbJson += '{'
+                    $lbJson += '"display_name": "wsa-http-redirect",'
+                    $lbJson += '"description": "Clustered Workspace ONE Access Cluster HTTP to HTTPS Redirect",'
+                    $lbJson += '"resource_type": "LBVirtualServer",'
+                    $lbJson += '"enabled": "true",'
+                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/wsa-http-app-profile-redirect",'
+                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+                    $lbJson += '"ip_address": "<!--REPLACE WITH WSA VIP-->",'
+                    $lbJson += '"ports": ['
+                        $lbJson += '"80"'
+                    $lbJson += ']'
+                $lbJson += '}'
+            $lbJson += ']'
+        $lbJson += '}'
+    $lbJson += '}'
+
+    $lbJson = $lbJson | ForEach-Object { $_ `
+            -replace '<!--REPLACE WITH T1NAME-->', $t1Name `
+            -replace '<!--REPLACE WITH xintSegmentName-->', $xintSegmentName `
+            -replace '<!--REPLACE WITH SEGMENTID-->', $segmentID `
+            -replace '<!--REPLACE WITH siName-->', $siName `
+            -replace '<!--REPLACE WITH SI IP-->', $serviceInterfaceIp `
+            -replace '<!--REPLACE WITH XREGION CIDR-->', $xintionVXLAN `
+            -replace '<!--REPLACE WITH NEXT HOP IP-->', $xintSegmentNextHopIP `
+            -replace '<!--REPLACE WITH SI PREFIX-->', $xintSegmentServiceInterfacePrefixLength `
+            -replace '<!--REPLACE WITH LB NAME-->', $lbName `
+            -replace '<!--REPLACE WITH XREG WSA CERT-->', $wsaCertName `
+            -replace '<!--REPLACE WITH WSA NODE 1 NAME-->', $xintWsaNode1Name `
+            -replace '<!--REPLACE WITH WSA NODE 2 NAME-->', $xintWsaNode2Name `
+            -replace '<!--REPLACE WITH WSA NODE 3 NAME-->', $xintWsaNode3Name `
+            -replace '<!--REPLACE WITH WSA NODE 1 IP-->', $xintWsaNode1IP `
+            -replace '<!--REPLACE WITH WSA NODE 2 IP-->', $xintWsaNode2IP `
+            -replace '<!--REPLACE WITH WSA NODE 3 IP-->', $xintWsaNode3IP `
+            -replace '<!--REPLACE WITH VROPS NODE 1 NAME-->', $xintVropsNode1Name `
+            -replace '<!--REPLACE WITH VROPS NODE 2 NAME-->', $xintVropsNode2Name `
+            -replace '<!--REPLACE WITH VROPS NODE 3 NAME-->', $xintVropsNode3Name `
+            -replace '<!--REPLACE WITH VROPS NODE 1 IP-->', $xintVropsNode1Ip `
+            -replace '<!--REPLACE WITH VROPS NODE 2 IP-->', $xintVropsNode2Ip `
+            -replace '<!--REPLACE WITH VROPS NODE 3 IP-->', $xintVropsNode3Ip `
+            -replace '<!--REPLACE WITH VRA NODE 1 NAME-->', $xintVraNode1Name `
+            -replace '<!--REPLACE WITH VRA NODE 2 NAME-->', $xintVraNode2Name `
+            -replace '<!--REPLACE WITH VRA NODE 3 NAME-->', $xintVraNode3Name `
+            -replace '<!--REPLACE WITH VRA NODE 1 IP-->', $xintVraNode1Ip `
+            -replace '<!--REPLACE WITH VRA NODE 2 IP-->', $xintVraNode2Ip `
+            -replace '<!--REPLACE WITH VRA NODE 3 IP-->', $xintVraNode3Ip `
+            -replace '<!--REPLACE WITH WSA VIP-->', $xintWsaVip `
+            -replace '<!--REPLACE WITH VROPS VIP-->', $xintVropsVip `
+            -replace '<!--REPLACE WITH VRA VIP-->', $xintVraVip `
+    }
+    $lbCustomObject = $lbJson | ConvertFrom-Json
+    Return $lbCustomObject
+}
+Export-ModuleMember -Function New-vRealizeLoadBalancerSpec
+
+Function Get-NsxtGlobalSegmentID
+{
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$segmentName
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/global-infra/segments/"
+
+        $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+        $segmentObjectId = ($response.results | where-object {$_.display_name -eq $segmentName}).id
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+    Return $segmentObjectId
+}
+Export-ModuleMember -Function Get-NsxtGlobalSegmentID
+
+Function Add-CertToNsxCertificateStore 
+{
+    Param (
+        [Parameter (Mandatory = $true)] [String]$certName 
+    )
+
+    Try {
+        $pemFile = Get-ExternalFileName -title "Select the Certificate Chain PEM File for Clustered WSA (.pem)" -fileType "pem" -location "default"
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+    Try {
+        $keyFile = Get-ExternalFileName -title "Select the Key File for Clustered WSA (.key)" -fileType "key" -location "default"
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+    
+    $certAlreadyImported = ""
+    
+    #check for existing certificate
+    Try {
+        $certAlreadyImported = Get-NsxtCertificate -certificateName $certName -ErrorAction SilentlyContinue
+    }
+    Catch {
+        $certAlreadyImported = $false
+    }
+    
+    # report on existing cert or install new cert
+    if ($certAlreadyImported) {
+        $wsaCertPresent = $true
+    }
+    else {
+            $pemContent = (Get-Content $pemFile) -join "\n"
+            $keyContent = (Get-Content $keyFile) -join "\n"
+            $body = 
+            '{
+              "pem_encoded": "<!--REPLACE WITH PEM DATA-->",
+              "private_key": "<!--REPLACE WITH KEY DATA-->" 
+            }
+            '
+            $body = $body | ForEach-Object { $_ `
+                    -replace '<!--REPLACE WITH PEM DATA-->', $pemContent `
+                    -replace '<!--REPLACE WITH KEY DATA-->', $keyContent `
+            }
+            Try {
+                Set-NsxtCertificate -certificateName $certName -json $body
+                $wsaCertPresent = $true
+            }
+            Catch {
+                Debug-ExceptionWriter -object $_
+            }   
+    }
+    Return $wsaCertPresent
+}
+Export-ModuleMember -Function Add-CertToNsxCertificateStore
+
+Function Get-NsxtEdgeCluster
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Gets NSX-T Edge Cluster Id
+    
+        .DESCRIPTION
+        The Get-NsxtEdgeCluster cmdlet gets the Edge Cluster Id
+    
+        .EXAMPLE
+        PS C:\> Get-NsxtEdgeCluster
+        This example creates a new Route Map on a Tier 0 Gateway
+    #>
+
+    Try {
+        $uri = "https://$nsxtmanager/api/v1/edge-clusters"
+        $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+        $response.results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtEdgeCluster
+
+Function New-NsxtTier1
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Tier 1 Gateway
+    
+        .DESCRIPTION
+        The New-NsxtTier1 cmdlet creates a Teir 1 Gateway
+    
+        .EXAMPLE
+        PS C:\> New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
+        This example creates a new Tier 1 Gateway
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)]
+            [ValidateNotNullOrEmpty()]
+            [string]$tier1Gateway,
+        [Parameter (Mandatory=$true)]
+            [ValidateNotNullOrEmpty()]
+            [string]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtTier1
+
+Function Set-NsxtTier1
+{
+        <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Configures Tier 1 Gateway
+    
+        .DESCRIPTION
+        The Set-NsxtTier1 cmdlet configures a Tier 1 Gateway
+    
+        .EXAMPLE
+        PS C:\> Set-NsxtTier1 -tier1Gateway -json
+        This example sets the configuration on a Tier 1 Gateway
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+      
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/locale-services/default"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtTier1
+
+Function New-NsxtTier1ServiceInterface 
+{
+       <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates Service Interface on Tier 1 Gateway
+    
+        .DESCRIPTION
+        The New-NsxtTier1ServiceInterface cmdlet configures a Service Interface on Tier 1 Gateway
+    
+        .EXAMPLE
+        PS C:\> New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
+        This example configures a Service Interface on a Tier 1 Gateway
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)]
+            [String]$interfaceId,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/locale-services/default/interfaces/$($interfaceId)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtTier1ServiceInterface
+
+Function New-NsxtTier1StaticRoute 
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates Static Route on Tier 1 Gateway
+    
+        .DESCRIPTION
+        The New-New-NsxtTier1StaticRoute cmdlet creates a static route on Tier 1 Gateway
+    
+        .EXAMPLE
+        PS C:\> New-NsxtTier1StaticRoute -tier1Gateway -segment -json
+        This example configures a Service Interface on a Tier 1 Gateway
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)]
+            [String]$segment,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/static-routes/$($segment)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtTier1StaticRoute
+
+Function New-NsxtLoadBalancer 
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Load Balancer 
+    
+        .DESCRIPTION
+        The New-NsxtLoadBalancer cmdlet creates a load balancer 
+    
+        .EXAMPLE
+        PS C:\> New-NsxtLoadBalancer -lbName -json
+        This example creates a load balancer
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$lbName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-services/$($lbName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLoadBalancer
+
+Function New-NsxtLBServiceMonitor 
+{ 
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Load Balancer Service Monitor
+    
+        .DESCRIPTION
+        The New-NsxtLBServiceMonitor cmdlet creates a Load Balancer Service Monitor
+    
+        .EXAMPLE
+        PS C:\> New-NsxtLBServiceMonitor -monitorName -json
+        This example creates a Load Balancer Serviec Monitor
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$monitorName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-monitor-profiles/$($monitorName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLBServiceMonitor
+
+Function New-NsxtLBAppProfile 
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Load Balancer Application Profile
+    
+        .DESCRIPTION
+        The New-NsxtLBAppProfile cmdlet creates a Load Balancer Application Profile
+    
+        .EXAMPLE
+        PS C:\> New-NsxtLBAppProfile -appProfileName -json
+        This example creates a Load Balancer Application Profile
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$appProfileName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+    
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-app-profiles/$($appProfileName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLBAppProfile
+
+Function New-NsxtLBPersistenceAppProfile 
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Load Balancer Persistence Application Profile
+    
+        .DESCRIPTION
+        The New-NsxtLBPersistenceAppProfile cmdlet creates a Load Balancer Persistence Application Profile
+    
+        .EXAMPLE
+        PS C:\> New-NsxtLBPersistenceAppProfile -appProfileName -json
+        This example creates a Load Balancer Persistence Application Profile
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$appProfileName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+    
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-persistence-profiles/$($appProfileName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLBPersistenceAppProfile
+
+Function New-NsxtLBPool 
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Load Balancer Pool
+    
+        .DESCRIPTION
+        The New-NsxtLBPool cmdlet creates a Load Balancer Pool
+    
+        .EXAMPLE
+        PS C:\> New-NsxtLBPool -poolName -json
+        This example creates a Load Balancer Pool
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$poolName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-pools/$($poolName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLBPool
+
+Function New-NsxtLBVirtualServer 
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Creates a Load Balancer Virtual Server
+    
+        .DESCRIPTION
+        The New-NsxtLBVirtualServer cmdlet creates a Load Balancer Virtual Server
+    
+        .EXAMPLE
+        PS C:\> New-NsxtLBVirtualServer -virtualServerName -json
+        This example creates a Load Balancer Virtual Server
+    #>
+    Param (
+        [Parameter (Mandatory=$true)]
+            [String]$virtualServerName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    ) 
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-virtual-servers/$($virtualServerName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLBVirtualServer
+
+Function Get-NsxtCertificate
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Gets NSX-T Certificates
+    
+        .DESCRIPTION
+        The Get-NsxtCertificates cmdlet gets certificates installed in NSX-T
+    
+        .EXAMPLE
+        PS C:\> Get-NsxtCertificates
+        This example gets the certificates installed in NSX-T
+    #>
+
+    Param (
+        [Parameter (Mandatory=$false)]
+            [ValidateNotNullOrEmpty()]
+            [string]$certificateName
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("certificateName")) {
+            $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates"
+            $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+            $response.results
+        }
+        elseif ($PsBoundParameters.ContainsKey("certificateName")) {
+            $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates/$($certificateName)"
+            $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtCertificate
+
+Function Set-NsxtCertificate
+{
+    <#
+        .NOTES
+        ===========================================================================
+        Created by:		Gary Blake
+        Date:			03/08/2020
+        Organization:	VMware
+        ===========================================================================
+        
+        .SYNOPSIS
+        Installs a Certificate in NSX-T
+    
+        .DESCRIPTION
+        The Set-NsxtCertificates cmdlet installs certificates in NSX-T
+    
+        .EXAMPLE
+        PS C:\> Set-NsxtCertificates
+        This example installs the certificates in NSX-T
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)]
+            [ValidateNotNullOrEmpty()]
+            [string]$certificateName,
+        [Parameter (Mandatory=$true)]
+            [String]$json
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates/$($certificateName)"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtCertificate
+
 ##################  End NSX-T Functions #######################
 ###############################################################
 
@@ -7530,14 +9770,14 @@ Export-ModuleMember -Function Get-vRSLCMLockerPassword
 Function Add-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Creates a new Password in a password Store
+        Creates a new Password in a Locker
 
         .DESCRIPTION
         The Add-vRSLCMLockerPassword cmdlet add as new passwords to the Locker
 
         .EXAMPLE
         Add-vRSLCMLockerPassword -userName admin -alias xint-admin -password VMw@re1! -description "Password for Cross-Instance Admin"
-        This example gets all passwords NSX-T Manager
+        This example adda a password to the locker
     #>
 
     Param (
@@ -7549,12 +9789,23 @@ Function Add-vRSLCMLockerPassword {
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords"
-        $body = '{
-            "alias": "'+ $alias +'",
-            "password": "'+ $password +'",
-            "passwordDescription": "'+ $description +'",
-            "userName": "'+ $userName +'"
-        }'
+
+        if ($PsBoundParameters.ContainsKey("description")) {
+            $body = '{
+                "alias": "'+ $alias +'",
+                "password": "'+ $password +'",
+                "passwordDescription": "'+ $description +'",
+                "userName": "'+ $userName +'"
+            }'
+        }
+        else {
+            $body = '{
+                "alias": "'+ $alias +'",
+                "password": "'+ $password +'",
+                "userName": "'+ $userName +'"
+            }'           
+        }
+
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
     }
@@ -7728,6 +9979,116 @@ Function Remove-vRSLCMLockerCertificate {
 }
 Export-ModuleMember -Function Remove-vRSLCMLockerCertificate
 
+Function Get-vRSLCMLockerLicense {
+    <#
+        .SYNOPSIS
+        Get paginated list of License available in the Store
+
+        .DESCRIPTION
+        The Get-vRSLCMLockerPassword cmdlet gets a paginated list of license available in the Locker
+
+        .EXAMPLE
+        Get-vRSLCMLockerLicense
+        This example gets all license in the Locker
+
+        .EXAMPLE
+        Get-vRSLCMLockerLicense -vmid 2b54b028-9eba-4d2f-b6ee-66428ea2b297
+        This example gets the details of a license based on the vmid
+
+        .EXAMPLE
+        Get-vRSLCMLockerLicense -alias "vRealize Operations Manager"
+        This example gets the details of a license based on the alias name
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("vmid")) {
+            $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/licenses/detail/$vmid"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        elseif ($PsBoundParameters.ContainsKey("alias")) {
+            $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/licenses/alias/$alias"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/licenses"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMLockerLicense
+
+Function Add-vRSLCMLockerLicense {
+    <#
+        .SYNOPSIS
+        Creates a new License in a Locker
+
+        .DESCRIPTION
+        The Add-vRSLCMLockerLicense cmdlet adds as new license to the Locker
+
+        .EXAMPLE
+        Add-vRSLCMLockerLicense -alias "vRealise Operations Manager" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+        This example adds a license to the Locker
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$license
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/license/validate-and-add"
+        $body = '{
+            "alias": "'+ $alias +'",
+            "serialKey": "'+ $license +'"
+        }'           
+
+        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMLockerLicense
+
+Function Remove-vRSLCMLockerLicense {
+    <#
+        .SYNOPSIS
+        Delete a License based on vmid
+
+        .DESCRIPTION
+        The Remove-vRSLCMLockerLicense cmdlet deletes a license from the Locker
+
+        .EXAMPLE
+        Remove-vRSLCMLockerLicense -vmid
+        This example delets the license with the vmid
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/locker/api/licenses/$vmid"
+        $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRSLCMLockerLicense
 
 ###################  End vRealize Suite Lifecycle Manager Functions ####################
 ########################################################################################
@@ -7844,6 +10205,69 @@ Function Get-ExternalFileName ($title, $fileType, $location)
     $OpenFileDialog.filename
 }
 
+Function Get-ExternalDirectoryPath {
+    Add-Type -AssemblyName System.Windows.Forms
+    $directory = New-Object System.Windows.Forms.FolderBrowserDialog
+    $null = $directory.ShowDialog()
+    $directoryPath = $directory.SelectedPath
+    $directoryPath
+}
+
+
+Function cidrMaskLookup {
+    Param (
+        [Parameter (Mandatory = $true)][ValidateSet("mask", "cidr")] [String]$source,  
+        [Parameter (Mandatory = $true)] [String]$value
+    )
+
+    $subnetMasks = @(
+        ($32 = @{ cidr = "32"; mask = "255.255.255.255" }),
+        ($31 = @{ cidr = "31"; mask = "255.255.255.254" }),
+        ($30 = @{ cidr = "30"; mask = "255.255.255.252" }),
+        ($29 = @{ cidr = "29"; mask = "255.255.255.248" }),
+        ($28 = @{ cidr = "28"; mask = "255.255.255.240" }),
+        ($27 = @{ cidr = "27"; mask = "255.255.255.224" }),
+        ($26 = @{ cidr = "26"; mask = "255.255.255.192" }),
+        ($25 = @{ cidr = "25"; mask = "255.255.255.128" }),
+        ($24 = @{ cidr = "24"; mask = "255.255.255.0" }),
+        ($23 = @{ cidr = "23"; mask = "255.255.254.0" }),
+        ($22 = @{ cidr = "22"; mask = "255.255.252.0" }),
+        ($21 = @{ cidr = "21"; mask = "255.255.248.0" }),
+        ($20 = @{ cidr = "20"; mask = "255.255.240.0" }),
+        ($19 = @{ cidr = "19"; mask = "255.255.224.0" }),
+        ($18 = @{ cidr = "18"; mask = "255.255.192.0" }),
+        ($17 = @{ cidr = "17"; mask = "255.255.128.0" }),
+        ($16 = @{ cidr = "16"; mask = "255.255.0.0" }),
+        ($15 = @{ cidr = "15"; mask = "255.254.0.0" }),
+        ($14 = @{ cidr = "14"; mask = "255.252.0.0" }),
+        ($13 = @{ cidr = "13"; mask = "255.248.0.0" }),
+        ($12 = @{ cidr = "12"; mask = "255.240.0.0" }),
+        ($11 = @{ cidr = "11"; mask = "255.224.0.0" }),
+        ($10 = @{ cidr = "10"; mask = "255.192.0.0" }),
+        ($9 = @{ cidr = "9"; mask = "255.128.0.0" }),
+        ($8 = @{ cidr = "8"; mask = "255.0.0.0" }),
+        ($7 = @{ cidr = "7"; mask = "254.0.0.0" }),
+        ($6 = @{ cidr = "6"; mask = "252.0.0.0" }),
+        ($5 = @{ cidr = "5"; mask = "248.0.0.0" }),
+        ($4 = @{ cidr = "4"; mask = "240.0.0.0" }),
+        ($3 = @{ cidr = "3"; mask = "224.0.0.0" }),
+        ($2 = @{ cidr = "2"; mask = "192.0.0.0" }),
+        ($1 = @{ cidr = "1"; mask = "128.0.0.0" }),
+        ($0 = @{ cidr = "0"; mask = "0.0.0.0" })			
+    )
+    If ($source -eq "Mask")
+    {
+        $found = $subnetMasks | Where-Object { $_.'mask' -eq $value }
+        $returnValue = $found.cidr
+    }
+    else
+    {
+        $found = $subnetMasks | Where-Object { $_.'cidr' -eq $value }
+        $returnValue = $found.mask
+    }   
+    Return $returnValue
+}
+
 ###################  End Utility Functions ####################
 ###############################################################
 
@@ -7958,6 +10382,68 @@ Function createvCenterAuthHeader {
     $vcAuthHeaders.Add("Authorization", "Basic $base64AuthInfo")
     $vcAuthHeaders
 }
+
+Function createVAMIAuthHeader {
+    $VAMIAuthheaders = @{"Content-Type" = "application/json" }
+    $VAMIAuthheaders.Add("dr.config.service.sessionid", "$sessionId")
+    $VAMIAuthheaders
+}
+
+Function Request-VAMISessionId
+{
+    <#
+		.SYNOPSIS
+    	Connects to the specified VAMI interface and requests a session token
+
+    	.DESCRIPTION
+    	The Request-VAMISessionId cmdlet connects to the specified VAMI interface and requests a session token.
+    	It is required once per session before running all other cmdlets
+
+    	.EXAMPLE
+    	PS C:\> Request-VAMISessionId -fqdn sfo-vcf01.sfo.rainpole.io -username root -password VMw@re1!
+        This example shows how to connect to a VAMI interface to request a session token
+  	#>
+
+  	Param (
+    	[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [string]$fqdn,
+		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [string]$username,
+		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [string]$password
+  	)
+
+  	If ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+   		# Request Credentials
+    	$creds = Get-Credential
+    	$username = $creds.UserName.ToString()
+    	$password = $creds.GetNetworkCredential().password
+    }
+
+
+  	    # Validate credentials by executing an API call
+  	    $headers = @{"Content-Type" = "application/json"}
+  	    $uri = "https://"+$fqdn+":5480/configure/requestHandlers/login"
+  	    $body = '{"username": "'+$username+'","password": "'+$password+'"}'
+
+  	    Try {
+    	    # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+    	    if ($PSEdition -eq 'Core') {
+      	    	$response = Invoke-RestMethod -Method POST -Uri $uri -Headers $headers -body $body -SkipCertificateCheck
+      	    	$sessionId = $response.data.sessionId
+    	    }
+    	    else {
+      		    $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $headers -body $body
+      		    $Global:sessionId = $response.data.sessionId
+               
+    	    }
+    	    if ($response.data.sessionId) {
+                #Write-Output "Successfully Requested New VAMI Session Token From: $fqdn"
+                $sessionId
+    	    }
+  	    }
+  	    Catch {
+            Write-Error $_.Exception.Message
+        }
+    }
+Export-ModuleMember -Function Request-VAMISessionId
 
 ########################################################################
 #####################  Start of Unused Functions  ######################
