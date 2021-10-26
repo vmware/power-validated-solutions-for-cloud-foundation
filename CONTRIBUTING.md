@@ -27,7 +27,7 @@ git push origin my-new-feature
 
 ### Staying In Sync With Upstream
 
-When your branch gets out of sync with the vmware/main branch, use the following to update:
+When your branch gets out of sync with the `vmware/main` branch, use the following to update:
 
 ``` shell
 git checkout my-new-feature
@@ -36,7 +36,7 @@ git pull --rebase upstream main
 git push --force-with-lease origin my-new-feature
 ```
 
-### Updating pull requests
+### Updating Pull Requests
 
 If your PR fails to pass CI or needs changes based on code review, you'll most likely want to squash these changes into
 existing commits.
