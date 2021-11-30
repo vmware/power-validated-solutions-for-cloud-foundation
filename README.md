@@ -4,9 +4,9 @@
 
 # PowerValidatedSolutions
 ## Overview
-PowerValidatedSolutions is a PowerShell Module that has been written to explicitly support the automation of various tasks associated with the implementation of Validated Solutions for VMware Cloud Foundation. 
+PowerValidatedSolutions is a PowerShell Module that has been written to explicitly support the automation of various procedures associated with the implementation of Validated Solutions for VMware Cloud Foundation. 
 
-The intent is to expedite the time to deploy for customers by developing cmdlets that remove the complexities associated with performing installation and configuration steps using Public/Private APIs or command line based tooling.
+The intent is to reduce human error, deliver consistency and robustness as well as expedite the time to deploy for customers by developing cmdlets that remove the complexities associated with performing deployment and configuration steps using Public/Private APIs or command line based tooling.
 
 Using the cmdlets developed, we are providing our customers an infrastructure-as-code deployment model allowing them to develop their own in-house end-to-end automation.
 
@@ -17,8 +17,8 @@ If you want to use this Microsoft PowerShell module to perform implementation an
 ```PowerShell
 Install-Module -Name VMware.PowerCLI -MinimumVersion 12.3.0
 Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.1
-Install-Module -Name PowerVCF -MinimumVersion 2.1.3
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.1.0
+Install-Module -Name PowerVCF -MinimumVersion 2.1.7
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.2.0
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.
@@ -27,20 +27,7 @@ To verify the modules are installed, run the following command in the PowerShell
 Get-InstalledModule
 ```
 
-Once installed, you must import the module by running the following commands in the PowerShell console.
-
-```PowerShell
-Import-Module -Name VMware.vSphere.SsoAdmin
-Import-Module -Name PowerVCF
-Import-Module -Name VMware.PowerCLI
-Import-Module -Name PowerValidatedSolutions
-```
-
-To verify that the modules have loaded, run the following command in the PowerShell console.
- 
-```PowerShell
-Get-Module
-```
+Once installed, any new cmdlet associated with PowerValidatedSolutions will be availble for use.
 
 ## Known Issues
 

@@ -117,11 +117,13 @@ Function Add-IdentitySource {
 
     	.DESCRIPTION
     	The Add-IdentitySource cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the vCenter
-        Server and configures is as the default provider. The cmdlet connects to SDDC Manager using the -server, -user,
-        and -password values to retrive the management domain vCenter server details from its inventory and then:
-        - Verifies a connection to the Active Directory domain controller using the -domain and -dcMachineName values
-        - Adds the Active Directory domain as an Identity Provider if not already present
-        - Configures the new domain as the default Identity Provider
+        Server and configures is as the default provider. The cmdlet connects to SDDC Manager using the -server,
+        -user, and -password values to retrive the Management Domain vCenter Server details from from the SDDC Manager
+        inventory and then:
+        - Connects to the Management Domain vCenter Server instance
+        - Verifies a connection to the Active Directory Domain Controller using the -domain and -dcMachineName values
+        - Adds the Active Directory Domain as an Identity Provider if not already present
+        - Configures the new LDAP/LDAPs Identity Provider as the default
 
     	.EXAMPLE
     	Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldap
@@ -166,48 +168,50 @@ Function Add-IdentitySource {
     }
 
     Try {
-        $ssoServer = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        $ssoConnection = Connect-SsoAdminServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass
-        if ($DefaultSsoAdminServers.Name -eq $($ssoServer.fqdn)) {
-            if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
-                Write-Warning "Identity Source $domain already added to vCenter Server $($ssoServer.fqdn)"
-            }
-            else {
-                if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
-                    if ($protocol -eq "ldaps") {
-                        Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass -Certificate $certificate
-                    }
-                    else {
-                        Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
-                    }
-                    if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
-                        Connect-VIServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass | Out-Null
-                        if ($DefaultVIServer.Name -eq $($ssoServer.fqdn)) {
-                            $scriptCommand = '/opt/vmware/bin/sso-config.sh -set_default_identity_sources -i ' + $domain + ''
-                            $output = Invoke-VMScript -VM $ssoServer.vmName -ScriptText $scriptCommand -GuestUser $ssoServer.root -GuestPassword $ssoServer.rootPass
-                        }
-                        else {
-                            Write-Error  "Not connected to vCenter Server $($ssoServer.fqdn)"
-                        }
-                    }
-                    else {
-                        Write-Error  "Adding Identity Source $domain to vCenter Server $($ssoServer.vmName) Failed"
-                        Break
-                    }
-                    $scriptCommand = '/opt/vmware/bin/sso-config.sh -set_default_identity_sources -i ' + $domain + ''
-                    $output = Invoke-VMScript -VM $ssoServer.vmName -ScriptText $scriptCommand -GuestUser $ssoServer.root -GuestPassword $ssoServer.rootPass
-                    Write-Output  "Confirmed adding Identity Source $domain and setting as default to vCenter Server $($ssoServer.fqdn) Successfully"
-                    Disconnect-VIServer -Server $ssoServer.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $ssoServer = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+            $ssoConnection = Connect-SsoAdminServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass
+            if ($DefaultSsoAdminServers.Name -eq $($ssoServer.fqdn)) {
+                if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
+                    Write-Warning "Adding Identity Source to vCenter Server ($($ssoServer.fqdn)) named ($domain), already exists: SKIPPED"
                 }
                 else {
-                    Write-Error  "Domain Controller $dcMachineName is not contactable"
-                    Break
+                    if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
+                        if ($protocol -eq "ldaps") {
+                            Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass -Certificate $certificate
+                        }
+                        else {
+                            Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
+                        }
+                        if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
+                            Connect-VIServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass | Out-Null
+                            if ($DefaultVIServer.Name -eq $($ssoServer.fqdn)) {
+                                $scriptCommand = '/opt/vmware/bin/sso-config.sh -set_default_identity_sources -i ' + $domain + ''
+                                $output = Invoke-VMScript -VM $ssoServer.vmName -ScriptText $scriptCommand -GuestUser $ssoServer.root -GuestPassword $ssoServer.rootPass
+                                Write-Output "Adding Identity Source to vCenter Server ($($ssoServer.fqdn)) named ($domain): SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Unable to connect to vCenter Server ($($ssoServer.fqdn))"
+                            }
+                        }
+                        else {
+                            Write-Error "Adding Identity Source to vCenter Server ($($ssoServer.fqdn)) named ($domain): FAILED"
+                        }
+                        Disconnect-VIServer -Server $ssoServer.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                    }
+                    else {
+                        Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details"
+                    }
                 }
+                Disconnect-SsoAdminServer -Server $ssoServer.fqdn -WarningAction SilentlyContinue
             }
-            Disconnect-SsoAdminServer -Server $ssoServer.fqdn -WarningAction SilentlyContinue
+            else {
+                Write-Error "Unable to connect to vCenter Server ($($ssoServer.fqdn))"
+            }
         }
         else {
-            Write-Error  "Not connected to Single-Sign On Domain Server $($ssoServer.fqdn)"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -222,9 +226,11 @@ Function Add-SddcManagerRole {
     	Assign SDDC Manager roles to a user/group
 
     	.DESCRIPTION
-    	The Add-SddcManagerRole cmdlet assigns an SDDC Manager role to the user or group provided.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+    	The Add-SddcManagerRole cmdlet assigns an SDDC Manager role to the user or group provided. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values to retrive the Management Domain vCenter Server
+        details from from the SDDC Manager inventory and then:
         - Verifies that the bind credetials are valid
+        - Connects to the Management Domain vCenter Server instance
         - Verifies that the domain is present in vCenter Server as an Identity Provider
         - Verifies the user or group exists in Active Directory
         - Assigns the user or group to the SDDC Manager role
@@ -263,56 +269,62 @@ Function Add-SddcManagerRole {
             if ($accessToken) {
                 $ssoServer = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
                 $ssoConnection = Connect-SsoAdminServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass
-                if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
-                    if ($type -eq "group") { $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
-                    elseif ($type -eq "user") { $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
-                    if ($adObjectCheck) {
-                        if ($type -eq "group") {
-                            $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
-                            if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
-                                Write-Warning -Message "Active Directory $type '$principal' already assigned the $role role in SDDC Manager"
-                            }
-                            else {
-                                New-VCFGroup -group $principal -domain $domain -role $role | Out-Null
+                if ($DefaultSsoAdminServers.Name -eq $($ssoServer.fqdn)) {
+                    if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
+                        if ($type -eq "group") { $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
+                        elseif ($type -eq "user") { $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
+                        if ($adObjectCheck) {
+                            if ($type -eq "group") {
                                 $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
                                 if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
-                                    Write-Output "Active Directory $type '$principal' assigned the $role role in SDDC Manager Successfully"
+                                    Write-Warning "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal), already assigned: SKIPPED"
                                 }
                                 else {
-                                    Write-Error "Assigning Active Directory $type '$principal' the $role role in SDDC Manager Failed"
+                                    New-VCFGroup -group $principal -domain $domain -role $role | Out-Null
+                                    $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
+                                    if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
+                                        Write-Output "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): FAILED"
+                                    }
                                 }
                             }
-                        }
-                        elseif ($type -eq "user") {
-                            $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
-                            if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
-                                Write-Warning -Message "Active Directory $type '$principal' already assigned the $role role in SDDC Manager"
-                            }
-                            else {
-                                New-VCFUser -user ($principal + "@" + $domain.ToUpper()) -role $role | Out-Null
+                            elseif ($type -eq "user") {
                                 $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
                                 if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
-                                    Write-Output "Active Directory $type '$principal' assigned the $role role in SDDC Manager Successfully"
+                                    Write-Warning "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal), already assigned: SKIPPED"
                                 }
                                 else {
-                                    Write-Error "Assigning Active Directory $type '$principal' the $role role in SDDC Manager Failed"
+                                    New-VCFUser -user ($principal + "@" + $domain.ToUpper()) -role $role | Out-Null
+                                    $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
+                                    if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
+                                        Write-Output "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): FAILED"
+                                    }
                                 }
                             }
                         }
+                        else {
+                            Write-Error "Active Directory $type ($principal) not found in the Active Directory Domain, create and retry"
+                        }
                     }
-                    else { Write-Error "Active Directory $type '$principal' not found in the Active Directory Domain, please create and retry"
+                    else {
+                        Write-Error "Unable to find Identity Source in vCenter Server ($($ssoServer.fqdn)) named ($domain)"
                     }
                 }
                 else {
-                    Write-Error "Active Directory domain $domain not added as an Identity Source to vCenter Server $($ssoServer.fqdn)"
+                    Write-Error "Unable to connect to vCenter Server ($($ssoServer.fqdn))"
                 }
             }
             else {
-                Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+                Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
         }
         else {
-            Write-Error  "Unable to authenticate to Active Directory with user '$domainBindUser' and password '$domainBindPass', verify they are correct and try again"
+            Write-Error  "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details"
         }
     }
     Catch {
@@ -328,17 +340,19 @@ Function Set-vCenterPasswordExpiration {
 
     	.DESCRIPTION
     	The Set-vCenterPasswordExpiration cmdlet configures password expiration settings for the vCenter Server root
-        account. The cmdlet connects to vCenter Server using the -server, -user, and -password values and then:
+        account. The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the
+        Management Domain vCenter Server details from from the SDDC Manager inventory and then:
+        - Connects to the vCenter Server instance
 		- Configures the password expiration either to never expire or to expire in given number of days
 		- Sets the email for warning notification to given value
 
     	.EXAMPLE
     	Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $true -email "admin@rainpole.io" -maxDaysBetweenPasswordChange 80
-        This example configures the configures password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
+        This example configures the password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
 
         .EXAMPLE
 		Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $false
-        This example configures the configures password expiration settings for the vCenter Server root account to never expire
+        This example configures the password expiration settings for the vCenter Server root account to never expire
     #>
 
     Param (
@@ -353,29 +367,35 @@ Function Set-vCenterPasswordExpiration {
 	)
 
 	Try {
-		$vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-		Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-		Request-vSphereApiToken -Fqdn $vcenter.fqdn -Username $vcenter.ssoadmin -Password $vcenter.ssoAdminPass -admin | Out-Null
-		if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-			$pwdExpirySettings = Get-VCPasswordExpiry
-			if ($passwordExpires) {
-				Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
-			}
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+            Request-vSphereApiToken -Fqdn $vcenter.fqdn -Username $vcenter.ssoadmin -Password $vcenter.ssoAdminPass -admin | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                $pwdExpirySettings = Get-VCPasswordExpiry
+                if ($passwordExpires) {
+                    Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
+                }
+                else {
+                    Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
+                }
+                $pwdExpirySettings = Get-VCPasswordExpiry
+                if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
+                    Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcenter.fqdn)) to (Never Expire): SUCCESSFUL"
+                }
+                else {
+                    Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcenter.fqdn)) to ($($pwdExpirySettings.max_days_between_password_change) days) and Email Notification to ($($pwdExpirySettings.email)): SUCCESSFUL"
+                }
+            }
             else {
-				Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
-			}
-			$pwdExpirySettings = Get-VCPasswordExpiry
-			if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
-				Write-Output "vCenter Server Appliance Password Expiration set to 'Never Expire' Successfully"
-			}
-            else {
-				Write-Output "vCenter Server Appliance Password Expiration set to '$($pwdExpirySettings.max_days_between_password_change) days' and Email Notification set to '$($pwdExpirySettings.email)' Successfully"
-			}
-		}
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+            }
+            Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+        }
         else {
-		    Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
-		}
-        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
 	}
     Catch {
         Debug-ExceptionWriter -object $_
@@ -406,40 +426,52 @@ Function Set-EsxiPasswordPolicy {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policy
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policy,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $checkCluster = Get-Cluster | Where-Object {$_.Name -eq $cluster}
-            if ($checkCluster) {
-                $esxiHosts = Get-Cluster $cluster | Get-VMHost
-                $count = 0
-                Foreach ($esxiHost in $esxiHosts) {
-                    $advancedSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
-                    if ($advancedSetting) {
-                        Set-AdvancedSetting -AdvancedSetting $advancedSetting -Value $policy -Confirm:$false | Out-Null
-                        $checkSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
-                        if ($checkSetting -match $policy) {
-                             Write-Output "Updated the Advanced System Setting 'Security.PasswordQualityControl' for '$esxiHost' Successfully"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                $checkCluster = Get-Cluster | Where-Object {$_.Name -eq $cluster}
+                if ($checkCluster) {
+                    $esxiHosts = Get-Cluster $cluster | Get-VMHost
+                    $count = 0
+                    Foreach ($esxiHost in $esxiHosts) {
+                        $advancedSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+                        if ($advancedSetting) {
+                            Set-AdvancedSetting -AdvancedSetting $advancedSetting -Value $policy -Confirm:$false | Out-Null
+                            $checkSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+                            if ($checkSetting -match $policy) {
+                                if ($detail -eq "true") {
+                                    Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                }
+                            }
+                            else {
+                                Write-Error "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): FAILED"
+                            }
                         }
-                        else {
-                            Write-Error "Updating the Advanced System Setting 'Security.PasswordQualityControl for '$esxiHost' Failed, please retry"
-                        }
+                        $count = $count + 1
                     }
-                    $count = $count + 1
+                    if ($detail -eq "false") {
+                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcenter.fqdn)), check details and retry"
                 }
             }
             else {
-                Write-Error "Cluster '$cluster' is not found in vCenter Server '$($vcenter.fqdn)', check the input and retry"
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
             }
+            Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
-        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
     }
     Catch {
         Debug-ExceptionWriter -object $_
@@ -453,12 +485,13 @@ Function Install-WorkspaceOne {
     	Deploy Workspace ONE Access Virtual Appliance
 
     	.DESCRIPTION
-    	The Install-WorkspaceOne cmdlet deploys the Workspace ONE Access Virtual Appliance OVA.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
-        vCenter Server details from its inventory and then:
-        - Gathers vSphere configuration from vCenter Server
+    	The Install-WorkspaceOne cmdlet deploys the Workspace ONE Access Virtual Appliance OVA. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values to retrive the
+        Management Domain vCenter Server details from from the SDDC Manager inventory and then:
+        - Connects to the Management Domain vCenter Server
+        - Gathers vSphere configuration from Management Domain vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
-        - Deploys the Workspace ONE Access Virtual Appliance
+        - Deploys the Workspace ONE Access Virtual Appliance to the Management Domain vCenter Server
 
     	.EXAMPLE
     	Install-WorkspaceOne -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaIpAddress 192.168.31.60 -wsaGateway 192.168.31.1 -wsaSubnetMask 255.255.255.0 -wsaOvaPath F:\identity-manager.ova -wsaFolder sfo-m01-fd-wsa
@@ -487,91 +520,98 @@ Function Install-WorkspaceOne {
                 Break
             }
         }
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-        $wsaHostname = $wsaFqdn.Split(".")[0]
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $wsaExists = Get-VM -Name $wsaHostname -ErrorAction Ignore
-            if ($wsaExists) {
-                Write-Warning "A virtual machine called $wsaHostname already exists in vCenter Server $vcServer"
-            }
-            else {
-                $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
-                $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).Name
-                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).primaryDatastoreName
-                $datacenter = (Get-Datacenter -Cluster $cluster).Name
-                $avnCheck = (Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "REGION_A" }).name
-                if ($avnCheck) {
-                    $regionaPortgroup = (Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "REGION_A" }).name
-                    $domain = (Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "REGION_A" }).domainName
 
-                    $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $wsaHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $wsaFolder + ' --net:"Network 1"=' + $regionaPortgroup + '  --datastore=' + $datastore + ' --X:injectOvfEnv --prop:vamitimezone=' + $timezone + '  --prop:vami.ip0.IdentityManager=' + $wsaIpAddress + ' --prop:vami.netmask0.IdentityManager=' + $wsaSubnetMask + ' --prop:vami.hostname=' + $wsaFqdn + ' --prop:vami.gateway.IdentityManager=' + $wsaGateway + ' --prop:vami.domain.IdentityManager=' + $domain + ' --prop:vami.searchpath.IdentityManager=' + $domain + ' --prop:vami.DNS.IdentityManager=' + $dnsServer1 + ',' + $dnsServer2 + ' "' + $wsaOvaPath + '"  "vi://' + $vcenter.ssoAdmin + ':' + $vcenter.ssoAdminPass + '@' + $vcenter.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
-                    Invoke-Expression "& $command" -ErrorAction Ignore
-                    $wsaExists = Get-VM -Name $wsaHostname -ErrorAction Ignore
-                    if ($wsaExists) {
-                        $Timeout = 900  ## seconds
-                        $CheckEvery = 15  ## seconds
-                        Try {
-                            $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
-                            Write-Output "Waiting for $wsaIpAddress to become pingable."
-                            While (-not (Test-Connection -ComputerName $wsaIpAddress -Quiet -Count 1)) {
-                                ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
-                                if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                                    Throw "Timeout Exceeded. Giving up on ping availability to $wsaIpAddress"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+            $wsaHostname = $wsaFqdn.Split(".")[0]
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                $wsaExists = Get-VM -Name $wsaHostname -ErrorAction Ignore
+                if ($wsaExists) {
+                    Write-Warning "Deploying a virtual machine in vCenter Server ($($vcenter.fqdn)) named ($wsaHostname), already exists: SKIPPED"
+                }
+                else {
+                    $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
+                    $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
+                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).Name
+                    $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).primaryDatastoreName
+                    $datacenter = (Get-Datacenter -Cluster $cluster).Name
+                    $avnCheck = (Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "REGION_A" }).name
+                    if ($avnCheck) {
+                        $regionaPortgroup = (Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "REGION_A" }).name
+                        $domain = (Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "REGION_A" }).domainName
+
+                        $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $wsaHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $wsaFolder + ' --net:"Network 1"=' + $regionaPortgroup + '  --datastore=' + $datastore + ' --X:injectOvfEnv --prop:vamitimezone=' + $timezone + '  --prop:vami.ip0.IdentityManager=' + $wsaIpAddress + ' --prop:vami.netmask0.IdentityManager=' + $wsaSubnetMask + ' --prop:vami.hostname=' + $wsaFqdn + ' --prop:vami.gateway.IdentityManager=' + $wsaGateway + ' --prop:vami.domain.IdentityManager=' + $domain + ' --prop:vami.searchpath.IdentityManager=' + $domain + ' --prop:vami.DNS.IdentityManager=' + $dnsServer1 + ',' + $dnsServer2 + ' "' + $wsaOvaPath + '"  "vi://' + $vcenter.ssoAdmin + ':' + $vcenter.ssoAdminPass + '@' + $vcenter.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
+                        Invoke-Expression "& $command" -ErrorAction Ignore
+                        $wsaExists = Get-VM -Name $wsaHostname -ErrorAction Ignore
+                        if ($wsaExists) {
+                            $Timeout = 900  ## seconds
+                            $CheckEvery = 15  ## seconds
+                            Try {
+                                $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                                Write-Output "Waiting for $wsaIpAddress to become pingable."
+                                While (-not (Test-Connection -ComputerName $wsaIpAddress -Quiet -Count 1)) {
+                                    ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                                    if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                        Throw "Timeout Exceeded. Giving up on ping availability to $wsaIpAddress"
+                                    }
+                                    Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                                 }
-                                Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                            }
+                            Catch {
+                                Write-Error "Failed to get a Response from Workspace ONE Access Instance ($wsaFqdn)"
+                            }
+                            Finally {
+                                $timer.Stop()  ## Stop the timer
+                            }
+                            $Timeout = 900  ## seconds
+                            $CheckEvery = 5  ## seconds
+                            Try {
+                                $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                                $uri = "https://" + $wsaFqdn + "/SAAS/jersey/manager/api/system/health"
+                                Write-Output "Initial connection made, waiting for ($wsaFqdn) to fully boot and services to start. Be warned, this takes a long time."
+                                While ($timer.Elapsed.TotalSeconds -lt $Timeout) {
+                                    ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                                    Try {
+                                        $response = Invoke-RestMethod $uri -Method 'GET' -SessionVariable webSession -ErrorAction Ignore
+                                        if ($response.AllOk -eq "true") {
+                                            Write-Output "Deploying Workspace ONE Access Instance ($wsaFqdn) using ($wsaOvaPath): SUCCESSFUL"
+                                            break
+                                        }
+                                    }
+                                    Catch {
+                                        Write-Output "Waiting for ($wsaFqdn) to fully boot up. Checking every $CheckEvery seconds"
+                                    }
+                                    Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                                }
+                                if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                        Write-Error "Workspace ONE Access Instance ($wsaFqdn) failed to initialize properly. Please delete the VM from vCenter Server ($($vcenter.fqdn)) and retry"
+                                }
+                            }
+                            Catch {
+                                Debug-ExceptionWriter -object $_
+                            }
+                            Finally {
+                                $timer.Stop()  ## Stop the timer
                             }
                         }
-                        Catch {
-                            Write-Error "Failed to get a Response from $wsaFqdn"
-                        }
-                        Finally {
-                            $timer.Stop()  ## Stop the timer
-                        }
-						$Timeout = 900  ## seconds
-                        $CheckEvery = 5  ## seconds
-						Try {
-                            $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
-							$uri = "https://" + $wsaFqdn + "/SAAS/jersey/manager/api/system/health"
-							Write-Output "Initial connection made, waiting for $wsaFqdn to fully boot and services to start. Be warned, this takes a long time."
-                            While ($timer.Elapsed.TotalSeconds -lt $Timeout) {
-                                ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
-								Try {
-									$response = Invoke-RestMethod $uri -Method 'GET' -SessionVariable webSession -ErrorAction Ignore
-									if ($response.AllOk -eq "true") {
-										Write-Output "Deployment of $wsaFqdn using $wsaOvaPath completed Successfully"
-										break
-									}
-								}
-                                Catch {
-									Write-Output "Waiting for $wsaFqdn to fully boot up. Checking every $CheckEvery seconds"
-								}
-                                Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
-                            }
-							if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                                    Write-Error "$wsaFqdn failed to initialize properly. Please delete the VM from $($vcenter.fqdn) and retry"
-                            }
-                        }
-                        Catch {
-							Debug-ExceptionWriter -object $_
-                        }
-                        Finally {
-                            $timer.Stop()  ## Stop the timer
+                        else {
+                            Write-Error "Deployment of Workspace ONE Access Instance ($wsaFqdn): FAILED"
                         }
                     }
                     else {
-                        Write-Error "Workspace ONE Access Failed to deploy"
+                        Write-Error  "Application Virtual Networks have not been configured in SDDC Manager ($server), unable to find REGION_A details. Deploy and try again"
                     }
                 }
-                else {
-                    Write-Error  "Application Virtual Networks have not been configured on $server, unable to find REGION_A details. Configure them and try again"
-                }
+                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
             }
-            Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+            else {
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+            }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -630,10 +670,10 @@ Function Initialize-WorkspaceOne {
             # Activate the default connector
             $uri = $baseUri + "/cfg/setup/activateConnector"
             Invoke-RestMethod $uri -Method 'POST' -Headers $headers -WebSession $webSession  | Out-Null
-            Write-Output "Initial configuration of Workspace ONE Access Virtual Appliance $wsaFqdn completed Succesfully"
+            Write-Output "Initial Configuration of Workspace ONE Access Instance ($wsaFqdn): SUCCESSFUL"
         }
         else {
-            Write-Warning "Initial configuration of Workspace ONE Access Virtual Appliance $wsaFqdn has already been performed"
+            Write-Warning "Initial Configuration of Workspace ONE Access Instance ($wsaFqdn), already performed: SKIPPED"
         }
     }
     Catch {
@@ -665,42 +705,48 @@ Function Set-WorkspaceOneNtpConfig {
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        if (Test-Connection -ComputerName ($wsaFqdn) -Quiet -Count 1) {
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                $ntpServer = (Get-VCFConfigurationNTP).ipAddress
-                $vmName = $wsaFqdn.Split(".")[0]
-                if ($checkVm = (Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                    $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
-                    $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
-                    if (($output.ScriptOutput).Contains($ntpServer)) {
-                        Write-Warning -Message "NTP Server '$ntpServer' already configured on Workspace One Access Virtual Appliance $vmName"
-                    }
-                    else {
-                        $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --set ' + $ntpServer
-                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+            if (Test-Connection -ComputerName ($wsaFqdn) -Quiet -Count 1) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress
+                    $vmName = $wsaFqdn.Split(".")[0]
+                    if ($checkVm = (Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                         $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
                         if (($output.ScriptOutput).Contains($ntpServer)) {
-                            Write-Output "Configured NTP Server '$ntpServer' on Workspace One Access Virtual Appliance $vmName Successfully"
+                            Write-Warning "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer), already performed: SKIPPED"
                         }
                         else {
-                            Write-Error "Configuring NTP Server '$ntpServer' on Workspace One Access Virtual Appliance $vmName Failed"
+                            $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --set ' + $ntpServer
+                            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
+                            $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
+                            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
+                            if (($output.ScriptOutput).Contains($ntpServer)) {
+                                Write-Output "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): FAILED"
+                            }
                         }
                     }
+                    else {
+                        Write-Error  "A virtual machine with name ($vmName) not found in vCenter Server ($($vcenter.fqdn))"
+                    }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                 }
                 else {
-                    Write-Error  "A virtual machine with name $vmName not found in vCenter Server $($vcenter.fqdn)"
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                 }
-                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to communicate with Workspace ONE Access Instance ($wsaFqdn), check fqdn/ip address"
             }
         }
         else {
-            Write-Error "Workspace ONE Access Appliance $wsaFqdn is not contactable"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -741,7 +787,7 @@ Function Install-WorkspaceOneCertificate {
         }
         elseif ($PsBoundParameters.ContainsKey("rootCa")) {
             if (!(Test-Path -Path $rootCa)) {
-                Write-Error  "Certificate (.cer) for Root Certificate Authority '$rootCa' File Not Found"
+                Write-Error  "Certificate (.cer) for Root Certificate Authority ($rootCa) File Not Found"
                 Break
             }
         }
@@ -751,7 +797,7 @@ Function Install-WorkspaceOneCertificate {
         }
         elseif ($PsBoundParameters.ContainsKey("wsaCertKey")) {
             if (!(Test-Path -Path $wsaCertKey)) {
-                Write-Error  "Certificate Key (.key) for Workspace ONE Access '$wsaCertKey' File Not Found"
+                Write-Error  "Certificate Key (.key) for Workspace ONE Access ($wsaCertKey) File Not Found"
                 Break
             }
         }
@@ -761,26 +807,32 @@ Function Install-WorkspaceOneCertificate {
         }
         elseif ($PsBoundParameters.ContainsKey("wsaCert")) {
             if (!(Test-Path -Path $wsaCert)) {
-                Write-Error  "Certificate (.cer) for Workspace ONE Access '$wsaCert' File Not Found"
+                Write-Error  "Certificate (.cer) for Workspace ONE Access ($wsaCert) File Not Found"
                 Break
             }
         }
 
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $vmName = $wsaFqdn.Split(".")[0]
-            Get-Item $rootCa | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
-            Get-Item $wsaCertKey | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
-            Get-Item $wsaCert | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                $vmName = $wsaFqdn.Split(".")[0]
+                Get-Item $rootCa | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
+                Get-Item $wsaCertKey | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
+                Get-Item $wsaCert | Copy-VMGuestFile -Destination '/tmp' -VM $vmName -LocalToGuest -GuestUser root -GuestPassword $rootPass -Force
 
-            $scriptCommand = 'echo "yes" | /usr/local/horizon/scripts/installExternalCertificate.hzn --ca /tmp/' + (Split-Path -Leaf $rootCa) + ' --cert /tmp/' + (Split-Path -Leaf $wsaCert) + ' --key /tmp/' + (Split-Path -Leaf $wsaCertKey)
-            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
-            Write-Output "Installed Signed Certifcate $wsaCert on Workspace One Access Virtual Appliance $wsaFqdn Successfully"
-            Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                $scriptCommand = 'echo "yes" | /usr/local/horizon/scripts/installExternalCertificate.hzn --ca /tmp/' + (Split-Path -Leaf $rootCa) + ' --cert /tmp/' + (Split-Path -Leaf $wsaCert) + ' --key /tmp/' + (Split-Path -Leaf $wsaCertKey)
+                $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcenter.fqdn
+                Write-Output "Installing Signed Certifcate on Workspace ONE Access Instance ($wsaFqdn) using ($wsaCert): SUCCESSFUL"
+                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+            }
+            else {
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+            }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -815,16 +867,26 @@ Function Set-WorkspaceOneSmtpConfig {
     Try {
         Request-WSAToken -fqdn $server -user $user -pass $pass | Out-Null
         if ($sessionToken) {
-            if (-not $PsBoundParameters.ContainsKey("smtpEmailPassword")) {
-                Set-WSASmtpConfiguration -fqdn $smtpFqdn -port $smtpPort -user $smtpEmail | Out-Null
+            if (!(Get-WSASmtpConfiguration | Where-Object {$_.host -eq $smtpFqdn})) {
+                if (-not $PsBoundParameters.ContainsKey("smtpEmailPassword")) {
+                    Set-WSASmtpConfiguration -fqdn $smtpFqdn -port $smtpPort -user $smtpEmail | Out-Null
+                }
+                if ($PsBoundParameters.ContainsKey("smtpEmailPassword")) {
+                    Set-WSASmtpConfiguration -fqdn $smtpFqdn -port $smtpPort -user $smtpEmail -pass $smtpEmailPassword | Out-Null
+                }
+                if (!(Get-WSASmtpConfiguration | Where-Object {$_.host -eq $smtpFqdn})) {
+                    Write-Output "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn): SUCCESSFUL"
+                }
+                else {
+                    Write-Error "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn): FAILED"
+                }
             }
-            if ($PsBoundParameters.ContainsKey("smtpEmailPassword")) {
-                Set-WSASmtpConfiguration -fqdn $smtpFqdn -port $smtpPort -user $smtpEmail -pass $smtpEmailPassword | Out-Null
+            else {
+                Write-Warning "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn), already exists: SKIPPED"
             }
-            Write-Output "Completed SMTP configuration for Workspace ONE Access '$server' Successfully"
         }
         else {
-            Write-Error  "Failed to obtain access token from Workspace One Access appliance '$server', check details provided"
+            Write-Error "Unable to obtain access token for Workspace ONE Access Instance ($wsaFqdn), check credentials"
         }
     }
     Catch {
@@ -842,7 +904,7 @@ Function Add-WorkspaceOneDirectory {
     	The Add-WorkspaceOneDirectory cmdlet configures Active Directory LDAP Directory in Workspace ONE Access Appliance
 
     	.EXAMPLE
-    	Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDn "OU=VVD,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=VVD,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate "F:\platformtools-l1-dev\certificates\Root64.pem"
+    	Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDnUser "OU=Security Users,DC=sfo,DC=rainpole,DC=io" -baseDnGroup "OU=Security Groups,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=Security Users,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate "F:\platformtools-l1-dev\certificates\Root64.pem"
         This example configures the domain sfo.rainpole.io as a directory source in Workspace ONE Access Virtual Appliance and syncronises the groups provided
   	#>
 
@@ -865,7 +927,7 @@ Function Add-WorkspaceOneDirectory {
     }
     elseif ($protocol -eq "ldaps") {
         if (!(Test-Path -Path $certificate)) {
-            Write-Error  "Certificate (cer) for Root Certificate Authority '$certificate' File Not Found"
+            Write-Error  "Certificate (cer) for Root Certificate Authority ($certificate') File Not Found"
             Break
         }
     }
@@ -883,7 +945,7 @@ Function Add-WorkspaceOneDirectory {
                     else{
                         $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn
                     }
-                    $connector = Get-WSAConnector
+                    $connector = Get-WSAConnector | Where-Object {$_.host -eq $wsaFqdn}
                     Set-WSABindPassword -directoryId $directory.directoryConfigId -connectorId $connector.instanceId -pass $bindUserPass | Out-Null
                     $adUserJson = '{ "identityUserInfo": { "' + $bindUserDn + '": { "selected": true }, "' + $baseDnUser + '": { "selected": true }}}'
                     $mappedGroupObject = @()
@@ -929,18 +991,18 @@ Function Add-WorkspaceOneDirectory {
                     Set-WSADirectoryGroup -directoryId $directory.directoryConfigId -json $adGroupJson | Out-Null
                     Set-WSASyncSetting -directoryId $directory.directoryConfigId | Out-Null
                     Start-WSADirectorySync -directoryId $directory.directoryConfigId | Out-Null
-                    Write-Output "Active Directory LDAP Directory created in Workspace One Access Successfully"
+                    Write-Output "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain): SUCCESSFUL"
                 }
                 else {
-                    Write-Warning  "LDAP Directory for $domain already exists, skipping the creation"
+                    Write-Warning "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain), already exists: SKIPPED"
                 }
             }
             else {
-                Write-Error "Domain User $domainJoinUser Authentication Failed"
+                Write-Error "Authenticating as Active Directory Domain User ($domainJoinUser): FAILED"
             }
         }
         else {
-            Write-Error  "Failed to obtain access token from Workspace One Access appliance '$server', check details provided"
+            Write-Error "Unable to obtain access token for Workspace ONE Access Instance ($wsaFqdn), check credentials"
         }
     }
     Catch {
@@ -955,14 +1017,17 @@ Function Set-WorkspaceOneNsxtIntegration {
     	Integrate NSX Manager with Workspace ONE Access
 
     	.DESCRIPTION
-    	The Set-WorkspaceOneNsxtIntegration cmdlet configures integration between NSX Manager and Workspace ONE Access. The cmdlet connects
-        to SDDC Manager using the -server, -user, and -password values to retrive the NSX Manager details from its inventory and then:
-        - Creates a service client within Workspace ONE Access
+    	The Set-WorkspaceOneNsxtIntegration cmdlet configures integration between NSX Manager and Workspace ONE Access. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the NSX Manager
+        details from the SDDC Manager inventory and then:
+        - Connects to the NSX Manager instance
+        - Connects to the Workspace ONE Access intance
+        - Creates a service client within Workspace ONE Access instance
         - Enables the integration between NSX Manager and Workspace ONE Access
 
     	.EXAMPLE
     	Set-WorkspaceOneNsxtIntegration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example integrates the management domain NSX Manager instance with Workspace ONE Access
+        This example integrates the Management Domain NSX Manager instance with Workspace ONE Access
   	#>
 
     Param (
@@ -976,51 +1041,57 @@ Function Set-WorkspaceOneNsxtIntegration {
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
-        Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
         if ($accessToken) {
-            $clientId = $nsxtManagerDetails.fqdn.Split(".")[0] + "-oauth"
-            $command = 'openssl s_client -connect ' + $wsaFqdn + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
-            $wsaThumbprint = (Invoke-Expression "& $command").Split("=")[1]
-            if (!$wsaThumbprint) {
-                Write-Error "Obtain SSL thumbprint for Workspace ONE Access Appliance '$wsaFqdn' failed, check details and try again"
-                Break
-            }
-            Request-WSAToken -fqdn $wsaFqdn -user $wsaUser -pass $wsaPass | Out-Null
-            if ($sessionToken) {
-                $sharedSecret = (Get-WSAOAuthToken).message
-                $clientExists = Get-WSAClient | Where-Object { $_.clientId -eq $clientId }
-                if (!$clientExists) {
-                    Add-WSAClient -clientId $clientId -sharedSecret $sharedSecret | Out-Null
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
+            Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+            if ($nsxtHeaders.Authorization) {
+                $clientId = $nsxtManagerDetails.fqdn.Split(".")[0] + "-oauth"
+                $command = 'openssl s_client -connect ' + $wsaFqdn + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
+                $wsaThumbprint = (Invoke-Expression "& $command").Split("=")[1]
+                if (!$wsaThumbprint) {
+                    Write-Error "Obtaining SSL Thumbprint for Workspace ONE Access Instance ($wsaFqdn): FAILED"
+                    Break
+                }
+                Request-WSAToken -fqdn $wsaFqdn -user $wsaUser -pass $wsaPass | Out-Null
+                if ($sessionToken) {
+                    $sharedSecret = (Get-WSAOAuthToken).message
                     $clientExists = Get-WSAClient | Where-Object { $_.clientId -eq $clientId }
-                    if ($clientExists) {
-                        Write-Output "Created Service client '$clientId' in Workspace ONE Access Successfully"
+                    if (!$clientExists) {
+                        Add-WSAClient -clientId $clientId -sharedSecret $sharedSecret | Out-Null
+                        $clientExists = Get-WSAClient | Where-Object { $_.clientId -eq $clientId }
+                        if ($clientExists) {
+                            Write-Output "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId):  SUCCESSFUL"
+                        }
+                        else {
+                            Write-Error "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId):  FAILED"
+                            Break
+                        }
                     }
                     else {
-                        Write-Error "Creation of Service client '$clientId' in Workspace ONE Access Failed, check inputs and try again"
-                        Break
+                        Write-Warning "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId), already exists: SKIPPED"
+                    }
+                    $vidmExists = Get-NsxtVidm
+                    if ($vidmExists) {
+                        $clientIdSecret = (Get-WSAClient -clientId $clientId).secret
+                        Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $clientIdSecret -nsxHostname $nsxtManagerDetails.fqdn | Out-Null
+                        Write-Output "Updating integration between NSX Manager ($($nsxtManagerDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
+                    }
+                    else {
+                        Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $sharedSecret -nsxHostname $nsxtManagerDetails.fqdn | Out-Null
+                        Write-Output "Creating integration between NSX Manager ($($nsxtManagerDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
                     }
                 }
                 else {
-                    Write-Warning "Service client '$clientId' in Workspace ONE Access already exists, skipping the creation"
-                }
-                $vidmExists = Get-NsxtVidm
-                if ($vidmExists) {
-                    $clientIdSecret = (Get-WSAClient -clientId $clientId).secret
-                    Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $clientIdSecret -nsxHostname $nsxtManagerDetails.fqdn | Out-Null
-                    Write-Output "Updated integration between NSX-T Manager '$($nsxtManagerDetails.fqdn) and Workspace ONE Acccess '$wsaFqdn' Successfully"
-                }
-                else {
-                    Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $sharedSecret -nsxHostname $nsxtManagerDetails.fqdn | Out-Null
-                    Write-Output "Created integration between NSX-T Manager '$($nsxtManagerDetails.fqdn) and Workspace ONE Acccess '$wsaFqdn' Successfully"
+                    Write-Error "Unable to obtain access token from Workspace ONE Access Instance ($wsaFqdn), check credentials"
                 }
             }
             else {
-                Write-Error  "Failed to obtain access token from Workspace ONE Access appliance '$wsaFqdn', check details provided"
+                Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
             }
         }
         else {
-            Write-Error "Failed to obtain access token from NSX-T Data Center '$($nsxtManagerDetails.fqdn)', check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -1036,7 +1107,9 @@ Function Add-NsxtVidmGroupRole {
 
     	.DESCRIPTION
     	The Add-NsxtVidmGroupRole cmdlet configures role assignments in NSX Manager. The cmdlet connects to SDDC
-        Manager using the -server, -user, and -password values to retrive the NSX Manager details from its inventory and then:
+        Manager using the -server, -user, and -password values to retrive the NSX Manager details from the SDDC Manager
+        inventory and then:
+        - Connects to the NSX Manager instance
         - Assigns Active Directory groups to NSX Manager roles
 
     	.EXAMPLE
@@ -1054,26 +1127,32 @@ Function Add-NsxtVidmGroupRole {
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
-        Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
         if ($accessToken) {
-            $groupExists = Get-NsxtUser | Where-Object { $_.name -eq $group }
-            if (!$groupExists) {
-                Set-NsxtRole -principal $group -type remote_group -role $role -identitySource VIDM | Out-Null
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
+            Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+            if ($nsxtHeaders.Authorization) {
                 $groupExists = Get-NsxtUser | Where-Object { $_.name -eq $group }
-                if ($groupExists) {
-                    Write-Output "Assigned group '$group' the role' $role' in NSX-T Data Center for Workload Domain '$domain' Successfully"
+                if (!$groupExists) {
+                    Set-NsxtRole -principal $group -type remote_group -role $role -identitySource VIDM | Out-Null
+                    $groupExists = Get-NsxtUser | Where-Object { $_.name -eq $group }
+                    if ($groupExists) {
+                        Write-Output "Assigning group ($group) the role ($role) in NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Assigning group ($group) the role ($role) in NSX-T Data Center for Workload Domain ($domain): FAILED"
+                    }
                 }
                 else {
-                    Write-Error "Failed to assign group '$group' the role '$role' in NSX-T Data Center for Workload Domain '$domain', check details and retry"
+                    Write-Warning "Assigning group ($group) the role ($role) in NSX-T Data Center for Workload Domain ($domain), already exists: SKIPPED"
                 }
             }
             else {
-                Write-Warning "Group '$group' has already been assigned the role in NSX-T Data Center for Workload Domain '$domain', skipping the creation"
+                Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
             }
         }
         else {
-            Write-Error "Failed to obtain access token from NSX-T Data Center '$($nsxtManagerDetails.fqdn)', check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -1109,34 +1188,34 @@ Function Add-WorkspaceOneRole {
         if ($sessionToken) {
             $roleId = Get-WSARoleId -role $role
             if (!$roleId) {
-                Write-Error "Unable to find role id $roleId for role $role in Workspace ONE Access instance $server)"
+                Write-Error "Unable to find role id ($roleId) for role ($role) in Workspace ONE Access Instance ($server)"
             }
             else {
                 $groupDetails = Get-WSAActiveDirectoryGroupDetail -group $group
                 $groupId = $groupDetails.Resources.id
                 if (!$groupId) {
-                    Write-Error "Unable to find the group $group in Workspace ONE Access instance $server"
+                    Write-Error "Unable to find the group ($group) in Workspace ONE Access Instance ($server)"
                 }
                 else {
                     $associations = Get-WSARoleAssociation -roleId $roleId
                     $assign = $true
                     if ($associations.groups) {
                         if ($associations.groups -contains $groupId) {
-                            Write-Warning "Already assigned group $group to role $role in Workspace ONE Access instance $server"
+                            Write-Warning "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server), already exists: SKIPPED"
                             $assign = $false
                         }
                     }
 
                     if ($assign) {
 						if ($role -ne "ReadOnly Admin") {
-							Write-Output "Update the Administrator Role Member with $group group"
+							Write-Output "Update the Administrator Role Member with ($group) group"
 							$administratorRole = Get-WsaRole | Where-Object { $_.displayName -eq "Administrator" }
 							$adminId =  $administratorRole.id
 							Set-WSARoleMember -groupId $groupId -id $adminId
 						}
                         $response = Add-WSARoleAssociation -roleId $roleId -groupId $groupId
                         if ($response.operations.code -eq "200") {
-                            Write-Output "Assigned group $group to the role $role in Workspace ONE Access instance $server Successfully"
+                            Write-Output "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server): SUCCESSFUL"
                         }
                         elseif ($response.operations.code -eq "409") {
                             Write-Warning "$($response.operations.reason)"
@@ -1149,7 +1228,7 @@ Function Add-WorkspaceOneRole {
             }
         }
         else {
-            Write-Error  "Failed to obtain access token from Workspace One Access appliance '$server', check details provided"
+            Write-Error "Unable to obtain access token from Workspace ONE Access Instance ($wsaFqdn), check credentials"
         }
     }
     Catch {
@@ -1188,18 +1267,23 @@ Function Get-NsxtManagerAuthenticationPolicy {
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
-
-		foreach ($nsxtManagerNode in $nsxtManagerDetails.nodes) {
-			Request-NsxToken -fqdn $nsxtManagerNode.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
-			if ($accessToken) {
-				$response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
-				Write-Output "Showing $($nsxtManagerNode.fqdn), results: $response"
-			}
-			else {
-				Write-Error "Failed to obtain access token from NSX-T Data Center '$($nsxtManagerDetails.fqdn)', check details provided"
-			}
-		}
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
+            foreach ($nsxtManagerNode in $nsxtManagerDetails.nodes) {
+                Request-NsxToken -fqdn $nsxtManagerNode.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+                if ($nsxtHeaders.Authorization) {
+                    $response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                    Write-Output "Showing $($nsxtManagerNode.fqdn), results: $response"
+                }
+                else {
+                    Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
+                }
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
     }
     Catch {
         Debug-ExceptionWriter -object $_
@@ -1244,40 +1328,46 @@ Function Set-NsxtManagerAuthenticationPolicy {
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
-		foreach ($nsxtManagerNode in $nsxtManagerDetails.nodes) {
-			Request-NsxToken -fqdn $nsxtManagerNode.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
-			if ($accessToken) {
-				$response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
-				if (!$PsBoundParameters.ContainsKey("apiLockoutPeriod")){
-					$apiLockoutPeriod = [int]$response.api_failed_auth_lockout_period
-				}
-				if (!$PsBoundParameters.ContainsKey("apiResetPeriod")){
-					$apiResetPeriod = [int]$response.api_failed_auth_reset_period
-				}
-				if (!$PsBoundParameters.ContainsKey("apiMaxAttempt")){
-					$apiMaxAttempt = [int]$response.api_max_auth_failures
-				}
-				if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
-					$cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
-				}
-				if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
-					$cliMaxAttempt = [int]$response.cli_max_auth_failures
-				}
-				if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
-					$minPasswdLength = [int]$response.minimum_password_length
-				}
-				$response = Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -api_lockout_period $apiLockoutPeriod -api_reset_period $apiResetPeriod -api_max_attempt $apiMaxAttempt -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
-				if ($detail -eq "true") {
-                    Write-Output "Configured the Authentication Policy on NSX Manager '$($nsxtManagerNode.fqdn)' for Workload Domain '$domain' Successfully"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
+            foreach ($nsxtManagerNode in $nsxtManagerDetails.nodes) {
+                Request-NsxToken -fqdn $nsxtManagerNode.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+                if ($nsxtHeaders.Authorization) {
+                    $response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                    if (!$PsBoundParameters.ContainsKey("apiLockoutPeriod")){
+                        $apiLockoutPeriod = [int]$response.api_failed_auth_lockout_period
+                    }
+                    if (!$PsBoundParameters.ContainsKey("apiResetPeriod")){
+                        $apiResetPeriod = [int]$response.api_failed_auth_reset_period
+                    }
+                    if (!$PsBoundParameters.ContainsKey("apiMaxAttempt")){
+                        $apiMaxAttempt = [int]$response.api_max_auth_failures
+                    }
+                    if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
+                        $cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
+                    }
+                    if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
+                        $cliMaxAttempt = [int]$response.cli_max_auth_failures
+                    }
+                    if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
+                        $minPasswdLength = [int]$response.minimum_password_length
+                    }
+                    $response = Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -api_lockout_period $apiLockoutPeriod -api_reset_period $apiResetPeriod -api_max_attempt $apiMaxAttempt -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
+                    if ($detail -eq "true") {
+                        Write-Output "Configuring Authentication Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                    }
                 }
-			}
-			else {
-				Write-Error "Failed to obtain access token from NSX Data Center '$($nsxtManagerDetails.fqdn)', check details provided"
-			}
-		}
-        if ($detail -eq "false") {
-            Write-OutPut "Configured Authentication Password Policy on all NSX Manager Nodes Successfully"
+                else {
+                    Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
+                }
+            }
+            if ($detail -eq "false") {
+                Write-Output "Configuring Authentication Password Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -1313,18 +1403,24 @@ Function Get-NsxtEdgeNodeAuthenticationPolicy {
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
-		Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
-		$nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
-		if ($accessToken) {
-			foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-				$response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $nsxtManagerDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
-				Write-Output "Retrieving $($nsxtEdgeNode.transport_node_id), results: $response"
-			}
-		}
-		else {
-				Write-Error "Failed to obtain access token from NSX-T Data Center '$($nsxtManagerDetails.fqdn)', check details provided"
-		}
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
+            Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+            $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+            if ($nsxtHeaders.Authorization) {
+                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                    $response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $nsxtManagerDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                    Write-Output "Retrieving $($nsxtEdgeNode.transport_node_id), results: $response"
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
     }
     Catch {
         Debug-ExceptionWriter -object $_
@@ -1363,32 +1459,38 @@ Function Set-NsxtEdgeNodeAuthenticationPolicy {
     )
 
 	Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
-		Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
-		$nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
-		if ($accessToken) {
-			foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-				$response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $nsxtManagerDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
-				if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
-					$cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
-				}
-				if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
-					$cliMaxAttempt = [int]$response.cli_max_auth_failures
-				}
-				if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
-					$minPasswdLength = [int]$response.minimum_password_length
-				}
-				$response = Set-NsxtEdgeNodeAuthPolicy -nsxtManager $nsxtManagerDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
-				if ($detail -eq "true") {
-                    Write-Output "Configured the Authentication Policy on NSX Edge nodes for Workload Domain '$domain' Successfully"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
+            Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+            $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+            if ($nsxtHeaders.Authorization) {
+                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                    $response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $nsxtManagerDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                    if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
+                        $cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
+                    }
+                    if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
+                        $cliMaxAttempt = [int]$response.cli_max_auth_failures
+                    }
+                    if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
+                        $minPasswdLength = [int]$response.minimum_password_length
+                    }
+                    $response = Set-NsxtEdgeNodeAuthPolicy -nsxtManager $nsxtManagerDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
+                    if ($detail -eq "true") {
+                        Write-Output "Configuring Authentication Policy on NSX Edge Node ($nsxtEdgeNode) for Workload Domain ($domain): SUCCESSFUL"
+                    }
                 }
-			}
-		}
-		else {
-				Write-Error "Failed to obtain access token from NSX-T Data Center '$($nsxtManagerDetails.fqdn)', check details provided"
-		}
-        if ($detail -eq "false") {
-            Write-OutPut "Configured Authentication Password Policy on all NSX Edge Nodes Successfully"
+            }
+            else {
+                Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
+            }
+            if ($detail -eq "false") {
+                Write-Output "Configuring Authentication Password Policy on all NSX Edge Nodes for Workload Domain ($domain): SUCCESSFUL"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -1705,7 +1807,6 @@ Function Install-VAMICertificate {
             $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
             $uri = "https://"+$fqdn+":5480/configure/requestHandlers/installPkcs12Certificate"
             $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-            #$response
         }
         Catch {
             #TODO - Write function to query cert Thumbprint and compare to installed cert
@@ -2493,15 +2594,15 @@ Function Set-DatastoreTag {
         if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
             $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
             if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
-                if (!($tagAssignmentExists = Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -ErrorAction SilentlyContinue)) {
-                    if (!($tagCategoryExist = Get-TagCategory -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagCategoryName })) {
-                        New-TagCategory -Name $tagCategoryName -EntityType Datastore -Confirm:$false | Out-Null
+                if (!($tagAssignmentExists = Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcenter.fqdn -ErrorAction SilentlyContinue)) {
+                    if (!($tagCategoryExist = Get-TagCategory -Server $vcenter.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagCategoryName })) {
+                        New-TagCategory -Name $tagCategoryName -EntityType Datastore -Server $vcenter.fqdn -Confirm:$false | Out-Null
                     }
-                    if (!($tagExists = Get-Tag -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
-                        New-Tag -Name $tagName -Category $tagCategoryName -Confirm:$false | Out-Null
+                    if (!($tagExists = Get-Tag -Server $vcenter.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
+                        New-Tag -Name $tagName -Category $tagCategoryName -Server $vcenter.fqdn -Confirm:$false | Out-Null
                     }
-                    Get-Datastore -Name $Datastore | New-TagAssignment -Tag $tagName -Confirm:$false | Out-Null
-                    if (($tagAssignmentExists = Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -ErrorAction SilentlyContinue)) {
+                    Get-Datastore -Name $Datastore -Server $vcenter.fqdn | New-TagAssignment -Tag $tagName -Server $vcenter.fqdn -Confirm:$false | Out-Null
+                    if (($tagAssignmentExists = Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcenter.fqdn -ErrorAction SilentlyContinue)) {
                         Write-Output  "Created vSphere Tag $tagName and applied to datastore $datastore in vCenter Server $($vcenter.fqdn) Successfully"
                     }
                     else {
@@ -2517,14 +2618,14 @@ Function Set-DatastoreTag {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
     Finally {
-        #Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
     }
 }
 Export-ModuleMember -Function Set-DatastoreTag
@@ -2555,10 +2656,10 @@ Function Add-StoragePolicy {
         $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
         Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
         if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            if (!($getSpbmPolicy = Get-SpbmStoragePolicy -Name $policyName -ErrorAction SilentlyContinue)) {
-                if ($tagExists = Get-Tag -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName }) {
-                    New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName)) | Out-Null
-                    if ($getSpbmPolicy = Get-SpbmStoragePolicy -Name $policyName -ErrorAction SilentlyContinue) {
+            if (!($getSpbmPolicy = Get-SpbmStoragePolicy -Name $policyName -Server $vcenter.fqdn -ErrorAction SilentlyContinue)) {
+                if ($tagExists = Get-Tag -Server $vcenter.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName }) {
+                    New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName -Server $vcenter.fqdn)) -Server $vcenter.fqdn | Out-Null
+                    if ($getSpbmPolicy = Get-SpbmStoragePolicy -Name $policyName -Server $vcenter.fqdn -ErrorAction SilentlyContinue) {
                         Write-Output  "Created vSphere Storage Policy $policyName in vCenter Server $($vcenter.fqdn) Successfully"
                     }
                     else {
@@ -2574,14 +2675,14 @@ Function Add-StoragePolicy {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
     Finally {
-        #Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
     }
 }
 Export-ModuleMember -Function Add-StoragePolicy
@@ -2659,7 +2760,7 @@ Function Add-ContentLibrary {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -2810,7 +2911,7 @@ Function Enable-SupervisorCluster {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -2818,6 +2919,682 @@ Function Enable-SupervisorCluster {
     }
 }
 Export-ModuleMember -Function Enable-SupervisorCluster
+
+function Test-SubnetInput {
+
+     <#
+        .SYNOPSIS
+        Tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
+
+        .DESCRIPTION
+        The Test-SubnetInput cmdlet tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
+        
+        .EXAMPLE
+        Test-SubnetInput -Subnet 192.168.21.0/24 -SubnetType Ingress
+        This example will return that the subnet 192.168.21.0/24 is valid for the type Ingress.
+    
+        #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$Subnet,
+        [Parameter (Mandatory = $true)] [String]$SubnetType
+    )
+
+    if ($SubnetType -eq "Pod") {
+        $subnetMinimum = 23
+        $subnetFormat = "100.100.0.0/20"
+    } elseif ($SubnetType -eq "Service") {
+        $subnetMinimum = 22
+        $subnetFormat = "100.200.0.0/22"
+    } elseif ($SubnetType -eq "Egress") {
+        $subnetMinimum = 27
+        $subnetFormat = "192.168.22.0/24"
+    } elseif ($subnettype -eq "Ingress") {
+        $subnetMinimum = 27
+        $subnetFormat = "192.168.21.0/24"
+    }
+
+
+    $alteredSubnet = $false
+
+    do {
+        try {
+            $checkSubnet = $null
+            $subnetStart = $null
+
+            $subnetStart = $Subnet.Split("/")[0]
+            try {
+                $checkSubnet = [IPAddress]$subnetStart
+            } catch {}
+
+            if ($checksubnet.IPAddressToString -ne $subnetStart -or !$checkSubnet) {
+                $alteredSubnet = $true
+                $Subnet = Read-Host "Improperly formatted $subnetType subnet ($subnet). Please enter a correctly formatted (CIDR notation - e.g., $subnetFormat) subnet and press Enter"
+            } else {
+                $subnetFormatValidated = $true
+            }
+        } catch {
+            Debug-ExceptionWriter -object $_
+        }
+
+        if ($subnetFormatValidated) {
+            $suffix = $Subnet.Split("/")[1]
+            $checkSuffix = [int[]]$suffix
+
+            try {
+                if ($checkSuffix -gt $subnetMinimum -or !$checkSuffix) {
+                    $alteredSubnet = $true
+                    do {
+                        [Int[]]$newSuffix = Read-Host "Improperly sized $subnetType subnet ($subnet). Please enter a new host prefix length (At least $subnetminimum) and press Enter"
+                    }until ($newSuffix.length -ne [int]::empty -and  $newSuffix -le $subnetMinimum)
+
+                    $newSubnetAddress = $subnet.Split("/")[0]
+                    $subnet = "$newSubnetAddress/$newSuffix"
+                } else {
+                    $subnetSizeValidated = $true
+                }
+            } catch {
+                Debug-ExceptionWriter -object $_
+            }
+        }
+    } until ($subnetFormatValidated -eq $true -and $subnetSizeValidated -eq $true)
+    
+    $output = New-Object -TypeName PSCustomObject
+    $output | Add-Member -notepropertyname 'Validated' -notepropertyvalue $true
+    $output | Add-Member -notepropertyname 'Altered' -notepropertyvalue $alteredSubnet
+    $output | Add-Member -notepropertyname 'Subnet' -notepropertyvalue $subnet
+    $output
+}
+Export-ModuleMember -Function Test-SubnetInput
+
+function Test-IpAddress {
+
+    <#
+        .SYNOPSIS
+        Tests whether an IPv4 address is in a specified subnet.
+
+        .DESCRIPTION
+        The Test-IpAddress cmdlet tests whether an IPv4 address is in a specified subnet.
+
+        .EXAMPLE
+        Test-IpAddress -ipAddress 192.168.20.10 -Subnet 192.168.20.0/24
+        This example will test whether the IPv4 address 192.168.20.10 is in the 192.168.20.0/24 subnet.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [String]$Subnet
+    )
+
+    $subnetStart = $Subnet.Split("/")[0]
+    $suffix = $Subnet.Split("/")[1]
+
+    $subnetStartBinary = $subnetStart -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
+    $subnetStartBinary =  $subnetStartBinary -join ""
+    $subnetStartBinary = ($subnetStartBinary).ToCharArray()
+
+    $ipAddressBinary = $ipAddress -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
+    $ipAddressBinary =  $ipAddressBinary -join ""
+    $ipAddressBinary = ($ipAddressBinary).ToCharArray()
+
+    for($i=0;$i -lt $subnetStartBinary.length;$i++){
+        if($i -ge $suffix){
+            $subnetStartBinary[$i] = "1"
+        } 
+    }
+    
+    for ($i = 0;$i -lt $subnetStartBinary.length;$i++) {
+        $partSubnetStartBinary += $subnetStartBinary[$i] 
+        if(($i+1)%8 -eq 0){
+            $partSubnetStartBinary = $partSubnetStartBinary -join ""
+            $subnetBroadcastBinary += $partSubnetStartBinary -join ""
+            $partSubnetStartBinary = ""
+        }
+    }
+
+    $subnetBroadcastBinary = $subnetBroadcastBinary.ToCharArray()
+
+    [Int[]]$suffixComparison = (1..32)
+
+    for($i=0; $i -lt $suffixComparison.length; $i++){
+        if($suffixComparison[$i] -gt $suffix) {
+            $suffixComparison[$i] = "0"
+        } else {
+            $suffixComparison[$i] = "1"
+        }
+    }
+        
+    [string]$suffixBinaryString = $suffixComparison -join ""
+    [char[]]$suffixBinary = $suffixBinaryString.ToCharArray()
+    $comparison = $true
+
+    for ($i=0; $i -le $subnetStartBinary.length; $i++){
+        if($subnetStartBinary[$i] -ne $ipAddressBinary[$i] -and $suffixBinary[$i] -ne "0") {
+            $comparison = $false
+        } 
+    }
+
+    $output = New-Object -TypeName PSCustomObject
+    $output | Add-Member -notepropertyname 'IpAddress' -notepropertyvalue $ipAddress
+    $output | Add-Member -notepropertyname 'Subnet' -notepropertyvalue $subnet
+    $output | Add-Member -notepropertyname 'Validated' -notepropertyvalue $comparison
+    $output
+} Export-ModuleMember -Function Test-IpAddress
+
+Function Get-NtpServer {
+    <#
+        .SYNOPSIS
+        Checks the status of an NTP server
+
+        .DESCRIPTION
+        The Get-NtpServer cmdlet checks the status of an NTP server
+
+        .EXAMPLE
+        Get-NtpServer -Server pool.ntp.org
+        This example will return the status of the NTP server responding at pool.ntp.org
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$server
+    )
+
+    try {
+        [Byte[]]$NtpData = ,0 * 48
+        $NtpData[0] = 0x1B
+    
+        $Socket = New-Object Net.Sockets.Socket([Net.Sockets.AddressFamily]::InterNetwork,
+                                                [Net.Sockets.SocketType]::Dgram,
+                                                [Net.Sockets.ProtocolType]::Udp)
+    
+        $Socket.ReceiveTimeout = 2000
+        $Socket.SendTimeout = 2000
+    
+        $Socket.Connect($Server,123)
+    
+        [Void]$Socket.Send($NtpData)
+        [Void]$Socket.Receive($NtpData)  
+        $Socket.Close()
+    } catch {}   
+
+    if ($ntpData -eq 0x1B) {
+        $ntpFunction = "Not Working"
+    } else {
+        $ntpFunction = "Working"
+    }
+    
+    $properties = @{'NTP_Server'=$server;
+                    'Results'=$ntpFunction}
+
+    $output = New-Object -TypeName PSObject -Property $properties
+    $output
+}
+Export-ModuleMember -Function Get-NtpServer
+
+Function Get-WMLicenseStatus {
+    <#
+        .SYNOPSIS
+        Log in to a Supervisor Cluster
+
+        .DESCRIPTION
+        The Connect-SupervisorCluster cmdlet logs the user in to a Supervisor Cluster
+
+        .EXAMPLE
+        Get-WMLicenseStatus -Server sfo-vcf01.sfo.rainpole.io -Domain sfo-w01
+        This example validates the vSphere with Tanzu licenses for the vCenter Server managing VI Workload Domain sfo-w01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$server,
+        [Parameter (Mandatory = $true)] [String]$domain
+    )
+
+    try {
+        $vcenterHeader = @{
+            "vmware-api-session-id" = "$vcToken" 
+        }
+
+        $uri = "https://$vcenterFqdn/api/vcenter/namespace-management/capability"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterHeader
+        $response
+
+    } catch {
+        Debug-ExceptionWriter -object $_ 
+    }
+}
+Export-ModuleMember -Function Get-WMLicenseStatus
+
+Function Get-SubscribedLibrary {
+    <#
+        .SYNOPSIS
+        Retrieves the specified Subscribed Content Library
+
+        .DESCRIPTION
+        The Get-SubscribedLibrary cmdlet retrieves the specified Subscribed Content Library
+
+        .EXAMPLE
+        Get-SubscribedLibrary -Name Kubernetes
+        This example retrieves the Subscribed Content Library named Kubernetes
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [String]$Name
+    )
+
+    try {
+        $vcenterHeader = @{
+            "vmware-api-session-id" = "$vcToken" 
+            "Content-Type" = "application/json"
+        }      
+
+$body = @"
+{
+    "name": "$Name",
+    "type": "SUBSCRIBED"
+}
+"@  
+
+            $subscribedLibraryId = Invoke-RestMethod -Method POST -Uri "https://$vcenterFqdn/api/content/library?action=find" -Headers $vcenterHeader -body $body
+            
+            $return = Invoke-RestMethod -Method GET -URI "https://$vcenterFqdn/api/content/subscribed-library/$subscribedLibraryId" -Headers $vcenterHeader
+            $return
+
+    } catch {
+        Debug-ExceptionWriter -object $_ 
+    }
+}
+Export-ModuleMember -Function Get-SubscribedLibrary
+
+Function New-SupervisorClusterCSR {
+    <#
+    	.SYNOPSIS
+    	Create a new certificate signing request for the defined Supervisor Cluster
+
+    	.DESCRIPTION
+    	The New-SupervisorClusterCSR cmdlet creates a new certificate signing request for the defined Supervisor Cluster
+
+    	.EXAMPLE
+    	New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-m01-cl01 -CommonName sfo-m01-cl01.sfo.rainpole.io -Organization Rainpole -OrganizationalUnit Rainpole -Country US -StateOrProvince California -Locality "Palo Alto" -AdminEmailAddress admin@rainpole.io -KeySize 2048
+    	This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
+  	#>
+
+      Param (
+        [Parameter (Mandatory = $true)] [String]$server,
+        [Parameter (Mandatory = $true)] [String]$user,
+        [Parameter (Mandatory = $true)] [String]$pass,
+        [Parameter (Mandatory = $true)] [String]$domain,
+        [Parameter (Mandatory = $true)] [String]$cluster,
+        [Parameter (Mandatory = $true)] [String]$CommonName,
+        [Parameter (Mandatory = $true)] [String]$Organization,
+        [Parameter (Mandatory = $true)] [String]$OrganizationalUnit,
+        [Parameter (Mandatory = $true)] [String]$Country,
+        [Parameter (Mandatory = $true)] [String]$StateOrProvince,
+        [Parameter (Mandatory = $true)] [String]$Locality,
+        [Parameter (Mandatory = $true)] [String]$AdminEmailAddress,
+        [Parameter (Mandatory = $false)] [String]$KeySize,
+        [Parameter (Mandatory = $false)] [bool]$OutFile,
+        [Parameter (Mandatory = $false)] [String]$FilePath
+
+      )
+    
+    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
+    Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+    $vcenterfqdn = $vcenter.fqdn
+
+        if ($KeySize) {
+$body = @"
+{
+    "country": "$Country",
+    "state_or_province": "$StateOrProvince",
+    "email_address": "$AdminEmailAddress",
+    "locality": "$Locality",
+    "organization_name": "$Organization",
+    "common_name": "$CommonName",
+    "organization_unit_name": "$OrganizationalUnit",
+    "key_size": $KeySize
+}
+"@
+        } else {
+$body = @"
+{
+    "country": "$Country",
+    "state_or_province": "$StateOrProvince",
+    "email_address": "$AdminEmailAddress",
+    "locality": "$Locality",
+    "organization_name": "$Organization",
+    "common_name": "$CommonName",
+    "organization_unit_name": "$OrganizationalUnit"
+}
+"@  
+        }
+
+    Try {
+        $vcenterHeader = @{
+            "vmware-api-session-id" = "$vcToken" 
+            "Content-Type" = "application/json"
+        }
+
+        Try {
+            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters -Headers $vcenterHeader | Where-Object { $_.cluster_name -eq $Cluster }).cluster
+        }
+        Catch {
+            Write-Error $_.Exception.Message
+        }
+
+        $uri = "https://$vcenterFqdn/api/$wmclusterid/csr/tls-endpoint/"
+        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $vcenterHeader -body $body
+        
+        if ($OutFile -or ($OutFile -eq $true)) {
+            if ($response) {
+                $response | Out-File -FilePath $FilePath
+                Write-Host "The certificate signing request for $CommonName has been successfully saved at $FilePath"
+            } else {
+                Write-Error $_.Exception.Message
+            }
+        } else {
+            $response
+        }
+
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-SupervisorClusterCSR
+
+Function Add-SupervisorClusterCertificate {
+    <#
+    	.SYNOPSIS
+    	Add a signed TLS certificate for the defined Supervisor Cluster
+
+    	.DESCRIPTION
+    	The Add-SupervisorClusterCertificate cmdlet adds a signed TLS certificate for the defined Supervisor Cluster
+
+    	.EXAMPLE
+    	Add-SupervisorClusterCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 import-FilePath "C:\Users\Administrator\Desktop\SupervisorCluster.cer"
+    	This example applies the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
+  	#>
+
+      Param (
+        [Parameter (Mandatory = $true)] [String]$server,
+        [Parameter (Mandatory = $true)] [String]$user,
+        [Parameter (Mandatory = $true)] [String]$pass,
+        [Parameter (Mandatory = $true)] [String]$domain,
+        [Parameter (Mandatory = $true)] [String]$cluster,
+        [Parameter (Mandatory = $false)] [String]$FilePath
+    )
+
+
+      $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
+        Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+        $vcenterfqdn = $vcenter.fqdn
+
+        if ($FilePath) {
+            try {
+                $certificate = Get-Content -Path $FilePath -Raw -ErrorAction SilentlyContinue
+                $inputFileName = Split-Path -Path $FilePath -Leaf -ErrorAction SilentlyContinue
+            } catch {
+                Write-Error $_.Exception.Message
+            }
+        }
+
+        if ($isMacOS -eq $true -or $isLinux -eq $true) {
+            $certificateFormatted = $Certificate -Replace "`n","\n"
+        } elseif ($isWindows -eq $true) {
+            $certificateFormatted = $Certificate -Replace "`r`n","\n"
+        } else {
+            Write-Error -Message "Unsupported operating system. Exiting."
+            break
+        }
+
+        if (($certificateFormatted | Measure-object -Line).Count -ne 1) {
+            Write-Error -Message "Error parsing TLS certificate. Exiting."
+        }
+
+        $body = @"
+{
+    "tls_endpoint_certificate": "$certificateFormatted"
+}
+"@ 
+
+
+    Try {
+        $vcenterHeader = @{
+            "vmware-api-session-id" = "$vcToken" 
+            "Content-Type" = "application/json"
+        }
+
+        Try {
+            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters -Headers $vcenterHeader | Where-Object { $_.cluster_name -eq $Cluster }).cluster
+        }
+        Catch {
+            Write-Error $_.Exception.Message
+        }
+
+        $uri = "https://$vcenterFqdn/api/vcenter/namespace-management/clusters/$wmClusterId/"
+
+        if ($PSEdition -eq 'Core') {
+            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented
+        }
+        else {
+            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body 
+        }
+
+        if ($response.StatusCode -lt 300) {
+            if ($inputFileName) {
+                Write-Host "The TLS certificate $inputFileName was successfully applied to Supervisor Cluster $cluster in Workload Domain $domain."
+            } else {
+                Write-Host "The TLS certificate was successfully applied to Supervisor Cluster $cluster in Workload Domain $domain."
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Response
+    }
+}
+Export-ModuleMember -Function Add-SupervisorClusterCertificate
+
+Function Get-VMClass {
+    <#
+    	.SYNOPSIS
+    	Retrieves information on a Virtual Machine Class
+
+    	.DESCRIPTION
+    	The Get-VMClass cmdlet retrieves information on a Virtual Machine Classs
+
+
+    	.EXAMPLE
+        Get-VMClass -Name guaranteed-small 
+        This example retrieves information on the VM Class guaranteed-small. No Supervisor Cluster definition is required as VM Classes are not bound to an individual Supervisor Cluster.
+  	#>
+
+      Param (
+        [Parameter (Mandatory = $false)] [String]$Name
+    )
+
+    $vcenterHeader = @{
+        "vmware-api-session-id" = "$vcToken"
+    }
+
+    if ($Name) {
+        Try {
+            $getVMClass = Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/virtual-machine-classes/$Name -Headers $vcenterHeader -ErrorAction SilentlyContinue
+            $getVMClass
+        }
+        Catch {
+            Write-Error $_.Exception.Message
+        }
+    } else {
+        Try {
+            $getVMClass = Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/virtual-machine-classes -Headers $vcenterHeader -ErrorAction SilentlyContinue
+            $getVMClass
+        }
+        Catch {
+            Write-Error $_.Exception.Message
+        }
+    }
+}
+Export-ModuleMember -Function Get-VMClass
+
+Function Get-NamespaceVMClasses {
+    <#
+    	.SYNOPSIS
+    	Retrieves any Virtual Machine Classes assigned to a Supervisor Namespace
+
+    	.DESCRIPTION
+    	The Get-NamespaceVMClasses cmdlet retrieves any Virtual Machine Classes assigned to a Supervisor Namespace
+
+    	.EXAMPLE
+        Get-NamespaceVMClasses -Namespace sfo-w01-tkc01 
+        This example retrieves a list of VM Classes assigned to Supervisor Namespace sfo-w01-ns01. No Supervisor Cluster definition is required as VM Classes are not bound to an individual Supervisor Cluster.
+  	#>
+
+      Param (
+        [Parameter (Mandatory = $true)] [String]$Namespace
+    )
+
+    $vcenterHeader = @{
+        "vmware-api-session-id" = "$vcToken"
+    }
+
+    try {
+        $getVMNamespaceClasses = Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespaces/instances/$Namespace -Headers $vcenterHeader -ErrorAction SilentlyContinue
+        $getVMNamespaceOutput = $getVMNamespaceClasses.vm_service_spec.vm_classes
+        $getVMNamespaceOutput
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NamespaceVMClasses
+
+Function Add-NamespaceVmClass {
+    <#
+    	.SYNOPSIS
+    	Add a VM Class to the defined Supervisor Namespace
+
+    	.DESCRIPTION
+    	The Add-NamespaceVmClass cmdlet adds a VM Class to the defined Supervisor Namespace
+
+    	.EXAMPLE
+    	Add-NamespaceVmClass -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Namespace sfo-w01-tkc01 -VMClass guaranteed-small
+    	This example adds the VM Class guaranteed-small to Supervisor Namespace sfo-tkc-01 in Workload domain sfo-w01
+  	#>
+
+      Param (
+        [Parameter (Mandatory = $true)] [String]$server,
+        [Parameter (Mandatory = $true)] [String]$user,
+        [Parameter (Mandatory = $true)] [String]$pass,
+        [Parameter (Mandatory = $true)] [String]$domain,
+        [Parameter (Mandatory = $true)] [String]$Namespace,
+        [Parameter (Mandatory = $true)] [String]$VMClass
+    )
+
+
+      $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
+        Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
+        $vcenterfqdn = $vcenter.fqdn
+
+
+        #Check if the namespace exists
+        try {
+            $checkNamespace = Get-WMNamespace -Name $Namespace -ErrorAction SilentlyContinue
+        } catch {
+            Write-Error $_.Exception.Message
+        }
+
+        if (!$checkNamespace){
+            do {
+                $Namespace = Read-Host -Prompt "The defined Supervisor Namespace is invalid. Please enter the name of your Supervisor Namespace and hit Enter"
+                try {
+                    $checkNamespace = Get-WMNamespace -Name $Namespace -ErrorAction SilentlyContinue
+                } catch {
+                    Write-Error $_.Exception.Message
+                }
+            } until ($checkNamespace)
+        }
+
+        #Check if the VM Class exists
+        try {
+            $checkVMClass = Get-VMClass -Name $VMClass -ErrorAction SilentlyContinue
+        } catch {
+            Write-Error $_.Exception.Message
+        }
+
+        if (!$checkVMClass) {
+            do {
+                $VMClass = Read-Host -Prompt "The defined Virtual Machine Class is invalid. Please enter the name of the Virtual Machine Class and hit Enter"
+                try {
+                    $checkVmClass = Get-VMClass -Name $VMClass -ErrorAction SilentlyContinue
+                } catch {
+                    Write-Error $_.Exception.Message
+                }
+            } until ($checkVMClass)
+        }
+
+        #Check if any VM Classes are already there
+        try {
+            $existingVMClasses = Get-NamespaceVMClasses -Namespace $Namespace -ErrorAction SilentlyContinue
+        } catch {
+            Write-Error $_.Exception.Message
+        }
+
+        if ($existingVMClasses) {
+            foreach ($existingVMClass in $existingVMClasses) {
+                if ($existingVMClass -eq $VMClass) {
+                    Write-Error "The Virtual Machine Class $VMClass is already assigned to Supervisor Namespace $Namespace."
+                    Exit
+                }
+            }
+            
+            $existingVMClasses += $VMClass
+            $jsonFormat = Convertto-Json $existingVMClasses
+
+$body = @"
+{
+    "vm_service_spec": {
+        "vm_classes": $jsonFormat
+    }
+}
+"@ 
+        } else {
+$body = @"
+{
+    "vm_service_spec": {
+        "vm_classes": [
+            "$VMClass"
+        ]
+    }
+}
+"@ 
+        }
+
+    Try {
+        $vcenterHeader = @{
+            "vmware-api-session-id" = "$vcToken" 
+            "Content-Type" = "application/json"
+        }
+
+        $uri = "https://$vcenterFqdn/api/vcenter/namespaces/instances/$Namespace"
+
+        if ($PSEdition -eq 'Core') {
+            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented
+        }
+        else {
+            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body 
+        }
+
+        if ($response.StatusCode -lt 300) {
+            Write-Host "The Virtual Machine Class $VMClass was successfully added to Supervisor Namespace $Namespace in Workload Domain $domain."
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Response
+    }
+}
+Export-ModuleMember -Function Add-NamespaceVmClass
 
 Function Add-Namespace {
     <#
@@ -2871,7 +3648,7 @@ Function Add-Namespace {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -2945,11 +3722,11 @@ Function Add-NamespacePermission {
                 }
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
             }
         }
         else {
-            Write-Error  "Unable to authenticate to Active Directory with user $domainBindUser and password $domainBindPass, verify they are correct and try again"
+            Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details"
         }
     }
     Catch {
@@ -2974,7 +3751,6 @@ Function Enable-Registry {
         .EXAMPLE
         Enable-Registry -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -storagePolicy vsphere-with-tanzu-storage-policy
         This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy
-
     #>
 
     Param (
@@ -3010,7 +3786,7 @@ Function Enable-Registry {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -3149,6 +3925,1932 @@ Export-ModuleMember -Function Add-TanzuKubernetesCluster
 #######################################################################################################################
 
 
+#########################################################################################################################
+##################  I N T E L L I G E N T   L O G G I N G   &   A N A L Y T I C S   F U N C T I O N S   #################
+
+Function Export-vRLIJsonSpec {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+    )
+
+    Try {
+
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        else {
+            if (!(Test-Path -Path $workbook)) {
+                Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+                Break
+            }
+        }
+
+        $pnpWorkbook = Open-ExcelPackage -Path $workbook
+
+        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        Request-vRSLCMToken -fqdn $server -username $username -password $password | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if ($pnpWorkbook.Workbook.Names["vrli_license"].Value) {
+                $licenseKey = $pnpWorkbook.Workbook.Names["vrli_license"].Value
+            }
+            else {
+                $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
+            }
+            $vrliLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
+            if ($vrliLicense.key -eq $licenseKey) {
+                $vrliCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value}
+                if ($vrliCertificate.alias) {
+                    $vrliPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value}
+                    if ($vrliPassword.alias) {
+                        $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                        $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value}
+
+                        $infrastructurePropertiesObject = @()
+                        $infrastructurePropertiesObject += [pscustomobject]@{
+                            'dataCenterVmid'		= $datacenterName.dataCenterVmid
+                            'regionName'			= "default"
+                            'zoneName'				= "default"
+                            'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                            'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                            'vcUsername'			= $vcCredentials.userName
+                            'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                            'acceptEULA'			= "true"
+                            'enableTelemetry'		= "true"
+                            'defaultPassword'		= ("locker:password:" + $($vrliPassword.vmid) + ":" + $($vrliPassword.alias))
+                            'certificate'			= ("locker:certificate:" + $($vrliCertificate.vmid) + ":" + $($vrliCertificate.alias))
+                            'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                            'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                            'diskMode'				= "thin"
+                            'network'				= $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                            'masterVidmEnabled'		= "false"
+                            'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                            'domain'				= $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                            'gateway'				= $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                            'netmask'				= $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                            'searchpath'			= $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+                            'timeSyncMode'			= "ntp"
+                            'ntp'					= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                            'isDhcp'				= "false"
+                            'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                        }
+                        
+                        $infrastructureObject = @()
+                        $infrastructureObject += [pscustomobject]@{
+                            'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
+                        }
+                        
+                        ### Generate the Properties Details
+                        $productPropertiesObject = @()
+                        $productPropertiesObject += [pscustomobject]@{
+                            'certificate'					= ("locker:certificate:" + $($vrliCertificate.vmid) + ":" + $($vrliCertificate.alias))
+                            'productPassword'				= ("locker:password:" + $($vrliPassword.vmid) + ":" + $($vrliPassword.alias))
+                            'adminEmail'					= $pnpWorkbook.Workbook.Names["region_vrli_admin_email"].Value
+                            'fipsMode'						= "false"
+                            'licenseRef'					= ("locker:license:" + $($vrliLicense.vmid) + ":" + $($vrliLicense.alias))
+                            'nodeSize'						= $pnpWorkbook.Workbook.Names["region_vrli_appliance_size"].Value.ToLower()
+                            'configureClusterVIP'			= "false"
+                            'affinityRule'					= $false
+                            'isUpgradeVmCompatibility'		= $false
+                            'vrliAlwaysUseEnglish'			= $false
+                            'masterVidmEnabled'				= $false
+                            'configureAffinitySeparateAll'	= "true"
+                            'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                            'timeSyncMode'					= "ntp"
+                        }
+                        
+                        #### Generate vRealize Log Insight Cluster Details
+                        $clusterVipProperties = @()
+                        $clusterVipProperties += [pscustomobject]@{
+                            'hostName'	= $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
+                            'ip'		= $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
+                        }
+                        
+                        $clusterVipsObject = @()
+                        $clusterVipsObject += [pscustomobject]@{
+                            'type'			= "vrli-cluster-1"
+                            'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
+                        }
+                        
+                        $clusterObject = @()
+                        $clusterObject += [pscustomobject]@{
+                        'clusterVips'	= $clusterVipsObject
+                        }
+                        
+                        #### Generate vRealize Log Insight Node Details
+                        $masterProperties = @()
+                        $masterProperties += [pscustomobject]@{
+                            'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value
+                            'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_fqdn"].Value
+                            'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
+                            'folderName'    = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
+                        }
+                        
+                        $worker1Properties = @()
+                        $worker1Properties += [pscustomobject]@{
+                            'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
+                            'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
+                            'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
+                        }
+                        
+                        $worker2Properties = @()
+                        $worker2Properties += [pscustomobject]@{
+                            'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
+                            'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
+                            'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
+                        }
+                        
+                        $nodesObject = @()
+                        $nodesobject += [pscustomobject]@{
+                            'type'			= "vrli-master"
+                            'properties'	= ($masterProperties | Select-Object -Skip 0)
+                        }
+                        $nodesobject += [pscustomobject]@{
+                            'type'			= "vrli-worker"
+                            'properties'	= ($worker1Properties | Select-Object -Skip 0)
+                        }
+                        $nodesobject += [pscustomobject]@{
+                            'type'			= "vrli-worker"
+                            'properties'	= ($worker2Properties | Select-Object -Skip 0)
+                        }
+                        
+                        #### Generate the vRealize Log Insight Properties Section
+                        $productsObject = @()
+                        $productsObject += [pscustomobject]@{
+                            'id' 			= "vrli"
+                            'version'		= "8.4.0"
+                            'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
+                            'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
+                            'nodes'			= $nodesObject	
+                        }
+                        
+                        $vrliDeploymentObject = @()
+                        $vrliDeploymentObject += [pscustomobject]@{
+                            'environmentName'                   = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
+                            'infrastructure'                    = ($infrastructureObject  | Select-Object -Skip 0)
+                            'products'                          = $productsObject     
+                        }
+                        
+                        $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vrliDeploymentSpec.json" 
+                        
+                        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+                        Write-Output "Creation of Deployment JSON Specification file for vRealize Log Insight: SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Admin Password with alias ($($region_vrli_admin_password_alias)) not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                    }
+                }
+                else {
+                    Write-Error "Certificate with alias ($($region_vrli_virtual_hostname)) not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                }
+            }
+            else {
+                Write-Error "License key ($($vrliLicense.key)) not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-vRLIJsonSpec
+
+Function New-vRLIDeployment {
+    <#
+        .SYNOPSIS
+        Deploy vRealize Log Inisght Cluster to vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The New-vRLIDeployment cmdlet deploys vRealize Log Insight via vRealize Suite Lifecycle Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the vRSLCM details from its
+        inventory and then:
+        - Verifies that the environment does not already exist
+        - Requests a new deployment of vRealize Log Insight
+
+        .EXAMPLE
+        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+        This example starts a deployment of vRealize Log Inisght using the Planning and Preparation Workbook
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+    )
+
+    Try {
+
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        else {
+            if (!(Test-Path -Path $workbook)) {
+                Write-Error "Planning and Preparation Workbook (.xlsx) ($workbook), File Not Found"
+                Break
+            }
+        }
+
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+            Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+            if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+                Export-vRLIJsonSpec -server $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass -workbook $workbook | Out-Null
+                $json = (Get-Content -Raw .\vrliDeploymentSpec.json)
+                $jsonSpec = $json | ConvertFrom-Json
+                if (!($environmentExists = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $($jsonSpec.environmentName)}))) {
+                    if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.productPassword.Split(":")[3])}) {
+                        if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
+                            if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
+                                $newRequest = Add-vRSLCMEnvironment -json $json
+                                if ($newRequest) {
+                                    if ($PsBoundParameters.ContainsKey("monitor")) {
+                                        Start-Sleep 10
+                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                    }
+                                    else {
+                                        Write-Output "Deployment Request for vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                    }
+                                }
+                                else {
+                                    Write-Error "Request to deploy vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI"
+                                }
+                            }
+                            else {
+                                Write-Error "License with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])) does not exist in the locker"
+                            }
+                        }
+                        else {
+                            Write-Error "Certificate with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])) does not exist in the locker"
+                        }
+                    }
+                    else {
+                        Write-Error "Password with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])) does not exist in the locker"
+                    }
+                }
+                else {
+                    Write-Warning "Environment with name ($($jsonSpec.environmentName)) already exists in vRealize Suite Lifecyle Manager ($($vrslcm.fqdn)) with a status of ($($environmentExists.environmentStatus)): SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vRLIDeployment
+
+Function Add-vRLISmtpConfiguation {
+    <#
+		.SYNOPSIS
+    	Configure SMTP settings in vRealize Log Insight
+
+    	.DESCRIPTION
+    	The Add-vRLISmtpConfiguation cmdlet configures the SMTP sever settings in vRealize Log Insight. The cmdlet 
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Log Insight
+        details from its inventory and then:
+        - Configures SMTP server settings on vRealize Log Insight
+
+    	.EXAMPLE
+    	Add-vRLISmtpConfiguation -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io
+        This example configures the SMTP server settings on vRealize Suite Lifecycle Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$smtpServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$port,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sender,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$smtpUser,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$smtpPass
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+            Request-vRLIToken -fqdn $vrliDetails.fqdn -username $vrliDetails.adminUser -password $vrliDetails.adminPass | Out-Null
+            if (Test-Connection -ComputerName $smtpServer -Quiet -Count 1) {
+                if ($vrliResponse.sessionId) {
+                    if (!(Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer})) {
+                        Set-vRLISmtpConfiguration -smtpServer $smtpServer -port $port -sender $sender -username $smtpUser -password $smtpPass | Out-Null
+                        if (Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer}) {
+                            Write-Output "Configuring SMTP Server in vRealize Log Insight ($($vrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Warning "Configuring SMTP Server in vRealize Log Insight ($($vrliDetails.fqdn)) with SMTP server ($smtpServer): FAILED"
+                        }
+                    }
+                    else {
+                        Write-Warning "Configuring SMTP Server in vRealize Log Insight ($($vrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
+                    }
+                }
+                else {
+                    Write-Error "Unable to obtain access token from vRealize Log ($($vrliDetails.fqdn)), check credentials"
+                }
+            }
+            else {
+                Write-Error "Unable to communicate with SMTP Server ($smtpServer), check details"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLISmtpConfiguation
+
+Function Add-vRLIAuthenticationWSA {
+    <#
+		.SYNOPSIS
+    	Configure vRealize Log Insight Intergration with Workspace ONE Access
+
+    	.DESCRIPTION
+    	The Add-vRLIAuthenticationWSA cmdlet configures role assignments in NSX Manager. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values to retrive the NSX Manager details from its inventory and then:
+        - Configures Workspace ONE Access Intergration on vRealize Log Insight
+
+    	.EXAMPLE
+    	Add-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
+        This example assigns enables Workspace ONE Access integration on vRealize Suite Lifecycle Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaPass
+    )
+
+    Try {
+        $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+        Request-vRLIToken -fqdn $vrliDetails.fqdn -username $vrliDetails.adminUser -password $vrliDetails.adminPass | Out-Null
+        if (Test-Connection -ComputerName $wsaFqdn -Quiet -Count 1) {
+            if ($vrliResponse.sessionId) {
+                if (($configurationStatus = Get-vRLIAuthenticationWSA).enabled -eq $false) {
+                    Set-vRLIAuthenticationWSA -hostname $wsaFqdn -port 443 -redirectUrl $vrliDetails.fqdn -username $wsaUser -password $wsaPass
+                    if (($configurationStatus = Get-vRLIAuthenticationWSA).enabled -eq $true) {
+                        Write-Output "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vrliDetails.fqdn)) with ($wsaFqdn): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vrliDetails.fqdn)) with ($wsaFqdn): FAILED"
+                    }
+                }
+                else {
+                    Write-Warning "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vrliDetails.fqdn)) with ($wsaFqdn), already exists: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from vRealize Log ($($vrliDetails.fqdn)), check credentials"
+            }
+        }
+        else {
+            Write-Error "Unable to communicate with Workspace ONE Access Instance ($wsaFqdn), check details"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLIAuthenticationWSA
+
+Function Install-vRLIPhotonAgent {
+    <#
+		.SYNOPSIS
+    	Install vRealize Log Insight Photon Agent
+
+    	.DESCRIPTION
+    	The Install-vRLIPhotonAgent cmdlet installs and configures the vRealize Log Insight Photon Agent. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Log Insight and vCenter Server
+        details from its inventory and then:
+        - Authenticates to the vCenter Server
+        - Downloads and Installs the Photon Agent on the Virtual Machne
+        - Configured the liagent.ini File to communicate with the vRealize Log Insight Cluster
+
+    	.EXAMPLE
+    	Install-vRLIPhotonAgent -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName sfo-wsa01 -vmRootPass VMw@re1!
+        This example installs and configures the vRealize Log Insight Agent on a virtual machine named sfo-wsa01
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmRootPass
+    )
+
+    Try {
+        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+        $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+        if ($vrliDetails) {
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                if (Get-VM -Name $vmName -Server $vcenter.fqdn -ErrorAction SilentlyContinue) {
+                    $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcenter.fqdn
+                    if ($output.ScriptOutput.Contains("/lib/systemd/system/liagentd.service; enabled")) {
+                        Write-Warning "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName), already exists: SKIPPED"
+                    }
+                    else {
+                        Invoke-VMScript -VM $vmName -ScriptText "rm /tmp/liagent.rpm && rm /tmp/installAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcenter.fqdn | Out-Null
+                        $installAgent = @(
+                            "curl -k -o /tmp/liagent.rpm https://$($vrliDetails.fqdn)/api/v1/agent/packages/types/rpm; rpm -Uvh /tmp/liagent.rpm",
+                            "systemctl enable liagentd",
+                            "systemctl status liagentd"
+                        )
+                        foreach ($line in $installAgent) {
+                            Invoke-VMScript -VM $vmName -ScriptText "echo ""$line"">>/tmp/installAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcenter.fqdn | Out-Null
+                        }
+                        $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/installAgent.sh && /tmp/installAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcenter.fqdn
+                        if ($output.ScriptOutput.Contains("/lib/systemd/system/liagentd.service; enabled")) {
+                            $configureAgent = @(
+                                "sed -i 's/;hostname=LOGINSIGHT/hostname=$($vrliDetails.fqdn)/' /var/lib/loginsight-agent/liagent.ini",
+                                "sed -i 's/;proto=cfapi/proto=cfapi/' /var/lib/loginsight-agent/liagent.ini",
+                                "sed -i 's/;port=9543/port=9000/' /var/lib/loginsight-agent/liagent.ini",
+                                "sed -i 's/;ssl=yes/ssl=no/' /var/lib/loginsight-agent/liagent.ini",
+                                "systemctl restart liagentd",
+                                "systemctl status liagentd"
+                            )
+                            foreach ($line in $configureAgent) {
+                                Invoke-VMScript -VM $vmName -ScriptText "echo ""$line"">>/tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcenter.fqdn | Out-Null
+                            }
+                            $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/configureAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcenter.fqdn
+                            if ($output.ScriptOutput.Contains("active (running)")) {
+                                Write-Output "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): FAILED"
+                            }
+                        }
+                        else {
+                            Write-Error "Enabling vRealize Log Insight Agent Installed and Configured on ($vmName): FAILED"
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Virtual Machine ($vmName), not Found in vCenter Server ($($vcenter.fqdn)) Inventory, check details and try again"
+                }
+            }
+            else {
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+            }
+        }
+        else {
+            Write-Error "vRealize Log Insight Not Found in SDDC Manager ($server) Inventory, must be Deployed in VMware Cloud Foundation Aware-Mode"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-vRLIPhotonAgent
+
+Function Add-vRLIAgentGroup {
+    <#
+		.SYNOPSIS
+    	Creates an agent group
+
+    	.DESCRIPTION
+    	The Add-vRLIAgentGroup cmdlet creates new agent groups in vRealize Log Insight. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values to retrive the vRealize Log Insight details from its
+        inventory and then:
+        - Creates an agent group
+
+    	.EXAMPLE
+    	Add-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupType wsa -criteria sfo-wsa01.sfo.rainpole.io
+        This example assigns enables Workspace ONE Access integration on vRealize Suite Lifecycle Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet("wsa","photon")] [ValidateNotNullOrEmpty()] [String]$agentGroupType,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$criteria
+    )
+
+    Try {
+        $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+        Request-vRLIToken -fqdn $vrliDetails.fqdn -username $vrliDetails.adminUser -password $vrliDetails.adminPass | Out-Null
+        if ($agentGroupType -eq "wsa") {
+            $agentName = "Workspace ONE Access - Appliance Agent Group"
+        }
+        elseif ($agentGroupType -eq "photon") {
+            $agentName = "Photon OS - Appliance Agent Group"
+        }
+        if ($vrliResponse.sessionId) {
+            if (!(Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentName})) {
+                New-vRLIAgentGroup -agentGroupType $agentGroupType -criteria $criteria | Out-Null
+                if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentName}) {
+                    Write-Output "Creating Agent Group in vRealize Log Insight ($($vrliDetails.fqdn)) for ($agentName): SUCCESSFUL"
+                }
+                else {
+                    Write-Error "Creating Agent Group in vRealize Log Insight ($($vrliDetails.fqdn)) for ($agentName): FAILED"
+                }
+            }
+            else {
+                Write-Warning "Creating Agent Group in vRealize Log Insight ($($vrliDetails.fqdn)) for ($agentName), already exists: SKIPPED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Log ($($vrliDetails.fqdn)), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLIAgentGroup
+
+Function Register-vRLIWorkloadDomain {
+    <#
+		.SYNOPSIS
+    	Connect a Workload Domain to vRealize Log Insight
+
+    	.DESCRIPTION
+    	The Register-vRLIWorkloadDomain cmdlet connects a Workload Domain to vRealize Log Insight.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the Workload Domain ID
+        - Connects the Workload Domain with vRealize Log Insight
+
+    	.EXAMPLE
+    	Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status ENABLED
+        This example ENABLES the Workload Domain in vRealize Log Insight
+
+        .EXAMPLE
+    	Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
+        This example DISABLES the Workload Domain in vRealize Log Insight
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateSet("ENABLED", "DISABLED")] [String]$status
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+            if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -ne $status) { 
+                    Set-VCFvRLIConnection -domainId (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id -status $status | Out-Null
+                    Do {
+                        $configStatus = (Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status
+                    } Until ($configStatus -ne "IN_PROGRESS")
+                    if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
+                        Write-Output "Workload Domain Intergration in vRealize Log Insight ($($vrliDetails.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Workload Domain Intergration in vRealize Log Insight ($($vrliDetails.fqdn)) for Workload Domain ($domain): FAILED"
+                    }
+                }
+                else {
+                    Write-Warning "Workload Domain Intergration in vRealize Log Insight ($($vrliDetails.fqdn)) for Workload Domain ($domain), already exists: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Register-vRLIWorkloadDomain
+
+Function Set-vRLISyslogEdgeCluster {
+    <#
+		.SYNOPSIS
+    	Configure Syslog settings on NSX Edge Cluster
+
+    	.DESCRIPTION
+    	The Set-vRLISyslogEdgeCluster cmdlet configures Syslog settings on NSX Edge Cluster
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Gathers the Edge Node details
+        - Configures the Syslog settings
+
+    	.EXAMPLE
+    	Set-vRLISyslogEdgeCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -exportname SFO-VRLI
+        This example ENABLES the Workload Domain in vRealize Log Insight
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$exportName
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes
+            Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
+            if ($accessToken) {
+                [Array]$edgeNodeIds = ($edgeCluster = Get-NsxtEdgeCluster).members.transport_node_id
+                foreach ($nodeId in $edgeNodeIds) {
+                    if (!(Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName})) {
+                        if (!(Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.server -eq $vrliDetails.fqdn})) {
+                            Set-NsxtSyslogExporter -transport -id $nodeId -exporterName $exportName -logLevel INFO -port 514 -protocol TCP -server $vrliDetails.fqdn | Out-Null
+                            if (Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName}) {
+                                Write-Output "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId): SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId): FAILED"
+                            }
+                        }
+                        else {
+                            Write-Warning "Configuring Syslog Server ($($vrliDetails.fqdn)) on Edge Node ($nodeId), already exists: SKIPPED"
+                        }
+                    }
+                    else {
+                        Write-Warning "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId), already exists: SKIPPED"
+                    }
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from NSX Manager ($($nsxtManagerDetails.fqdn)), check credentials"
+            }     
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-vRLISyslogEdgeCluster
+
+Function Add-vRLILogArchive {
+    <#
+		.SYNOPSIS
+    	Configure log archiving
+
+    	.DESCRIPTION
+    	The Add-vRLILogArchive cmdlet configure log archiving in vRealize Log Insight. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values to retrive the vRealize Log Insight details from its
+        inventory and then:
+        - Configure an email address to send notifications
+        - Configure the log retention threshold
+        - Configure log archive location
+
+    	.EXAMPLE
+    	Add-vRLILogArchive -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -emailAddress administrator@rainpole.io -retentionNotificationDays 1 -retentionInterval weeks -retentionPeriodDays 7 -archiveLocation "nfs://172.27.11.4/sfo-m01-vrli01-400GB"
+        This example assigns enables Workspace ONE Access integration on vRealize Suite Lifecycle Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$retentionNotificationDays,
+        [Parameter (Mandatory = $true)] [ValidateSet("minutes","hours","days","weeks","months")] [ValidateNotNullOrEmpty()] [String]$retentionInterval,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$retentionPeriodDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$archiveLocation
+    )
+
+    Try {
+        $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+        Request-vRLIToken -fqdn $vrliDetails.fqdn -username $vrliDetails.adminUser -password $vrliDetails.adminPass | Out-Null
+        if ($vrliResponse.sessionId) {
+            Set-vRLIEmailNotification -emailAddress $emailAddress | Out-Null
+            Set-vRLIRetentionThreshold -enable true -interval $retentionNotificationDays -intervalUnit $retentionInterval | Out-Null
+            $partitionId = (Get-vRLIIndexPartition).id
+            Set-vRLILogArchive -id $partitionId -enable true -retentionPeriod $retentionPeriodDays -archiveEnable true -archiveLocation $archiveLocation
+            Write-Output "Configuring Email Notifications, Retention Period and Archive Location in vRealize Log Insight ($($vrliDetails.fqdn)): SUCCESSFUL"
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Log ($($vrliDetails.fqdn)), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLILogArchive
+
+Function Add-vRLIAuthenticationGroup {
+    <#
+		.SYNOPSIS
+    	Adds a group from the authentication provider
+
+    	.DESCRIPTION
+    	The Add-vRLIAuthenticationGroup cmdlet assigns access to a group based on the authentication providor. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Log Insight
+        details from the SDDC Manager inventory and then:
+        - Connects to vRealize Log Insight
+        - Verifies that the group has not already been assigned access to vRealize Log Insight
+        - Adds the group to the access control assigning the role provided
+
+    	.EXAMPLE
+    	Add-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -role 'Super Admin'
+        This example adds the group gg-vrli-admins with Super Admin role in vRealize Log Insight
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
+        [ValidateSet("Super Admin","User","Dashboard User","View Only Admin")] [ValidateNotNullOrEmpty()] [String]$role
+    )
+
+    Try {
+        $vrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass
+        Request-vRLIToken -fqdn $vrliDetails.fqdn -username $vrliDetails.adminUser -password $vrliDetails.adminPass | Out-Null
+        if ($vrliResponse.sessionId) {
+            if (Get-vRLIAuthenticationWSA -eq "True") {
+                if (!(Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain})) {
+                    Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
+                    if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
+                        Write-Output "Adding Group to vRealize Log Insight ($($vrliDetails.fqdn)), named ($group): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Warning "Adding Group to vRealize Log Insight ($($vrliDetails.fqdn)), named ($group): FAILED"
+                    }
+                }
+                else {
+                    Write-Warning "Adding Group to vRealize Log Insight ($($vrliDetails.fqdn)), named ($group), already exists: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Workspace ONE Integration on vRealize Log Insight ($($vrliDetails.fqdn)), not enabled: FAILED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Log ($($vrliDetails.fqdn)), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLIAuthenticationGroup
+
+###########################################  E N D   O F   F U N C T I O N S  ##########################################
+########################################################################################################################
+
+
+########################################################################################################################
+###############  I N T E L L I G E N T   O P E R A T I O N S  M A N A G E M E N T   F U N C T I O N S   ################
+
+Function Export-vROPsJsonSpec {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+    )
+
+    Try {
+
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        else {
+            if (!(Test-Path -Path $workbook)) {
+                Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+                Break
+            }
+        }
+
+        $pnpWorkbook = Open-ExcelPackage -Path $workbook
+
+        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        Request-vRSLCMToken -fqdn $server -username $username -password $password | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if ($pnpWorkbook.Workbook.Names["vrops_license"].Value) {
+                $licenseKey = $pnpWorkbook.Workbook.Names["vrops_license"].Value
+            }
+            else {
+                $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
+            }
+            $vropsLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
+            if ($vropsLicense.key -eq $licenseKey) {
+                $vropsCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value}
+                if ($vropsCertificate.alias) {
+                    $defaultPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value}
+                    if ($defaultPassword.alias) {
+                        $vropsPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value}
+                        if ($vropsPassword.alias) {
+                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                            $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
+                            if ($datacenterName) {
+                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
+                                $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
+
+                                $infrastructurePropertiesObject = @()
+                                $infrastructurePropertiesObject += [pscustomobject]@{
+                                    'dataCenterVmid'		= $datacenterName.dataCenterVmid
+                                    'regionName'			= "default"
+                                    'zoneName'				= "default"
+                                    'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                    'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                    'vcUsername'			= $vcCredentials.userName
+                                    'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                    'acceptEULA'			= "true"
+                                    'enableTelemetry'		= "true"
+                                    'defaultPassword'		= ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                    'certificate'			= ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
+                                    'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                    'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                    'diskMode'				= "thin"
+                                    'network'				= $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                    'masterVidmEnabled'		= "false"
+                                    'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                    'domain'				= $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                    'gateway'				= $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                    'netmask'				= $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                    'searchpath'			= $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                    'timeSyncMode'			= "ntp"
+                                    'ntp'					= $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                    'isDhcp'				= "false"
+                                    'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                }
+
+                                $infrastructureObject = @()
+                                $infrastructureObject += [pscustomobject]@{
+                                    'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
+                                }
+
+                                ### Generate the Properties Details
+                                $productPropertiesObject = @()
+                                $productPropertiesObject += [pscustomobject]@{
+                                    'certificate'					= ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
+                                    'productPassword'				= ("locker:password:" + $($vropsPassword.vmid) + ":" + $($vropsPassword.alias))
+                                    'licenseRef'					= ("locker:license:" + $($vropsLicense.vmid) + ":" + $($vropsLicense.alias))
+                                    'disableTls'					= "TLSv1,TLSv1.1"
+                                    'fipsMode'						= "false"
+                                    'timeSyncMode'					= "ntp"
+                                    'masterVidmEnabled'				= $true
+                                    'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                                    'affinityRule'					= $false
+                                    'configureAffinitySeparateAll'  = "true"
+                                    'deployOption'					= $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
+                                    'isCaEnabled'                   = "false"
+                                }
+
+                                #### Generate vRealize Log Insight Cluster Details
+                                $clusterVipProperties = @()
+                                $clusterVipProperties += [pscustomobject]@{
+                                    'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+                                }
+
+                                $clusterVipsObject = @()
+                                $clusterVipsObject += [pscustomobject]@{
+                                    'type'			= "vrops-cluster"
+                                    'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
+                                }
+
+                                $clusterObject = @()
+                                $clusterObject += [pscustomobject]@{
+                                'clusterVips'	= $clusterVipsObject
+                                }
+
+                                #### Generate vRealize Log Insight Node Details
+                                $masterProperties = @()
+                                $masterProperties += [pscustomobject]@{
+                                    'vmName'	    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+                                    'hostName'	    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
+                                    'ip'		    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
+                                    'gateway'       = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                    'searchpath'    = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                    'dns'           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                    'netmask'       = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                    'timeZone'      = "UTC"
+                                    'vCenterHost'   = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                    'cluster'       = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                    'network'       = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                    'storage'       = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                    'diskMode'      = "thin"
+                                    'vCenterName'   = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                    'vcUsername'    = $vcCredentials.userName
+                                    'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                    'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                }
+
+                                $replicaProperties = @()
+                                $replicaProperties += [pscustomobject]@{
+                                    'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+                                    'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
+                                    'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
+                                }
+
+                                $dataProperties = @()
+                                $dataProperties += [pscustomobject]@{
+                                    'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                                    'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
+                                    'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
+                                }
+
+                                $remoteCollector1Properties = @()
+                                $remoteCollector1Properties += [pscustomobject]@{
+                                    'vmName'	    = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
+                                    'hostName'	    = $pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
+                                    'ip'		    = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value
+                                    'deployOption'  = "smallrc"
+                                    'gateway'       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                    'searchpath'    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                                    'dns'           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                    'netmask'       = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                                    'timeZone'      = "UTC"
+                                    'vCenterHost'   = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                    'cluster'       = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                    'network'       = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                                    'storage'       = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                    'diskMode'      = "thin"
+                                    'vCenterName'   = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                    'vcUsername'    = $vcCredentials.userName
+                                    'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                    'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                }
+
+                                $remoteCollector2Properties = @()
+                                $remoteCollector2Properties += [pscustomobject]@{
+                                    'vmName'	= $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
+                                    'hostName'	= $pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
+                                    'ip'		= $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
+                                    'deployOption'  = "smallrc"
+                                    'gateway'       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                    'searchpath'    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                                    'dns'           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                    'netmask'       = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                                    'timeZone'      = "UTC"
+                                    'vCenterHost'   = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                    'cluster'       = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                    'network'       = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                                    'storage'       = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                    'diskMode'      = "thin"
+                                    'vCenterName'   = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                    'vcUsername'    = $vcCredentials.userName
+                                    'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                    'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                }
+
+                                $nodesObject = @()
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "master"
+                                    'properties'	= ($masterProperties | Select-Object -Skip 0)
+                                }
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "replica"
+                                    'properties'	= ($replicaProperties | Select-Object -Skip 0)
+                                }
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "data"
+                                    'properties'	= ($dataProperties | Select-Object -Skip 0)
+                                }
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "remotecollector"
+                                    'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
+                                }
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "remotecollector"
+                                    'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
+                                }
+
+                                #### Generate the vRealize Log Insight Properties Section
+                                $productsObject = @()
+                                $productsObject += [pscustomobject]@{
+                                    'id' 			= "vrops"
+                                    'version'		= "8.4.0"
+                                    'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
+                                    'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
+                                    'nodes'			= $nodesObject	
+                                }
+
+                                if (!($xintEnvironment)) { 
+                                    $vropsDeploymentObject = @()
+                                    $vropsDeploymentObject += [pscustomobject]@{
+                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
+                                        'products'              = $productsObject     
+                                    }
+                                }
+                                else {
+                                    $vropsDeploymentObject = @()
+                                    $vropsDeploymentObject += [pscustomobject]@{
+                                        'environmentId'         = $xintEnvironment.environmentId
+                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
+                                        'products'              = $productsObject     
+                                    }
+                                }
+
+                                $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vropsDeploymentSpec.json" 
+                            
+                                Write-Output "Creation of Deployment JSON Specification file for vRealize Operations Manager: SUCCESSFUL"                            
+                            }
+                            else {
+                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
+                            }
+                        }
+                        else {
+                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                        }
+                    }
+                    else {
+                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                    }
+                }
+                else {
+                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                }
+            }
+            else {
+                Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-vROPsJsonSpec
+
+Function New-vROPSDeployment {
+    <#
+        .SYNOPSIS
+        Deploy vRealize Operations Manager to vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The New-vROPSDeployment cmdlet deploys vRealize Operations Manager via vRealize Suite Lifecycle Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the vRSLCM details from its
+        inventory and then:
+        - Verifies that the environment does not already exist
+        - Requests a new deployment of vRealize Operations Manager
+
+        .EXAMPLE
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+        This example starts a deployment of vRealize Operations Manager using the Planning and Preparation Workbook
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+    )
+
+    if (!$PsBoundParameters.ContainsKey("workbook")) {
+        $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+    }
+    else {
+        if (!(Test-Path -Path $workbook)) {
+            Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+            Break
+        }
+    }
+
+    Try {
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            Export-vROPSJsonSpec -workbook $workbook -server $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+            $json = (Get-Content -Raw .\vropsDeploymentSpec.json)
+            $jsonSpec = $json | ConvertFrom-Json
+            if (!($checkProducts = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
+                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.productPassword.Split(":")[3])}) {
+                    if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
+                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
+                            if ($jsonSpec.environmentId) {
+                                $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+                            }
+                            else {
+                                $newRequest = Add-vRSLCMEnvironment -json $json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+                            }
+                            if ($newRequest) {
+                                if ($PsBoundParameters.ContainsKey("monitor")) {
+                                    Start-Sleep 10
+                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                }
+                                else {
+                                    Write-Output "Deployment Rquest for vRealize Operations Manager Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                }
+                            }
+                            else {
+                                Write-Error "Request to deploy vRealize Operations Manager failed, check the vRealize Suite Lifecycle Manager UI"
+                            }
+                        }
+                        else {
+                            Write-Error "License in vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
+                        }
+                    }
+                    else {
+                        Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
+                    }
+                }
+                else {
+                    Write-Error "Password in vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
+                }
+            }
+            else {
+                Write-Warning "vRealize Operations Manager in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)), already exists: SKIPPED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vROPSDeployment
+
+Function Register-vROPSWorkloadDomain {
+    <#
+		.SYNOPSIS
+    	Connect a Workload Domain to vRealize Operations Manager
+
+    	.DESCRIPTION
+    	The Register-vROPSWorkloadDomain cmdlet connects a Workload Domain to vRealize Operations Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the Workload Domain ID
+        - Connects the Workload Domain with vRealize Opertations Manager
+
+    	.EXAMPLE
+    	Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status ENABLED
+        This example ENABLES the Workload Domain in vRealize Opertations Manager
+
+        .EXAMPLE
+    	Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
+        This example DISABLES the Workload Domain in vRealize Opertations Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateSet("ENABLED", "DISABLED")] [String]$status
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+            if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -ne $status) { 
+                    Set-VCFvROPSConnection -domainId (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id -status $status | Out-Null
+                    Start-Sleep 10
+                    Do {
+                        $configStatus = (Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status
+                    } Until ($configStatus -ne "IN_PROGRESS")
+                    if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
+                        Write-Output "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vropsDetails.loadBalancerFqdn)) for domain ($domain): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vropsDetails.loadBalancerFqdn)) for domain ($domain): FAILED"
+                    }
+                }
+                else {
+                    Write-Warning "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vropsDetails.loadBalancerFqdn)) for domain ($domain), already enabled: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Register-vROPSWorkloadDomain
+
+Function Update-vROPSAdapterVcenter {
+    <#
+		.SYNOPSIS
+    	Reconfigures assigned Remove Collector Group for vCenter Adapter
+
+    	.DESCRIPTION
+    	The Update-vROPSAdapterVcenter cmdlet reconfigures the assigned Remove Collector Group for vCenter Adapter in vRealize Operations Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the vRealize Opertaions Manager details
+        - Obtains the Remote Collector details
+        - Obtains the vCenter Adapter details from vRelize Operations Manager
+        - Reconfigures the assigned Remote Collector Group
+
+    	.EXAMPLE
+    	Update-vROPSAdapterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        This example reconfigures all vCenter Adapters to use the provided remote collector group
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+            Request-vROPSToken -fqdn $vropsDetails.loadBalancerFqdn -username $vropsDetails.adminUser -password $vropsDetails.adminPass | Out-Null
+            if ($vropsHeaders.Authorization) {
+                if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
+                    $collectorGroupId = (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id
+                    $adapters = Get-vROPSAdapter | Where-Object {$_.resourceKey.adapterKindKey -eq "VMWARE"}
+                    Foreach ($adapter in $adapters) {
+                        $vcurl = ((Get-vROPSAdapter -id $adapter.id).resourceKey.resourceIdentifiers | Where-Object {$_.identifierType.name -eq "VCURL"}).value
+                        $json = '{
+                        "resourceKey" : {
+                        "name" : "'+ $($adapter.resourceKey.name) +'",
+                        "adapterKindKey" : "NSXTAdapter",
+                        "resourceKindKey" : "VMwareAdapter Instance",
+                        "resourceIdentifiers" : [ {
+                            "identifierType" : {
+                            "name" : "AUTODISCOVERY",
+                            "dataType" : "STRING",
+                            "isPartOfUniqueness" : true
+                            },
+                            "value" : "true"
+                        }, {
+                            "identifierType" : {
+                            "name" : "PROCESSCHANGEEVENTS",
+                            "dataType" : "STRING",
+                            "isPartOfUniqueness" : true
+                            },
+                            "value" : "true"
+                        }, {
+                            "identifierType" : {
+                            "name" : "VCURL",
+                            "dataType" : "STRING",
+                            "isPartOfUniqueness" : true
+                            },
+                            "value" : "'+ $vcurl +'"
+                        } ]
+                        },
+                        "description" : "'+ $($adapter.description) +'",
+                        "id" : "'+ $($adapter.id) +'",
+                        "collectorGroupId":  "'+ $($collectorGroupId) +'"
+                        }'
+
+                        $json | Out-File .\updateAdapter.json
+                        if (!($($adapter.collectorGroupId) -eq $collectorGroupId)) {
+                            Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
+                            Write-Output "Assigned vCenter Adapter in vRealize Operations Manager in ($($vropsDetails.loadBalancerFqdn)) to Remote Collector Group ($collectorGroupName): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Warning "vCenter Adapter: $($adapter.resourceKey.name) already assigned to $collectorGroupName in '$($vropsDetails.loadBalancerFqdn), skipping configuration"
+                        }
+                        Remove-Item .\updateAdapter.json -Force -Confirm:$false
+                    }
+                }
+                else {
+                    Write-Error "Remote Collector Group in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($collectorGroupName) not found: FAILED"
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)), check credentials"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-vROPSAdapterVcenter
+
+Function Add-vROPSGroupRemoteCollectors {
+    <#
+		.SYNOPSIS
+    	Groups the Remote Collectors into a group
+
+    	.DESCRIPTION
+    	The Add-vROPSGroupRemoteCollectors cmdlet groups the remote collectors in vRealize Operations Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the vRealize Opertaions Manager details
+        - Obtains the Remote Collector details
+        - Creates a new Remote Collector Group and assigns the deployed Remote Collectors
+
+    	.EXAMPLE
+    	Add-vROPSGroupRemoteCollectors -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        This example configures the currency to USD in vRealize Opertations Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+            Request-vROPSToken -fqdn $vropsDetails.loadBalancerFqdn -username $vropsDetails.adminUser -password $vropsDetails.adminPass | Out-Null
+            if ($vropsHeaders.Authorization) {
+                if (!(Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName})) {
+                    $collectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE"} | Select-Object id).id
+                    $collectorIds = $collectors -join ","
+                    Add-vROPSCollectorGroup -name $collectorGroupName -collectorIds $collectorIds
+                    if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
+                        Write-Output "Creating Remote Collector Group in ($($vropsDetails.loadBalancerFqdn)) named ($collectorGroupName): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Creating Remote Collector Group in ($($vropsDetails.loadBalancerFqdn)) named ($collectorGroupName): FAILED"
+                    }
+                }
+                else {
+                    Write-Warning "Creating Remote Collector Group in ($($vropsDetails.loadBalancerFqdn)) named ($collectorGroupName), already exists: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)), check credentials"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSGroupRemoteCollectors
+
+Function Add-vROPSCurrency {
+    <#
+		.SYNOPSIS
+    	Connect a Workload Domain to vRealize Operations Manager
+
+    	.DESCRIPTION
+    	The Add-vROPSCurrency cmdlet connects a Workload Domain to vRealize Operations Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the vRealize Opertaions Manager details
+        - Connects to vRealize Opertations Manager
+        - Configures the currency value
+
+    	.EXAMPLE
+    	Add-vROPSCurrency -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -currency USD
+        This example configures the currency to USD in vRealize Opertations Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$currency
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+            Request-vROPSToken -fqdn $vropsDetails.loadBalancerFqdn -username $vropsDetails.adminUser -password $vropsDetails.adminPass | Out-Null
+            if ($vropsHeaders.Authorization) {
+                if ((Get-vROPSCurrency -eq $null)) {
+                    Set-vROPSCurrency -currency $currency | Out-Null
+                    if (Get-vROPSCurrency -eq $currency) {
+                        Write-Output "Configuring currency in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) to ($currency): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Configuring currency in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) to ($currency): FAILED"
+                    }
+                }
+                else {
+                    Write-Warning "Configuring currency in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) to ($currency), already exists: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to obtain access token from vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)), check credentials"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSCurrency
+
+Function Add-vROPSCredentialNsxt {
+    <#
+		.SYNOPSIS
+    	Adds an NSX credential to vRealize Operations Manager
+
+    	.DESCRIPTION
+    	The Add-vROPSCredentialNsxt cmdlet adds a credential for a Workload Domains NSX Manager to vRealize Operations Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the vRealize Opertaions Manager details
+        - Obtains the NSX Management Cluster details for the Workload Domain
+        - Creates a new credential for the Workload Domain in vRealize Operations Manager using credentials from SDDC Manager inventory
+
+    	.EXAMPLE
+    	Add-vROPSCredentialNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
+        This example creates an NSX credential for the Workload Domain named 'sfo-w01' in vRealize Opertations Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+            $nsxDetails = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domain $domain
+            Request-vROPSToken -fqdn $vropsDetails.loadBalancerFqdn -username $vropsDetails.adminUser -password $vropsDetails.adminPass | Out-Null
+            if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                if (!(Get-vROPSCredential | Where-Object {$_.name -eq $nsxDetails.fqdn})) {
+                    $json = '{ "name":  "'+ $nsxDetails.fqdn +'", "adapterKindKey":  "NSXTAdapter", "credentialKindKey":  "NSXTCREDENTIAL", "fields":  [ { "name":  "USERNAME", "value":  "'+ $nsxDetails.adminUser +'" }, { "name":  "PASSWORD", "value": "'+ $nsxDetails.adminPass +'" } ]}'
+                    $json | Out-File .\addCredential.json
+                    Add-vROPSCredential -json .\addCredential.json | Out-Null
+                    if (Get-vROPSCredential | Where-Object {$_.name -eq $nsxDetails.fqdn}) {
+                        Write-Output "Creating Credential in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Creating Credential in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)): FAILED"
+                    }
+                    Remove-Item .\addCredential.json -Force -Confirm:$false
+                }
+                else {
+                    Write-Warning "Creating Credential in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)), already exists: SKIPPED"
+                }
+            }
+            else {
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSCredentialNsxt
+
+Function Add-vROPSAdapterNsxt {
+    <#
+		.SYNOPSIS
+    	Adds an NSX Adapter to vRealize Operations Manager
+
+    	.DESCRIPTION
+    	The Add-vROPSAdapterNsxt cmdlet adds an adapter for a Workload Domains NSX Manager to vRealize Operations Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Obtains the vRealize Opertaions Manager details
+        - Checks the Workload Domain is valid and then obtains the NSX Management Cluster details
+        - Checks the Remote Collector Group exits in vRealize Operations Manager
+        - Creates a new adapter including credentials for the Workload Domain in vRealize Operations Manager using credentials from SDDC Manager inventory
+
+    	.EXAMPLE
+    	Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -collectorGroupName "sfo-remote-collectors"
+        This example creates an NSX credential for the Workload Domain named 'sfo-w01' in vRealize Opertations Manager
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
+            $nsxDetails = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domain $domain
+            Request-vROPSToken -fqdn $vropsDetails.loadBalancerFqdn -username $vropsDetails.adminUser -password $vropsDetails.adminPass | Out-Null
+            if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
+                    if (!(Get-vROPSCredential | Where-Object {$_.name -eq $nsxDetails.fqdn})) {
+                        if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $nsxDetails.fqdn})) {
+                            $json = '{
+                                    "name": "'+ $nsxDetails.fqdn +'",
+                                    "description": "NSX-T Adapter - '+ $nsxDetails.fqdn +'",
+                                    "adapterKindKey": "NSXTAdapter",
+                                    "monitoringInterval": 5,
+                                    "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id +'",
+                                    "resourceIdentifiers": [
+                                        {
+                                            "name": "NSXTHOST",
+                                            "value": "'+ $nsxDetails.fqdn +'"  
+                                        }
+                                    ],
+                                    "credential": {
+                                        "name": "'+ $nsxDetails.fqdn +'",
+                                        "adapterKindKey": "NSXTAdapter",
+                                        "credentialKindKey": "NSXTCREDENTIAL",
+                                        "fields": [{
+                                            "name": "USERNAME",
+                                            "value": "'+ $nsxDetails.adminUser +'"
+                                        },
+                                        {
+                                            "name": "PASSWORD",
+                                            "value": "'+ $nsxDetails.adminPass +'"
+                                        }
+                                    ]
+                                }
+                            }'
+                            $json | Out-File .\addAdapter.json
+                            Add-vROPSAdapter -json .\addAdapter.json | Out-Null
+        
+                            if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $nsxDetails.fqdn}) {
+                                Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $nsxDetails.fqdn}).id | Out-Null
+                                Write-Output "Adding NSX Adapter in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)): SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Adding NSX Adapter in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)): FAILED"
+                            }
+                            Remove-Item .\addAdapter.json -Force -Confirm:$false
+                        }
+                        else {
+                            Write-Warning "Adding NSX Adapter in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)), already exists: SKIPPED"
+                        }
+                    }
+                    else {
+                        Write-Warning "Credential in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($($nsxDetails.fqdn)), already exists: SKIPPED"
+                    }      
+                }
+                else {
+                    Write-Error "Remote Collector Group in vRealize Operations Manager ($($vropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: FAILED"
+                }
+            }
+            else {
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSAdapterNsxt
+
+###########################################  E N D   O F   F U N C T I O N S  ##########################################
+########################################################################################################################
+
+
+########################################################################################################################
+########################  P R I V A T E   C L O U D  A U T O M A T I O N   F U N C T I O N S   #########################
+
+Function Export-vRAJsonSpec {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+    )
+
+    Try {
+
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        else {
+            if (!(Test-Path -Path $workbook)) {
+                Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+                Break
+            }
+        }
+
+        $pnpWorkbook = Open-ExcelPackage -Path $workbook
+
+        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        Request-vRSLCMToken -fqdn $server -username $username -password $password | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if ($pnpWorkbook.Workbook.Names["vra_license"].Value) {
+                $licenseKey = $pnpWorkbook.Workbook.Names["vra_license"].Value
+            }
+            else {
+                $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
+            }
+            $vraLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
+            if ($vraLicense.key -eq $licenseKey) { 
+                $vraCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value}
+                if ($vraCertificate.alias) {
+                    $defaultPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value}
+                    if ($defaultPassword.alias) {
+                        $vraPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value}
+                        if ($vraPassword.alias) {
+                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                            $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
+                            if ($datacenterName) {
+                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
+
+                                $infrastructurePropertiesObject = @()
+                                $infrastructurePropertiesObject += [pscustomobject]@{
+                                    'acceptEULA'			= "true"
+                                    'enableTelemetry'		= "true"
+                                    'regionName'			= "default"
+                                    'zoneName'				= "default"
+                                    'dataCenterVmid'		= $datacenterName.dataCenterVmid
+                                    'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                    'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                    'vcUsername'			= $vcCredentials.userName
+                                    'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                    'defaultPassword'		= ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                    'certificate'			= ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
+                                    'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                    'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                    'diskMode'				= "thin"
+                                    'network'				= $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                    'masterVidmEnabled'		= "false"
+                                    'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                    'domain'				= $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                    'gateway'				= $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                    'netmask'				= $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                    'searchpath'			= $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                    'timeSyncMode'			= "ntp"
+                                    'ntp'					= $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                    'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                }
+
+                                $infrastructureObject = @()
+                                $infrastructureObject += [pscustomobject]@{
+                                    'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
+                                }
+
+                                ### Generate the Properties Details
+                                $productPropertiesObject = @()
+                                $productPropertiesObject += [pscustomobject]@{
+                                    'certificate'					= ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
+                                    'productPassword'				= ("locker:password:" + $($vraPassword.vmid) + ":" + $($vraPassword.alias))
+                                    'licenseRef'					= ("locker:license:" + $($vraLicense.vmid) + ":" + $($vraLicense.alias))
+                                    'fipsMode'						= "false"
+                                    'timeSyncMode'					= "ntp"
+                                    'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                                    'affinityRule'					= $false
+                                    'configureAffinitySeparateAll'  = "true"
+                                    'nodeSize'					    = $pnpWorkbook.Workbook.Names["xreg_vra_appliance_size"].Value.ToLower()
+                                    'vraK8ServiceCidr'              = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_cluster_cidr"].Value
+                                    'vraK8ClusterCidr'              = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_service_cidr"].Value
+                                    'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
+                                }
+
+                                #### Generate vRealize Log Insight Cluster Details
+                                $clusterVipProperties = @()
+                                $clusterVipProperties += [pscustomobject]@{
+                                    'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
+                                }
+
+                                $clusterVipsObject = @()
+                                $clusterVipsObject += [pscustomobject]@{
+                                    'type'			= "vra-va"
+                                    'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
+                                }
+
+                                $clusterObject = @()
+                                $clusterObject += [pscustomobject]@{
+                                'clusterVips'	= $clusterVipsObject
+                                }
+
+                                #### Generate vRealize Log Insight Node Details
+                                $vraPrimaryProperties = @()
+                                $vraPrimaryProperties += [pscustomobject]@{
+                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value
+                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
+                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_ip"].Value
+                                }
+
+                                $vraSecondary1Properties = @()
+                                $vraSecondary1Properties += [pscustomobject]@{
+                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_fqdn"].Value
+                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
+                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_ip"].Value
+                                }
+
+                                $vraSecondary2Properties = @()
+                                $vraSecondary2Properties += [pscustomobject]@{
+                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_fqdn"].Value
+                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_ip"].Value
+                                }
+
+                                $nodesObject = @()
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "vrava-primary"
+                                    'properties'	= ($vraPrimaryProperties | Select-Object -Skip 0)
+                                }
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "vrava-secondary"
+                                    'properties'	= ($vraSecondary1Properties | Select-Object -Skip 0)
+                                }
+                                $nodesobject += [pscustomobject]@{
+                                    'type'			= "vrava-secondary"
+                                    'properties'	= ($vraSecondary2Properties | Select-Object -Skip 0)
+                                }
+
+                                #### Generate the vRealize Log Insight Properties Section
+                                $productsObject = @()
+                                $productsObject += [pscustomobject]@{
+                                    'id' 			= "vra"
+                                    'version'		= "8.4.1"
+                                    'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
+                                    'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
+                                    'nodes'			= $nodesObject	
+                                }
+
+                                if (!($xintEnvironment)) { 
+                                    $vraDeploymentObject = @()
+                                    $vraDeploymentObject += [pscustomobject]@{
+                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
+                                        'products'              = $productsObject     
+                                    }
+                                }
+                                else {
+                                    $vraDeploymentObject = @()
+                                    $vraDeploymentObject += [pscustomobject]@{
+                                        'environmentId'         = $xintEnvironment.environmentId
+                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
+                                        'products'              = $productsObject     
+                                    }
+                                }
+
+                                $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vraDeploymentSpec.json" 
+                                
+                                Write-Output "Creation of Deployment JSON Specification file for vRealize Automation: SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
+                            }
+                        }
+                        else {
+                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                        }
+                    }
+                    else {
+                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                    }
+                }
+                else {
+                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                }
+            }
+            else {
+                Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-vRAJsonSpec
+
+Function New-vRADeployment {
+    <#
+        .SYNOPSIS
+        Deploy vRealize Automation to vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The New-vRADeployment cmdlet deploys vRealize Automation via vRealize Suite Lifecycle Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the vRSLCM details from its
+        inventory and then:
+        - Verifies that the environment does not already exist
+        - Requests a new deployment of vRealize Automation
+
+        .EXAMPLE
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+        This example starts a deployment of vRealize Automation using the Planning and Preparation Workbook
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+    )
+
+    if (!$PsBoundParameters.ContainsKey("workbook")) {
+        $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+    }
+    else {
+        if (!(Test-Path -Path $workbook)) {
+            Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+            Break
+        }
+    }
+
+    Try {
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            Export-vRAJsonSpec -server $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass -workbook $workbook | Out-Null
+            $json = (Get-Content -Raw .\vraDeploymentSpec.json)
+            $jsonSpec = $json | ConvertFrom-Json
+            if (!($checkProducts = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
+                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.productPassword.Split(":")[3])}) {
+                    if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
+                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
+                            if ($jsonSpec.environmentId) {
+                                $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
+                            }
+                            else {
+                                $newRequest = Add-vRSLCMEnvironment -json $json
+                            }
+                            if ($newRequest) {
+                                if ($PsBoundParameters.ContainsKey("monitor")) {
+                                    Start-Sleep 10
+                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                }
+                                else {
+                                    Write-Output "Deployment Rquest for vRealize Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                }
+                            }
+                            else {
+                                Write-Error "Request to deploy vRealize Automation failed, check the vRealize Suite Lifecycle Manager UI"
+                            }
+                        }
+                        else {
+                            Write-Error "License in vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
+                        }
+                    }
+                    else {
+                        Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
+                    }
+                }
+                else {
+                    Write-Error "Password in vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
+                }
+            }
+            else {
+                Write-Warning "vRealize Automation in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)), already exists: SKIPPED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vRADeployment
+
+
+###########################################  E N D   O F   F U N C T I O N S  ##########################################
+########################################################################################################################
+
+
 #######################################################################################################################
 #################   S H A R E D   P O W E R   V A L I D A T E D  S O L U T I O N   F U N C T I O N S   ################
 
@@ -3195,65 +5897,71 @@ Function Add-vCenterGlobalPermission {
 		if (!$localDomain){
 			$checkAdAuthentication = Test-ADAuthentication -user $domainBindUser -pass $domainBindPass -server $domain -domain $domain -ErrorAction SilentlyContinue
 			if (!($checkAdAuthentication[1] -match "Authentication Successful")) {
-				Write-Error  "Unable to authenticate to Active Directory with user '$domainBindUser' and password '$domainBindPass', verify they are correct and try again"
+				Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details"
 				Return
 			}
 		}
 
 		$securePass = ConvertTo-SecureString -String $domainBindPass -AsPlainText -Force
 		$domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
-		$vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
-		Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Pass $vcenter.ssoAdminPass | Out-Null
-		if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-			Connect-SsoAdminServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultSsoAdminServers.Name -eq $($vcenter.fqdn)) {
-                if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
-                    Write-Error "Identity Source $domain not found in vCenter Server $($vcenter.fqdn)"
-                }
-                else {
-                    if ($type -eq "group") {
-                        if (!$localDomain) {
-                            $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                        }
-                        else {
-                            $principal = $domain.ToUpper() + "\" + $principal
-                            $objectCheck = (Get-VIAccount -Group -Domain vsphere.local | Where-Object { $_.Name -eq $principal })
-                        }
-                    }
-                    elseif ($type -eq "user") {
-                        if (!$localDomain){
-                            $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                            $principal = $domain.ToUpper() + "\" + $principal
-                        }
-                        else {
-                            $principal = $domain.ToUpper() + "\" + $principal
-                            $objectCheck = (Get-VIAccount -User -Domain vsphere.local | Where-Object { $_.Name -eq $principal })
-                        }
-                    }
-                    if ($objectCheck) {
-                        $roleId = (Get-VIRole -Name $role | Select-Object -ExpandProperty Id)
-                        Add-GlobalPermission -vcServer $vcenter.fqdn -vcUsername $vcenter.ssoAdmin -vcPassword $vcenter.ssoAdminPass -roleId $roleId -user $principal -propagate $propagate -type $type
-                        Write-Output "Assigned Global Permission Role $role to $type '$principal' in vCenter Server $($vcenter.fqdn) Successfully"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Pass $vcenter.ssoAdminPass | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                Connect-SsoAdminServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultSsoAdminServers.Name -eq $($vcenter.fqdn)) {
+                    if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
+                        Write-Error "Unable to find Identity Source in vCenter Server ($($vcenter.fqdn)) named ($domain)"
                     }
                     else {
-                        if ($localDomain) {
-                            Write-Error "$type '$principal' not found in the Local Domain, please create and retry"
+                        if ($type -eq "group") {
+                            if (!$localDomain) {
+                                $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
+                            }
+                            else {
+                                $principal = $domain.ToUpper() + "\" + $principal
+                                $objectCheck = (Get-VIAccount -Group -Domain vsphere.local | Where-Object { $_.Name -eq $principal })
+                            }
+                        }
+                        elseif ($type -eq "user") {
+                            if (!$localDomain){
+                                $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
+                                $principal = $domain.ToUpper() + "\" + $principal
+                            }
+                            else {
+                                $principal = $domain.ToUpper() + "\" + $principal
+                                $objectCheck = (Get-VIAccount -User -Domain vsphere.local | Where-Object { $_.Name -eq $principal })
+                            }
+                        }
+                        if ($objectCheck) {
+                            $roleId = (Get-VIRole -Name $role | Select-Object -ExpandProperty Id)
+                            Add-GlobalPermission -vcServer $vcenter.fqdn -vcUsername $vcenter.ssoAdmin -vcPassword $vcenter.ssoAdminPass -roleId $roleId -user $principal -propagate $propagate -type $type
+                            Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcenter.vmName)) to $type ($principal): SUCCESSFUL"
                         }
                         else {
-                            Write-Error "Active Directory $type '$principal' not found in the Active Directory Domain, please create and retry"
+                            if ($localDomain) {
+                                Write-Error "Unable to find $type ($principal) in Local Domain, create and retry"
+                            }
+                            else {
+                                Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry"
+                            }
                         }
                     }
+                }
+                else {
+                    Write-Error "Unable to connect to vCenter Single-Sign On ($($vcenter.fqdn))"
                 }
             }
             else {
-                Write-Error  "Not connected to vCenter Single-Sign On $($vcenter.fqdn)"
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
             }
-		}
+            Disconnect-SsoAdminServer $vcenter.fqdn -WarningAction SilentlyContinue
+            Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+        }
         else {
-			Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
-		}
-		Disconnect-SsoAdminServer $vcenter.fqdn -WarningAction SilentlyContinue
-		Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
     }
     Catch {
         Debug-ExceptionWriter -object $_
@@ -3290,34 +5998,40 @@ Function Set-vCenterPermission {
 	)
 
 	Try {
-		$vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $workloadDomain
-		Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-		if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-			$principal = $domain.ToUpper() + "\" + $principal
-			$objectCheck = Get-VIPermission -Server $vcenter.fqdn | Where-Object { $_.Principal -eq $principal }
-            if ($objectCheck) {
-                if (!($objectCheck.Role -eq $role)) {
-                    New-VIPermission -Server $vcenter.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcenter.fqdn+"*"}) | Out-Null
-                    $objectCheck = Get-VIPermission -Server $vcenter.fqdn | Where-Object { $_.Principal -eq $principal }
-                    if ($objectCheck.Role -eq $role) {
-                        Write-Output "Assigned $role permission to $principal Successfully"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $workloadDomain
+            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                $principal = $domain.ToUpper() + "\" + $principal
+                $objectCheck = Get-VIPermission -Server $vcenter.fqdn | Where-Object { $_.Principal -eq $principal }
+                if ($objectCheck) {
+                    if (!($objectCheck.Role -eq $role)) {
+                        New-VIPermission -Server $vcenter.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcenter.fqdn+"*"}) | Out-Null
+                        $objectCheck = Get-VIPermission -Server $vcenter.fqdn | Where-Object { $_.Principal -eq $principal }
+                        if ($objectCheck.Role -eq $role) {
+                            Write-Output "Assigning role ($role) in vCenter Server ($($vcenter.vmName)) to ($principal): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Error "Assigning role ($role) in vCenter Server ($($vcenter.vmName)) to ($principal): FAILED"
+                        }
                     }
                     else {
-                        Write-Error "Assigning $role permission to $principal failed, please retry"
+                        Write-Warning "Assigning role ($role) in vCenter Server ($($vcenter.vmName)) to ($principal), already assigned: SKIPPED"
                     }
                 }
                 else {
-                    Write-Warning "Role $($objectCheck.Role) assigned to $principal already"
+                    Write-Error "Unable to find ($principal) in vCenter Server ($($vcenter.vmName))"
                 }
+                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
             }
             else {
-				Write-Error "$principal not found in the vCenter Server $($vcenter.fqdn)"
-			}
-            Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-		}
+                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+            }
+        }
         else {
-			Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
-		}
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
 	}
     Catch {
         Debug-ExceptionWriter -object $_
@@ -3368,101 +6082,121 @@ Function Add-SsoPermission {
             if ($checkAdAuthentication[1] -match "Authentication Successful") {
                 $securePass = ConvertTo-SecureString -String $domainBindPass -AsPlainText -Force
                 $domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
+                Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+                if ($accessToken) {
+                    $ssoServer = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain
+                    $ssoConnection = Connect-SsoAdminServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass
+                    if ($DefaultSsoAdminServers.Name -eq $($ssoServer.fqdn)) {
+                        $targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnection
+                        if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
+                            if ($type -eq "group") {
+                                $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
+                                if ($adObjectCheck) {
+                                    if (!(Get-SsoGroup -Group $targetGroup -Name $principal)) {
+                                        $ldapGroup = Get-SsoGroup -Domain $domain -Name $principal -Server $ssoConnection
+                                        $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
+                                        if (Get-SsoGroup -Group $targetGroup -Name $principal) {
+                                            Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
+                                        }
+                                        else {  Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): FAILED"
+                                        }
+                                    }
+                                    else { 
+                                        Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
+                                    }
+                                }
+                                else { 
+                                    Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry"
+                                }
+                            }
+                            elseif ($type -eq "user") {
+                                $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
+                                if ($adObjectCheck) {
+                                    if (!(Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal})) {
+                                        $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnection
+                                        $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
+                                        if (Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal}) {
+                                            Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
+                                        }
+                                        else { Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to$type ($principal) for domain ($domain): FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain). already exists: SKIPPED"
+                                    }
+                                }
+                                else { 
+                                    Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry"
+                                }
+                            }
+                        }
+                        else {
+                            Write-Error "Unable to find Identity Source in vCenter Server ($($vcenter.fqdn)) named ($domain)"
+                        }
+                        Disconnect-SsoAdminServer -Server $ssoServer.fqdn
+                    }
+                    else {
+                        Write-Error "Unable to connect to vCenter Single-Sign On ($($ssoServer.fqdn))"
+                    }
+                }
+                else {
+                    Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+                }
+            }
+            else {
+                Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details"
+            }
+        }
+        elseif ($source -eq "local") {
+            Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+            if ($accessToken) {
                 $ssoServer = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain
                 $ssoConnection = Connect-SsoAdminServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass
                 if ($DefaultSsoAdminServers.Name -eq $($ssoServer.fqdn)) {
                     $targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnection
-                    if (Get-IdentitySource -Server $ssoConnection | Where-Object { $_.Name -eq $domain }) {
+                    if (Get-IdentitySource | Where-Object { $_.Name -eq $domain }) {
                         if ($type -eq "group") {
-                            $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                            if ($adObjectCheck) {
-                                if (!(Get-SsoGroup -Group $targetGroup -Name $principal)) {
-                                    $ldapGroup = Get-SsoGroup -Domain $domain -Name $principal -Server $ssoConnection
-                                    $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
-                                    if (Get-SsoGroup -Group $targetGroup -Name $principal) {
-                                        Write-Output "Assigned Active Directory $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Successfully"
-                                    }
-                                    else {  Write-Error "Adding Active Directory $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Failed"
-                                    }
+                            if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnection)) {
+                                $ldapGroup = Get-SsoGroup -Domain $domain -Name $principal -Server $ssoConnection
+                                $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
+                                if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnection) {
+                                    Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
                                 }
-                                else { Write-Warning "Active Directory $type '$principal' from Identity Provider '$domain' already added to vCenter Single-Sign On Group $ssoGroup"
+                                else {
+                                    Write-Error "Assigning SSO On Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): FAILED"
                                 }
                             }
-                            else { Write-Error "Active Directory $type '$principal' not found in the Active Directory Domain '$domain', please create and retry"
+                            else {
+                                Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain).already exists: SKIPPED"
                             }
                         }
                         elseif ($type -eq "user") {
-                            $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                            if ($adObjectCheck) {
-                                if (!(Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal})) {
-                                    $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnection
-                                    $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
-                                    if (Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal}) {
-                                        Write-Output "Assigned Active Directory $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Successfully"
-                                    }
-                                    else { Write-Error "Adding Active Directory $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Failed"
-                                    }
+                            if (!(Get-SsoPersonUser -Group $targetGroup -Server $ssoConnection | Where-Object {$_.Name -eq $principal})) {
+                                $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnection
+                                $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
+                                if (Get-SsoPersonUser -Group $targetGroup -Server $ssoConnection| Where-Object {$_.Name -eq $principal}) {
+                                    Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
                                 }
-                                else { Write-Warning "Active Directory $type '$principal' from Identity Provider '$domain' to already added to vCenter Single-Sign On Group $ssoGroup"
+                                else {
+                                    Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain): FAILED"
                                 }
                             }
-                            else { Write-Error "Active Directory $type '$principal' not found in the Active Directory Domain '$domain', please create and retry"
+                            else {
+                                Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($ssoServer.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                             }
                         }
                     }
                     else {
-                        Write-Error "Identity Provider '$domain' not found in vCenter Single-Sign On, please create and retry"
+                        Write-Error "Unable to find Identity Source in vCenter Server ($($vcenter.fqdn)) named ($domain)"
                     }
                     Disconnect-SsoAdminServer -Server $ssoServer.fqdn
                 }
                 else {
-                    Write-Error  "Not connected to vCenter Single-Sign On $($ssoServer.fqdn)"
+                    Write-Error "Unable to connect to vCenter Single-Sign On ($($ssoServer.fqdn))"
                 }
             }
             else {
-                Write-Error  "Unable to authenticate to Active Directory with user '$domainBindUser' and password '$domainBindPass', verify they are correct and try again"
-            }
-        }
-        elseif ($source -eq "local") {
-            $ssoServer = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain
-            $ssoConnection = Connect-SsoAdminServer -Server $ssoServer.fqdn -User $ssoServer.ssoAdmin -Password $ssoServer.ssoAdminPass
-            if ($DefaultSsoAdminServers.Name -eq $($ssoServer.fqdn)) {
-                $targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnection
-                if (Get-IdentitySource | Where-Object { $_.Name -eq $domain }) {
-                    if ($type -eq "group") {
-                        if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnection)) {
-                            $ldapGroup = Get-SsoGroup -Domain $domain -Name $principal -Server $ssoConnection
-                            $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
-                            if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnection) {
-                                Write-Output "Assigned $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Successfully"
-                            }
-                            else {  Write-Error "Adding $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Failed"
-                            }
-                        }
-                        else { Write-Warning "$type '$principal' from Identity Provider '$domain' already added to vCenter Single-Sign On Group $ssoGroup"
-                        }
-                    }
-                    elseif ($type -eq "user") {
-                        if (!(Get-SsoPersonUser -Group $targetGroup -Server $ssoConnection | Where-Object {$_.Name -eq $principal})) {
-                            $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnection
-                            $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
-                            if (Get-SsoPersonUser -Group $targetGroup -Server $ssoConnection| Where-Object {$_.Name -eq $principal}) {
-                                Write-Output "Assigned $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Successfully"
-                            }
-                            else { Write-Error "Adding $type '$principal' from Identity Provider '$domain' to vCenter Single-Sign On Group '$ssoGroup' Failed"
-                            }
-                        }
-                        else { Write-Warning "$type '$principal' from Identity Provider '$domain' already added to vCenter Single-Sign On Group $ssoGroup"
-                        }
-                    }
-                }
-                else {
-                    Write-Error "Identity Provider '$domain' not found in vCenter Single-Sign On, please create and retry"
-                }
-                Disconnect-SsoAdminServer -Server $ssoServer.fqdn
-            }
-            else {
-                Write-Error  "Not connected to vCenter Single-Sign On $($ssoServer.fqdn)"
+                Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
         }
     }
@@ -3514,22 +6248,26 @@ Function Add-vSphereRole {
             $checkRole = Get-VIRole -Server $vcenter.fqdn | Where-Object { $_.Name -eq $roleName }
             if (!$checkRole ) {
                 New-VIRole -Name $roleName -Server $vcenter.fqdn | Out-Null
-                Write-Output "Created new role '$roleName' in vCenter Server $($vcenter.fqdn) Successfully"
-            }
-            else {
-                Write-Warning "Role '$roleName' already exists in $($vcenter.fqdn)"
-            }
-            Foreach ($privilege in $roleContent) {
-                if (-not ($privilege -eq $null -or $privilege -eq "")) {
-                    Set-VIRole -Server $vcenter.fqdn -Role $roleName -AddPrivilege (Get-VIPrivilege -ID $privilege) -Confirm:$False -ErrorAction SilentlyContinue | Out-Null
+                $checkRole = Get-VIRole -Server $vcenter.fqdn | Where-Object { $_.Name -eq $roleName }
+                if ($checkRole ) {
+                    Foreach ($privilege in $roleContent) {
+                        if (-not ($privilege -eq $null -or $privilege -eq "")) {
+                            Set-VIRole -Server $vcenter.fqdn -Role $roleName -AddPrivilege (Get-VIPrivilege -ID $privilege) -Confirm:$False -ErrorAction SilentlyContinue | Out-Null
+                        }
+                    }
+                    Write-Output "Creating a new role in vCenter Server ($($vcenter.fqdn)) named ($roleName): SUCCESSFUL"
+                }
+                else {
+                    Write-Error "Creating a new role in vCenter Server ($($vcenter.fqdn)) named ($roleName): FAILED"
                 }
             }
-            Write-Output "Assigned all privileges from the template file to role '$roleName' in vCenter Server $($vcenter.fqdn) Successfully"
-
+            else {
+                Write-Warning "Creating a new role in vCenter Server ($($vcenter.fqdn)) named ($roleName), already exists: SKIPPED"
+            }
             Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -3555,42 +6293,48 @@ Function Add-VMFolder {
   	#>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$folderName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folderName
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-        if ($vcenter) {
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                $datacenter = (Get-Datacenter -Cluster $cluster -Server $vcenter.fqdn).Name
-                $folderExists = (Get-Folder -Name $folderName -Server $vcenter.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)
-                if ($folderExists) {
-                    Write-Warning "The VM and Template Folder '$folderName' already exists"
-                }
-                else {
-                    $folder = (Get-View -Server $vcenter.fqdn (Get-View -Server $vcenter.fqdn -viewtype datacenter -filter @{"name" = [String]$datacenter }).vmfolder).CreateFolder($folderName)
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
+            if ($vcenter) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                    $datacenter = (Get-Datacenter -Cluster $cluster -Server $vcenter.fqdn).Name
                     $folderExists = (Get-Folder -Name $folderName -Server $vcenter.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)
                     if ($folderExists) {
-                        Write-Output  "Created VM and Template Folder '$folderName' in vCenter Server Successfully"
+                        Write-Warning "Adding VM and Template Folder to vCenter Server ($($vcenter.fqdn)) named ($folderName), already exists: SKIPPED"
                     }
                     else {
-                        Write-Error "Creating VM and Template Folder '$folderName' in vCenter Server Failed"
+                        $folder = (Get-View -Server $vcenter.fqdn (Get-View -Server $vcenter.fqdn -viewtype datacenter -filter @{"name" = [String]$datacenter }).vmfolder).CreateFolder($folderName)
+                        $folderExists = (Get-Folder -Name $folderName -Server $vcenter.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)
+                        if ($folderExists) {
+                            Write-Output  "Adding VM and Template Folder to vCenter Server ($($vcenter.fqdn)) named ($folderName): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Error "Adding VM and Template Folder to vCenter Server ($($vcenter.fqdn)) named ($folderName): FAILED"
+                        }
                     }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                 }
-                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                else {
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+                }
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
             }
         }
         else {
-            Write-Error "Workload domain name does not exist in SDDC Manager"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3598,6 +6342,73 @@ Function Add-VMFolder {
     }
 }
 Export-ModuleMember -Function Add-VMFolder
+ 
+Function Undo-VMFolder {
+    <#
+    	.SYNOPSIS
+    	Remove a VM Folder
+
+    	.DESCRIPTION
+    	The Undo-VMFolder cmdlet removes a VM and Template folder. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values to retrive the vCenter Server details from the SDDC Manager inventory
+        and then:
+        - Connects to the vCenter Server instance
+        - Verifies that the folder is present in vCenter Server
+        - Removes the VM and Template folder from the vCenter Server Inventory
+    	.EXAMPLE
+    	Undo-VMFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myFolder"
+    	This example shows how to remove the folder myFolder within the VMware Cloud Foundation domain sfo-m01
+  	#>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folderName,
+        [Parameter (Mandatory = $true)] [ValidateSet("Datacenter", "VM", "Network", "HostAndCluster", "Datastore")] [String]$folderType
+    )
+
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
+            if ($vcenter) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    $folderExists = (Get-Folder -Name $folderName -Type $folderType -Server $vcenter.fqdn -ErrorAction Ignore)
+                    if (!$folderExists) {
+                        Write-Warning "Removing Folder Type ($folderType) from vCenter Server ($($vcenter.fqdn)) with name ($folderName), folder does not exist: SKIPPED"
+                    }
+                    else {
+                        Get-Folder -Name $folderName -Type $folderType -Server $vcenter.fqdn | Remove-Folder -Confirm:$false -ErrorAction Ignore
+                        $folderExists = (Get-Folder -Name $folderName -Type $folderType -Server $vcenter.fqdn -ErrorAction Ignore)
+                        if (!$folderExists) {
+                            Write-Output  "Removing Folder Type ($folderType) from vCenter Server ($($vcenter.fqdn)) with name ($folderName): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Error "Removing Folder Type ($folderType) from vCenter Server ($($vcenter.fqdn)) with name ($folderName): FAILED"
+                        }
+                    }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                }
+                else {
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+                }
+            }
+            else {
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-VMFolder
 
 Function Add-AntiAffinityRule {
     <#
@@ -3625,35 +6436,41 @@ Function Add-AntiAffinityRule {
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-        if ($vcenter) {
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                $antiAffinityRuleExists = (Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})
-                if ($antiAffinityRuleExists) {
-                    Write-Warning "The Anti-Affinity Rule '$ruleName' already exists"
-                }
-                else {
-                    $vmNames = $antiAffinityVMs.split(",")
-                    $vms = foreach ($name in $vmNames) { Get-VM -name $name -ErrorAction SilentlyContinue }
-                    New-DrsRule -Cluster $cluster -Name $ruleName -VM $vms -KeepTogether $false -Enabled $true | Out-Null
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
+            if ($vcenter) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
                     $antiAffinityRuleExists = (Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})
                     if ($antiAffinityRuleExists) {
-                        Write-Output "Created vSphere Anti-Affinity Rule '$ruleName' in vCenter Server '$($vcenter.fqdn)' Successfully"
+                        Write-Warning "Adding Anti-Affinity Rule to vCenter Server ($($vcenter.fqdn)) named ($ruleName), already exists: SKIPPED"
                     }
                     else {
-                        Write-Error "Creating vSphere Anti-Affinity Rule '$ruleName' in vCenter Server '$($vcenter.fqdn)' Failed, Please Retry"
+                        $vmNames = $antiAffinityVMs.split(",")
+                        $vms = foreach ($name in $vmNames) { Get-VM -name $name -ErrorAction SilentlyContinue }
+                        New-DrsRule -Cluster $cluster -Name $ruleName -VM $vms -KeepTogether $false -Enabled $true | Out-Null
+                        $antiAffinityRuleExists = (Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})
+                        if ($antiAffinityRuleExists) {
+                            Write-Output "Adding Anti-Affinity Rule to vCenter Server ($($vcenter.fqdn)) named ($ruleName): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Error "Adding Anti-Affinity Rule to vCenter Server ($($vcenter.fqdn)) named ($ruleName): FAILED"
+                        }
                     }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                 }
-                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                else {
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+                }
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
             }
         }
         else {
-            Write-Error "Workload domain name does not exist in SDDC Manager"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3688,36 +6505,42 @@ Function Add-ClusterGroup {
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-        if ($vcenter) {
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
+            if ($vcenter) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
 
-                $drsGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName})
-                if ($drsGroupExists) {
-                    Write-Warning "The vSphere DRS Group '$drsGroupName' already exists"
-                }
-                else {
-                    $vmNames = $drsGroupVMs.split(",")
-                    $vms = foreach ($name in $vmNames) { Get-VM -name $name -ErrorAction SilentlyContinue }
-                    New-DrsClusterGroup -Cluster $cluster -VM $vms -Name $drsGroupName | Out-Null
                     $drsGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName})
                     if ($drsGroupExists) {
-                        Write-Output "Created vSphere DRS Group '$drsGroupName' in vCenter Server '$($vcenter.fqdn)' Successfully"
+                        Write-Warning "Adding vSphere DRS Group to vCenter Server ($($vcenter.fqdn)) named ($drsGroupName), already exists: SKIPPED"
                     }
                     else {
-                        Write-Error "Creating vSphere DRS Group '$drsGroupName' in vCenter Server '$($vcenter.fqdn)' Failed, Please Retry"
+                        $vmNames = $drsGroupVMs.split(",")
+                        $vms = foreach ($name in $vmNames) { Get-VM -name $name -ErrorAction SilentlyContinue }
+                        New-DrsClusterGroup -Cluster $cluster -VM $vms -Name $drsGroupName | Out-Null
+                        $drsGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName})
+                        if ($drsGroupExists) {
+                            Write-Output "Adding vSphere DRS Group to vCenter Server ($($vcenter.fqdn)) named ($drsGroupName): SUCCESSFUL"
+                        }
+                        else {
+                            Write-Error "Adding vSphere DRS Group to vCenter Server ($($vcenter.fqdn)) named ($drsGroupName): FAILED"
+                        }
                     }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                 }
-                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                else {
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
+                }
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
             }
         }
         else {
-            Write-Error "Workload domain name does not exist in SDDC Manager"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3753,46 +6576,52 @@ Function Add-VmStartupRule {
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-        if ($vcenter) {
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                $vmGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $vmGroup})
-                if ($vmGroupExists) {
-                    $dependOnVmGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $dependOnVmGroup})
-                    if ($dependOnVmGroupExists) {
-                        $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
-                        if ($ruleNameExists) {
-                            Write-Warning "The vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' already exists"
-                        }
-                        else {
-                            Add-DrsVmToVmGroup -name $ruleName -vmGroup $vmGroup -dependOnVmGroup $dependOnVmGroup -Enabled -cluster $cluster | Out-Null
-                            Start-Sleep 5
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
+            if ($vcenter) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                    $vmGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $vmGroup})
+                    if ($vmGroupExists) {
+                        $dependOnVmGroupExists = (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $dependOnVmGroup})
+                        if ($dependOnVmGroupExists) {
                             $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
                             if ($ruleNameExists) {
-                                Write-Output "Created the vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' Successfully"
+                                Write-Warning "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcenter.fqdn)) named ($ruleName), already exists: SKIPPED"
                             }
                             else {
-                                Write-Error "Creating the vSphere DRS Virtual Machine to Virtual Machine Group '$ruleName' Failed, Please Retry"
+                                Add-DrsVmToVmGroup -name $ruleName -vmGroup $vmGroup -dependOnVmGroup $dependOnVmGroup -Enabled -cluster $cluster | Out-Null
+                                Start-Sleep 5
+                                $ruleNameExists = Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName
+                                if ($ruleNameExists) {
+                                    Write-Output "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcenter.fqdn)) named ($ruleName): SUCCESSFUL"
+                                }
+                                else {
+                                    Write-Error "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcenter.fqdn)) named ($ruleName): FAILED"
+                                }
                             }
+                        }
+                        else {
+                            Write-Error "vSphere DRS Group (VM Group to start after dependency) in vCenter Server ($($vcenter.fqdn)) named ($dependOnVmGroup), does not exist: FAILED"
                         }
                     }
                     else {
-                        Write-Error "The vSphere DRS Group '$dependOnVmGroup' (VM Group to start after dependency) not found in vCenter Server inventory, create and try again" 
+                        Write-Error "vSphere DRS Group (VM Group to start first) in vCenter Server ($($vcenter.fqdn)) named ($vmGroup), does not exist: FAILED"
                     }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                 }
                 else {
-                    Write-Error "The vSphere DRS Group '$vmGroup' (VM Group to start first) not found in vCenter Server inventory, create and try again" 
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                 }
-                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
             }
         }
         else {
-            Write-Error "Workload domain name does not exist in SDDC Manager"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3810,7 +6639,8 @@ Function Move-VMtoFolder {
     	The Move-VMtoFolder cmdlet moves the Virtual Machines to a folder. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
         to retrive the vCenter Server details from its inventory and then:
         - Verifies that the folder provided exists in the vCenter Server inventory
-        - Moves the virtual machines pprovided in the -vmlist parameter
+        - Verified the virtual machine exists
+        - Moves the virtual machines provided in the -vmlist parameter
 
     	.EXAMPLE
     	Move-VMtoFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmList "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c" -folder xinst-m01-fd-wsa
@@ -3827,26 +6657,40 @@ Function Move-VMtoFolder {
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-        if ($vcenter) {
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                if (Get-Folder | Where-Object {$_.Name -eq $folder}) {
-                    $vmNames = $vmList.split(",")
-                    foreach ($vm in $vmNames) { Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null }
-                    Write-Output "Virtual Machines '$vmList' relocated to folder '$folder' in vCenter Server '$($vcenter.fqdn)' Successfully"
+        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
+        if ($accessToken) {
+            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
+            if ($vcenter) {
+                Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
+                if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
+                    if (Get-Folder | Where-Object {$_.Name -eq $folder}) {
+                        $vmNames = $vmList.split(",")
+                        foreach ($vm in $vmNames) { 
+                            $checkVm = Get-VM -Name $vm -ErrorAction SilentlyContinue
+                            if ($checkVm) {
+                                Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null
+                                Write-Output "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
+                            }
+                            else {
+                                Write-Warning "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
+                            }
+                        }
+                    }
+                    else {
+                        Write-Error "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Folder not found: FAILED"
+                    }
+                    Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                 }
                 else {
-                    Write-Error "Folder with name '$folder' not found in vCenter Server '$($vcenter.fqdn)'"
+                    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                 }
-                Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
             }
             else {
-                Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+                Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
             }
         }
         else {
-            Write-Error "Workload domain name does not exist in SDDC Manager"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3858,13 +6702,15 @@ Export-ModuleMember -Function Move-VMtoFolder
 Function Import-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Add a certificate to the vRSLCM locker
+        Add a certificate to the vRealize Suite Lifecycle Manager Locker
 
         .DESCRIPTION
-        The Import-vRSLCMLockerCertificate cmdlet imports a PEM encoded chain file to the vRSLCM locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-        to retrive the vRSLCM details from its inventory and then:
-        - Verifies that the certificate doesnt already exist
-        - imports the certificate chain
+        The Import-vRSLCMLockerCertificate cmdlet imports a PEM encoded chain file to the vRealize Suite Lifecycle
+        Manager Locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Suite
+        Lifecycle Manager server details from the SDDC Manager inventory and then:
+        - Connects to the vRealize Suite Lifecycle Manager instance
+        - Verifies that the certificate is not present in the vRealize Suite Lifecycle Manager Locker
+        - Imports the certificate chain to the vRealize Suite Lifecycle Manager Locker
 
         .EXAMPLE
         Import-vRSLCMLockerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -certificateAlias "xint-vrops01" -certificatePassphrase "VMw@re1!"
@@ -3893,22 +6739,27 @@ Function Import-vRSLCMLockerCertificate {
 
         $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
         Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
-        if (!(Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $certificateAlias})) {
-            if ($PsBoundParameters.ContainsKey("certificatePassphrase")) {
-                $lockerCert = Add-vRSLCMLockerCertificate -vrslcmFQDN $vrslcm.fqdn -certificateAlias $certificateAlias -certificatePassphrase $certificatePassphrase -certChainPath $certChainPath
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if (!(Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
+                if ($PsBoundParameters.ContainsKey("certificatePassphrase")) {
+                    $lockerCert = Add-vRSLCMLockerCertificate -vrslcmFQDN $vrslcm.fqdn -certificateAlias $certificateAlias -certificatePassphrase $certificatePassphrase -certChainPath $certChainPath
+                }
+                else {
+                    $lockerCert = Add-vRSLCMLockerCertificate -vrslcmFQDN $vrslcm.fqdn -certificateAlias $certificateAlias -certChainPath $certChainPath
+                }
+                if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
+                    Write-Output "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
+                }
+                else {
+                    Write-Error "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($certificateAlias): FAILED"
+                }
             }
             else {
-                $lockerCert = Add-vRSLCMLockerCertificate -vrslcmFQDN $vrslcm.fqdn -certificateAlias $certificateAlias -certChainPath $certChainPath
-            }
-            if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $certificateAlias})) {
-                Write-Output "Certificate with alias $certificateAlias imported to the locker successfully"
-            }
-            else {
-                Write-Error "Certificate with alias $certificateAlias failed to import to the locker"
+                Write-Warning "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($certificateAlias), already exist: SKIPPED"
             }
         }
         else {
-            Write-Warning "Certificate with alias $certificateAlias already exists in the locker"
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3917,20 +6768,75 @@ Function Import-vRSLCMLockerCertificate {
 }
 Export-ModuleMember -Function Import-vRSLCMLockerCertificate
 
+Function Undo-vRSLCMLockerCertificate {
+    <#
+        .SYNOPSIS
+        Remove a certificate from the vRealize Suite Lifecycle Manager Locker
+
+        .DESCRIPTION
+        The Undo-vRSLCMLockerCertificate cmdlet removes a certificate from the vRealize Suite Lifecycle Manager Locker.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Suite
+        Lifecycle Manager server details from the SDDC Manager inventory and then:
+        - Connects to the vRealize Suite Lifecycle Manager instance
+        - Verifies that the certificate is present in the vRealize Suite Lifecycle Manager Locker
+        - Removes the certificate from vRealize Suite Lifecycle Manager Locker
+
+        .EXAMPLE
+        Undo-vRSLCMLockerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -certificateAlias "xint-vrops01"
+        This example removes a certificate with an alias of 'xint-vrops01' from the vRealize Suite Lifecycle Manager Locker
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateAlias
+    )
+
+    Try {
+
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias}) {
+                Remove-vRSLCMLockerCertificate -vmid (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias}).vmid | Out-Null
+                if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
+                    Write-Error "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($certificateAlias): FAILED"
+                }
+                else {
+                    Write-Output "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
+                }
+            }
+            else {
+                Write-Warning "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($certificateAlias), does not exist: SKIPPED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMLockerCertificate
+
 Function New-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Add a password to the vRSLCM locker
+        Add a password to the vRealize Suite Lifecycle Manager Locker Locker
 
         .DESCRIPTION
-        The New-vRSLCMLockerPassword cmdlet adds a password to the vRSLCM locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-        to retrive the vRSLCM details from its inventory and then:
-        - Verifies that the password doesnt already exist
-        - Adds the password to the locker
+        The New-vRSLCMLockerPassword cmdlet adds a password to the vRealize Suite Lifecycle Manager Locker Locker. The 
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Suite
+        Lifecycle Manager server details from the SDDC Manager inventory and then:
+        - Connects to the vRealize Suite Lifecycle Manager instance
+        - Verifies that the password is not present in the vRealize Suite Lifecycle Manager Locker
+        - Adds the password to the vRealize Suite Lifecycle Manager Locker
 
         .EXAMPLE
         New-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin -password VMw@re1! -description "vRealize Operations Admin" -userName xint-vrops01-admin
-        This example adds the password
+        This example adds a password with an alias of 'xint-vrops01-admin' to the vRealize Suite Lifecycle Manager Locker
     #>
 
     Param (
@@ -3946,22 +6852,27 @@ Function New-vRSLCMLockerPassword {
     Try {
         $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
         Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
-        if (!(Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $alias})) {
-            if ($PsBoundParameters.ContainsKey("description")) {
-                $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -description $description -userName $userName
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if (!(Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias})) {
+                if ($PsBoundParameters.ContainsKey("description")) {
+                    $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -description $description -userName $userName
+                }
+                else {
+                    $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
+                }
+                if ((Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias})) {
+                    Write-Output "Adding Password to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                }
+                else {
+                    Write-Error "Adding Password to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): FAILED"
+                }
             }
             else {
-                $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
-            }
-            if ((Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $alias})) {
-                Write-Output "Password with alias $alias added to the locker successfully"
-            }
-            else {
-                Write-Error "Password with alias $alias failed to add to the locker"
+                Write-Warning "Adding Password to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
             }
         }
         else {
-            Write-Warning "Password with alias $alias already exists in the locker"
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
         }
     }
     Catch {
@@ -3970,20 +6881,74 @@ Function New-vRSLCMLockerPassword {
 }
 Export-ModuleMember -Function New-vRSLCMLockerPassword
 
+Function Undo-vRSLCMLockerPassword {
+    <#
+        .SYNOPSIS
+        Remove a password from the vRealize Suite Lifecycle Manager Locker
+
+        .DESCRIPTION
+        The Undo-vRSLCMLockerPassword cmdlet removes a password from the vRealize Suite Lifecycle Manager Locker. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Suite
+        Lifecycle Manager server details from the SDDC Manager inventory and then:
+        - Connects to the vRealize Suite Lifecycle Manager instance
+        - Verifies that the password is present in the vRealize Suite Lifecycle Manager Locker
+        - Removes the password from the vRealize Suite Lifecycle Manager Locker
+
+        .EXAMPLE
+        Undo-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin
+        This example removes a password with an alias of 'xint-vrops01-admin' from the vRealize Suite Lifecycle Manager Locker
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias}) {
+                Remove-vRSLCMLockerPassword -vmid (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias}).vmid | Out-Null
+                if ((Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias})) {
+                    Write-Error "Removing Password from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): FAILED"
+                }
+                else {
+                    Write-Output "Removing Password from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                }
+            }
+            else {
+                Write-Warning "Removing Password from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMLockerPassword
+
 Function New-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Add a license to the vRSLCM locker
+        Add a license to the vRealize Suite Lifecycle Manager Locker
 
         .DESCRIPTION
-        The New-vRSLCMLockerLicense cmdlet adds a license to the vRSLCM locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
-        to retrive the vRSLCM details from its inventory and then:
-        - Verifies that the license doesnt already exist
-        - Adds the license to the locker
+        The New-vRSLCMLockerLicense cmdlet adds a license to the vRealize Suite Lifecycle Manager Locker. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Suite
+        Lifecycle Manager server details from the SDDC Manager inventory and then:
+        - Connects to the vRealize Suite Lifecycle Manager instance
+        - Verifies that the license is not present in the vRealize Suite Lifecycle Manager Locker
+        - Adds the license to the vRealize Suite Lifecycle Manager Locker
 
         .EXAMPLE
         New-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "vRealize Automation" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-        This example adds the password
+        This example adds a license with an alias of 'vRealize Automation' to the vRealize Suite Lifecycle Manager Locker
     #>
 
     Param (
@@ -3997,23 +6962,28 @@ Function New-vRSLCMLockerLicense {
     Try {
         $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
         Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
-        if (!(Get-vRSLCMLockerLicense | Where-Object {$_.key -Like $key})) {
-            if (!(Get-vRSLCMLockerLicense | Where-Object {$_.alias -Like $alias})) {
-                $lockerLicense = Add-vRSLCMLockerLicense -alias $alias -license $license
-                Start-Sleep 3
-                if ((Get-vRSLCMLockerLicense | Where-Object {$_.key -Like $license})) {
-                    Write-Output "License with alias $alias added to the locker successfully"
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if (!(Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license})) {
+                if (!(Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias})) {
+                    $lockerLicense = Add-vRSLCMLockerLicense -alias $alias -license $license
+                    Start-Sleep 2
+                    if ((Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license})) {
+                        Write-Output "Adding License to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                    }
+                    else {
+                        Write-Error "Adding License to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): FAILED"
+                    }
                 }
                 else {
-                    Write-Error "License with alias $alias failed to add to the locker"
+                    Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                 }
             }
             else {
-                Write-Warning "License with serial key $license already exists in the locker"
+                Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
             }
         }
         else {
-            Write-Warning "License with alias $alias already exists in the locker"
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
         }
     }
     Catch {
@@ -4021,6 +6991,58 @@ Function New-vRSLCMLockerLicense {
     }
 }
 Export-ModuleMember -Function New-vRSLCMLockerLicense
+
+Function Undo-vRSLCMLockerLicense {
+    <#
+        .SYNOPSIS
+        Remove a license to the vRealize Suite Lifecycle Manager Locker
+
+        .DESCRIPTION
+        The Undo-vRSLCMLockerLicense cmdlet removes a license from the vRealize Suite Lifecycle Manager Locker. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the vRealize Suite
+        Lifecycle Manager server details from the SDDC Manager inventory and then:
+        - Connects to the vRealize Suite Lifecycle Manager instance
+        - Verifies that the license is present in the vRealize Suite Lifecycle Manager Locker
+        - Removes the license to the vRealize Suite Lifecycle Manager Locker
+
+        .EXAMPLE
+        Undo-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "vRealize Automation"
+        This example removes a license with an alias of 'vRealize Automation' from the vRealize Suite Lifecycle Manager Locker
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        $vrslcm = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
+        Request-vRSLCMToken -fqdn $vrslcm.fqdn -username $vrslcm.adminUser -password $vrslcm.adminPass | Out-Null
+        if (($vrslcmHealth = Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
+            if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias}) {
+                Remove-vRSLCMLockerLicense -vmid (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias}).vmid | Out-Null
+                if (Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license}) {
+                    Write-Error "Removing License from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): FAILED"
+                }
+                else {
+                    Write-Output "Removing License from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                }
+            }
+            else {
+                Write-Warning "Removing License from the vRealize Suite Lifecycle Manager ($($vrslcm.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMLockerLicense
 
 Function Add-VmGroup {
     <#
@@ -4058,18 +7080,18 @@ Function Add-VmGroup {
                 if ($vmGroupExists.GroupType -eq "VMGroup") {
                     $vmNames = $vmList.split(",")
                     foreach ($vm in $vmNames) { Set-DrsClusterGroup -VM $vm -Server $vcenter.fqdn -DrsClusterGroup (Get-DrsClusterGroup | Where-Object {$_.Name -eq $name} -WarningAction SilentlyContinue -ErrorAction Ignore) -Add | Out-Null }
-                    Write-Output "Systems '$vmList' Added to VM/Host Group '$name' in vCenter Server '$($vcenter.fqdn)' Successfully"
+                    Write-Output "Adding Virtual Machines ($vmList) to VM/Host Group in vCenter Server ($($vcenter.fqdn)) named ($name): SUCCESSFUL"
                 }
                 else {
-                    Write-Error  "The DRS Cluster Group '$name' does not exist or is not a VM Group"
+                    Write-Error "Adding Virtual Machines ($vmList) to VM/Host Group in vCenter Server ($($vcenter.fqdn)) named ($name), does not exist or not a VM Group: FAILED"
                 }
             }
             else {
-			    Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+			    Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
 		    }
         }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -4077,6 +7099,114 @@ Function Add-VmGroup {
     }
 }
 Export-ModuleMember -Function Add-VmGroup
+
+Function Add-WorkspaceOneDirectoryGroup {
+    <#
+		.SYNOPSIS
+    	Adds Active Directory Group to sync in Workspace ONE Access Appliance
+
+    	.DESCRIPTION
+    	The Add-WorkspaceOneDirectoryGroup cmdlet adds an Active Directory Group to sync in Workspace ONE Access Appliance
+
+    	.EXAMPLE
+    	Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDn "OU=VVD,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=VVD,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate "F:\platformtools-l1-dev\certificates\Root64.pem"
+        This example adds Active Directory groups to Workspace ONE Access directory
+  	#>
+
+      Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDnGroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$adGroups
+    )
+
+    Try {
+        Request-WSAToken -fqdn $server -user $user -pass $pass | Out-Null
+        if ($sessionToken) {
+            $checkAdAuthentication = Test-ADAuthentication -user $bindUser -pass $bindPass -server $domain -domain $domain
+            if ($checkAdAuthentication -contains "2") {
+                $checkDirectoryExist = Get-WSADirectory | Where-Object { ($_.name -eq $domain) }
+                if ($checkDirectoryExist) {
+
+                    $configuredGroups = New-Object System.Collections.Generic.List[System.Object]
+                    $allGroups = New-Object System.Collections.Generic.List[System.Object]
+                    $existingGroupList = Get-WSAGroup | Where-Object {$_.displayName -Match $domain} | Select-Object displayName
+                    foreach ($existingGroup in $existingGroupList) {
+                        $groupName = ($existingGroup.displayname.Split("@"))[0]
+                        $configuredGroups.Add($groupName)
+                        $allGroups.Add($groupName)
+                    }                    
+                    $missingGroups = Compare-Object $adGroups $configuredGroups |  Where-Object { $_.SideIndicator -eq '<=' } | Foreach-Object { $_.InputObject }
+                    foreach ($newGroup in $missingGroups) {
+                        $allGroups.Add($newGroup)
+                    }
+                    $allGroups.ToArray() | Out-Null
+
+                    $mappedGroupObject = @()
+                    foreach ($group in $allGroups) {
+                        $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user $bindUser -pass $bindPass -principal $group
+                        if ($adGroupDetails) {
+                            $groupsObject = @()
+                            $groupsObject += [pscustomobject]@{
+                                'horizonName' = $adGroupDetails.Name
+                                'dn'          = $adGroupDetails.DistinguishedName
+                                'objectGuid'  = $adGroupDetails.ObjectGuid
+                                'groupBaseDN' = $baseDnGroup
+                                'source'      = "DIRECTORY"
+                            }
+                            $mappedGroupObject += [pscustomobject]@{
+                                'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
+                                'selected'    = $true
+                            }
+                        }
+                        else {
+                            Write-Error "Group $group is not available in Active Directory Domain"
+                        }
+                    }
+                    $mappedGroupObjectData = @()
+                    $mappedGroupObjectData += [pscustomobject]@{
+                        'mappedGroupData' = $mappedGroupObject
+                        'selected'        = $false
+                    }
+                    $identityGroupObject = @()
+                    $identityGroupObject += [pscustomobject]@{
+                        $baseDnGroup = ($mappedGroupObjectData | Select-Object -Skip 0)
+                    }
+                    $adGroupObject = @()
+                    $adGroupObject += [pscustomobject]@{
+                        'identityGroupInfo'         = ($identityGroupObject | Select-Object -Skip 0)
+                        'excludeNestedGroupMembers' = $false
+                    }
+                    $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10 
+
+                    $adGroupJson | Out-File -Encoding UTF8 -FilePath "adGroups.json" 
+
+
+                    Set-WSADirectoryGroup -directoryId $checkDirectoryExist.directoryId -json $adGroupJson | Out-Null
+                    Start-WSADirectorySync -directoryId $checkDirectoryExist.directoryId | Out-Null
+                    Write-Output "Adding Active Directory Directory Groups in Workspace One Access ($server): SUCCESSFUL"
+                }
+                else {
+                    Write-Warning "Active Directory Directory Domain ($domain) does not exist, check details and try again"
+                }
+            }
+            else {
+                Write-Error "Domain User ($bindUser) Authentication Failed"
+            }
+        }
+        else {
+            Write-Error "Unable to obtain access token from Workspace ONE Access Instance ($wsaFqdn), check credentials"
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-WorkspaceOneDirectoryGroup
 
 ##########################################  E N D   O F   F U N C T I O N S  ##########################################
 #######################################################################################################################
@@ -4235,7 +7365,7 @@ Function Get-vCenterServerDetail {
             }
         }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             Break
         }
     }
@@ -4297,7 +7427,7 @@ Function Get-NsxtServerDetail {
             }
         }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             Break
         }
     }
@@ -4337,7 +7467,7 @@ Function Get-vRSLCMServerDetail {
                 $vrslcmDetails
             }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             Break
         }
     }
@@ -4371,15 +7501,15 @@ Function Get-WSAServerDetail {
                 $wsaFQDN = Get-VCFWSA
                 #$wsaCreds = Get-VCFCredential -resourceName $wsaFQDN.fqdn
                 $wsaDetails = New-Object -TypeName PSCustomObject
-                $wsaDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $wsaFQDN.elements.nodes.fqdn
-                $wsaDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $wsaFQDN.elements.loadBalancerIpAddress
-                $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $wsaFQDN.elements.nodes.ipAddress[0]
-                $wsaDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $wsaFQDN.elements.nodes.ipAddress[1]
-                $wsaDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $wsaFQDN.elements.nodes.ipAddress[2]
+                $wsaDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $wsaFQDN.nodes.fqdn
+                $wsaDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $wsaFQDN.loadBalancerIpAddress
+                $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $wsaFQDN.nodes.ipAddress[0]
+                $wsaDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $wsaFQDN.nodes.ipAddress[1]
+                $wsaDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $wsaFQDN.nodes.ipAddress[2]
                 $wsaDetails
             }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
     }
     Catch {
@@ -4410,17 +7540,18 @@ Function Get-vRAServerDetail {
         if ($accessToken) {
                 # Get vRSLCM Server Details
                 $vraFQDN = Get-VCFvRA
-                #$vraCreds = Get-VCFCredential -resourceName $vraFQDN.fqdn
+                $vraCreds = Get-VCFCredential -resourceName $vraFQDN.loadBalancerFqdn
                 $vraDetails = New-Object -TypeName PSCustomObject
-                $vraDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vraFQDN.elements.nodes.fqdn
-                $vraDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vraFQDN.elements.loadBalancerIpAddress
-                $vraDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vraFQDN.elements.nodes.ipAddress[0]
-                $vraDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vraFQDN.elements.nodes.ipAddress[1]
-                $vraDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vraFQDN.elements.nodes.ipAddress[2]
+                $vraDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vraFQDN.nodes.fqdn
+                $vraDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vraFQDN.loadBalancerIpAddress
+                $vraDetails | Add-Member -notepropertyname 'loadBalancerFqdn' -notepropertyvalue $vraFQDN.loadBalancerFqdn
+                $vraDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vraFQDN.nodes.ipAddress[0]
+                $vraDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vraFQDN.nodes.ipAddress[1]
+                $vraDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vraFQDN.nodes.ipAddress[2]
                 $vraDetails
             }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             Break
         }
     }
@@ -4452,22 +7583,27 @@ Function Get-vROPsServerDetail {
         if ($accessToken) {
             # Get vRSLCM Server Details
             $vropsFQDN = Get-VCFvROPs
+            $vropsCreds = Get-VCFCredential -resourceName $vropsFQDN.loadBalancerFqdn
             $vropsDetails = New-Object -TypeName PSCustomObject
-            $vropsDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vropsFQDN.elements.nodes.fqdn
-            $vropsDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vropsFQDN.elements.loadBalancerIp
-            $vropsNode1FQDN = $vropsFQDN.elements.nodes.fqdn[0]
+            $vropsDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vropsFQDN.nodes.fqdn
+            $vropsDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vropsFQDN.loadBalancerIp
+            $vropsDetails | Add-Member -notepropertyname 'loadBalancerFqdn' -notepropertyvalue $vropsFQDN.loadBalancerFqdn
+            $vropsNode1FQDN = $vropsFQDN.nodes.fqdn[0]
             $vropsNode1IP = [System.Net.Dns]::GetHostAddresses("$vropsNode1FQDN").IPAddressToString
             $vropsDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vropsNode1IP
-            $vropsNode2FQDN = $vropsFQDN.elements.nodes.fqdn[1]
+            $vropsNode2FQDN = $vropsFQDN.nodes.fqdn[1]
             $vropsNode2IP = [System.Net.Dns]::GetHostAddresses("$vropsNode2FQDN").IPAddressToString
             $vropsDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vropsNode2IP
-            $vropsNode3FQDN = $vropsFQDN.elements.nodes.fqdn[2]
+            $vropsNode3FQDN = $vropsFQDN.nodes.fqdn[2]
             $vropsNode3IP = [System.Net.Dns]::GetHostAddresses("$vropsNode3FQDN").IPAddressToString
             $vropsDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vropsNode3IP
+            $vropsDetails | Add-Member -notepropertyname 'adminUser' -notepropertyvalue $vropsCreds.username
+            $vropsDetails | Add-Member -notepropertyname 'adminPass' -notepropertyvalue $vropsCreds.password
+
             $vropsDetails
         }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             Break
         }
     }
@@ -4477,6 +7613,52 @@ Function Get-vROPsServerDetail {
 }
 Export-ModuleMember -Function Get-vROPsServerDetail
 
+Function Get-vRLIServerDetail {
+    Param (
+        [Parameter (Mandatory = $false)] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [String]$username,
+        [Parameter (Mandatory = $false)] [String]$password
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
+            # Request Credentials
+            $creds = Get-Credential
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        if (!$PsBoundParameters.ContainsKey("fqdn")) {
+            $fqdn = Read-Host "SDDC Manager access token not found. Please enter the SDDC Manager FQDN, e.g., sfo-vcf01.sfo.rainpole.io"
+        }
+        Request-VCFToken -fqdn $fqdn -Username $username -Password $password | Out-Null
+
+        if ($accessToken) {
+                # Get vRealize Log Insight Server Details
+                $vrliVcfDetail = Get-VCFvRLI
+                $vrliCreds = Get-VCFCredential -resourceName $vrliVcfDetail.loadBalancerFqdn
+                $vrliDetail = New-Object -TypeName PSCustomObject
+                $vrliDetail | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vrliVcfDetail.loadBalancerFqdn
+                $vrliDetail | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vrliVcfDetail.loadBalancerIpAddress
+                $vrliDetail | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vrliVcfDetail.nodes.ipAddress[0]
+                $vrliDetail | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vrliVcfDetail.nodes.ipAddress[1]
+                $vrliDetail | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vrliVcfDetail.nodes.ipAddress[2]
+                $vrliDetail | Add-Member -notepropertyname 'node1Fqdn' -notepropertyvalue $vrliVcfDetail.nodes.fqdn[0]
+                $vrliDetail | Add-Member -notepropertyname 'node2Fqdn' -notepropertyvalue $vrliVcfDetail.nodes.fqdn[1]
+                $vrliDetail | Add-Member -notepropertyname 'node3Fqdn' -notepropertyvalue $vrliVcfDetail.nodes.fqdn[2]
+                $vrliDetail | Add-Member -notepropertyname 'adminUser' -notepropertyvalue $vrliCreds.username
+                $vrliDetail | Add-Member -notepropertyname 'adminPass' -notepropertyvalue $vrliCreds.password
+                $vrliDetail
+            }
+        else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
+            Break
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-vRLIServerDetail
 
 ##############  End Cloud Foundation Functions  ##############
 ##############################################################
@@ -4783,7 +7965,7 @@ Function Add-GlobalPermission {
         }
 "@
     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-        $results = Invoke-WebRequest -Uri $mob_url -SessionVariable vmware -Credential $credential -Method GET # Initial login to vSphere MOB using GET and store session using $vmware variable
+        $results = Invoke-WebRequest -Uri $mob_url -SessionVariable vmware -Credential $credential -Method GET -UseBasicParsing # Initial login to vSphere MOB using GET and store session using $vmware variable
         # Extract hidden vmware-session-nonce which must be included in future requests to prevent CSRF error
         # Credit to https://blog.netnerds.net/2013/07/use-powershell-to-keep-a-cookiejar-and-post-to-a-web-form/ for parsing vmware-session-nonce via Powershell
         if ($results.StatusCode -eq 200) {
@@ -4809,12 +7991,12 @@ vmware-session-nonce=$sessionnonce&permissions=%3Cpermissions%3E%0D%0A+++%3Cprin
 "@
     }
 
-        $results = Invoke-WebRequest -Uri $mob_url -WebSession $vmware -Method POST -Body $body # Second request using a POST and specifying our session from initial login + body request
+        $results = Invoke-WebRequest -Uri $mob_url -WebSession $vmware -Method POST -Body $body -UseBasicParsing # Second request using a POST and specifying our session from initial login + body request
         if ($results.StatusCode -eq 200) {
             Write-Verbose "Successfully added global permission for: $user"
         }
         $mob_logout_url = "https://$vcServer/invsvc/mob3/logout" # Logout out of vSphere MOB
-        $results = Invoke-WebRequest -Uri $mob_logout_url -WebSession $vmware -Method GET
+        $results = Invoke-WebRequest -Uri $mob_logout_url -WebSession $vmware -Method GET -UseBasicParsing
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -4948,7 +8130,7 @@ Function Request-WSAToken {
     	The Request-WSAToken cmdlet connects to the specified Workspace ONE Access instance and requests a session token
 
     	.EXAMPLE
-    	Request-WSAToken -fqdn sfo-wsa01.sfo.rainpole.io -username admin -password VMware1!
+    	Request-WSAToken -fqdn sfo-wsa01.sfo.rainpole.io -user admin -pass VMware1!
         This example shows how to connect to a Workspace ONE Access instance and request a session token
   	#>
 
@@ -6369,7 +9551,7 @@ Function Get-NsxtVidmGroup {
 }
 Export-ModuleMember -Function Get-NsxtVidmGroup
 
-Function Get-NsxtEdgeCluster {
+Function Get-NsxEdgeCluster {
     <#
         .SYNOPSIS
         Retrieves NSX-T Edge Cluster(s)
@@ -6413,7 +9595,7 @@ Function Get-NsxtEdgeCluster {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-NsxtEdgeCluster
+Export-ModuleMember -Function Get-NsxEdgeCluster
 
 Function Get-NsxtTransportZone {
     <#
@@ -7696,7 +10878,7 @@ Function Get-NsxtSyslogStatus {
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
         [Parameter (ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$transport,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+        [Parameter (ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
     )
 
     Try {
@@ -7737,7 +10919,7 @@ Function Get-NsxtSyslogExporter {
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
         [Parameter (ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$transport,
-        [Parameter (ParameterSetName = 'transport', Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+        [Parameter (ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
     )
 
     Try {
@@ -7778,7 +10960,7 @@ Function Set-NsxtSyslogExporter {
     Param (
         [Parameter ( ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
         [Parameter ( ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$transport,
-        [Parameter ( ParameterSetName = 'transport', Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter ( ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
         [Parameter ( Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$exporterName,
         [Parameter ( Mandatory = $true)] [ValidateSet("EMERG", "ALERT", "CRIT", "ERR", "WARNING", "NOTICE", "INFO", "DEBUG")]  [String]$logLevel,
         [Parameter ( Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$port,
@@ -7832,7 +11014,7 @@ Function Remove-NsxtSyslogExporter {
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
         [Parameter (ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$transport,
-        [Parameter (ParameterSetName = 'transport', Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (ParameterSetName = 'transport', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
         [Parameter ( Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$exporterName
     )
 
@@ -9713,12 +12895,12 @@ Function Request-vRSLCMToken {
         # Validate credentials by executing an API call
         $uri = "https://$vrslcmAppliance/lcmversion"
         if ($PSEdition -eq 'Core') {
-            $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrslcmHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+            $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         }
         else {
-            $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrslcmHeaders
+            $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders
         }
-        if ($response.StatusCode -eq 200) {
+        if ($vrslcmResponse.StatusCode -eq 200) {
             Write-Output "Successfully connected to the vRealize Suite Lifecycle Manager Appliance: $vrslcmAppliance"
         }
     }
@@ -9727,6 +12909,30 @@ Function Request-vRSLCMToken {
     }
 }
 Export-ModuleMember -Function Request-vRSLCMToken
+
+Function Get-vRSLCMHealth {
+    <#
+        .SYNOPSIS
+        Check vRealize Suite Lifecycle Manager Health Status
+
+        .DESCRIPTION
+        The Get-vRSLCMHealth cmdlet checks vRealize Suite Lifecycle Manager Health Status
+
+        .EXAMPLE
+        Get-vRSLCMHealth
+        This example checks vRealize Suite Lifecycle Manager Health Status
+    #>
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/health/api/v2/status"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMHealth
 
 Function Get-vRSLCMLockerPassword {
     <#
@@ -10090,12 +13296,305 @@ Function Remove-vRSLCMLockerLicense {
 }
 Export-ModuleMember -Function Remove-vRSLCMLockerLicense
 
+Function Get-vRSLCMDatacenter {
+    <#
+        .SYNOPSIS
+        Get paginated list of datacenters in vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The Get-vRSLCMDatacenter cmdlet gets a paginated list of datacenters in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMDatacenter
+        This example gets all datacenters in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMDatacenter -vmid 2b54b028-9eba-4d2f-b6ee-66428ea2b297
+        This example gets the details of a datacenter based on the vmid
+
+        .EXAMPLE
+        Get-vRSLCMDatacenter -name sfo-m01-dc01
+        This example gets the details of a datacenter based on the name
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("vmid")) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$vmid"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        elseif ($PsBoundParameters.ContainsKey("alias")) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$name"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMDatacenter
+
+Function Get-vRSLCMEnvironment {
+    <#
+        .SYNOPSIS
+        Get paginated list of environments in vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The Get-vRSLCMEnvironment cmdlet gets a paginated list of environments in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMEnvironment
+        This example gets all environments in vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("vmid")) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$vmid"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMEnvironment
+
+Function Add-vRSLCMDatacenter {
+    <#
+        .SYNOPSIS
+        Add a datacenter in vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The Add-vRSLCMDatacenter cmdlet adds a datacenter in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Add-vRSLCMDatacenter -datacenterName xint-m01-dc01 -location "San Francisco;California;US;37.77493;-122.41942"
+        This example adds a datacenter in vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters"
+        $body = '{
+            "dataCenterName": "'+ $datacenterName +'",
+            "primaryLocation": "'+ $location +'"
+        }'  
+        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        $response
+}
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMDatacenter
+
+Function Add-vRSLCMEnvironment {
+    <#
+        .SYNOPSIS
+        Create an environment in vRealize Suite Lifecycle Manager
+
+        .DESCRIPTION
+        The Add-vRSLCMEnvironment cmdlet to create an environment in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json)
+        This example creates an environment in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json) -vmid c907c25b-1c61-465b-b7cb-4100ac1ce331 -addProduct
+        This example adds a new product to an existing environment in vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
+        [Parameter (Mandatory = $false, ParameterSetName = 'growth')] [ValidateNotNullOrEmpty()] [String]$environmentId,
+        [Parameter (Mandatory = $false, ParameterSetName = 'growth')] [ValidateNotNullOrEmpty()] [Switch]$addProduct
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("json") -and ($PsBoundParameters.ContainsKey("addProduct")) -and ($PsBoundParameters.ContainsKey("environmentId"))) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products"
+            $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $json
+            $response
+        }
+        else {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments"
+            $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $json
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMEnvironment
+
+Function Get-vRSLCMRequest {
+    <#
+        .SYNOPSIS
+        Get all Requests
+
+        .DESCRIPTION
+        The Get-vRSLCMRequest cmdlet gets all requests in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMRequest
+        This example gets all requests vRealize Suite Lifecycle Manager
+        
+        .EXAMPLE
+        Get-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398
+        This example gets the request by id from vRealize Suite Lifecycle Manager
+        
+        .EXAMPLE
+        Get-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398 -errorCauses
+        This example gets the errors for a request by id from vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$errorCauses
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("requestId")) {
+            $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        elseif ($PsBoundParameters.ContainsKey("errorCauses")) {
+            $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId/error-causes"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response | Select-Object -Property vmid, state, requestReason, requestType
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMRequest
+
+Function Remove-vRSLCMRequest {
+    <#
+        .SYNOPSIS
+        Delete a Request
+
+        .DESCRIPTION
+        The Remove-vRSLCMRequest cmdlet removes a request from vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Remove-vRSLCMRequest -requestId <id>
+        This example removes a request from vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId    )
+
+    Try {
+
+            $uri = "https://$vrslcmAppliance/lcm/request/requests/$requestId"
+            $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
+            $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRSLCMRequest
+
+Function Watch-vRSLCMRequest {
+    <#
+        .SYNOPSIS
+        Poll request
+
+        .DESCRIPTION
+        The Watch-vRSLCMRequest cmdlet polls a request in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Watch-vRSLCMRequest -vmid <vmid>
+        This example polls the request in vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
+    )
+
+    Try {
+        Do {
+            $requestStatus = (Get-vRSLCMRequest | Where-Object {$_.vmid -eq $vmid}).state
+        } 
+        Until ($requestStatus -ne "INPROGRESS")
+        Write-Output "vRealize Suite Lifecycle Manager request: $vmid completed with the following state: $requestStatus"
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Watch-vRSLCMRequest
+
+Function Resume-vRSLCMRequest {
+    <#
+        .SYNOPSIS
+        Retry a request
+
+        .DESCRIPTION
+        The Resume-vRSLCMRequest cmdlet reties a request
+
+        .EXAMPLE
+        Resume-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398 
+        This example reties the request based on the request ID provided
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$requestId
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId/retry"
+        $response = Invoke-RestMethod $uri -Method 'PATCH' -Headers $vrslcmHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Resume-vRSLCMRequest
+
 ###################  End vRealize Suite Lifecycle Manager Functions ####################
 ########################################################################################
 
 
-################################################################
-############  Start vRealize Automation Functions  #############
+#########################################################################################
+#########################  Start vRealize Automation Functions  #########################
 
 Function Request-vRAToken {
     <#
@@ -10117,8 +13616,8 @@ Function Request-vRAToken {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tenant,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$displayToken
     )
@@ -10129,7 +13628,7 @@ Function Request-vRAToken {
         $password = $creds.GetNetworkCredential().password
     }
 
-    $Global:vraHeaders = createBasicAuthHeader $username $password
+    $vraBasicHeaders = createBasicAuthHeader $username $password
     $Global:vraAppliance = $fqdn
 
     Try {
@@ -10143,17 +13642,21 @@ Function Request-vRAToken {
         }
 
         if ($PSEdition -eq 'Core') {
-            $Global:response = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+            $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         }
         else {
-            $Global:response = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraHeaders -Body $body
+            $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body
         }
 
-        if ($response.StatusCode -eq 200) {
+        if ($vraResponse.StatusCode -eq 200) {
+            $Global:vraHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+            $vraHeaders.Add("Accept", "application/json")
+            $vraHeaders.Add("Content-Type", "application/json")
+            $vraHeaders.Add("Authorization", "Bearer " + $vraResponse.Headers.'Csp-Auth-Token')
             Write-Output "Successfully connected to vRealize Automation: $vraAppliance"
             if ($PsBoundParameters.ContainsKey("displayToken")) {
                 Write-Output "`n---------Refresh Token---------"
-                ((Select-String -InputObject $response -Pattern '"refresh_token":') -Split ('"'))[3]
+                ((Select-String -InputObject $vraResponse -Pattern '"refresh_token":') -Split ('"'))[3]
                 Write-Output "-------------------------------`n"
             }
         }
@@ -10164,8 +13667,1487 @@ Function Request-vRAToken {
 }
 Export-ModuleMember -Function Request-vRAToken
 
-############  End vRealize Automation Functions  #############
-################################################################
+Function Get-vRAOrganizationId {
+    <#
+        .SYNOPSIS
+        Get the organization ID for the logged in user
+
+        .DESCRIPTION
+        The Get-vRAOrganizationId cmdlet gets the organization Id for the logged in user
+
+        .EXAMPLE
+        Get-vRAOrganizationId
+        This example gets organization Id for the logged in user
+    #>
+
+    Try {
+        $uri = "https://$vraAppliance/csp/gateway/am/api/loggedin/user/orgs"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vraHeaders
+        $response.refLinks
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRAOrganizationId
+
+Function Get-vRAOrganizationDisplayName {
+    <#
+        .SYNOPSIS
+        Get the organization display name
+
+        .DESCRIPTION
+        The Get-vRAOrganizationDisplayName cmdlet gets the organization display name
+
+        .EXAMPLE
+        Get-vRAOrganizationDisplayName -orgId <orgid>
+        This example gets organization display name for the organization Id provided
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId
+    )
+
+    Try {
+        $uri = "https://$vraAppliance/csp/gateway/am/api/orgs/$orgId"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vraHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRAOrganizationDisplayName
+
+Function Set-vRAOrganizationDisplayName {
+    <#
+        .SYNOPSIS
+        Configures the organization display name
+
+        .DESCRIPTION
+        The Set-vRAOrganizationDisplayName cmdlet sets the organization display name
+
+        .EXAMPLE
+        Set-vRAOrganizationDisplayName -orgId <orgid> -displayName
+        This example configures the organization display name for the organization Id provided
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
+    )
+
+    Try {
+        $uri = "https://$vraAppliance/csp/gateway/am/api/orgs/$orgId"
+        $json = '{ "displayName": "'+ $displayName +'" }'
+        $response = Invoke-RestMethod -Method 'PATCH' -Uri $Uri -Headers $vraHeaders -Body $json
+        $response.refLink
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRAOrganizationDisplayName
+
+Function Get-vRACloudAccount {
+    <#
+        .SYNOPSIS
+        Get cloud accounts
+
+        .DESCRIPTION
+        The Get-vRACloudAccount cmdlet all cloud accounts within the current organization
+
+        .EXAMPLE
+        Get-vRACloudAccount
+        This example gets all cloud accounts within the current organization
+
+        .EXAMPLE
+        Get-vRACloudAccount -type vsphere
+        This example gets all vsphere cloud accounts within the current organization, supports vsphere, vmw, gcp, nsx-v, nsx-t, aws and azure
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet("vsphere","vmc","gcp","nsx-v","nsx-t","aws","azure")] [ValidateNotNullOrEmpty()] [String]$type
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("type")) {
+            if ($type -eq "vsphere") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-vsphere"}
+            if ($type -eq "vmc") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-vmc"}
+            if ($type -eq "gcp") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-gcp"}
+            if ($type -eq "nsx-v") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-v"}
+            if ($type -eq "nsx-t") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-t"}
+            if ($type -eq "aws") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-aws"}
+            if ($type -eq "azure") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure"}
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vraHeaders
+            $response.content
+        }
+        else {
+            $uri = "https://$vraAppliance/iaas/api/cloud-accounts"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vraHeaders
+            $response.content
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRACloudAccount
+
+Function Remove-vRACloudAccount {
+    <#
+        .SYNOPSIS
+        Remove a cloud account
+
+        .DESCRIPTION
+        The Remove-vRACloudAccount cmdlet removes a cloud account within the current organization
+
+        .EXAMPLE
+        Remove-vRACloudAccount -id <id>
+        This example removes the cloud account with the ID within the current organization
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$vraAppliance/iaas/api/cloud-accounts/$id"
+        $response = Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vraHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRACloudAccount
+
+##########################  End vRealize Automation Functions  #########################
+########################################################################################
+
+
+########################################################################################
+####################  Start vRealize Operations Manager Functions  #####################
+
+Function Request-vROPSToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified vRealize Operations Manager and obtains authorization token
+
+        .DESCRIPTION
+        The Request-vROPSToken cmdlet connects to the specified vRealize Operations Manager and obtains an authorization token.
+        It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-vROPSToken -fqdn xint-vrops01.rainpole.io -username admin -password VMw@re1!
+        This example shows how to connect to the vRealize Operations Manager appliance
+      #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $Global:vropsAppliance = $fqdn
+        $Global:vropsHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $vropsHeaders.Add("Accept", "application/json")
+        $vropsHeaders.Add("Content-Type", "application/json")
+        $uri = "https://$vropsAppliance/suite-api/api/auth/token/acquire"
+
+        $body = "{
+        `n  `"username`" : `"$username`",
+        `n  `"authSource`" : `"LOCAL`",
+        `n  `"password`" : `"$password`"
+        `n}"
+        
+        if ($PSEdition -eq 'Core') {
+            $vropsResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vropsHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $vropsResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vropsHeaders -Body $body
+        }
+
+        if ($vropsResponse.token) {
+            $vropsHeaders.Add("Authorization", "vRealizeOpsToken " + $vropsResponse.token)
+            Write-Output "Successfully connected to vRealize Operations Manager: $vropsAppliance"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-vROPSToken
+
+Function Get-vROPSCollector {
+    <#
+        .SYNOPSIS
+        Get list of collectors
+
+        .DESCRIPTION
+        The Get-vROPSCollector cmdlet gets a list of collectors in vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSCollector
+        This example gets a list of collectors
+
+        .EXAMPLE
+        Get-vROPSCollector -id <id>
+        This example gets details of a collector by its ID
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$vropsAppliance/suite-api/api/collectors/$id/adapters"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.adapterInstancesInfoDto
+        }
+        else {
+            $uri = "https://$vropsAppliance/suite-api/api/collectors"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.collector
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSCollector
+
+Function Get-vROPSCollectorGroup {
+    <#
+        .SYNOPSIS
+        Get list of collector groups
+
+        .DESCRIPTION
+        The Get-vROPSCollectorGroup cmdlet gets a list of collector groups in vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSCollectorGroup
+        This example gets a list of collector groups
+
+        .EXAMPLE
+        Get-vROPSCollectorGroup -id <id>
+        This example gets details of a collector by its ID
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$vropsAppliance/suite-api/api/collectorgroups/$id"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vropsAppliance/suite-api/api/collectorgroups"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.collectorGroups
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSCollectorGroup
+
+Function Add-vROPSCollectorGroup {
+    <#
+        .SYNOPSIS
+        Add a collector groups
+
+        .DESCRIPTION
+        The Add-vROPSCollectorGroup cmdlet adds a new collector groups in vRealize Operations Manager
+
+        .EXAMPLE
+        Add-vROPSCollectorGroup -name sfo-remote-collectors -description "Remote Collector Group for SFO" -collectorIds "1,2"
+        This example gets a list of collector groups
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$description,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$collectorIds
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/collectorgroups"
+        if ($description) {
+            $body = '{ "name" : "'+ $name +'", "description" : "'+ $description +'", "collectorId" : ['+ $collectorIds +'], "systemDefined" : false }'
+        }
+        else {
+            $body = '{ "name" : "'+ $name +'", "collectorId" : ['+ $collectorIds +'], "systemDefined" : false }'
+        }
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
+
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vROPSCollectorGroup
+
+Function Remove-vROPSCollectorGroup {
+    <#
+        .SYNOPSIS
+        Delete a collector group
+
+        .DESCRIPTION
+        The Remove-vROPSCollectorGroup cmdlet deletes a collector group in vRealize Operations Manager
+
+        .EXAMPLE
+        Remove-vROPSCollectorGroup -id 
+        This example deletes a gollector group
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/collectorgroups/$id"
+        $response = Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vropsHeaders
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vROPSCollectorGroup
+
+Function Get-vROPSAdapter {
+    <#
+        .SYNOPSIS
+        Get list of adapters
+
+        .DESCRIPTION
+        The Get-vROPSAdapter cmdlet gets a list of adapters in vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSAdapter
+        This example gets a list of all adapters
+
+        .EXAMPLE
+        Get-vROPSAdapter -id <id>
+        This example gets details of an adapter by its ID
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$vropsAppliance/suite-api/api/adapters/$id"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vropsAppliance/suite-api/api/adapters"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.adapterInstancesInfoDto
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSAdapter
+
+Function Set-vROPSAdapter {
+    <#
+        .SYNOPSIS
+        Update an adapter
+
+        .DESCRIPTION
+        The Set-vROPSAdapter cmdlet updates the adapters configuration in vRealize Operations Manager
+
+        .EXAMPLE
+        Set-vROPSAdapter -json .\adapterJson
+        This example updates the details of an adapter
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("json")) {
+            if (!(Test-Path $json)) {
+                Throw "JSON File Not Found"
+            }
+            else {
+                $body = (Get-Content $json) # Read the json file contents into the $body variable
+            }
+        }
+        $uri = "https://$vropsAppliance/suite-api/api/adapters"
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vROPSAdapter
+
+Function Add-vROPSAdapter {
+    <#
+        .SYNOPSIS
+        Add an adapter
+
+        .DESCRIPTION
+        The Add-vROPSAdapter cmdlet adds an adapter to vRealize Operations Manager
+
+        .EXAMPLE
+        Add-vROPSAdapter -json .\adapterJson
+        This example adds an adapter useing the json specification file
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("json")) {
+            if (!(Test-Path $json)) {
+                Throw "JSON File Not Found"
+            }
+            else {
+                $body = (Get-Content $json) # Read the json file contents into the $body variable
+            }
+        }
+ 
+        $uri = "https://$vropsAppliance/suite-api/api/adapters"
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vROPSAdapter
+
+Function Start-vROPSAdapter {
+    <#
+        .SYNOPSIS
+        Starts collection of adapter
+
+        .DESCRIPTION
+        The Start-vROPSAdapter cmdlet starts the collection of an adapter in vRealize Operations Manager
+
+        .EXAMPLE
+        Start-vROPSAdapter -adpaterId <id>
+        This example starts the adpater by id
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterId
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/adapters/$adapterId/monitoringstate/start"
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Start-vROPSAdapter
+
+Function Stop-vROPSAdapter {
+    <#
+        .SYNOPSIS
+        Stops collection of adapter
+
+        .DESCRIPTION
+        The Stop-vROPSAdapter cmdlet starts the collection of an adapter in vRealize Operations Manager
+
+        .EXAMPLE
+        Stop-vROPSAdapter -adpaterId <id>
+        This example starts the adpater by id
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterId
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/adapters/$adapterId/monitoringstate/stop"
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Stop-vROPSAdapter
+
+Function Get-vROPSCredential {
+    <#
+        .SYNOPSIS
+        Get credentials
+
+        .DESCRIPTION
+        The Get-vROPSCredential cmdlet gets credentials from vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSCredential
+        This example gets all credentials from vRealize Operations Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$credentialId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$adapter,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$resource
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("credentialId") -and (-not $PsBoundParameters.ContainsKey("adapter") -and (-not $PsBoundParameters.ContainsKey("resource")))) {
+            $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        }
+        elseif ($PsBoundParameters.ContainsKey("credentialId") -and ($PsBoundParameters.ContainsKey("adapter"))) {
+            $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId/adapters"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.adapterInstancesInfoDto
+        }
+        elseif ($PsBoundParameters.ContainsKey("credentialId") -and ($PsBoundParameters.ContainsKey("resource"))) {
+            $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId/resources"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        }
+        else {
+            $uri = "https://$vropsAppliance/suite-api/api/credentials"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.credentialInstances
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSCredential
+
+Function Add-vROPSCredential {
+    <#
+        .SYNOPSIS
+        Add a credential
+
+        .DESCRIPTION
+        The Add-vROPSCredential cmdlet adds a credential to vRealize Operations Manager
+
+        .EXAMPLE
+        Add-vROPSCredential -json .\credentialJson
+        This example adds a new credential
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("json")) {
+            if (!(Test-Path $json)) {
+                Throw "JSON File Not Found"
+            }
+            else {
+                $body = (Get-Content $json) # Read the json file contents into the $body variable
+            }
+        }
+        $uri = "https://$vropsAppliance/suite-api/api/credentials"
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vROPSCredential
+
+Function Remove-vROPSCredential {
+    <#
+        .SYNOPSIS
+        Delete a credential
+
+        .DESCRIPTION
+        The Remove-vROPSCredential cmdlet deletes a credential from vRealize Operations Manager
+
+        .EXAMPLE
+        Remove-vROPSCredential -credentialId <id>
+        This example deletes a credential
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialId
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId"
+        $response = Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vropsHeaders
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vROPSCredential
+
+Function Get-vROPSCurrency {
+    <#
+        .SYNOPSIS
+        Get the currency configuration
+
+        .DESCRIPTION
+        The Get-vROPSCurrency cmdlet gets the currency configuration for vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSCurrency
+        This example gets the currency configuration for vRealize Operations Manager
+    #>
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/costconfig/currency"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSCurrency
+
+Function Set-vROPSCurrency {
+    <#
+        .SYNOPSIS
+        Applies the currency configuration
+
+        .DESCRIPTION
+        The Set-vROPSCurrency cmdlet applies the currency configuration for vRealize Operations Manager. NOTE: Once
+        applied for an instance it cannot be changed.
+
+        .EXAMPLE
+        Set-vROPSCurrency
+        This example gets the currency configuration for vRealize Operations Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$currency
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/costconfig/currency"
+        $body = '{
+            "code" : "'+ $currency +'"
+        }'
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vROPSCurrency
+
+Function Get-vROPSSolution {
+    <#
+        .SYNOPSIS
+        Get list of solutions
+
+        .DESCRIPTION
+        The Get-vROPSSolution cmdlet gets a list of solutions in vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSSolution
+        This example gets a list of all solutions
+
+        .EXAMPLE
+        Get-vROPSSolution -solutionId "vSphere"
+        This example gets a list of all solutions
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$solutionId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$adapterKind,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$license
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("solutionId") -and (-not $PsBoundParameters.ContainsKey("adapterKind") -and (-not $PsBoundParameters.ContainsKey("license")))) {
+            $uri = "https://$vropsAppliance/suite-api/api/solutions/$solutionId"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        }
+        elseif ($PsBoundParameters.ContainsKey("solutionId") -and ($PsBoundParameters.ContainsKey("adapterKind"))) {
+            $uri = "https://$vropsAppliance/suite-api/api/solutions/$solutionId/adapterkinds"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.'adapter-kind'
+        }
+        elseif ($PsBoundParameters.ContainsKey("solutionId") -and ($PsBoundParameters.ContainsKey("license"))) {
+            $uri = "https://$vropsAppliance/suite-api/api/solutions/$solutionId/licenses"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.solutionLicenses
+        }
+        else {
+            $uri = "https://$vropsAppliance/suite-api/api/solutions"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.solution
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSSolution
+
+####################  End vRealize Operations Manager Functions  #######################
+########################################################################################
+
+
+########################################################################################
+#######################  Start vRealize Log Insight Functions  #########################
+
+Function Request-vRLIToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified vRealize Log Insight and obtains authorization token
+
+        .DESCRIPTION
+        The Request-vRLIToken cmdlet connects to the specified vRealize Log Insight and obtains an authorization token.
+        It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-vRLIToken -fqdn sfo-vvrli01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example shows how to connect to the vRealize Log Insight appliance
+      #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+
+        $vrliBasicHeaders = createBasicAuthHeader $username $password
+        $Global:vrliAppliance = $fqdn
+        $Global:vrliHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $vrliHeaders.Add("Accept", "application/json")
+        $vrliHeaders.Add("Content-Type", "application/json")
+        $uri = "https://$vrliAppliance/api/v1/sessions"
+
+        $body = "{
+        `n  `"username`" : `"$username`",
+        `n  `"provider`" : `"Local`",
+        `n  `"password`" : `"$password`"
+        `n}"
+        
+        if ($PSEdition -eq 'Core') {
+            $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliBasicHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $Global:vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliBasicHeaders -Body $body
+        }
+
+        if ($vrliResponse.sessionId) {
+            $vrliHeaders.Add("Authorization", "Bearer " + $vrliResponse.sessionId)
+            Write-Output "Successfully connected to vRealize Log Insight: $vrliAppliance"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-vRLIToken
+
+Function Get-vRLIAuthenticationWSA {
+    <#
+        .SYNOPSIS
+        Get configuration of Workspace ONE Access
+
+        .DESCRIPTION
+        The Get-vRLIAuthenticationWSA cmdlet gets the configuration for Workspace ONE Access Integration
+
+        .EXAMPLE
+        Get-vRLIAuthenticationWSA
+        This example gets the configuration for Workspace ONE Access Integration
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/vidm"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIAuthenticationWSA
+
+Function Set-vRLIAuthenticationWSA {
+    <#
+        .SYNOPSIS
+        Configure Workspace ONE Access Intergration
+
+        .DESCRIPTION
+        The Set-vRLIAuthenticationWSA cmdlet configures Workspace ONE Access Integration
+
+        .EXAMPLE
+        Set-vRLIAuthenticationWSA -hostname sfo-wsa01.sfo.rainpole.io -port 443 -redirectUrl sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example configures Workspace ONE Access Integration
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$port,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$redirectUrl,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        $jsonSpec = @()
+        $jsonSpec += [pscustomobject]@{
+            'acceptCert'    = $true
+            'enabled'       = $true
+            'hostname'      = $hostname
+            'port'          = $port
+            'redirectURL'   = $redirectUrl
+            'username'      = $username
+            'password'      = $password 
+        }
+        
+        $body = $jsonSpec | ConvertTo-Json -Depth 12
+        $uri = "https://$vrliAppliance/api/v1/vidm"
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLIAuthenticationWSA
+
+Function Remove-vRLIAuthenticationWSA {
+    <#
+        .SYNOPSIS
+        Disables Workspace ONE Access Intergration
+
+        .DESCRIPTION
+        The Remove-vRLIAuthenticationWSA cmdlet disables Workspace ONE Access Integration
+
+        .EXAMPLE
+        Remove-vRLIAuthenticationWSA
+        This example disables Workspace ONE Access Integration
+    #>
+
+    Try {
+        $jsonSpec = @()
+        $jsonSpec += [pscustomobject]@{
+            'enabled'       = $false
+        }
+        
+        $body = $jsonSpec | ConvertTo-Json -Depth 12
+        $uri = "https://$vrliAppliance/api/v1/vidm"
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRLIAuthenticationWSA
+
+Function Get-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Get list of installed content packs
+
+        .DESCRIPTION
+        The Get-vRLIContentPack cmdlet gets a list of all content packs installed on vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLIContentPack
+        This example gets a list of all content packs
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/content/contentpack/list"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response.contentPackMetadataList
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIContentPack
+
+Function Get-vRLIAgentGroup {
+    <#
+        .SYNOPSIS
+        Get list of agent groups
+
+        .DESCRIPTION
+        The Get-vRLIAgentGroup cmdlet gets a list of agent groups
+
+        .EXAMPLE
+        Get-vRLIAgentGroup
+        This example gets a list agent groups
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/agent/groups"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response.groups
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIAgentGroup
+
+Function New-vRLIAgentGroup {
+    <#
+        .SYNOPSIS
+        Create a new agent group
+
+        .DESCRIPTION
+        The New-vRLIAgentGroup cmdlet creates a new agent group
+
+        .EXAMPLE
+        New-vRLIAgentGroup -agentGroupType wsa -criteria sfo-wsa01.sfo.rainpole.io
+        This example creats a new agent group for Workspace ONE Access and assigns the sfo-wsa01.sfo.rainpole.io host
+
+        New-vRLIAgentGroup -agentGroupType photon -criteria sfo-vcf01.sfo.rainpole.io,xint-vrslcm01.rainpole.io,sfo-wsa01.sfo.rainpole.io
+        This example creats a new agent group for Workspace ONE Access and assigns the hosts provided in the criteria host
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("wsa","photon")] [ValidateNotNullOrEmpty()] [String]$agentGroupType,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$criteria
+    )
+
+    if ($agentGroupType -eq "wsa") {
+        $agentGroupName = "Workspace ONE Access - Appliance Agent Group"
+        $agentGroupConfig = '[filelog|gb-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=greenbox*.log\nevent_marker=^\\d{4}-\\d{2}-\\d{2}\nparser=gb-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"greenbox\"}\n\n[parser|gb-parser-onprem]\nbase_parser=clf\nformat=%t %{priority}i (%{thread}i) [%{java_class}i] - %M\n; Analytics Log InSight agent section\n\n[filelog|analytics-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=analytics-*.log\nevent_marker=^\\d{4}-\\d{2}-\\d{2}\nparser=analytics-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"analytics\"}\n\n[parser|analytics-parser-onprem]\nbase_parser=clf\nformat=%t %{timezone}i %{priority}i %{instance}i:%{service}i (%{thread}i) [%{src_str}i] %{java_class}i - %M\n; Password vault Log InSight agent section\n\n[filelog|pwvault-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=pwvault-*.log\nevent_marker=^\\d{4}-\\d{2}-\\d{2}\nparser=pwvault-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"pwvault\"}\n\n[parser|pwvault-parser-onprem]\nbase_parser=clf\nformat=%t %{timezone}i %{priority}i %{instance}i:%{service}i (%{thread}i) [%{src_str}i] %{java_class}i - %M\n\n[filelog|cert-proxy-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=cert-proxy*.log\nevent_marker=^\\d{4}-\\d{2}-\\d{2}\nparser=cert-proxy-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"cert-proxy\"}\n\n[parser|cert-proxy-parser-onprem]\nbase_parser=clf\nformat=%t %{priority}i (%{thread}i) [%{src_str}i] %{java_class}i - %M\n; vIDM SaaS Log InSight agent section\n\n[filelog|vidm-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=*.log\nevent_marker=^\\d{4}-\\d{2}-\\d{2}\nparser=vidm-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"vidm\"}\n\n[parser|vidm-parser-onprem]\nbase_parser=clf\nformat=%t %{priority}i (%{thread}i) [%{authentication}i] %{java_class}i - %M\nfield_decoder={\"authentication\":\"vidm-authentication-decoder-onprem\",\"log_message\":\"vidm-message-decoder-onprem\"}\nexclude_fields=log_message\n; vIDM SaaS Log InSight agent section for *.txt file\n\n[filelog|vidm-txt-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=*.txt\nevent_marker=^\nparser=vidm-txt-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"vidm\"}\n\n[parser|vidm-txt-parser-onprem]\nbase_parser=clf\nformat=%h %l %u [%t] \"%{request}i\" %{status_code}i %b %{response_time}i\n\n[filelog|kdc-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=kdc*.log\ntags={\"product\":\"vidm-aws\",\"component\":\"kdc\"}\n\n[filelog|kdc-mtkadmin-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs\ninclude=mtkadmin.log\ntags={\"product\":\"vidm-aws\",\"component\":\"kdc\"}\n;cfn-init Log InSight agent section\n\n[filelog|cfn-init-onprem]\n; IMPORTANT: Change the directory as per the environment\ndirectory=/opt/vmware/horizon/workspace/logs/\ninclude=cfn.*.log\nevent_marker=^\nparser=cfn-init-parser-onprem\ntags={\"product\":\"vidm-aws\",\"component\":\"cfn-init\"}\n\n[parser|cfn-init-parser-onprem]\nbase_parser=clf\n\n[parser|vidm-authentication-decoder-onprem]\nbase_parser=csv\ndelimiter=\";\"\nfields=tenant, user_uuid, remote_host\n\n[parser|vidm-message-decoder-onprem]\nbase_parser=clf\nformat=%{status}i %{operation}i (%{referer}i)\nfield_decoder={\"referer\":\"vidm-referer-decoder-onprem\"}\n\n[parser|vidm-referer-decoder-onprem]\nbase_parser=csv\nfields=url, , mime_type, method, ,'
+    }
+    elseif ($agentGroupType -eq "photon") {
+        $agentGroupName = "Photon OS - Appliance Agent Group"
+        $agentGroupConfig = '[journaldlog|journal_config]\njournal_files=all\ntags={\"generator\":\"journald\"}\n\n[filelog|audit]\ndirectory=/root/\ninclude=.bash_history\ntags={\"audit\":\"bash_history\"}'
+    }
+
+    if ($criteria.Count -ge "1") {
+        $criteriaInput = ""
+        $count = $criteria.Count
+        $pollLoopCounter = 0
+        foreach ($component in $criteria) {
+            $pollLoopCounter ++
+            if ($pollLoopCounter -ne $count) {
+                $criteriaInput += '(hostname=~\"'+$component+'\") or '
+            }
+            else {
+                $criteriaInput += '(hostname=~\"'+$component+'\")'
+            }
+        }
+    }
+    else {
+        $criteriaInput = '"hostname=~\"'+$criteria+'\""'
+    }
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/agent/groups"
+        $body = '{
+            "name":"'+$agentGroupName+'",
+            "criteria":"'+$criteriaInput+'",
+            "agentConfig":"'+$agentGroupConfig+'"
+        }'
+        Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRLIAgentGroup
+
+Function Get-vRLISmtpConfiguration {
+    <#
+        .SYNOPSIS
+        Get SMTP server settings
+
+        .DESCRIPTION
+        The Get-vRLISmtpConfiguration cmdlet gets the SMTP server configuration in vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLISmtpConfiguration
+        This example gets the SMTP settings
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/notification/channels"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response.channels.config
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLISmtpConfiguration
+
+Function Set-vRLISmtpConfiguration {
+    <#
+        .SYNOPSIS
+        Configure the SMTP server settings
+
+        .DESCRIPTION
+        The Set-vRLISmtpConfiguration cmdlet configures the SMTP server settings in vRealize Log Insight
+
+        .EXAMPLE
+        Set-vRLISmtpConfiguration -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io -username administrator@rainpole.io -password VMw@re1!
+        This example sets the SMTP server settings
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$smtpServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$port,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sender,
+        [Parameter (Mandatory = $false)] [String]$username,
+        [Parameter (Mandatory = $false)] [String]$password
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/notification/channels"
+        $body = '{
+            "channels": [
+              {
+                "type": "email",
+                "config": {
+                  "server": "'+ $smtpServer +'",
+                  "port": '+ $port + ',
+                  "sslAuth": false,
+                  "tls": false,
+                  "defaultSender": "'+ $sender +'",
+                  "login": "'+ $username +'",
+                  "password": "'+ $password +'"
+                }
+              }
+            ]
+          }'
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLIEmailConfiguration
+
+Function Get-vRLIRetentionThreshold {
+    <#
+        .SYNOPSIS
+        Get the retention threshold configuration
+
+        .DESCRIPTION
+        The Get-vRLIRetentionThreshold cmdlet gets the retention configuration in vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLIRetentionThreshold
+        This example gets the retention configuration
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/notification/config/retention-threshold"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIRetentionThreshold
+
+Function Set-vRLIRetentionThreshold {
+    <#
+        .SYNOPSIS
+        Configuer the retention threshold settings
+
+        .DESCRIPTION
+        The Set-vRLIRetentionThreshold cmdlet configures the retention settings in vRealize Log Insight
+
+        .EXAMPLE
+        Set-vRLIRetentionThreshold -enable true -interval 1 -intervalUnit weeks
+        This example configures the retention configuration
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$enable,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$interval,
+        [Parameter (Mandatory = $true)] [ValidateSet("minutes","hours","days","weeks","months")] [ValidateNotNullOrEmpty()] [String]$intervalUnit
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/notification/config/retention-threshold"
+        $body = '{
+            "sendNotification" : '+ $enable +',
+            "dataInterval" : '+ $interval +',
+            "intervalUnit" : "'+ $intervalUnit.ToUpper() +'"
+          }'
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -Body $body
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLIRetentionThreshold
+
+Function Get-vRLIIndexPartition {
+    <#
+        .SYNOPSIS
+        Get the index partitions
+
+        .DESCRIPTION
+        The Get-vRLIIndexPartition cmdlet gets a list of index partitions in vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLIIndexPartition
+        This example gets a list of index partitions
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/partitioning"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response.partitions
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIIndexPartition
+
+Function Set-vRLILogArchive {
+    <#
+        .SYNOPSIS
+        Configuer the index partitions
+
+        .DESCRIPTION
+        The Set-vRLILogArchive cmdlet configures the log archive location for a partition in vRealize Log Insight
+
+        .EXAMPLE
+        Set-vRLILogArchive -id d41d8cd9-8f00-3204-a980-0998ecf8427e -enable true -retentionPeriod 7 -archiveEnable true -archiveLocation nfs://172.27.11.4/sfo-m01-vrli01-400GB
+        This example configures the retention configuration
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$enable,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$retentionPeriodDays,
+        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$archiveEnable,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$archiveLocation
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/partitioning"
+        $body = '{
+            "id": "' + $id + '",
+            "name": "",
+            "enabled": '+ $enable +',
+            "routingFilter": "",
+            "retentionPeriodSeconds": '+ $retentionPeriodDays * 86400 +',
+            "archiveEnabled": '+ $archiveEnable +',
+            "archiveLocation": "'+ $archiveLocation +'"
+        }'
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -Body $body
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLILogArchive
+
+Function Get-vRLIEmailNotification {
+    <#
+        .SYNOPSIS
+        Get list of email address for notifications
+
+        .DESCRIPTION
+        The Get-vRLIEmailNotification cmdlet gets a list of the emails notifications will be sent to in vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLIEmailNotification
+        This example gets a list of email notifications
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/notification/email"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIEmailNotification
+
+Function Set-vRLIEmailNotification {
+    <#
+        .SYNOPSIS
+        Configure email address for notifications
+
+        .DESCRIPTION
+        The Set-vRLIEmailNotification cmdlet configures the emails addresses for notifications in vRealize Log Insight
+
+        .EXAMPLE
+        Set-vRLIEmailNotification -emailAddress "administrator@rainpole.io"
+        This example adds a new email address to the notifications
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
+    )  
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/notification/email"
+        $body = '{
+            "emails": ["'+ $emailAddress +'"
+                ]
+        }'
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLIEmailNotification
+
+Function Get-vRLIRole {
+    <#
+        .SYNOPSIS
+        Get list of roles
+
+        .DESCRIPTION
+        The Get-vRLIRole cmdlet gets a list of roles in vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLIRole
+        This example gets a list of roles in vRealize Log Insight
+    #>
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/roles"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+        $response.roles
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIRole
+
+Function Get-vRLIGroup {
+    <#
+        .SYNOPSIS
+        Get list of groups by authentication provider
+
+        .DESCRIPTION
+        The Get-vRLIGroup cmdlet gets a list of groups by authentication provider
+
+        .EXAMPLE
+        Get-vRLIGroup -authProvider vidm
+        This example gets a list groups assigned using the vIDM authenitcation provider
+
+        .EXAMPLE
+        Get-vRLIGroup-authProvider ad
+        This example gets a list groups assigned using the ActiveDirectory authenitcation provider
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+        $response.authProviderGroups
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIGroup
+
+Function Add-vRLIGroup {
+    <#
+        .SYNOPSIS
+        Add a group by authentication provider
+
+        .DESCRIPTION
+        The Add-vRLIGroup cmdlet adds a group by authentication provider
+
+        .EXAMPLE
+        Add-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
+        This example adds a group assigned using the the vIDM authenitcation provider and assigns the Super Admin role
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
+        [Parameter (Mandatory = $true)] [ValidateSet("Super Admin","User","Dashboard User","View Only Admin")] [ValidateNotNullOrEmpty()] [String]$role
+    )
+
+    Try {
+        $roleId = (Get-vRLIRole | Where-Object {$_.name -eq $role}).id
+        $uri = "https://$vrliAppliance/api/v1/authgroups"
+        $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "groupIds": [ "'+ $roleId + '" ]}'
+        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vRLIGroup
+
+Function Remove-vRLIGroup {
+    <#
+        .SYNOPSIS
+        Remove a group by authentication provider
+
+        .DESCRIPTION
+        The Remove-vRLIGroup cmdlet removes a group by authentication provider
+
+        .EXAMPLE
+        Remove-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins
+        This example removes a group assigned using the the vIDM authenitcation provider
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider/$domain/$group@$domain"
+        $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRLIGroup
+
+#########################  End vRealize Log Insight Functions  #########################
+########################################################################################
+
+
+########################################################################################
+######################  Start vRealize Cloud Services Functions  #######################
+
+Function Request-CSPToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified Cloud Services Portal and obtains authorization token
+
+        .DESCRIPTION
+        The Request-CSPToken cmdlet connects to the specified Cloud Services Portal and obtains an authorization token.
+        It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-CSPToken -fqdn console.cloud.vmware.com -apiKey SfCaVKm8NPhVda3T1j3KXNMdwSfCaVKm8NPhVda3T1j3KXNMdw 
+        This example shows how to connect to the Cloud Services Portal
+      #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiKey
+    )
+
+    Try {
+
+        $Global:cspAppliance = $fqdn
+        $Global:cspHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $cspHeaders.Add("Accept", "application/json")
+        $cspHeaders.Add("Content-Type", "application/x-www-form-urlencoded")
+        $uri = "https://$cspAppliance/csp/gateway/am/api/auth/api-tokens/authorize"
+        
+        $body = "refresh_token=$apiKey"
+
+        if ($PSEdition -eq 'Core') {
+            $cspResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $cspHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $cspResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $cspHeaders -Body $body
+        }
+
+        if ($($cspResponse.token_type) -eq "bearer") {
+            $cspHeaders.Add("Authorization", "Bearer " + $($cspResponse.access_token))
+            Write-Output "Successfully connected to Cloud Services Portal: $cspAppliance"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-CSPToken
+
+Function Get-CSPPoxyAppliance {
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$path
+    )
+
+    Try {
+
+        $uri = "https://api.mgmt.cloud.vmware.com/iaas/api/data-collectors"
+        $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $cspHeaders
+        
+        $cloudProxyUrl = $response.ovaLink
+        if ($PsBoundParameters.ContainsKey("path")) {
+            $cloudProxyOva = $path + "\" + ($response.ovaLink -Split (".com/"))[1]
+        }
+        else {
+            $cloudProxyOva = $PSScriptRoot + "\" + ($response.ovaLink -Split (".com/"))[1]
+        }
+
+        if (!($ovaExists = Test-Path $cloudProxyOva)) {
+            Write-Output "Starting to Download the Cloud Service Proxy OVA to '$cloudProxyOva'"
+            (New-Object System.Net.WebClient).DownloadFile($cloudProxyUrl, $cloudProxyOva)
+            if ($ovaExists = Test-Path $cloudProxyOva) {
+                Write-Output "Downloaded the Cloud Service Proxy OVA to '$cloudProxyOva' Successfully"
+            }
+            else {
+                Write-Error "Cloud Service Proxy OVA Download Failed, please try again"
+            }
+        }
+        else {
+            Write-Warning "Cloud Service Proxy OVA '$cloudProxyOva' Already Downloaded"
+        }
+        
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-CSPPoxyAppliance
+
+#########################  End vRealize Log Insight Functions  #########################
+########################################################################################
 
 ##########################################  E N D   O F   F U N C T I O N S  ##########################################
 #######################################################################################################################
@@ -10212,7 +15194,6 @@ Function Get-ExternalDirectoryPath {
     $directoryPath = $directory.SelectedPath
     $directoryPath
 }
-
 
 Function cidrMaskLookup {
     Param (
@@ -10400,7 +15381,7 @@ Function Request-VAMISessionId
     	It is required once per session before running all other cmdlets
 
     	.EXAMPLE
-    	PS C:\> Request-VAMISessionId -fqdn sfo-vcf01.sfo.rainpole.io -username root -password VMw@re1!
+    	Request-VAMISessionId -fqdn sfo-m01-vc01.sfo.rainpole.io -username root -password VMw@re1!
         This example shows how to connect to a VAMI interface to request a session token
   	#>
 
@@ -10446,7 +15427,7 @@ Function Request-VAMISessionId
 Export-ModuleMember -Function Request-VAMISessionId
 
 ########################################################################
-#####################  Start of Unused Functions  ######################
+#####################  Start of Depreicated Functions  ######################
 
 Function Join-ESXiActiveDirectory {
     # Join each ESXi Host to the Active Directory Domain
@@ -10493,7 +15474,7 @@ Function Join-ESXiActiveDirectory {
             }
         }
         else {
-            Write-Error  "Not connected to vCenter Server $($vcenter.fqdn)"
+            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -10559,7 +15540,7 @@ Function Add-ESXiDomainUser {
             }
         }
         else {
-            Write-Error "Failed to obtain access token from SDDC Manager, check details provided"
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
