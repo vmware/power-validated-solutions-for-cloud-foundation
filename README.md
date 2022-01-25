@@ -16,9 +16,9 @@ If you want to use this Microsoft PowerShell module to perform implementation an
 
 ```PowerShell
 Install-Module -Name VMware.PowerCLI -MinimumVersion 12.3.0
-Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.1
+Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.7
 Install-Module -Name PowerVCF -MinimumVersion 2.1.7
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.2.0
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.3.0
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.
