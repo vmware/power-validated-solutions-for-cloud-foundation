@@ -2,10 +2,14 @@
     .NOTES
     ===========================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
-    Date:   12/15/2021
+    Date:   2021-12-15
     Copyright 2021 VMware, Inc.
     ===========================================================================
-    
+    .CHANGE_LOG
+
+    - 1.0.001   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
+
+    ===================================================================================================================
     .SYNOPSIS
     Configure Integration of vRealize Operations Manager for Intelligent Operations Management
 
@@ -49,7 +53,7 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
@@ -63,6 +67,9 @@ Try {
             $vropsAdapterName                       = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value
             $vropsrcIpList                          = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
             $vropsrcAdapterName                     = $collectorGroupName
+
+            $csvFile                                = "vrops-vcf-notifications.csv"
+            if (!(Test-Path ($filePath + "\" + $csvFile) )) { Write-LogMessage -Type ERROR -Message "Unable to Find Notification CSV File: $csvFile, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found Notification CSV File: $csvFile" }
 
             # Connect vRealize Operations Manager to the VI Workload Domains in the First VMware Cloud Foundation Instance
             Write-LogMessage -Type INFO -Message "Connect vRealize Operations Manager to the VI Workload Domains in the First VMware Cloud Foundation Instance"
@@ -110,7 +117,7 @@ Try {
     
             # Create Notifications in vRealize Operations Manager for VMware Cloud Foundation Issues
             Write-LogMessage -Type INFO -Message "Create Notifications in vRealize Operations Manager for VMware Cloud Foundation Issues"
-            $StatusMsg = Import-vROPSNotification -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -csvPath "F:\PowerValidatedSolutions\SampleNotifications\notifications-vcf.csv" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            $StatusMsg = Import-vROPSNotification -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -csvPath ($filePath + "\" + $csvFile) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
         }
     }
