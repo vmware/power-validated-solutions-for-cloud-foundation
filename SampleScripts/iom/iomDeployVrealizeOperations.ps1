@@ -2,10 +2,15 @@
     .NOTES
     ===========================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
-    Date:   12/14/2021
+    Date:   2021-12-14
     Copyright 2021 VMware, Inc.
     ===========================================================================
-    
+    .CHANGE_LOG
+
+    - 1.0.001   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
+
+    ===================================================================================================================
+
     .SYNOPSIS
     Deploy vRealize Operations Manager for Intelligent Operations Management
 
@@ -49,7 +54,7 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
