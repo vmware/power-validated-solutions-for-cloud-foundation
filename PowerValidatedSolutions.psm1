@@ -6953,25 +6953,37 @@ Function Add-vROPSAdapterSddcHealth {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            $vropsVersion = ((Get-vROPSVersion).releaseName -split '\s+' -match '\S')[-1] 
                             if ($remoteCollectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE"})) {
                                 Foreach ($collector in $remoteCollectors) {
                                     $adapterName = "SDDC Health Adapter Instance -" + ($collector.name -Split ("vRealize Operations Manager Collector-"))
-                                    $json = '{
-                                        "resourceKey":  {
-                                                            "name": "'+ $adapterName +'",
-                                                            "adapterKindKey": "SDDCHealthAdapter",
-                                                            "resourceKindKey": "SDDCHealth Instance"
-                                                        },
-                                        "description": "SDDC Health Adapter for'+ ($collector.name -Split ("vRealize Operations Manager Collector-")) +'",
-                                        "collectorId": '+ $($collector.id) +',
-                                        "monitoringInterval": 5
-                                    }'
+                                    if ($vropsVersion -lt "8.5.0") {
+                                        $json = '{
+                                            "resourceKey":  {
+                                                                "name": "'+ $adapterName +'",
+                                                                "adapterKindKey": "SDDCHealthAdapter",
+                                                                "resourceKindKey": "SDDCHealth Instance"
+                                                            },
+                                            "description": "SDDC Health Adapter for'+ ($collector.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "collectorId": '+ $($collector.id) +',
+                                            "monitoringInterval": 5
+                                        }'
+                                    }
+                                    else {
+                                        $json = '{
+                                            "name": "'+ $adapterName +'",
+                                            "adapterKindKey": "SDDCHealthAdapter",
+                                            "description": "SDDC Health Adapter for'+ ($collector.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "collectorId": '+ $($collector.id) +',
+                                            "monitoringInterval": 5
+                                        }'
+                                    }
                                     
                                     $json | Out-File .\addAdapter.json
                                     if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName})) {                   
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
-                                            Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) | Out-Null
+                                            Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                         }
                                         else {
