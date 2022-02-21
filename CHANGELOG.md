@@ -1,7 +1,23 @@
 # Release History
+## v1.4.0 (2022-22-02)
+- Enhanced all Developer Ready Infrastructure Solution cmdlets for better error handling and message output.
+- Added `Undo-NetworkSegment` cmdlet to remove an NSX segment from an NSX Management Cluster.
+- Added `Undo-PrefixList` cmdlet to remove an NSX Prefix List from an NSX Management Cluster.
+- Added `Undo-RouteMap` cmdlet to remove an NSX Route Map from an NSX Management Cluster.
+- Added `Undo-DatastoreTag` cmdlet to remove the vSphere Tag and Category from a datastore in vCenter Server.
+- Added `Undo-StoragePolicy` cmdlet to remove a VM vSphere Storage Policy from vCenter Server.
+- Added `Undo-Registry` cmdlet to disable the Embedded Harbor Registry on the Supervisor Cluster.
+- Added `Undo-SupervisorCluster` cmdlet to remove the Supervisor Cluster.
+- Added `Undo-ContentLibrary` cmdlet to remove a Content Library from the Workload Domain vCenter Server.
+- Added `Undo-Namespace` cmdlet to remove a Namespace from the Supervisor Cluster.
+- Added `Undo-NamespacePermission` cmdlet to remove permissions from a Namespace.
+- Added `Undo-TanzuKubernetesCluster` cmdlet to remove a Tanzu Kubernetes Cluster from the Supervisor Cluster.
+- Added `Add-NsxtNodeProfileSyslogExporter` cmdlet to add a syslog exporter to the default node profile or specified node profile id.
+- Added `Undo-NsxtNodeProfileSyslogExporter` cmdlet to remove all syslog exporter from the default node profile or specified node profile id.
+
 ## v1.3.0 (2022-25-01)
 - Fixed `New-vRSLCMLockerLicense` cmdlet where depending on the speed of the system the license would be added but POST_VALIDATION would fail.
-- Enhanced all Identity and Access Management Solution cmdlets for better error handling and message output. 
+- Enhanced all Identity and Access Management Solution cmdlets for better error handling and message output.
 - Enhanced all vRealize Operations Manager cmdlets for better error handling and message output.
 - Enhanced all vRealize Log Insight cmdlets for better error handling and message output.
 - Enhanced all vRealize Automation cmdlets for better error handling and message output.
@@ -11,13 +27,13 @@
 - Added `Add-ResourcePool` cmdlet to create a resource pool in the Workload Domain specified.
 - Added `Undo-ResourcePool` cmdlet to remove a resource pool based on the Workload Domain specified.
 - Added `Update-vRAOrganizationDisplayName` cmdlet to configure the Organization Display Name in vRealize Automation.
-- Added `Add-vROPSAdapterPing` cmdlet to add a Ping Adapter to vRealize Operations Manager
-- Added `Enable-vROPSManagementPack` cmdlet to upload and install the SDDC Health Management Pack to vRealize Operations Manager
-- Added `Update-vROPSAdapterSddcHealth` cmdlet to rename the SDDC Health Adapters in vRealize Operations Manager
-- Added `Add-vROPSAdapterSddcHealth` cmdlet to add SDDC Health Adapters for the Remote Collectors in vRealize Operations Manager
-- Added `Add-vROPSAlertPluginEmail` cmdlet to add an Email Alert Plugin to vRealize Operations Manager
-- Added `Register-vROPSManagementPack` cmdlet to activate / deactivate Native Management Packs in vRealize Operations Manager
-- Added `Import-vROPSUserGroup` cmdlet to import a user group and assign access in vRealize Operations Manager
+- Added `Add-vROPSAdapterPing` cmdlet to add a Ping Adapter to vRealize Operations Manager.
+- Added `Enable-vROPSManagementPack` cmdlet to upload and install the SDDC Health Management Pack to vRealize Operations Manager.
+- Added `Update-vROPSAdapterSddcHealth` cmdlet to rename the SDDC Health Adapters in vRealize Operations Manager.
+- Added `Add-vROPSAdapterSddcHealth` cmdlet to add SDDC Health Adapters for the Remote Collectors in vRealize Operations Manager.
+- Added `Add-vROPSAlertPluginEmail` cmdlet to add an Email Alert Plugin to vRealize Operations Manager.
+- Added `Register-vROPSManagementPack` cmdlet to activate / deactivate Native Management Packs in vRealize Operations Manager.
+- Added `Import-vROPSUserGroup` cmdlet to import a user group and assign access in vRealize Operations Manager.
 - Added `Add-vROvCenterServer` cmdlet to add a workload domain vCenter Server instance to the embedded vRealize Orchestrator.
 - Added `Remove-vROvCenterServer` cmdlet to remove a workload domain vCenter Server instance from the embedded vRealize Orchestrator.
 - Added `Add-vROTrustedCertificate` cmdlet to import a trusted certificate to the embedded vRealize Orchestrator using a PEM-encoded file.
@@ -37,14 +53,14 @@
 - Added `Undo-vRSLCMDatacenter` cmdlet to remove a datacenter from vRealize Suite Lifecycle Manager.
 - Added `New-vRSLCMDatacenterVcenter` cmdlet to add a vCenter Server to a datacenter in vRealize Lifecycle Manager.
 - Added `Export-WSAJsonSpec` cmdlet to generate the deployment JSON for Clustered Workspace ONE Access.
-- Added `New-WSADeployment` cmdlet to trigger the deployment of Clustered Workspace ONE Access via vRealize Suite Lifecycle Maneger.
+- Added `New-WSADeployment` cmdlet to trigger the deployment of Clustered Workspace ONE Access via vRealize Suite Lifecycle Manager.
 - Added `Add-WorkspaceOneDirectoryConnector` cmdlet to add a connector to the Identity Provider in Workspace ONE Access.
-- Added `Add-vRLIAlertDatacenter` cmdlet to create vRealize Log Insight alerts by datacenter 
-- Added `Add-vRLIAlertVirtualMachine` cmdlet to create vRealize Log Insight alerts by virtual machine
+- Added `Add-vRLIAlertDatacenter` cmdlet to create vRealize Log Insight alerts by datacenter.
+- Added `Add-vRLIAlertVirtualMachine` cmdlet to create vRealize Log Insight alerts by virtual machine.
 - Added `Undo-vRLIAlert` cmdlet to remove alerts from vRealize Log Insight.
 - Added Sample Notification Templates in the SampleNotifications folder:
-    - `vrli-vcf-datacenter.json` defines the vRealize Log Insight alerts that should be configured for VMware Cloud Foundation at the datacenter level
-    - `vrli-vcf-vmVrslcm.json` defines the vRealize Log Insight alerts that should be configured for vRealize Suite Lifecycle Manager
+    - `vrli-vcf-datacenter.json` defines the vRealize Log Insight alerts that should be configured for VMware Cloud Foundation at the datacenter level.
+    - `vrli-vcf-vmVrslcm.json` defines the vRealize Log Insight alerts that should be configured for vRealize Suite Lifecycle Manager.
 - Added Sample Scripts in the SampleScripts\iom folder, each script uses the Planning and Preparation Workbook as the input source:
     - `iomDeployVrealizeOperations.ps1` automates the install and config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
     - `iomConfigureVrealizeOperations.ps1` automates the integration config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
