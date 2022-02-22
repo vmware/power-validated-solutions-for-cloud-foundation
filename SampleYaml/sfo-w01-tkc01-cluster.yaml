@@ -8,13 +8,13 @@ spec:
     controlPlane:
       count: 3
       class: guaranteed-small
-      storageClass: vsphere-with-tanzu-policy
+      storageClass: vsphere-with-tanzu-storage-policy
     workers:
       count: 3
       class: guaranteed-small
-      storageClass: vsphere-with-tanzu-policy
+      storageClass: vsphere-with-tanzu-storage-policy
   distribution:
-    version: v1.18
+    version: v1.20
   settings:
     network: 
       cni:
