@@ -1833,7 +1833,6 @@ Function Install-vSphereReplicationManager {
         Debug-ExceptionWriter -object $_
     }
 }
-
 Export-ModuleMember -Function Install-vSphereReplicationManager
 
 Function Connect-DRSolutionTovCenter {
@@ -2219,8 +2218,7 @@ Function Restore-VMOvfProperties {
 }
 Export-ModuleMember -Function Restore-VMOVFProperties
 
-Function Get-VMvAppConfig
-{
+Function Get-VMvAppConfig {
     <#
         .SYNOPSIS
         Retrieves the full OVF environment settings from a standard VM.
@@ -2254,8 +2252,7 @@ Function Get-VMvAppConfig
 }
 Export-ModuleMember -Function Get-VMvAppConfig
 
-Function New-VMOvfProperty
-{
+Function New-VMOvfProperty {
     <#
        .SYNOPSIS
         Create a single OVF Property on a standard VM.
@@ -2302,8 +2299,7 @@ Function New-VMOvfProperty
 }
 Export-ModuleMember -Function New-VMOvfProperty
 
-Function Set-VMOvfIPAssignment
-{
+Function Set-VMOvfIPAssignment {
     <#
         .SYNOPSIS
         Sets the IP Assignment OVF Setting
@@ -2340,8 +2336,7 @@ Function Set-VMOvfIPAssignment
 }
 Export-ModuleMember -Function Set-VMOvfIPAssignment
 
-Function Set-VMOvfEnvTransport
-{
+Function Set-VMOvfEnvTransport {
     <#
         .SYNOPSIS
         Sets the Environment Transport setting for OVF properties
@@ -2374,8 +2369,7 @@ Function Set-VMOvfEnvTransport
 }
 Export-ModuleMember -Function Set-VMOvfEnvTransport
 
-Function New-VMOvfProduct
-{
+Function New-VMOvfProduct {
     <#
         .SYNOPSIS
         Create a single OVF Product on a standard VM.
@@ -2421,8 +2415,7 @@ Function New-VMOvfProduct
 }
 Export-ModuleMember -Function New-VMOvfProduct
 
-Function Set-VMOvfEULA
-{
+Function Set-VMOvfEULA {
     <#
         .SYNOPSIS
         Sets the EULA setting for OVF properties
@@ -2520,61 +2513,73 @@ Export-ModuleMember -Function Get-NSXLBDetails
 Function Add-NetworkSegment {
     <#
         .SYNOPSIS
-        Create an NSX segment
+        The Add-NetworkSegment cmdlet creates an NSX segment. The cmdlet connects to SDDC Manager using the -server,
+        -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Create the NSX segment if not already created in NSX Manager
 
         .DESCRIPTION
         The Add-NetworkSegment cmdlet creates an NSX Segment
 
         .EXAMPLE
-        Add-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName "sfo-w01-kub-seg01" -gatewayType "Tier1" -connectedGateway "sfo-w01-ec01-t1-gw01" -cidr "192.168.31.1/24" -transportZone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io" -segmentType Overlay
+        Add-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-kub-seg01 -gatewayType Tier1 -connectedGateway sfo-w01-ec01-t1-gw01 -cidr 192.168.31.1/24 -transportZone overlay-tz-sfo-w01-nsx01.sfo.rainpole.io -segmentType Overlay
         This example creates an overlay-backed NSX segment in the workload domain sfo-w01
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$segmentName,
-        [Parameter (Mandatory = $true)] [String]$connectedGateway,
-        [Parameter (Mandatory = $true)] [String]$cidr,
-        [Parameter (Mandatory = $true)] [String]$transportZone,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segmentName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$connectedGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cidr,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportZone,
         [Parameter (Mandatory = $true)] [ValidateSet("Tier0", "Tier1")] [String]$gatewayType,
         [Parameter (Mandatory = $true)] [ValidateSet("Overlay", "VLAN")] [String]$segmentType
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
-        Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.adminPass | Out-Null
-        if (!($validateSegment = Get-NsxtSegment -name $segmentName)) {
-            if ($gatewayType -eq "Tier0") { $tierGatewayExists = Get-NsxtTier0Gateway -name $connectedGateway }
-            if ($gatewayType -eq "Tier1") { $tierGatewayExists = Get-NsxtTier1Gateway -name $connectedGateway }
-            if ($tierGatewayExists) {
-                $validateTransportZone = Get-NsxtTransportZone -Name $transportZone -ErrorAction SilentlyContinue
-                if ($validateTransportZone.display_name -eq $transportZone) {
-                    if ($validateTransportZone.transport_type -ne $segmentType.ToUpper()){
-                        Write-Error "NSX Transport Zone $transportZone does not match the defined segment Type $segmentType on NSX Manager $($nsxtManagerDetails.fqdn)"
-                        Break
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (!(Get-NsxtSegment -name $segmentName)) {
+                                if ($gatewayType -eq "Tier0") { $tierGatewayExists = Get-NsxtTier0Gateway -name $connectedGateway }
+                                if ($gatewayType -eq "Tier1") { $tierGatewayExists = Get-NsxtTier1Gateway -name $connectedGateway }
+                                if ($tierGatewayExists) {
+                                    $validateTransportZone = Get-NsxtTransportZone -Name $transportZone -ErrorAction SilentlyContinue
+                                    if ($validateTransportZone.display_name -eq $transportZone) {
+                                        if ($validateTransportZone.transport_type -ne $segmentType.ToUpper()){
+                                            Write-Error "NSX Transport Zone $transportZone does not match the defined segment Type $segmentType in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                            Break
+                                        }
+                                    }
+                                    else {
+                                        Write-Error "Unable to find NSX Transport Zone ($transportZone) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                        Break
+                                    }
+                                    New-NsxtSegment -name $segmentName -connectedGateway $connectedGateway -cidr $cidr -transportZone $transportZone -gatewayType $gatewayType -segmentType $segmentType | Out-Null
+                                    if (Get-NsxtSegment -name $segmentName) {
+                                        Write-Output "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Error "Unable to find NSX $gatewayType Gateway $connectedGateway in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            else {
+                                Write-Warning "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName), already exists: SKIPPED"
+                            }
+                        }
                     }
                 }
-                else {
-                    Write-Error "NSX Transport Zone $transportZone was not found on NSX Manager $($nsxtManagerDetails.fqdn)"
-                    Break
-                }
-                New-NsxtSegment -name $segmentName -connectedGateway $connectedGateway -cidr $cidr -transportZone $transportZone -gatewayType $gatewayType -segmentType $segmentType | Out-Null
-                if ($validateSegment = Get-NsxtSegment -name $segmentName) {
-                    Write-Output "Created NSX segment $segmentName on NSX Manager $($nsxtManagerDetails.fqdn) completed Succesfully"
-                }
-                else {
-                    Write-Error "Creation of the NSX segment $segmentName on NSX Manager $($nsxtManagerDetails.fqdn) failed, please retry"
-                }
             }
-            else {
-                Write-Error "NSX $gatewayType Gateway $connectedGateway does not exist on NSX Manager $($nsxtManagerDetails.fqdn)"
-            }
-        }
-        else {
-            Write-Warning "$segmentType-backed NSX segment $segmentName already exists on NSX Manager $($nsxtManagerDetails.fqdn)"
         }
     }
     Catch {
@@ -2583,55 +2588,122 @@ Function Add-NetworkSegment {
 }
 Export-ModuleMember -Function Add-NetworkSegment
 
+Function Undo-NetworkSegment {
+    <#
+        .SYNOPSIS
+        The Undo-NetworkSegment cmdlet removes an NSX segment. The cmdlet connects to SDDC Manager using the -server,
+        -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes the NSX segment if not already removed from NSX Manager
+
+        .DESCRIPTION
+        The Undo-NetworkSegment cmdlet removes an NSX Segment from NSX Manager
+
+        .EXAMPLE
+        Undo-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-kub-seg01
+        This example removes an NSX segment from the NSX Manager of Workload Domain sfo-w01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segmentName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (Get-NsxtSegment -name $segmentName) {
+                                Remove-NsxtSegment -name $segmentName | Out-Null
+                                if (!(Get-NsxtSegment -name $segmentName)) {
+                                    Write-Output "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
+                                }
+                                else {
+                                    Write-Error "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
+                                }
+                            }
+                            else {
+                                Write-Warning "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName), does not exist: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NetworkSegment
+
 Function Add-PrefixList {
     <#
         .SYNOPSIS
-        Create an NSX Prefix List
+        The Add-PrefixList cmdlet creates NSX Prefix List in the NSX Management Cluster. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Create an NSX Prefix List if not already created in NSX Manager
 
         .DESCRIPTION
         The Add-PrefixList cmdlet creates an NSX Prefix List
 
         .EXAMPLE
         Add-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -subnetCIDR 192.168.20.0/24 -ingressSubnetCidr "192.168.21.0/24" -egressSubnetCidr "192.168.22.0/24" -GE "28" -LE "32" -action PERMIT
-        This example creates an NSX Prefix List in the workload domain NSX Manager cluster
+        This example creates an NSX Prefix List in the workload domain NSX Management Cluster
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$tier0Gateway,
-        [Parameter (Mandatory = $true)] [String]$prefixListName,
-        [Parameter (Mandatory = $true)] [String]$subnetCidr,
-        [Parameter (Mandatory = $true)] [String]$ingressSubnetCidr,
-        [Parameter (Mandatory = $true)] [String]$egressSubnetCidr,
-        [Parameter (Mandatory = $false)] [String]$GE,
-        [Parameter (Mandatory = $false)] [String]$LE,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$prefixListName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$subnetCidr,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ingressSubnetCidr,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$egressSubnetCidr,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$GE,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$LE,
         [Parameter (Mandatory = $true)] [ValidateSet("PERMIT", "DENY")] [String]$action
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
-        Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
-        if ($tier0GatewayExists = Get-NsxtTier0Gateway -name $tier0Gateway) {
-            if (!($checkPrefixList = Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue)) {
-                Get-NsxtTier0Gateway -name $tier0Gateway | New-NsxtPrefixList -name $prefixListName -subnetCidr $subnetCidr -action $action | Out-Null
-                if ($checkPrefixList = Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue) {
-                    Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $ingressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
-                    Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $egressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
-                    Write-Output "NSX IP Prefix List $prefixListName created on NSX Manager $($nsxtManagerDetails.fqdn) Succesfully"
-                }
-                else {
-                    Write-Error "NSX IP Prefix List $prefixListName creation on NSX Manager $($nsxtManagerDetails.fqdn) Failed"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (Get-NsxtTier0Gateway -name $tier0Gateway) {
+                                if (!(Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue)) {
+                                    Get-NsxtTier0Gateway -name $tier0Gateway | New-NsxtPrefixList -name $prefixListName -subnetCidr $subnetCidr -action $action | Out-Null
+                                    if (Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue) {
+                                        Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $ingressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
+                                        Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $egressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
+                                        Write-Output "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName), already exists: SKIPPED"
+                                }
+                            }
+                            else {
+                                Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
                 }
             }
-            else {
-                Write-Warning "NSX IP Prefix List $prefixListName already exists on NSX Manager $($nsxtManagerDetails.fqdn)"
-            }
-        }
-        else {
-            Write-Error "NSX Tier0 Gateway $tier0Gateway does not exist on NSX Manager $($nsxtManagerDetails.fqdn)"
         }
     }
     Catch {
@@ -2640,58 +2712,131 @@ Function Add-PrefixList {
 }
 Export-ModuleMember -Function Add-PrefixList
 
+Function Undo-PrefixList {
+    <#
+        .SYNOPSIS
+        The Undo-PrefixList cmdlet removes the NSX Prefix List from NSX Manager. The cmdlet connects to SDDC Manager 
+        using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes an NSX Prefix List if not already removed from NSX Manager
+
+        .DESCRIPTION
+        The Undo-PrefixList cmdlet removes an NSX Prefix List
+
+        .EXAMPLE
+        Undo-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist
+        This example removes an NSX Prefix List in the Workload Domain NSX Management Cluster
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$prefixListName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (Get-NsxtTier0Gateway -name $tier0Gateway) {
+                                if (Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue) {
+                                    Remove-NsxtPrefixList -name $prefixListName -tier0Gateway $tier0Gateway | Out-Null
+                                    if (!(Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue)) {
+                                        Write-Output "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName), does not exist: SKIPPED"
+                                }
+                            }
+                            else {
+                                Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-PrefixList
+
 Function Add-RouteMap {
     <#
         .SYNOPSIS
-        Create an NSX Route Map for use by VCF
+        The Add-RouteMap cmdlet creates NSX Prefix List in the NSX Management Cluster. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Create an NSX Route Map if not already created in NSX Manager
 
         .DESCRIPTION
         The Add-RouteMap cmdlet creates an NSX Route Map
 
         .EXAMPLE
-        Add-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap -prefixListName sfo-w01-ec01-t10-gw01-mgmt-prefixlist -action PERMIT -applyPolicy:$true
+        Add-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -action PERMIT -applyPolicy:$true
         This example creates an NSX Route Map in workload domain sfo-w01
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$tier0Gateway,
-        [Parameter (Mandatory = $true)] [String]$routeMapName,
-        [Parameter (Mandatory = $true)] [String]$prefixListName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$routeMapName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$prefixListName,
         [Parameter (Mandatory = $true)] [ValidateSet("PERMIT", "DENY")][String]$action,
-        [Parameter (Mandatory = $true)] [Bool]$applyPolicy
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$applyPolicy
     )
 
     Try {
-        $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
-        Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.AdminPass | Out-Null
-        if ($tier0GatewayExists = Get-NsxtTier0Gateway -name $tier0Gateway) {
-            if (!($checkRouteMap = Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue)) {
-                if ($checkPrefixList = Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue) {
-                    Get-NsxtTier0Gateway -name $tier0Gateway | New-NsxtRouteMap -name $routeMapName -prefixList $prefixListName -action $Action | Out-Null
-                    if ($checkRouteMap = Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue) {
-                        if ($applyPolicy -eq $true) {
-                            Get-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway | Set-NsxtRouteRedistributionPolicy -routeMap $routeMapName | Out-Null
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (Get-NsxtTier0Gateway -name $tier0Gateway) {
+                                if (!(Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue)) {
+                                    if (Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue) {
+                                        Get-NsxtTier0Gateway -name $tier0Gateway | New-NsxtRouteMap -name $routeMapName -prefixList $prefixListName -action $Action | Out-Null
+                                        if (Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue) {
+                                            if ($applyPolicy -eq $true) {
+                                                Get-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway | Set-NsxtRouteRedistributionPolicy -routeMap $routeMapName | Out-Null
+                                            }
+                                            Write-Output "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Error "Unable to find NSX Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName), already exists: SKIPPED"
+                                }
+                            }
+                            else {
+                                Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
                         }
-                        Write-OutPut "NSX Route Map $routeMapName created on NSX Manager $($nsxtManagerDetails.fqdn) Succesfully"
-                    }
-                    else {
-                        Write-Error "NSX Route Map $routeMapName creation on NSX Manager $($nsxtManagerDetails.fqdn) Failed"
                     }
                 }
-                else {
-                    Write-Error "NSX IP Prefix List $prefixListName does not exist on NSX Manager $($nsxtManagerDetails.fqdn)"
-                }
             }
-            else {
-                Write-Warning "NSX Route Map $routeMapName already exists on NSX Manager $($nsxtManagerDetails.fqdn)"
-            }
-        }
-        else {
-            Write-Error "NSX Tier0 Gateway $tier0Gateway does not exist on NSX Manager $($nsxtManagerDetails.fqdn)"
         }
     }
     Catch {
@@ -2700,211 +2845,484 @@ Function Add-RouteMap {
 }
 Export-ModuleMember -Function Add-RouteMap
 
-Function Set-DatastoreTag {
+Function Undo-RouteMap {
     <#
         .SYNOPSIS
-        Creates and applies a vSphere Tag to a datastore
+        The Undo-RouteMap cmdlet removes NSX Route Map from the NSX Management Cluster. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes an NSX Route Map from NSX Manager
 
         .DESCRIPTION
-        The Set-DatastoreTag cmdlet creates and applies a vSphere Tag to a datastore
+        The Undo-RouteMap cmdlet removes an NSX Route Map
 
         .EXAMPLE
-        Set-DatastoreTag -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tagName vsphere-with-tanzu-tag -tagCategoryName vsphere-with-tanzu-category -datastore sfo-w01-cl01-ds-vsan01
-        This example creates a new tag and assigns it to the datastore in workload domain sfo-w01
+        Undo-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap
+        This example removes an NSX Route Map in the workload domain sfo-w01
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$tagName,
-        [Parameter (Mandatory = $true)] [String]$tagCategoryName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$routeMapName
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
-            if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
-                if (!($tagAssignmentExists = Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcenter.fqdn -ErrorAction SilentlyContinue)) {
-                    if (!($tagCategoryExist = Get-TagCategory -Server $vcenter.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagCategoryName })) {
-                        New-TagCategory -Name $tagCategoryName -EntityType Datastore -Server $vcenter.fqdn -Confirm:$false | Out-Null
-                    }
-                    if (!($tagExists = Get-Tag -Server $vcenter.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
-                        New-Tag -Name $tagName -Category $tagCategoryName -Server $vcenter.fqdn -Confirm:$false | Out-Null
-                    }
-                    Get-Datastore -Name $Datastore -Server $vcenter.fqdn | New-TagAssignment -Tag $tagName -Server $vcenter.fqdn -Confirm:$false | Out-Null
-                    if (($tagAssignmentExists = Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcenter.fqdn -ErrorAction SilentlyContinue)) {
-                        Write-Output  "Created vSphere Tag $tagName and applied to datastore $datastore in vCenter Server $($vcenter.fqdn) Successfully"
-                    }
-                    else {
-                        Write-Error  "Assigning vSphere Tag $tagName to datastore $datastore in vCenter Server $($vcenter.fqdn) Failed"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                            if (Get-NsxtTier0Gateway -name $tier0Gateway) {
+                                if (Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue) {
+                                    Remove-NsxtRouteMap -name $routeMapName -tier0Gateway $tier0Gateway | Out-Null
+                                    if (!(Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue)) {
+                                        Write-Output "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName), does not exist: SKIPPED"
+                                }
+                            }
+                            else {
+                                Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
                     }
                 }
-                else {
-                    Write-Warning  "vSphere Tag $tagName has already been applied to datastore $datastore in vCenter Server $($vcenter.fqdn)"
-                }
             }
-            else {
-                Write-Error "Datastore $datastore not found in vCenter Server $($vcenter.fqdn)"
-            }
-        }
-        else {
-            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
-    Finally {
-        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+}
+Export-ModuleMember -Function Undo-RouteMap
+
+Function Set-DatastoreTag {
+    <#
+        .SYNOPSIS
+        The Function Set-DatastoreTag cmdlet creates and applies a vSphere Tag to the primary datastore. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Creates and applies a vSphere Tag to the primary datastore
+
+        .DESCRIPTION
+        The Set-DatastoreTag cmdlet creates and applies a vSphere Tag to the primary datastore
+
+        .EXAMPLE
+        Set-DatastoreTag -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tagName vsphere-with-tanzu-tag -tagCategoryName vsphere-with-tanzu-category
+        This example creates a new tag and assigns it to the primary datastore of Workload Domain sfo-w01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagCategoryName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
+                                if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
+                                    if (!(Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
+                                        if (!(Get-TagCategory -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagCategoryName })) {
+                                            New-TagCategory -Name $tagCategoryName -EntityType Datastore -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                        }
+                                        if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
+                                            New-Tag -Name $tagName -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                        }
+                                        Get-Datastore -Name $Datastore -Server $vcfVcenterDetails.fqdn | New-TagAssignment -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                        if ((Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
+                                            Write-Output "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Warning "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
+                                    }
+                                }
+                                else {
+                                    Write-Error "Unable to find datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Set-DatastoreTag
 
+Function Undo-DatastoreTag {
+    <#
+        .SYNOPSIS
+        The Function Undo-DatastoreTag cmdlet removes a vSphere Category and Tag. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Removes the vSphere Tag
+
+        .DESCRIPTION
+        The Undo-DatastoreTag cmdlet removes the vSphere Tag
+
+        .EXAMPLE
+        Undo-DatastoreTag -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tagName vsphere-with-tanzu-tag -tagCategoryName vsphere-with-tanzu-category
+        This example removes the vSphere tag from the Workload Domain sfo-w01 vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagCategoryName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagName }) {
+                                    Remove-Tag -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                    Remove-TagCategory -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                    if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {                                            
+                                        Write-Output "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"                                        
+                                    }
+                                    else {
+                                        Write-Error "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Removing vSphere Tag ($tagName) and Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-DatastoreTag
+
 Function Add-StoragePolicy {
     <#
         .SYNOPSIS
-        Create a VM vSphere Storage Policy
+        The Add-StoragePolicy cmdlet creates a vSphere Storage Policy. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Creates a VM vSphere Storage Policy
 
         .DESCRIPTION
         The Add-StoragePolicy cmdlet creates a VM vSphere Storage Policy
 
         .EXAMPLE
         Add-StoragePolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -policyName vsphere-with-tanzu-storage-policy -tagName vsphere-with-tanzu-tag
-        This example creates a VM Storage Policy named vsphere-with-tanzu-policy in the VI workload domain vCenter Server
+        This example creates a VM Storage Policy named vsphere-with-tanzu-policy in the Wrkload Domain vCenter Server
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$policyName,
-        [Parameter (Mandatory = $true)] [String]$tagName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policyName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagName
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            if (!($getSpbmPolicy = Get-SpbmStoragePolicy -Name $policyName -Server $vcenter.fqdn -ErrorAction SilentlyContinue)) {
-                if ($tagExists = Get-Tag -Server $vcenter.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName }) {
-                    New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName -Server $vcenter.fqdn)) -Server $vcenter.fqdn | Out-Null
-                    if ($getSpbmPolicy = Get-SpbmStoragePolicy -Name $policyName -Server $vcenter.fqdn -ErrorAction SilentlyContinue) {
-                        Write-Output  "Created vSphere Storage Policy $policyName in vCenter Server $($vcenter.fqdn) Successfully"
-                    }
-                    else {
-                        Write-Error  "Creating vSphere Storage Policy $policyName in vCenter Server $($vcenter.fqdn) Failed"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (!(Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
+                                    if (Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName }) {
+                                        New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName -Server $vcfVcenterDetails.fqdn)) -Server $vcfVcenterDetails.fqdn | Out-Null
+                                        if (Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                            Write-Output "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Error "Unable to find vSphere Tag ($tagName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), already exists: SKIPPED"                                    
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
                     }
                 }
                 else {
-                    Write-Warning "vSphere $tagName does not exist in vCenter Server $($vcenter.fqdn), please create and try again"
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
-            else {
-                Write-Warning "Storage Policy $policyName already exists in vCenter Server $($vcenter.fqdn)"
-            }
-        }
-        else {
-            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
-    Finally {
-        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-    }
 }
 Export-ModuleMember -Function Add-StoragePolicy
+
+Function Undo-StoragePolicy {
+    <#
+        .SYNOPSIS
+        The Undo-StoragePolicy cmdlet removes a vSphere Storage Policy. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Removes a VM vSphere Storage Policy
+
+        .DESCRIPTION
+        The Undo-StoragePolicy cmdlet removes a VM vSphere Storage Policy
+
+        .EXAMPLE
+        Undo-StoragePolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -policyName vsphere-with-tanzu-storage-policy
+        This example removes a VM Storage Policy named vsphere-with-tanzu-storage-policy from the Wrkload Domain vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policyName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
+                                    Remove-SpbmStoragePolicy -StoragePolicy $policyName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                    if (!(Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
+                                        Write-Output "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), does not exist: SKIPPED"                                    
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-StoragePolicy
 
 Function Add-ContentLibrary {
     <#
         .SYNOPSIS
         Creates a subscribed content library
-
+     
         .DESCRIPTION
         The Add-ContentLibrary cmdlet creates a subscribed content library
-
+     
         .EXAMPLE
-        Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 published
-        This example creates published content library named sfo-w01-lib01 in workload domain sfo-w01
-
+        Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 -published
+        This example creates published content library named sfo-w01-lib01 on the primary datastore in workload domain sfo-w01
+     
+        .EXAMPLE
+        Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 -datastore sfo-w01-ds-nfs01 -published
+        This example creates published content library named sfo-w01-lib01 on a specific datastore in workload domain sfo-w01
+     
         .EXAMPLE
         Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName Kubernetes -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json"
-        This example creates subscribed content library named Kubernetes in workload domain sfo-w01
+        This example creates subscribed content library named Kubernetes on the primary datastore in workload domain sfo-w01
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$contentLibraryName,
-        [Parameter (ParameterSetName = 'Subscription', Mandatory = $false)] [String]$subscriptionUrl,
-        [Parameter (ParameterSetName = 'Local', Mandatory = $false)] [Switch]$published
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$contentLibraryName,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$datastore,
+        [Parameter (ParameterSetName = 'Subscription', Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$subscriptionUrl,
+        [Parameter (ParameterSetName = 'Local', Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$published
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            if (!($getContentLibrary = Get-ContentLibrary -Name $contentLibraryName -ErrorAction SilentlyContinue)) {
-                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
-                if ($datastoreExist = Get-Datastore -Name $datastore -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (!(Get-ContentLibrary -Name $contentLibraryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
+                                    if (!$PsBoundParameters.ContainsKey('datastore')) {
+                                        $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
+                                    }
+                                    if (Get-Datastore -Name $datastore -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
+                                        if ($subscriptionUrl) {
+                                            #attribution to William Lam (https://gist.github.com/lamw/988e4599c0f88d9fc25c9f2af8b72c92) for this snippet
+                                            Invoke-RestMethod -Uri $subscriptionUrl -Method Get | Out-Null
 
-                    if ($subscriptionUrl) {
-                        #attribution to William Lam (https://gist.github.com/lamw/988e4599c0f88d9fc25c9f2af8b72c92) for this snippet
-                        Invoke-RestMethod -Uri $subscriptionUrl -Method Get | Out-Null
+                                            $endpointRequest = [System.Net.Webrequest]::Create("$subscriptionUrl")
+                                            $sslThumbprint = $endpointRequest.ServicePoint.Certificate.GetCertHashString()
+                                            $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
 
-                        $endpointRequest = [System.Net.Webrequest]::Create("$subscriptionUrl")
-                        $sslThumbprint = $endpointRequest.ServicePoint.Certificate.GetCertHashString()
-                        $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
+                                            $contentLibraryInput = @{
+                                                Name            = $contentLibraryName
+                                                Datastore       = $datastore
+                                                AutomaticSync   = $true
+                                                SubscriptionUrl = $subscriptionUrl
+                                                SslThumbprint   = $sslThumbprint
+                                            }
 
-                        $contentLibraryInput = @{
-                            Name            = $contentLibraryName
-                            Datastore       = $datastore
-                            AutomaticSync   = $true
-                            SubscriptionUrl = $subscriptionUrl
-                            SslThumbprint   = $sslThumbprint
+                                            New-ContentLibrary @contentLibraryInput -Server $vcfVcenterDetails.fqdn | Out-Null
+                                        }
+                                        elseif ($published) {
+                                            New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcfVcenterDetails.fqdn | Out-Null
+                                        }
+                                        if (Get-ContentLibrary -Name $contentLibraryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                            Write-Output "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Error "Unable to find Datastore named ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName), already exists: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
-
-                        New-ContentLibrary @contentLibraryInput | Out-Null
-                    }
-                    elseif ($published) {
-                        New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcenter.fqdn | Out-Null
-                    }
-
-                    if ($getContentLibrary = Get-ContentLibrary -Name $contentLibraryName -ErrorAction SilentlyContinue) {
-                        Write-Output  "Created Content Library $contentLibraryName in vCenter Server $($vcenter.fqdn) Successfully"
-                    }
-                    else {
-                        Write-Error  "Creating Content Library $contentLibraryName in vCenter Server $($vcenter.fqdn) Failed"
                     }
                 }
                 else {
-                    Write-Error "Datastore $datastore not found in vCenter Server $($vcenter.fqdn)"
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
-            else {
-                Write-Warning "Content Library $contentLibraryName already exists in vCenter Server $($vcenter.fqdn)"
-            }
-        }
-        else {
-            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
-    Finally {
-        #Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-    }
 }
 Export-ModuleMember -Function Add-ContentLibrary
+
+Function Undo-ContentLibrary {
+    <#
+        .SYNOPSIS
+        Remove Content Library
+
+        .DESCRIPTION
+        The Undo-ContentLibrary cmdlet removes a content library
+
+        .EXAMPLE
+        Undo-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01
+        This example removes the content library from the Workload Domain vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$contentLibraryName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-ContentLibrary -Name $contentLibraryName -ErrorAction Ignore) {
+                                    Remove-ContentLibrary -ContentLibrary $contentLibraryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                    if (!(Get-ContentLibrary -Name $contentLibraryName -ErrorAction Ignore)) {
+                                        Write-Output "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName), does not exist: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-ContentLibrary
 
 Function Enable-SupervisorCluster {
     <#
@@ -2916,652 +3334,570 @@ Function Enable-SupervisorCluster {
 
         .EXAMPLE
         $wmClusterInput = @{
-            server = sfo-vcf01.sfo.rainpole.io
-            user = administrator@vsphere.local
+            server = "sfo-vcf01.sfo.rainpole.io"
+            user = "administrator@vsphere.local"
             pass = 'VMw@re1!'
-            domain = sfo-m01
-            cluster = sfo-w01-cl01
-            sizeHint = Tiny
-            managementVirtualNetwork = sfo-w01-kub-seg01
-            managementNetworkMode = StaticRange
-            managementNetworkStartIpAddress = 192.168.20.10
+            domain = "sfo-w01"
+            cluster = "sfo-w01-cl01"
+            sizeHint = "Tiny"
+            managementVirtualNetwork = "sfo-w01-kub-seg01"
+            managementNetworkMode = "StaticRange"
+            managementNetworkStartIpAddress = "192.168.20.10"
             managementNetworkAddressRangeSize = 5
-            managementNetworkGateway = 192.168.20.1
-            managementNetworkSubnetMask = 255.255.255.0
-            masterDnsName = sfo-w01-cl01.sfo.rainpole.io
-            masterDnsServers = @(172.16.11.4, 172.16.11.5)
-            masterNtpServers = @(172.16.11.253, 172.16.12.253)
-            contentLibrary = Kubernetes
-            ephemeralStoragePolicy = vsphere-with-tanzu-policy
-            imageStoragePolicy = vsphere-with-tanzu-policy
-            masterStoragePolicy = vsphere-with-tanzu-policy
-            nsxEdgeCluster = sfo-w01-ec01
-            distributedSwitch = sfo-w01-cl01-vds01
-            podCIDRs = 100.100.0.0/20
-            serviceCIDR = 100.200.0.0/22
-            externalIngressCIDRs = 192.168.21.0/24
-            externalEgressCIDRs = 192.168.22.0/24
-            workerDnsServers = @(172.16.11.4, 172.16.11.5)
-            masterDnsSearchDomain = sfo.rainpole.io
+            managementNetworkGateway = "192.168.20.1"
+            managementNetworkSubnetMask = "255.255.255.0"
+            masterDnsName = "sfo-w01-cl01.sfo.rainpole.io"
+            masterDnsServers = @("172.16.11.4", "172.16.11.5")
+            masterNtpServers = @("172.16.11.253", "172.16.12.253")
+            contentLibrary = "Kubernetes"
+            ephemeralStoragePolicy = "vsphere-with-tanzu-policy"
+            imageStoragePolicy = "vsphere-with-tanzu-policy"
+            masterStoragePolicy = "vsphere-with-tanzu-policy"
+            nsxEdgeCluster = "sfo-w01-ec01"
+            distributedSwitch = "sfo-w01-cl01-vds01"
+            podCIDRs = "100.100.0.0/20"
+            serviceCIDR = "100.200.0.0/22"
+            externalIngressCIDRs = "192.168.21.0/24"
+            externalEgressCIDRs = "192.168.22.0/24"
+            workerDnsServers = @("172.16.11.4", "172.16.11.5")
+            masterDnsSearchDomain = "sfo.rainpole.io"
         }
 
-        Enable-SupervisorCluster @wmClusterInput -RunAsync:$true
+        Enable-SupervisorCluster @wmClusterInput -RunAsync
+        This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01 in async mode
+        
+        .EXAMPLE
+        Enable-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -sizeHint Tiny -managementVirtualNetwork sfo-w01-kub-seg01 -managementNetworkMode StaticRange -managementNetworkStartIpAddress 192.168.20.10 -managementNetworkAddressRangeSize 5 -managementNetworkGateway 192.168.20.1 -managementNetworkSubnetMask 255.255.255.0 -cluster sfo-w01-cl01 -contentLibrary Kubernetes -ephemeralStoragePolicy vsphere-with-tanzu-storage-policy -imageStoragePolicy vsphere-with-tanzu-storage-policy -masterStoragePolicy vsphere-with-tanzu-storage-policy -nsxEdgeCluster sfo-w01-ec01 -distributedSwitch sfo-w01-sfo-w01-vc01-sfo-w01-cl01-vds01 -podCIDRs "100.100.0.0/20" -serviceCIDR "100.200.0.0/22" -externalIngressCIDRs "192.168.21.0/24" -externalEgressCIDRs "192.168.22.0/24" -masterNtpServers @("172.16.11.253", "172.16.12.253") -masterDnsServers @("172.16.11.4", "172.16.11.5") -masterDnsName sfo-w01-cl01.sfo.rainpole.io -masterDnsSearchDomain sfo.rainpole.io -workerDnsServers @("172.16.11.4", "172.16.11.5")
         This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
         [Parameter (Mandatory = $true)] [ValidateSet("Tiny", "Small", "Medium", "Large")] [String]$sizeHint,
         [Parameter (Mandatory = $true)] [ValidateSet("DHCP", "StaticRange")][String]$managementNetworkMode,
-        [Parameter (Mandatory = $true)] [String]$managementVirtualNetwork,
-        [Parameter (Mandatory = $true)] [String]$managementNetworkStartIpAddress,
-        [Parameter (Mandatory = $true)] [String]$managementNetworkAddressRangeSize,
-        [Parameter (Mandatory = $true)] [String]$managementNetworkGateway,
-        [Parameter (Mandatory = $true)] [String]$managementNetworkSubnetMask,
-        [Parameter (Mandatory = $true)] [string]$masterDnsName,
-        [Parameter (Mandatory = $true)] [Array]$masterNtpServers,
-        [Parameter (Mandatory = $true)] [Array]$masterDnsServers,
-        [Parameter (Mandatory = $true)] [String]$contentLibrary,
-        [Parameter (Mandatory = $true)] [String]$ephemeralStoragePolicy,
-        [Parameter (Mandatory = $true)] [String]$imageStoragePolicy,
-        [Parameter (Mandatory = $true)] [String]$masterStoragePolicy,
-        [Parameter (Mandatory = $true)] [String]$nsxEdgeCluster,
-        [Parameter (Mandatory = $true)] [String]$distributedSwitch,
-        [Parameter (Mandatory = $true)] [String]$podCIDRs,
-        [Parameter (Mandatory = $true)] [String]$serviceCIDR,
-        [Parameter (Mandatory = $true)] [String]$externalIngressCIDRs,
-        [Parameter (Mandatory = $true)] [String]$externalEgressCIDRs,
-        [Parameter (Mandatory = $true)] [String]$masterDnsSearchDomain,
-        [Parameter (Mandatory = $true)] [Array]$workerDnsServers,
-        [Parameter (Mandatory = $false)] [ValidateSet("true", "false")] [bool]$RunAsync,
-        [Parameter (Mandatory = $false)] [ValidateSet("true", "false")] [bool]$SkipValidation,
-        [Parameter (Mandatory = $false)] [ValidateSet("true", "false")] [bool]$ValidateOnly
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementVirtualNetwork,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementNetworkStartIpAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementNetworkAddressRangeSize,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementNetworkGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementNetworkSubnetMask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [string]$masterDnsName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$masterNtpServers,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$masterDnsServers,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$contentLibrary,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ephemeralStoragePolicy,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$imageStoragePolicy,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$masterStoragePolicy,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxEdgeCluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$distributedSwitch,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$podCIDRs,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceCIDR,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$externalIngressCIDRs,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$externalEgressCIDRs,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$masterDnsSearchDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$workerDnsServers,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$RunAsync,
+        [Parameter (Mandatory = $false)] [ValidateSet("true", "false")] [Bool]$SkipValidation,
+        [Parameter (Mandatory = $false)] [ValidateSet("true", "false")] [Bool]$ValidateOnly
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-        
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $nsxtManagerDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain
-            Request-NsxToken -fqdn $nsxtManagerDetails.fqdn -username $nsxtManagerDetails.adminUser -password $nsxtManagerDetails.adminPass | Out-Null
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoadmin -Password $vcfVcenterDetails.ssoAdminPass | Out-Null
+                            if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                                if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                                    if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                                        if (!(Get-WMCluster -cluster $cluster -ErrorAction SilentlyContinue)) {
+                                            if ($SkipValidation -eq $false -or !$SkipValidation) {
+                                                # Valid Starting IP Address is an actual IPv4 address
+                                                Do {
+                                                    $checkManagementNetworkStartIpAddress = [IPAddress]$managementNetworkStartIpAddress
+                                                    if ($checkManagementNetworkStartIpAddress.IPAddressToString -ne $managementNetworkStartIpAddress -or !$checkManagementNetworkStartIpAddress) {
+                                                        Do {
+                                                            $managementNetworkStartIpAddress = Read-Host "Invalid Management Network Start IP Address ($managementNetworkStartIpAddress). Please enter the correct IPv4 address (e.g., 192.168.20.10) and press Enter"
+                                                        } Until ($managementNetworkStartIpAddress -ne [String]::Empty)
+                                                    }
+                                                } Until ($checkManagementNetworkStartIpAddress.IPAddressToString -eq $managementNetworkStartIpAddress)
 
-            if (!($getWMCluster = Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue)) {
+                                                # At least 5 in the range
+                                                Do {
+                                                    if ($managementNetworkAddressRangeSize -lt 5) {
+                                                        Do {
+                                                            $managementNetworkAddressRangeSize = Read-Host "Invalid setting for Management Network Address Range Size. Type a new value (at least 5) and press Enter"
+                                                        } Until ($managementNetworkAddressRangeSize -ne [string]::Empty -and $managementNetworkAddressRangeSize -match '^\d+$')
+                                                    }
+                                                } Until ($managementNetworkAddressRangeSize -ge 5)
 
-                #Check SkipValidation parameter
-                if ($SkipValidation -eq $false -or !$SkipValidation) {
+                                                # Valid Subnet Mask
+                                                Do {
+                                                    $checkManagementNetworkSubnetMask = $null
+                                                    if ($managementNetworkSubnetMask) {
+                                                        Do {
+                                                            if ($isWindows -or $PSEdition -eq "Desktop") {
+                                                                $managementNetworkSubnetMaskSplit = $managementNetworkSubnetMask.Split('\.')
+                                                            }
+                                                            elseif ($isMacOS -or $isLinux) {
+                                                                $managementNetworkSubnetMaskSplit = $managementNetworkSubnetMask.Split(".")
+                                                            }
+                                                            if ($managementNetworkSubnetMaskSplit.Length -ne 4) {
+                                                                Do {
+                                                                    $managementNetworkSubnetMask = Read-Host "Management Network Subnet Mask ($managementNetworkSubnetMask) validation failed. Please enter a valid subnet mask (e.g., 255.255.255.0) and press Enter"
+                                                                } Until ($managementNetworkSubnetMask -ne [String]::Empty)
+                                                            }
+                                                        } Until ($managementNetworkSubnetMaskSplit.Length -eq 4)
+                                                    }
 
-                    #Validate management network inputs
-                    #Valid Starting IP Address is an actual IPv4 address
-                    do {
-                        try {
-                            $checkManagementNetworkStartIpAddress = [IPAddress]$managementNetworkStartIpAddress
-                        } catch {}
+                                                    $checkManagementNetworkSubnetMask = [IPAddress] $managementNetworkSubnetMask
+                                                    if ($checkManagementNetworkSubnetMask) {
+                                                        $getManagementNetworkCidr = New-Object -TypeName Text.StringBuilder
+                                                        $lastOctet = 255
+                                                        $subnetFormatValidated = $null
+                                                        $validSubnetMaskRegex = '^(0|128|192|224|240|248|252|254|255)$'
+                                                        $getSubnetMaskInBytes = $checkManagementNetworkSubnetMask.GetAddressBytes()
 
-                        if ($checkManagementNetworkStartIpAddress.IPAddressToString -ne $managementNetworkStartIpAddress -or !$checkManagementNetworkStartIpAddress) {
-                            do {
-                                $managementNetworkStartIpAddress = Read-Host "Invalid Management Network Start IP Address ($managementNetworkStartIpAddress). Please enter the correct IPv4 address (e.g., 192.168.20.10) and press Enter"
-                            } until ($managementNetworkStartIpAddress -ne [String]::Empty)
-                        }
-                    } until ($checkManagementNetworkStartIpAddress.IPAddressToString -eq $managementNetworkStartIpAddress)
+                                                        for ($i = 0;$i -lt $getSubnetMaskInBytes.length; $i++) {
+                                                            if ($getSubnetMaskInBytes[$i] -notmatch $validSubnetMaskRegex) {
+                                                                $subnetFormatValidated = $false                                    
+                                                            }
+                                                            [void]$getManagementNetworkCidr.Append([Convert]::ToString($getSubnetMaskInBytes[$i],2))
+                                                            $lastOctet=$getSubnetMaskInBytes[$i]
+                                                        }
+                                                        $managementNetworkCidr = ($getManagementNetworkCidr.ToString().TrimEnd('0')).Length
+                                                    }
 
+                                                    if ($subnetFormatValidated -eq $false -or !$checkManagementNetworkSubnetMask) {
+                                                        Do {
+                                                            $managementNetworkSubnetMask = Read-Host "Management Network Subnet Mask validation failed. Please enter a valid subnet mask (e.g., 255.255.255.0) and press Enter"
+                                                        } Until ($managementNetworkSubnetMask -ne [String]::Empty)
+                                                    }
+                                                } Until ($checkManagementNetworkSubnetMask.IPAddressToString -eq $managementNetworkSubnetMask -and $subnetFormatValidated -ne $false)
 
-                    #At least 5 in the range
-                    do {
-                        if ($managementNetworkAddressRangeSize -lt 5){
-                            do {
-                                $managementNetworkAddressRangeSize = Read-Host "Invalid setting for Management Network Address Range Size. Type a new value (at least 5) and press Enter"
-                            } until ($managementNetworkAddressRangeSize -ne [string]::Empty -and $managementNetworkAddressRangeSize -match '^\d+$')
-                        }
-                    } until ($managementNetworkAddressRangeSize -ge 5)
+                                                # Validate Gateway IP Address is an actual IPv4 address and exists in the same subnet as the management starting address
+                                                Do {
+                                                    $checkManagementNetworkGateway = [IPAddress]$managementNetworkGateway
+                                                    if ($checkManagementNetworkGateway.IPAddressToString -ne $managementNetworkGateway -or !$checkManagementNetworkGateway) {
+                                                        $managementNetworkGateway = Read-Host "Invalid Management Network Gateway Address ($managementNetworkGateway). Please enter the correct IPv4 address (e.g., 192.168.20.1) and press Enter"
+                                                    }
 
-                    #Valid Subnet Mask
-                    do {
-                        $checkManagementNetworkSubnetMask = $null
+                                                    # Validate the Gateway IP address and the starting IP address are in the same subnet
+                                                    $checkManagementNetworkGatewayInSubnet = $null
+                                                    $checkManagementNetworkGatewayInSubnet = Test-IpAddress -IpAddress $managementNetworkGateway -Subnet "$managementNetworkStartIpAddress/$managementNetworkCidr"
+                                                    if ($checkManagementNetworkGatewayInSubnet.Validated -eq $false) {
+                                                        Do {
+                                                            $managementNetworkGateway = Read-Host "Cannot validate the gateway IP address for the Management Network ($managementNetworkGateway) is from the same subnet as the Management Network Starting IP Address ($managementNetworkStartIpAddress/$managementNetworkCidr). Please enter a valid IPv4 address (e.g., 192.168.20.1) and press Enter"
+                                                            $checkAlteredManagementNetworkGatewayFormat = [IPAddress]$managementNetworkGateway
+                                                        } Until ($managementNetworkGateway -ne [String]::Empty -and $checkAlteredManagementNetworkGatewayFormat.IpAddressToString -eq $managementNetworkGateway)
+                                                    }
+                                                } Until ($checkManagementNetworkGatewayInSubnet.Validated -eq $True)
 
-                        if ($managementNetworkSubnetMask) {
-                            do {
-                                if ($isWindows -or $PSEdition -eq "Desktop") {
-                                    $managementNetworkSubnetMaskSplit = $managementNetworkSubnetMask.Split('\.')
-                                } elseif ($isMacOS -or $isLinux) {
-                                    $managementNetworkSubnetMaskSplit = $managementNetworkSubnetMask.Split(".")
-                                }
+                                                # Validate Management Virtual Network (dvPortGroup) exists
+                                                Do {
+                                                    $checkManagementVirtualNetwork = Get-VirtualNetwork -Name $ManagementVirtualNetwork -ErrorAction SilentlyContinue
+                                                    if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
+                                                        $managementVirtualNetwork = Read-Host "Invalid Management Virtual Network ($ManagementVirtualNetwork). Please enter the correct name and press Enter"
+                                                    } 
+                                                } Until ($checkManagementVirtualNetwork.Name -eq $managementVirtualNetwork)
 
-                                if ($managementNetworkSubnetMaskSplit.Length -ne 4) {
-                                    do {
-                                        $managementNetworkSubnetMask = Read-Host "Management Network Subnet Mask ($managementNetworkSubnetMask) validation failed. Please enter a valid subnet mask (e.g., 255.255.255.0) and press Enter"
-                                    } until ($managementNetworkSubnetMask -ne [String]::Empty)
-                                }
-                            } until ($managementNetworkSubnetMaskSplit.Length -eq 4)
-                        }
+                                                # Validate Ephemeral Storage Policy exists
+                                                Do {
+                                                    $checkEphemeralStoragePolicy = $null
+                                                    $checkEphemeralStoragePolicy = Get-SpbmStoragePolicy -Name $EphemeralStoragePolicy -ErrorAction SilentlyContinue
+                                                    if (!$checkEphemeralStoragePolicy -or !$ephemeralStoragePolicy) {
+                                                        $EphemeralStoragePolicy = Read-Host "Invalid Ephemeral Storage Policy ($EphemeralStoragePolicy). Please enter the correct value and press Enter"
+                                                    }
+                                                } Until ($checkEphemeralStoragePolicy.Name -eq $ephemeralStoragePolicy)
 
-                        try {
-                            $checkManagementNetworkSubnetMask = [IPAddress] $managementNetworkSubnetMask
-                        } catch {}
+                                                # Validate Image Storage Policy exists
+                                                Do {
+                                                    $checkImageStoragePolicy = $null
+                                                    $checkImageStoragePolicy = Get-SpbmStoragePolicy -Name $ImageStoragePolicy -ErrorAction SilentlyContinue
+                                                    if (!$checkImageStoragePolicy -or !$imageStoragePolicy) {
+                                                        $ImageStoragePolicy = Read-Host "Invalid Image Storage Policy ($ImageStoragePolicy). Please enter the correct value and press Enter"
+                                                    }
+                                                } Until ($checkImageStoragePolicy.Name -eq $imageStoragePolicy)
 
-                        if ($checkManagementNetworkSubnetMask) {
-                            $getManagementNetworkCidr = New-Object -TypeName Text.StringBuilder
-                            $lastOctet = 255
-                            $subnetFormatValidated = $null
-                            $validSubnetMaskRegex = '^(0|128|192|224|240|248|252|254|255)$'
-                            $getSubnetMaskInBytes = $checkManagementNetworkSubnetMask.GetAddressBytes()
+                                                # Validate Master Storage Policy exists
+                                                Do {
+                                                    $checkMasterStoragePolicy = $null
+                                                    $checkMasterStoragePolicy = Get-SpbmStoragePolicy -Name $MasterStoragePolicy -ErrorAction SilentlyContinue
+                                                    if (!$checkMasterStoragePolicy -or !$masterStoragePolicy) {
+                                                        $MasterStoragePolicy = Read-Host "Invalid Master Storage Policy ($MasterStoragePolicy). Please enter the correct value and press Enter"
+                                                    }
+                                                } Until ($checkMasterStoragePolicy.Name -eq $masterStoragePolicy)
 
-                            for ($i = 0;$i -lt $getSubnetMaskInBytes.length; $i++) {
-                                if ($getSubnetMaskInBytes[$i] -notmatch $validSubnetMaskRegex) {
-                                    $subnetFormatValidated = $false                                    
-                                }
-
-                                [void]$getManagementNetworkCidr.Append([Convert]::ToString($getSubnetMaskInBytes[$i],2))
-                                $lastOctet=$getSubnetMaskInBytes[$i]
-                            }
-                            
-                            $managementNetworkCidr = ($getManagementNetworkCidr.ToString().TrimEnd('0')).Length
-                        }
-
-                        if ($subnetFormatValidated -eq $false -or !$checkManagementNetworkSubnetMask) {
-                            do {
-                                $managementNetworkSubnetMask = Read-Host "Management Network Subnet Mask validation failed. Please enter a valid subnet mask (e.g., 255.255.255.0) and press Enter"
-                            } until ($managementNetworkSubnetMask -ne [String]::Empty)
-                        }
-                    } until ($checkManagementNetworkSubnetMask.IPAddressToString -eq $managementNetworkSubnetMask -and $subnetFormatValidated -ne $false)
-
-                    #Validate Gateway IP Address is an actual IPv4 address and exists in the same subnet as the management starting address
-                    do {
-                        try {
-                            $checkManagementNetworkGateway = [IPAddress]$managementNetworkGateway
-                        } catch {}
-
-                        if ($checkManagementNetworkGateway.IPAddressToString -ne $managementNetworkGateway -or !$checkManagementNetworkGateway) {
-                            $managementNetworkGateway = Read-Host "Invalid Management Network Gateway Address ($managementNetworkGateway). Please enter the correct IPv4 address (e.g., 192.168.20.1) and press Enter"
-                        }
-
-                        #Validate the Gateway IP address and the starting IP address are in the same subnet
-                        $checkManagementNetworkGatewayInSubnet = $null
-                        try {
-                            $checkManagementNetworkGatewayInSubnet = Test-IpAddress -IpAddress $managementNetworkGateway -Subnet "$managementNetworkStartIpAddress/$managementNetworkCidr"
-                        } catch {}
-
-                        if ($checkManagementNetworkGatewayInSubnet.Validated -eq $false) {
-                            do {
-                                $managementNetworkGateway = Read-Host "Cannot validate the gateway IP address for the Management Network ($managementNetworkGateway) is from the same subnet as the Management Network Starting IP Address ($managementNetworkStartIpAddress/$managementNetworkCidr). Please enter a valid IPv4 address (e.g., 192.168.20.1) and press Enter"
-                                    try {
-                                        $checkAlteredManagementNetworkGatewayFormat = [IPAddress]$managementNetworkGateway
-                                    } catch {}
-                            } until ($managementNetworkGateway -ne [String]::Empty -and $checkAlteredManagementNetworkGatewayFormat.IpAddressToString -eq $managementNetworkGateway)
-                        }
-                    } until ($checkManagementNetworkGatewayInSubnet.Validated -eq $True)
-
-                    #Validate Management Virtual Network (dvPortGroup) exists
-                    do {
-                        try {
-                            $checkManagementVirtualNetwork = Get-VirtualNetwork -Name $ManagementVirtualNetwork -ErrorAction SilentlyContinue
-                        } catch {}
-
-                        if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
-                            $managementVirtualNetwork = Read-Host "Invalid Management Virtual Network ($ManagementVirtualNetwork). Please enter the correct name and press Enter"
-                        } 
-                    } until ($checkManagementVirtualNetwork.Name -eq $managementVirtualNetwork)
-
-                    #Validate Ephemeral Storage Policy exists
-                    do {
-                        $checkEphemeralStoragePolicy = $null
-                        try {
-                            $checkEphemeralStoragePolicy = Get-SpbmStoragePolicy -Name $EphemeralStoragePolicy -ErrorAction SilentlyContinue
-                        } catch {}
-
-                        if (!$checkEphemeralStoragePolicy -or !$ephemeralStoragePolicy) {
-                            $EphemeralStoragePolicy = Read-Host "Invalid Ephemeral Storage Policy ($EphemeralStoragePolicy). Please enter the correct value and press Enter"
-                        }
-                    } until ($checkEphemeralStoragePolicy.Name -eq $ephemeralStoragePolicy)
-
-                    #Validate Image Storage Policy exists
-                    do {
-                        $checkImageStoragePolicy = $null
-                        try {
-                        $checkImageStoragePolicy = Get-SpbmStoragePolicy -Name $ImageStoragePolicy -ErrorAction SilentlyContinue
-                        } catch {}
-
-                        if (!$checkImageStoragePolicy -or !$imageStoragePolicy) {
-                            $ImageStoragePolicy = Read-Host "Invalid Image Storage Policy ($ImageStoragePolicy). Please enter the correct value and press Enter"
-                        }
-                    } until ($checkImageStoragePolicy.Name -eq $imageStoragePolicy)
-
-                    #Validate Master Storage Policy exists
-                    do {
-                        $checkMasterStoragePolicy = $null
-                        try {
-                        $checkMasterStoragePolicy = Get-SpbmStoragePolicy -Name $MasterStoragePolicy -ErrorAction SilentlyContinue
-                        } catch {}
-
-                        if (!$checkMasterStoragePolicy -or !$masterStoragePolicy) {
-                            $MasterStoragePolicy = Read-Host "Invalid Master Storage Policy ($MasterStoragePolicy). Please enter the correct value and press Enter"
-                        }
-                    } until ($checkMasterStoragePolicy.Name -eq $masterStoragePolicy)
-
-                    #Validate NSX Edge Cluster exists and lookup ID
-                    do {
-                        $nsxEdgeClusterId = $null
-                        $checkNsxEdgeCluster = $null
-                        try {
-                            $checkNsxEdgeCluster = Get-NsxEdgeCluster -Name $nsxEdgeCluster -ErrorAction SilentlyContinue
-                            $nsxEdgeClusterId = $checkNsxEdgeCluster.Id
-                        } catch {
-                        }
-
-                        if (!$nsxEdgeClusterId -or !$nsxEdgeCluster) {
-                            $NsxEdgeCluster  = Read-Host "Invalid NSX Edge Cluster ($NsxEdgeCluster). Please enter the correct value and press Enter"
-                        }
-                    } until ($checkNsxEdgeCluster.display_name -eq $nsxEdgeCluster)
-                    
-                    #Validate control plane NTP servers exist and are functional
-                    if ($masterNtpServers) {
-                        for ($i = 0;$i -lt $masterNtpServers.length; $i++) {
-                            $count = 0       
-                            do {
-                                $checkNtpServer = $null
-                                $masterNtpServerPrompt = $null                     
-
-                                if ($masterNtpServers[$i]) {
-                                    $checkNtpServer = Get-NtpServer -server $masterNtpServers[$i]
-                                }
-  
-                                if ($checkNtpServer.Results -eq "Not Working" -or !$masterNtpServers[$i]) {
-                                    do {
-                                        $masterNtpServerPrompt = Read-Host "Invalid NTP server ("$masterNtpServers[$i]"). Please enter the correct value and press Enter"
-                                        $masterNtpServers[$i] = $masterNtpServerPrompt
-
-                                        try {
-                                            $checkAlteredMasterNtpServer = Get-NtpServer -server $masterNtpServers[$i]
-                                        } catch {}
-
-                                    } until ($checkAlteredMasterNtpServer.Results -eq "Working")
-                                }
-
-                            } until ($checkNtpServer.Results -eq "Working")
-                        }
-                    }
-
-                    #Validate control plane DNS servers exist and are functional
-                    if ($masterDnsServers -or $workerDnsServers) {
-                        if ($masterDnsServers){
-                            for ($i = 0;$i -lt $masterDnsServers.length; $i++) {
-                                $checkMasterDnsServer = $null                                            
-                                $checkMasterDnsServerFormat = $null
-
-                                if ($masterDnsServers[$i]) {
-                                    try {
-                                        $checkMasterDnsServerFormat = [IPAddress]$masterDnsServers[$i]
-                                    } catch {}
-
-                                    if ($checkMasterDnsServerFormat.IPAddressToString -ne $masterDnsServers[$i] -or !$checkMasterDnsServerFormat) {
-                                        do {
-                                            $masterDnsServerFormatPrompt = $null
-                                            $checkAlteredMasterDnsServerFormat = $null
-                                            $masterDnsServerFormatPrompt = Read-Host "Invalid control plane DNS server ("$masterDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
-                                        
-                                            $masterDnsServers[$i] = $masterDnsServerFormatPrompt
-
-                                            try {
-                                                $checkAlteredMasterDnsServerFormat = [IPAddress]$masterDnsServerFormatPrompt
-                                            } catch {}
-
-                                        } until ($checkAlteredMasterDnsServerFormat.IPAddressToString -eq $masterDnsServerFormatPrompt -and $masterDnsServerFormatPrompt.Length -ne [string]::Empty)
-                                    }
-
-                                    if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
-                                        $masterDnsServerPrompt = $null
-                                        do {
-                                            try {
-                                                $checkMasterDnsServer = Resolve-DnsName -Name vmware.com -Type A -Server $masterDnsServers[$i] -QuickTimeout -ErrorAction Stop
-                                            } catch [System.ComponentModel.Win32Exception] {
-                                                $masterDnsServerPrompt = Read-Host "Invalid control plane DNS server ("$masterDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                # Validate NSX Edge Cluster exists and lookup ID
+                                                Do {
+                                                    $nsxEdgeClusterId = $null
+                                                    $checkNsxEdgeCluster = $null
+                                                        $checkNsxEdgeCluster = Get-NsxEdgeCluster -Name $nsxEdgeCluster -ErrorAction SilentlyContinue
+                                                        $nsxEdgeClusterId = $checkNsxEdgeCluster.Id
+                                                    if (!$nsxEdgeClusterId -or !$nsxEdgeCluster) {
+                                                        $NsxEdgeCluster  = Read-Host "Invalid NSX Edge Cluster ($NsxEdgeCluster). Please enter the correct value and press Enter"
+                                                    }
+                                                } Until ($checkNsxEdgeCluster.display_name -eq $nsxEdgeCluster)
                                                 
-                                                $masterDnsServers[$i] = $masterDnsServerPrompt
-                                            }
-                                        } until ($checkMasterDnsServer)
+                                                # Validate control plane NTP servers exist and are functional
+                                                if ($masterNtpServers) {
+                                                    for ($i = 0;$i -lt $masterNtpServers.length; $i++) {
+                                                        $count = 0       
+                                                        Do {
+                                                            $checkNtpServer = $null
+                                                            $masterNtpServerPrompt = $null                     
+                                                            if ($masterNtpServers[$i]) {
+                                                                $checkNtpServer = Get-NtpServer -server $masterNtpServers[$i]
+                                                            }
+                                                            if ($checkNtpServer.Results -eq "Not Working" -or !$masterNtpServers[$i]) {
+                                                                Do {
+                                                                    $masterNtpServerPrompt = Read-Host "Invalid NTP server ("$masterNtpServers[$i]"). Please enter the correct value and press Enter"
+                                                                    $masterNtpServers[$i] = $masterNtpServerPrompt
+                                                                    $checkAlteredMasterNtpServer = Get-NtpServer -server $masterNtpServers[$i]
+                                                                } Until ($checkAlteredMasterNtpServer.Results -eq "Working")
+                                                            }
+                                                        } Until ($checkNtpServer.Results -eq "Working")
+                                                    }
+                                                }
 
-                                    } elseif ($isLinux -or $isMacOS) {
-                                        do {
-                                            try {
-                                                $checkMasterDnsServer = Invoke-Expression 'nslookup -type=A vmware.com ""$masterDnsServers[$i]""'
-                                            } catch {}
+                                                # Validate control plane DNS servers exist and are functional
+                                                if ($masterDnsServers -or $workerDnsServers) {
+                                                    if ($masterDnsServers){
+                                                        for ($i = 0;$i -lt $masterDnsServers.length; $i++) {
+                                                            $checkMasterDnsServer = $null                                            
+                                                            $checkMasterDnsServerFormat = $null
 
-                                            if ($checkMasterDnsServer -match "connection timed out"){
-                                                do {
-                                                    $checkAlteredMasterDnsServer = $null
-                                                    $masterDnsServerPrompt = Read-Host "Invalid control plane DNS server ("$masterDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
-                                                    
-                                                    try {
-                                                        $checkAlteredMasterDnsServer = [IPAddress]$masterDnsServerPrompt
-                                                    } catch {}
-                                                    
-                                                    $masterDnsServers[$i] = $masterDnsServerPrompt
-                                                } until ($checkAlteredMasterDnsServer.IpAddressToString -eq $masterDnsServerPrompt -and $masterDnsServerPrompt.Length -ne [string]::Empty)
-                                            }
-                                        } until ($checkMasterDnsServer[0] -match $masterDnsServers[$i] -and $checkMasterDnsServer[4] -match "vmware.com")
-                                    } 
-                                }
-                            }
-                        }
+                                                            if ($masterDnsServers[$i]) {
+                                                                $checkMasterDnsServerFormat = [IPAddress]$masterDnsServers[$i]
+                                                                if ($checkMasterDnsServerFormat.IPAddressToString -ne $masterDnsServers[$i] -or !$checkMasterDnsServerFormat) {
+                                                                    Do {
+                                                                        $masterDnsServerFormatPrompt = $null
+                                                                        $checkAlteredMasterDnsServerFormat = $null
+                                                                        $masterDnsServerFormatPrompt = Read-Host "Invalid control plane DNS server ("$masterDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                                        $masterDnsServers[$i] = $masterDnsServerFormatPrompt
+                                                                        $checkAlteredMasterDnsServerFormat = [IPAddress]$masterDnsServerFormatPrompt
+                                                                    } Until ($checkAlteredMasterDnsServerFormat.IPAddressToString -eq $masterDnsServerFormatPrompt -and $masterDnsServerFormatPrompt.Length -ne [string]::Empty)
+                                                                }
 
-                        if ($workerDnsServers){
-                            for ($i = 0;$i -lt $workerDnsServers.length; $i++) {
-                                $checkWorkerDnsServer = $null                                            
-                                $checkWorkerDnsServerFormat = $null
+                                                                if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
+                                                                    $masterDnsServerPrompt = $null
+                                                                    Do {
+                                                                        Try {
+                                                                            $checkMasterDnsServer = Resolve-DnsName -Name vmware.com -Type A -Server $masterDnsServers[$i] -QuickTimeout -ErrorAction Stop
+                                                                        } Catch [System.ComponentModel.Win32Exception] {
+                                                                            $masterDnsServerPrompt = Read-Host "Invalid control plane DNS server ("$masterDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                                            $masterDnsServers[$i] = $masterDnsServerPrompt
+                                                                        }
+                                                                    } Until ($checkMasterDnsServer)
+                                                                } elseif ($isLinux -or $isMacOS) {
+                                                                    do {
+                                                                        Try {
+                                                                            $checkMasterDnsServer = Invoke-Expression 'nslookup -type=A vmware.com ""$masterDnsServers[$i]""'
+                                                                        } Catch {}
+                                                                        if ($checkMasterDnsServer -match "connection timed out"){
+                                                                            Do {
+                                                                                $checkAlteredMasterDnsServer = $null
+                                                                                $masterDnsServerPrompt = Read-Host "Invalid control plane DNS server ("$masterDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                                                $checkAlteredMasterDnsServer = [IPAddress]$masterDnsServerPrompt                                                                               
+                                                                                $masterDnsServers[$i] = $masterDnsServerPrompt
+                                                                            } Until ($checkAlteredMasterDnsServer.IpAddressToString -eq $masterDnsServerPrompt -and $masterDnsServerPrompt.Length -ne [string]::Empty)
+                                                                        }
+                                                                    } Until ($checkMasterDnsServer[0] -match $masterDnsServers[$i] -and $checkMasterDnsServer[4] -match "vmware.com")
+                                                                } 
+                                                            }
+                                                        }
+                                                    }
 
-                                if ($workerDnsServers[$i]) {
-                                    try {
-                                        $checkWorkerDnsServerFormat = [IPAddress]$workerDnsServers[$i]
-                                    } catch {}
+                                                    if ($workerDnsServers){
+                                                        for ($i = 0;$i -lt $workerDnsServers.length; $i++) {
+                                                            $checkWorkerDnsServer = $null                                            
+                                                            $checkWorkerDnsServerFormat = $null
+                                                            if ($workerDnsServers[$i]) {
+                                                                $checkWorkerDnsServerFormat = [IPAddress]$workerDnsServers[$i]
+                                                                if ($checkWorkerDnsServerFormat.IPAddressToString -ne $workerDnsServers[$i] -or !$checkWorkerDnsServerFormat) {
+                                                                    Do {
+                                                                        $workerDnsServerFormatPrompt = $null
+                                                                        $checkAlteredWorkerDnsServerFormat = $null
+                                                                        $workerDnsServerFormatPrompt = Read-Host "Invalid worker DNS server ("$workerDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                                        $workerDnsServers[$i] = $workerDnsServerFormatPrompt
+                                                                        $checkAlteredWorkerDnsServerFormat = [IPAddress]$workerDnsServerFormatPrompt
+                                                                    } Until ($checkAlteredWorkerDnsServerFormat.IPAddressToString -eq $workerDnsServerFormatPrompt -and $workerDnsServerFormatPrompt.Length -ne [string]::Empty)
+                                                                }
+                                                                if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
+                                                                    $workerDnsServerPrompt = $null
+                                                                    Do {
+                                                                        Try {
+                                                                            $checkWorkerDnsServer = Resolve-DnsName -Name vmware.com -Type A -Server $workerDnsServers[$i] -QuickTimeout -ErrorAction Stop
+                                                                        } Catch [System.ComponentModel.Win32Exception] {
+                                                                            $workerDnsServerPrompt = Read-Host "Invalid worker DNS server ("$workerDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                                            $workerDnsServers[$i] = $workerDnsServerPrompt
+                                                                        }
+                                                                    } Until ($checkWorkerDnsServer)
+                                                                } elseif ($isLinux -or $isMacOS) {
+                                                                    Do {
+                                                                        $checkWorkerDnsServer = Invoke-Expression 'nslookup -type=A vmware.com ""$workerDnsServers[$i]""'
+                                                                        if ($checkWorkerDnsServer -match "connection timed out"){
+                                                                            Do {
+                                                                                $checkAlteredWorkerDnsServer = $null
+                                                                                $workerDnsServerPrompt = Read-Host "Invalid worker DNS server ("$workerDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                                                $checkAlteredWorkerDnsServer = [IPAddress]$workerDnsServerPrompt
+                                                                                $workerDnsServers[$i] = $workerDnsServerPrompt
+                                                                            } Until ($checkAlteredWorkerDnsServer.IpAddressToString -eq $workerDnsServerPrompt -and $workerDnsServerPrompt.Length -ne [string]::Empty)
+                                                                        }
+                                                                    } Until ($checkWorkerDnsServer[0] -match $workerDnsServers[$i] -and $checkWorkerDnsServer[4] -match "vmware.com")
+                                                                } 
+                                                            }
+                                                        }
+                                                    }
+                                                }   
 
-                                    if ($checkWorkerDnsServerFormat.IPAddressToString -ne $workerDnsServers[$i] -or !$checkWorkerDnsServerFormat) {
-                                        do {
-                                            $workerDnsServerFormatPrompt = $null
-                                            $checkAlteredWorkerDnsServerFormat = $null
-                                            $workerDnsServerFormatPrompt = Read-Host "Invalid worker DNS server ("$workerDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
+                                                # Validate ContentLibrary exists
+                                                Do {
+                                                    $checkContentLibrary = $null
+                                                    if ($contentLibrary){
+                                                        Try {
+                                                            $checkContentLibrary = Get-SubscribedLibrary -Name $contentLibrary -ErrorAction SilentlyContinue
+                                                        }
+                                                        Catch {
+                                                            Debug-ExceptionWriter -object $_
+                                                        }
+                                                    }   
+                                                    if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
+                                                        $contentLibrary = Read-Host "Invalid Content Library ($contentLibrary). Please enter the correct name and press Enter"
+                                                    } 
+                                                } Until ($checkContentLibrary.Name -eq $contentLibrary)
+
+                                                # Validate Distributed Virtual Switch exists
+                                                if ($distributedSwitch) {
+                                                    Do {
+                                                        $checkDistributedSwitch = $null
+                                                        if ($distributedSwitch){
+                                                            Try {
+                                                                $checkDistributedSwitch = Get-VDSwitch -Name $distributedSwitch -ErrorAction SilentlyContinue
+                                                            }
+                                                            Catch {
+                                                                Debug-ExceptionWriter -object $_
+                                                            }
+                                                        }   
+                                                        if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
+                                                            $distributedSwitch = Read-Host "Invalid Virtual Distributed Switch ($distributedSwitch). Please enter the correct name and press Enter"
+                                                        } 
+                                                    } Until ($checkDistributedSwitch.Name -eq $distributedSwitch)
+                                                } 
+
+                                                # Validates subnet inputs are formatted correctly and sized to meet minimum requirements
+                                                $checkPodCidr = Test-SubnetInput -Subnet $podCIDRs -SubnetType "Pod"
+                                                if ($checkPodCidr.Altered -eq $true) {
+                                                    $podCIDRs = $checkPodCidr.subnet
+                                                }
+                                                $checkServiceCidr = Test-SubnetInput -Subnet $serviceCIDR -SubnetType "Service"
+                                                if ($checkServiceCidr.Altered -eq $true) {
+                                                    $serviceCIDR = $checkServiceCidr.subnet
+                                                }
+                                                $checkIngressCidr = Test-SubnetInput -Subnet $externalIngressCIDRs -SubnetType "Ingress"
+                                                if ($checkIngressCidr.Altered -eq $true) {
+                                                    $externalIngressCIDRs = $checkIngressCidr.subnet
+                                                }
+                                                $checkEgressCidr = Test-SubnetInput -Subnet $externalEgressCIDRs -SubnetType "Egress"
+                                                if ($checkEgressCidr.Altered -eq $true) {
+                                                    $externalEgressCIDRs = $checkEgressCidr.subnet
+                                                }
+
+                                                # Validate control plane Kubernetes API endpoint is valid and in DNS
+                                                if ($masterDnsName) {
+                                                        $checkMasterDnsName = $null
+                                                        if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
+                                                            $masterDnsSearchDomainPrompt = $null
+                                                            Do {
+                                                                Try {
+                                                                    $checkMasterDnsName = Resolve-DnsName -Name $masterDnsName -Type A -QuickTimeout -ErrorAction Stop
+                                                                }
+                                                                Catch [System.ComponentModel.Win32Exception] {
+                                                                    Do {
+                                                                    $masterDnsName = Read-Host "Invalid control plane DNS name ("$masterDnsName "). Please enter a fully-qualified domain name (e.g., sfo-w01-cl01.sfo.rainpole.io) and press Enter"
+                                                                    } Until ($masterDnsName.Length -ne [string]::Empty)
+                                                                }
+                                                            } Until ($checkMasterDnsName)
+                                                        } elseif ($isLinux -or $isMacOS) {
+                                                            Do {
+                                                                $checkMasterDnsName = Invoke-Expression "nslookup -type=A $masterDnsName"
+                                                                if ($checkMasterDnsName) {
+                                                                    if ($checkMasterDnsName[3] -match "NXDOMAIN" -or $checkMasterDnsName[4] -match "SERVFAIL" -or $checkMasterDnsName[3] -match "in-addr.arpa"){
+                                                                        Do {
+                                                                            $masterDnsNamePrompt = Read-Host "Invalid control plane DNS name ("$masterDnsName "). Please enter a fully-qualified domain name (e.g., sfo-w01-cl01.sfo.rainpole.io) and press Enter"
+                                                                        } Until ($masterDnsNamePrompt.Length -ne [string]::Empty -and $masterDnsNamePrompt -notcontains " ")
+                                                                        
+                                                                        $masterDnsName = $masterDnsNamePrompt
+                                                                    }
+                                                                } elseif (!$checkMasterDnsName) {
+                                                                    Do {
+                                                                        $masterDnsNamePrompt = Read-Host "Invalid control plane DNS name ("$masterDnsName "). Please enter a fully-qualified domain name (e.g., sfo-w01-cl01.sfo.rainpole.io) and press Enter"
+                                                                    } Until ($masterDnsNamePrompt.Length -ne [string]::Empty -and $masterDnsNamePrompt -notcontains " ")
+                                                                    $checkMasterDnsName = 1...4
+                                                                    $masterDnsName = $masterDnsNamePrompt
+                                                                }
+                                                            } Until ($checkMasterDnsName[3] -match $masterDnsName)
+                                                        }
+                                                        
+                                                        Try {
+                                                            $checkMasterIpAddress = Test-IpAddress -IpAddress $checkMasterDnsName.Answers[0].Address.IPAddressToString -Subnet $externalIngressCIDRs
+                                                        } Catch {
+                                                            $checkMasterIpAddress
+                                                        }
+
+                                                        if ($checkMasterIpAddress.Validated -eq $false) {
+                                                            $masterDnsNameIpAddress = $checkMasterDnsName.Answers[0].Address.IPAddressToString
+                                                            Write-Error -Message "Cannot validate the IP address for $masterDnsName ($masterDnsNameIpAddress) is from the external ingress CIDR ($externalIngressCIDRs). Please resolve this and try again."
+                                                            Break
+                                                        }
+                                                    }
+
+                                                # Validate master DNS search domain is formatted correctly and exists in DNS
+                                                if ($masterDnsSearchDomain) {
+                                                    $checkMasterDnsSearchDomain = $null
+                                                    if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
+                                                        $masterDnsSearchDomainPrompt = $null
+                                                        Do {
+                                                            Try {
+                                                                $checkMasterDnsSearchDomain = Resolve-DnsName -Name $masterDnsSearchDomain -Type A -QuickTimeout -ErrorAction Stop
+                                                            }
+                                                            Catch [System.ComponentModel.Win32Exception] {
+                                                                Do {
+                                                                $masterDnsSearchDomain = Read-Host "Invalid control plane DNS search domain ("$masterDnsSearchDomain "). Please enter a search domain (e.g., sfo.rainpole.io) and press Enter"
+                                                                } Until ($masterDnsSearchDomain.Length -ne [string]::Empty)
+                                                            }
+                                                        } Until ($checkMasterDnsSearchDomain)
+                                                    } elseif ($isLinux -or $isMacOS) {
+                                                        Do {
+                                                            $checkMasterDnsSearchDomain = Invoke-Expression "nslookup -type=A $masterDnsSearchDomain"
+                                                            if ($checkMasterDnsSearchDomain) {
+                                                                if ($checkMasterDnsSearchDomain[3] -match "NXDOMAIN" -or $checkMasterDnsSearchDomain[4] -match "SERVFAIL" -or $checkMasterDnsSearchDomain[3] -match "in-addr.arpa"){
+                                                                    Do {
+                                                                        $masterDnsSearchDomainPrompt = Read-Host "Invalid control plane DNS search domain ("$masterDnsSearchDomain" ). Please enter a search domain (e.g., sfo.rainpole.io) and press Enter"
+                                                                    } Until ($masterDnsSearchDomainPrompt.Length -ne [string]::Empty -and $masterDnsSearchDomainPrompt -notcontains " ")
+                                                                    
+                                                                    $masterDnsSearchDomain = $masterDnsSearchDomainPrompt
+                                                                }
+                                                            } elseif (!$checkMasterDnsSearchDomain) {
+                                                                Do {
+                                                                    $masterDnsSearchDomainPrompt = Read-Host "Invalid control plane DNS search domain ("$masterDnsSearchDomain" ). Please enter a search domain (e.g., sfo.rainpole.io) and press Enter"
+                                                                } Until ($masterDnsSearchDomainPrompt.Length -ne [string]::Empty -and $masterDnsSearchDomainPrompt -notcontains " ")
+                                                                $checkMasterDnsSearchDomain = 1...4
+                                                                $masterDnsSearchDomain = $masterDnsSearchDomainPrompt
+                                                            }
+                                                        } Until ($checkMasterDnsSearchDomain[3] -match $masterDnsSearchDomain)
+                                                    } 
+                                                }
                                             
-                                            $workerDnsServers[$i] = $workerDnsServerFormatPrompt
+                                                # Validate vSphere license is in place
+                                                Try {
+                                                    $checkLicense = Get-WMLicenseStatus -server $server -domain $domain -ErrorAction SilentlyContinue
+                                                    if ($checkLicense.namespaces_licensed -eq $false) {
+                                                        Write-Error -Message "The vSphere license applied to cluster $cluster does not support Workload Management or is expired. Please resolve this and try again."
+                                                        Break
+                                                    } elseif ($checklicense.namespaces_supported -eq $false) {
+                                                        Write-Error -Message "The cluster $cluster does not support Workload Management. Please resolve this and try again."
+                                                    }
+                                                }
+                                                Catch {
+                                                    Debug-ExceptionWriter -object $_
+                                                }
 
-                                            try {
-                                                $checkAlteredWorkerDnsServerFormat = [IPAddress]$workerDnsServerFormatPrompt
-                                            } catch {}
-
-                                        } until ($checkAlteredWorkerDnsServerFormat.IPAddressToString -eq $workerDnsServerFormatPrompt -and $workerDnsServerFormatPrompt.Length -ne [string]::Empty)
-                                    }
-
-                                    if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
-                                        $workerDnsServerPrompt = $null
-                                        do {
-                                            try {
-                                                $checkWorkerDnsServer = Resolve-DnsName -Name vmware.com -Type A -Server $workerDnsServers[$i] -QuickTimeout -ErrorAction Stop
-                                            } catch [System.ComponentModel.Win32Exception] {
-                                                $workerDnsServerPrompt = Read-Host "Invalid worker DNS server ("$workerDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
-
-                                                $workerDnsServers[$i] = $workerDnsServerPrompt
+                                                # Validate the cluster is present
+                                                Do {
+                                                    $checkCluster = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue
+                                                    if (!$checkCluster -or !$cluster) {
+                                                        $cluster = Read-Host -Prompt "Invalid vSphere cluster ($cluster). Please enter the correct value and press Enter"
+                                                    }
+                                                } Until ($checkCluster.Name -eq $cluster)
                                             }
-                                        } until ($checkWorkerDnsServer)
 
-                                    } elseif ($isLinux -or $isMacOS) {
-                                        do {
-                                            try {
-                                                $checkWorkerDnsServer = Invoke-Expression 'nslookup -type=A vmware.com ""$workerDnsServers[$i]""'
-                                            } catch {}
-
-                                            if ($checkWorkerDnsServer -match "connection timed out"){
-                                                do {
-                                                    $checkAlteredWorkerDnsServer = $null
-                                                    $workerDnsServerPrompt = Read-Host "Invalid worker DNS server ("$workerDnsServers[$i]"). Please enter a properly formatted IPv4 address (e.g., 172.16.11.4) and press Enter"
-                                                    try {
-                                                        $checkAlteredWorkerDnsServer = [IPAddress]$workerDnsServerPrompt
-                                                    } catch {}
-                                                    $workerDnsServers[$i] = $workerDnsServerPrompt
-                                                } until ($checkAlteredWorkerDnsServer.IpAddressToString -eq $workerDnsServerPrompt -and $workerDnsServerPrompt.Length -ne [string]::Empty)
+                                            if ($SkipValidation -eq $true) {
+                                                $internalWMClusterInput = @{
+                                                    SizeHint                          = $SizeHint
+                                                    ManagementVirtualNetwork          = (Get-VirtualNetwork -Name $managementVirtualNetwork)
+                                                    ManagementNetworkMode             = $managementNetworkMode
+                                                    ManagementNetworkStartIpAddress   = $managementNetworkStartIpAddress
+                                                    ManagementNetworkAddressRangeSize = $managementNetworkAddressRangeSize
+                                                    ManagementNetworkGateway          = $managementNetworkGateway
+                                                    ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
+                                                    MasterDnsNames                    = $masterDnsName
+                                                    MasterNtpServer                   = $masterNtpServers
+                                                    Cluster                           = (Get-Cluster -Name $cluster)
+                                                    ContentLibrary                    = $contentLibrary
+                                                    EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
+                                                    ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
+                                                    MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)
+                                                    NsxEdgeClusterId                  = ((Get-NsxEdgeCluster -Name $nsxEdgeCluster).id)
+                                                    DistributedSwitch                 = (Get-VDSwitch -Name $distributedSwitch)
+                                                    PodCIDRs                          = $podCIDRs
+                                                    ServiceCIDR                       = $serviceCIDR
+                                                    ExternalIngressCIDRs              = $externalIngressCIDRs
+                                                    ExternalEgressCIDRs               = $externalEgressCIDRs
+                                                    WorkerDnsServer                   = $workerDnsServers
+                                                    MasterDnsServerIpAddress          = $masterDnsServers
+                                                    MasterDnsSearchDomain             = $masterDnsSearchDomain
+                                                }
+                                            } else {
+                                                $internalWMClusterInput = @{
+                                                    SizeHint                          = $SizeHint
+                                                    ManagementVirtualNetwork          = $checkManagementVirtualNetwork
+                                                    ManagementNetworkMode             = $managementNetworkMode
+                                                    ManagementNetworkStartIpAddress   = $managementNetworkStartIpAddress
+                                                    ManagementNetworkAddressRangeSize = $managementNetworkAddressRangeSize
+                                                    ManagementNetworkGateway          = $managementNetworkGateway
+                                                    ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
+                                                    MasterDnsNames                    = $masterDnsName
+                                                    MasterNtpServer                   = $masterNtpServers
+                                                    Cluster                           = $checkCluster
+                                                    ContentLibrary                    = $contentLibrary
+                                                    EphemeralStoragePolicy            = $checkEphemeralStoragePolicy
+                                                    ImageStoragePolicy                = $checkImageStoragePolicy
+                                                    MasterStoragePolicy               = $checkMasterStoragePolicy
+                                                    NsxEdgeClusterId                  = $NsxEdgeClusterId
+                                                    DistributedSwitch                 = $checkDistributedSwitch
+                                                    PodCIDRs                          = $podCIDRs
+                                                    ServiceCIDR                       = $serviceCIDR
+                                                    ExternalIngressCIDRs              = $externalIngressCIDRs
+                                                    ExternalEgressCIDRs               = $externalEgressCIDRs
+                                                    WorkerDnsServer                   = $workerDnsServers
+                                                    MasterDnsServerIpAddress          = $masterDnsServers
+                                                    MasterDnsSearchDomain             = $masterDnsSearchDomain
+                                                }
                                             }
-                                        } until ($checkWorkerDnsServer[0] -match $workerDnsServers[$i] -and $checkWorkerDnsServer[4] -match "vmware.com")
-                                    } 
-                                }
-                            }
-                        }
-                    }   
 
-                    #Validate ContentLibrary exists
-                    #Full validation (checking type, subscription, etc.) is TBD
-                    do {
-                        $checkContentLibrary = $null
-                        if ($contentLibrary){
-                            try {
-                                $checkContentLibrary = Get-SubscribedLibrary -Name $contentLibrary -ErrorAction SilentlyContinue
-                            } catch {
-                                Debug-ExceptionWriter -object $_
-                            }
-                        }   
-                        if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
-                            $contentLibrary = Read-Host "Invalid Content Library ($contentLibrary). Please enter the correct name and press Enter"
-                        } 
-                    } until ($checkContentLibrary.Name -eq $contentLibrary)
-
-                    #Validate Distributed Virtual Switch exists
-                    if ($distributedSwitch) {
-                        do {
-                            $checkDistributedSwitch = $null
-                            if ($distributedSwitch){
-                                try {
-                                    $checkDistributedSwitch = Get-VDSwitch -Name $distributedSwitch -ErrorAction SilentlyContinue
-                                } catch {
-                                    Debug-ExceptionWriter -object $_
-                                }
-                            }   
-                            if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
-                                $distributedSwitch = Read-Host "Invalid Virtual Distributed Switch ($distributedSwitch). Please enter the correct name and press Enter"
-                            } 
-                        } until ($checkDistributedSwitch.Name -eq $distributedSwitch)
-                    } 
-
-                    #Validates subnet inputs are formatted correctly and sized to meet minimum requirements
-                    $checkPodCidr = Test-SubnetInput -Subnet $podCIDRs -SubnetType "Pod"
-                    
-                    if ($checkPodCidr.Altered -eq $true) {
-                        $podCIDRs = $checkPodCidr.subnet
-                    }
-
-                    $checkServiceCidr = Test-SubnetInput -Subnet $serviceCIDR -SubnetType "Service"
-
-                    if ($checkServiceCidr.Altered -eq $true) {
-                        $serviceCIDR = $checkServiceCidr.subnet
-                    }
-
-                    $checkIngressCidr = Test-SubnetInput -Subnet $externalIngressCIDRs -SubnetType "Ingress"
-
-                    if ($checkIngressCidr.Altered -eq $true) {
-                        $externalIngressCIDRs = $checkIngressCidr.subnet
-                    }
-
-                    $checkEgressCidr = Test-SubnetInput -Subnet $externalEgressCIDRs -SubnetType "Egress"
-
-                    if ($checkEgressCidr.Altered -eq $true) {
-                        $externalEgressCIDRs = $checkEgressCidr.subnet
-                    }
-
-                    #Validate control plane Kubernetes API endpoint is valid and in DNS
-                    if ($masterDnsName) {
-                            $checkMasterDnsName = $null
-
-                            if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
-                                $masterDnsSearchDomainPrompt = $null
-                                do {
-                                    try {
-                                        $checkMasterDnsName = Resolve-DnsName -Name $masterDnsName -Type A -QuickTimeout -ErrorAction Stop
-                                    } catch [System.ComponentModel.Win32Exception] {
-                                        do {
-                                        $masterDnsName = Read-Host "Invalid control plane DNS name ("$masterDnsName "). Please enter a fully-qualified domain name (e.g., sfo-w01-cl01.sfo.rainpole.io) and press Enter"
-                                        } until ($masterDnsName.Length -ne [string]::Empty)
-                                    }
-                                } until ($checkMasterDnsName)
-                            } elseif ($isLinux -or $isMacOS) {
-                                do {
-                                    try {
-                                        $checkMasterDnsName = Invoke-Expression "nslookup -type=A $masterDnsName"
-                                    } catch {}
-                                    if ($checkMasterDnsName) {
-                                        if ($checkMasterDnsName[3] -match "NXDOMAIN" -or $checkMasterDnsName[4] -match "SERVFAIL" -or $checkMasterDnsName[3] -match "in-addr.arpa"){
-                                            do {
-                                                $masterDnsNamePrompt = Read-Host "Invalid control plane DNS name ("$masterDnsName "). Please enter a fully-qualified domain name (e.g., sfo-w01-cl01.sfo.rainpole.io) and press Enter"
-                                            } until ($masterDnsNamePrompt.Length -ne [string]::Empty -and $masterDnsNamePrompt -notcontains " ")
-                                            
-                                            $masterDnsName = $masterDnsNamePrompt
+                                            if ($ValidateOnly -eq $true) {
+                                                Write-Output "Validating all Supervisor Cluster Inputs: SUCCESSFUL"
+                                            } elseif (!$ValidateOnly -or $ValidateOnly -eq $false) {
+                                                if (!$PsBoundParameters.ContainsKey("RunAsync")) {
+                                                    Enable-WMCluster @internalWMClusterInput -RunAsync -Server $vcfVcenterDetails.fqdn | Out-Null
+                                                    Write-Output "Enabling Supervisor Cluster in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($cluster): SUCCESSFUL"
+                                                }
+                                                else {
+                                                    Enable-WMCluster @internalWMClusterInput -Server $vcfVcenterDetails.fqdn | Out-Null
+                                                    if (Get-WMCluster -cluster $cluster -ErrorAction SilentlyContinue) {
+                                                        Write-Output "Enabling Supervisor Cluster in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($cluster): SUCCESSFUL"
+                                                    }
+                                                    else {
+                                                        Write-Error "Enabling Supervisor Cluster in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($cluster): POST_VALIDATION_FAILED"
+                                                    }
+                                                }
+                                            }
                                         }
-                                    } elseif (!$checkMasterDnsName) {
-                                        do {
-                                            $masterDnsNamePrompt = Read-Host "Invalid control plane DNS name ("$masterDnsName "). Please enter a fully-qualified domain name (e.g., sfo-w01-cl01.sfo.rainpole.io) and press Enter"
-                                        } until ($masterDnsNamePrompt.Length -ne [string]::Empty -and $masterDnsNamePrompt -notcontains " ")
-                                        $checkMasterDnsName = 1...4
-                                        $masterDnsName = $masterDnsNamePrompt
+                                        else {
+                                            Write-Warning "Enabling Supervisor Cluster in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($cluster), already enabled: SKIPPED"
+                                        }
                                     }
-                                } until ($checkMasterDnsName[3] -match $masterDnsName)
-                            }
-                            
-                            try {
-                                $checkMasterIpAddress = Test-IpAddress -IpAddress $checkMasterDnsName.Answers[0].Address.IPAddressToString -Subnet $externalIngressCIDRs
-                            } catch {
-                                $checkMasterIpAddress
-                            }
-
-                            if ($checkMasterIpAddress.Validated -eq $false) {
-                                $masterDnsNameIpAddress = $checkMasterDnsName.Answers[0].Address.IPAddressToString
-                                Write-Error -Message "Cannot validate the IP address for $masterDnsName ($masterDnsNameIpAddress) is from the external ingress CIDR ($externalIngressCIDRs). Please resolve this and try again."
-                                break
-                            }
-                        }
-
-                    #Validate master DNS search domain is formatted correctly and exists in DNS
-                     if ($masterDnsSearchDomain) {
-                        $checkMasterDnsSearchDomain = $null
-                        if ($isWindows -eq $true -or $PSVersionTable.PSEdition -eq "Desktop") {
-                            $masterDnsSearchDomainPrompt = $null
-                            do {
-                                try {
-                                    $checkMasterDnsSearchDomain = Resolve-DnsName -Name $masterDnsSearchDomain -Type A -QuickTimeout -ErrorAction Stop
-                                } catch [System.ComponentModel.Win32Exception] {
-                                    do {
-                                    $masterDnsSearchDomain = Read-Host "Invalid control plane DNS search domain ("$masterDnsSearchDomain "). Please enter a search domain (e.g., sfo.rainpole.io) and press Enter"
-                                    } until ($masterDnsSearchDomain.Length -ne [string]::Empty)
                                 }
-                            } until ($checkMasterDnsSearchDomain)
-
-                        } elseif ($isLinux -or $isMacOS) {
-                            do {
-                                try {
-                                    $checkMasterDnsSearchDomain = Invoke-Expression "nslookup -type=A $masterDnsSearchDomain"
-                                } catch {}
-                                if ($checkMasterDnsSearchDomain) {
-                                    if ($checkMasterDnsSearchDomain[3] -match "NXDOMAIN" -or $checkMasterDnsSearchDomain[4] -match "SERVFAIL" -or $checkMasterDnsSearchDomain[3] -match "in-addr.arpa"){
-                                        do {
-                                            $masterDnsSearchDomainPrompt = Read-Host "Invalid control plane DNS search domain ("$masterDnsSearchDomain" ). Please enter a search domain (e.g., sfo.rainpole.io) and press Enter"
-                                        } until ($masterDnsSearchDomainPrompt.Length -ne [string]::Empty -and $masterDnsSearchDomainPrompt -notcontains " ")
-                                        
-                                        $masterDnsSearchDomain = $masterDnsSearchDomainPrompt
-                                    }
-                                } elseif (!$checkMasterDnsSearchDomain) {
-                                    do {
-                                        $masterDnsSearchDomainPrompt = Read-Host "Invalid control plane DNS search domain ("$masterDnsSearchDomain" ). Please enter a search domain (e.g., sfo.rainpole.io) and press Enter"
-                                    } until ($masterDnsSearchDomainPrompt.Length -ne [string]::Empty -and $masterDnsSearchDomainPrompt -notcontains " ")
-                                    $checkMasterDnsSearchDomain = 1...4
-                                    $masterDnsSearchDomain = $masterDnsSearchDomainPrompt
-                                }
-                            } until ($checkMasterDnsSearchDomain[3] -match $masterDnsSearchDomain)
-                        } 
-                    }
-                
-                    #Validate vSphere license is in place
-                    try {
-                        $checkLicense = Get-WMLicenseStatus -server $server -domain $domain -ErrorAction SilentlyContinue
-
-                        if ($checkLicense.namespaces_licensed -eq $false) {
-                            Write-Error -Message "The vSphere license applied to cluster $cluster does not support Workload Management or is expired. Please resolve this and try again."
-                            break
-                        } elseif ($checklicense.namespaces_supported -eq $false) {
-                            Write-Error -Message "The cluster $cluster does not support Workload Management. Please resolve this and try again."
-                        }
-                    } catch {
-                        Debug-ExceptionWriter -object $_
-                    }
-
-                    #Validate the cluster is present
-                    do {
-                        try {
-                            $checkCluster = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue
-                        } catch {}
-
-                        if (!$checkCluster -or !$cluster) {
-                            $cluster = Read-Host -Prompt "Invalid vSphere cluster ($cluster). Please enter the correct value and press Enter"
-                        }
-                    } until ($checkCluster.Name -eq $cluster)
-                }
-
-                if ($SkipValidation -eq $true) {
-                    $internalWMClusterInput = @{
-                        SizeHint                          = $SizeHint
-                        ManagementVirtualNetwork          = (Get-VirtualNetwork -Name $managementVirtualNetwork)
-                        ManagementNetworkMode             = $managementNetworkMode
-                        ManagementNetworkStartIpAddress   = $managementNetworkStartIpAddress
-                        ManagementNetworkAddressRangeSize = $managementNetworkAddressRangeSize
-                        ManagementNetworkGateway          = $managementNetworkGateway
-                        ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
-                        MasterDnsNames                    = $masterDnsName
-                        MasterNtpServer                   = $masterNtpServers
-                        Cluster                           = (Get-Cluster -Name $cluster)
-                        ContentLibrary                    = $contentLibrary
-                        EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
-                        ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
-                        MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)
-                        NsxEdgeClusterId                  = ((Get-NsxEdgeCluster -Name $nsxEdgeCluster).id)
-                        DistributedSwitch                 = (Get-VDSwitch -Name $distributedSwitch)
-                        PodCIDRs                          = $podCIDRs
-                        ServiceCIDR                       = $serviceCIDR
-                        ExternalIngressCIDRs              = $externalIngressCIDRs
-                        ExternalEgressCIDRs               = $externalEgressCIDRs
-                        WorkerDnsServer                   = $workerDnsServers
-                        MasterDnsServerIpAddress          = $masterDnsServers
-                        MasterDnsSearchDomain             = $masterDnsSearchDomain
-                    }
-                } else {
-                    $internalWMClusterInput = @{
-                        SizeHint                          = $SizeHint
-                        ManagementVirtualNetwork          = $checkManagementVirtualNetwork
-                        ManagementNetworkMode             = $managementNetworkMode
-                        ManagementNetworkStartIpAddress   = $managementNetworkStartIpAddress
-                        ManagementNetworkAddressRangeSize = $managementNetworkAddressRangeSize
-                        ManagementNetworkGateway          = $managementNetworkGateway
-                        ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
-                        MasterDnsNames                    = $masterDnsName
-                        MasterNtpServer                   = $masterNtpServers
-                        Cluster                           = $checkCluster
-                        ContentLibrary                    = $contentLibrary
-                        EphemeralStoragePolicy            = $checkEphemeralStoragePolicy
-                        ImageStoragePolicy                = $checkImageStoragePolicy
-                        MasterStoragePolicy               = $checkMasterStoragePolicy
-                        NsxEdgeClusterId                  = $NsxEdgeClusterId
-                        DistributedSwitch                 = $checkDistributedSwitch
-                        PodCIDRs                          = $podCIDRs
-                        ServiceCIDR                       = $serviceCIDR
-                        ExternalIngressCIDRs              = $externalIngressCIDRs
-                        ExternalEgressCIDRs               = $externalEgressCIDRs
-                        WorkerDnsServer                   = $workerDnsServers
-                        MasterDnsServerIpAddress          = $masterDnsServers
-                        MasterDnsSearchDomain             = $masterDnsSearchDomain
-                    }
-                }
-
-
-                if ($ValidateOnly -eq $true) {
-                    Write-Output "Validation complete"
-                } elseif (!$ValidateOnly -or $ValidateOnly -eq $false) {
-                    if ($runAsync -eq $true) {
-                        Enable-WMCluster @internalWMClusterInput -RunAsync | Out-Null
-                        Write-Output  "Submitted Creation of Supervisor Cluster $cluster in vCenter Server $($vcenter.fqdn). This may take a while to complete."
-                    }
-                    if ($runAsync -eq $false) {
-                        Enable-WMCluster @internalWMClusterInput | Out-Null
-                        if ($getWMCluster = Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue) {
-                            Write-Output  "Started Supervisor Cluster $cluster instantiation in vCenter Server $($vcenter.fqdn) Successfully"
-                        }
-                        else {
-                            Write-Error  "Starting Supervisor Cluster $cluster instantiation in vCenter Server $($vcenter.fqdn) Failed"
+                            }
                         }
                     }
                 }
             }
-            else {
-                Write-Warning "Supervisor Cluster $cluster has already been enabled in vCenter Server $($vcenter.fqdn)"
-            }
-        }
-        else {
-            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
@@ -3570,681 +3906,206 @@ Function Enable-SupervisorCluster {
 }
 Export-ModuleMember -Function Enable-SupervisorCluster
 
-function Test-SubnetInput {
-
-     <#
+Function Undo-SupervisorCluster {
+    <#
         .SYNOPSIS
-        Tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
+        Remove Supervisor Cluster
 
         .DESCRIPTION
-        The Test-SubnetInput cmdlet tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
-        
+        The Undo-SupervisorCluster cmdlet removes the Supervisor Cluster from a Workload Domain
+
         .EXAMPLE
-        Test-SubnetInput -Subnet 192.168.21.0/24 -SubnetType Ingress
-        This example will return that the subnet 192.168.21.0/24 is valid for the type Ingress.
-    
-        #>
+        Undo-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01
+        This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01
+    #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$Subnet,
-        [Parameter (Mandatory = $true)] [String]$SubnetType
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$RunAsync
     )
 
-    if ($SubnetType -eq "Pod") {
-        $subnetMinimum = 23
-        $subnetFormat = "100.100.0.0/20"
-    } elseif ($SubnetType -eq "Service") {
-        $subnetMinimum = 22
-        $subnetFormat = "100.200.0.0/22"
-    } elseif ($SubnetType -eq "Egress") {
-        $subnetMinimum = 27
-        $subnetFormat = "192.168.22.0/24"
-    } elseif ($subnettype -eq "Ingress") {
-        $subnetMinimum = 27
-        $subnetFormat = "192.168.21.0/24"
-    }
-
-
-    $alteredSubnet = $false
-
-    do {
-        try {
-            $checkSubnet = $null
-            $subnetStart = $null
-
-            $subnetStart = $Subnet.Split("/")[0]
-            try {
-                $checkSubnet = [IPAddress]$subnetStart
-            } catch {}
-
-            if ($checksubnet.IPAddressToString -ne $subnetStart -or !$checkSubnet) {
-                $alteredSubnet = $true
-                $Subnet = Read-Host "Improperly formatted $subnetType subnet ($subnet). Please enter a correctly formatted (CIDR notation - e.g., $subnetFormat) subnet and press Enter"
-            } else {
-                $subnetFormatValidated = $true
-            }
-        } catch {
-            Debug-ExceptionWriter -object $_
-        }
-
-        if ($subnetFormatValidated) {
-            $suffix = $Subnet.Split("/")[1]
-            $checkSuffix = [int[]]$suffix
-
-            try {
-                if ($checkSuffix -gt $subnetMinimum -or !$checkSuffix) {
-                    $alteredSubnet = $true
-                    do {
-                        [Int[]]$newSuffix = Read-Host "Improperly sized $subnetType subnet ($subnet). Please enter a new host prefix length (At least $subnetminimum) and press Enter"
-                    }until ($newSuffix.length -ne [int]::empty -and  $newSuffix -le $subnetMinimum)
-
-                    $newSubnetAddress = $subnet.Split("/")[0]
-                    $subnet = "$newSubnetAddress/$newSuffix"
-                } else {
-                    $subnetSizeValidated = $true
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                                    if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        if (Get-WMCluster -cluster $cluster -ErrorAction Ignore) {
+                                            if (!$PsBoundParameters.ContainsKey("RunAsync")) {
+                                                Disable-WMCluster -WMCluster $cluster -RunAsync -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                            }
+                                            else {
+                                                Disable-WMCluster -WMCluster $cluster -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                            }
+                                            if (!(Get-WMCluster -cluster $cluster -ErrorAction Ignore)) {
+                                                Write-Output "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            }
+                                            else {
+                                                Write-Error "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        else {
+                                            Write-Warning "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
                 }
-            } catch {
-                Debug-ExceptionWriter -object $_
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
             }
         }
-    } until ($subnetFormatValidated -eq $true -and $subnetSizeValidated -eq $true)
-    
-    $output = New-Object -TypeName PSCustomObject
-    $output | Add-Member -notepropertyname 'Validated' -notepropertyvalue $true
-    $output | Add-Member -notepropertyname 'Altered' -notepropertyvalue $alteredSubnet
-    $output | Add-Member -notepropertyname 'Subnet' -notepropertyvalue $subnet
-    $output
-}
-Export-ModuleMember -Function Test-SubnetInput
-
-function Test-IpAddress {
-
-    <#
-        .SYNOPSIS
-        Tests whether an IPv4 address is in a specified subnet.
-
-        .DESCRIPTION
-        The Test-IpAddress cmdlet tests whether an IPv4 address is in a specified subnet.
-
-        .EXAMPLE
-        Test-IpAddress -ipAddress 192.168.20.10 -Subnet 192.168.20.0/24
-        This example will test whether the IPv4 address 192.168.20.10 is in the 192.168.20.0/24 subnet.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [String]$ipAddress,
-        [Parameter (Mandatory = $true)] [String]$Subnet
-    )
-
-    $subnetStart = $Subnet.Split("/")[0]
-    $suffix = $Subnet.Split("/")[1]
-
-    $subnetStartBinary = $subnetStart -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
-    $subnetStartBinary =  $subnetStartBinary -join ""
-    $subnetStartBinary = ($subnetStartBinary).ToCharArray()
-
-    $ipAddressBinary = $ipAddress -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
-    $ipAddressBinary =  $ipAddressBinary -join ""
-    $ipAddressBinary = ($ipAddressBinary).ToCharArray()
-
-    for($i=0;$i -lt $subnetStartBinary.length;$i++){
-        if($i -ge $suffix){
-            $subnetStartBinary[$i] = "1"
-        } 
     }
-    
-    for ($i = 0;$i -lt $subnetStartBinary.length;$i++) {
-        $partSubnetStartBinary += $subnetStartBinary[$i] 
-        if(($i+1)%8 -eq 0){
-            $partSubnetStartBinary = $partSubnetStartBinary -join ""
-            $subnetBroadcastBinary += $partSubnetStartBinary -join ""
-            $partSubnetStartBinary = ""
-        }
-    }
-
-    $subnetBroadcastBinary = $subnetBroadcastBinary.ToCharArray()
-
-    [Int[]]$suffixComparison = (1..32)
-
-    for($i=0; $i -lt $suffixComparison.length; $i++){
-        if($suffixComparison[$i] -gt $suffix) {
-            $suffixComparison[$i] = "0"
-        } else {
-            $suffixComparison[$i] = "1"
-        }
-    }
-        
-    [string]$suffixBinaryString = $suffixComparison -join ""
-    [char[]]$suffixBinary = $suffixBinaryString.ToCharArray()
-    $comparison = $true
-
-    for ($i=0; $i -le $subnetStartBinary.length; $i++){
-        if($subnetStartBinary[$i] -ne $ipAddressBinary[$i] -and $suffixBinary[$i] -ne "0") {
-            $comparison = $false
-        } 
-    }
-
-    $output = New-Object -TypeName PSCustomObject
-    $output | Add-Member -notepropertyname 'IpAddress' -notepropertyvalue $ipAddress
-    $output | Add-Member -notepropertyname 'Subnet' -notepropertyvalue $subnet
-    $output | Add-Member -notepropertyname 'Validated' -notepropertyvalue $comparison
-    $output
-} Export-ModuleMember -Function Test-IpAddress
-
-Function Get-NtpServer {
-    <#
-        .SYNOPSIS
-        Checks the status of an NTP server
-
-        .DESCRIPTION
-        The Get-NtpServer cmdlet checks the status of an NTP server
-
-        .EXAMPLE
-        Get-NtpServer -Server pool.ntp.org
-        This example will return the status of the NTP server responding at pool.ntp.org
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [String]$server
-    )
-
-    try {
-        [Byte[]]$NtpData = ,0 * 48
-        $NtpData[0] = 0x1B
-    
-        $Socket = New-Object Net.Sockets.Socket([Net.Sockets.AddressFamily]::InterNetwork,
-                                                [Net.Sockets.SocketType]::Dgram,
-                                                [Net.Sockets.ProtocolType]::Udp)
-    
-        $Socket.ReceiveTimeout = 2000
-        $Socket.SendTimeout = 2000
-    
-        $Socket.Connect($Server,123)
-    
-        [Void]$Socket.Send($NtpData)
-        [Void]$Socket.Receive($NtpData)  
-        $Socket.Close()
-    } catch {}   
-
-    if ($ntpData -eq 0x1B) {
-        $ntpFunction = "Not Working"
-    } else {
-        $ntpFunction = "Working"
-    }
-    
-    $properties = @{'NTP_Server'=$server;
-                    'Results'=$ntpFunction}
-
-    $output = New-Object -TypeName PSObject -Property $properties
-    $output
-}
-Export-ModuleMember -Function Get-NtpServer
-
-Function Get-WMLicenseStatus {
-    <#
-        .SYNOPSIS
-        Log in to a Supervisor Cluster
-
-        .DESCRIPTION
-        The Connect-SupervisorCluster cmdlet logs the user in to a Supervisor Cluster
-
-        .EXAMPLE
-        Get-WMLicenseStatus -Server sfo-vcf01.sfo.rainpole.io -Domain sfo-w01
-        This example validates the vSphere with Tanzu licenses for the vCenter Server managing VI Workload Domain sfo-w01
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$domain
-    )
-
-    try {
-        $vcenterHeader = @{
-            "vmware-api-session-id" = "$vcToken" 
-        }
-
-        $uri = "https://$vcenterFqdn/api/vcenter/namespace-management/capability"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterHeader
-        $response
-
-    } catch {
-        Debug-ExceptionWriter -object $_ 
+    Catch {
+        Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Get-WMLicenseStatus
-
-Function Get-SubscribedLibrary {
-    <#
-        .SYNOPSIS
-        Retrieves the specified Subscribed Content Library
-
-        .DESCRIPTION
-        The Get-SubscribedLibrary cmdlet retrieves the specified Subscribed Content Library
-
-        .EXAMPLE
-        Get-SubscribedLibrary -Name Kubernetes
-        This example retrieves the Subscribed Content Library named Kubernetes
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [String]$Name
-    )
-
-    try {
-        $vcenterHeader = @{
-            "vmware-api-session-id" = "$vcToken" 
-            "Content-Type" = "application/json"
-        }      
-
-$body = @"
-{
-    "name": "$Name",
-    "type": "SUBSCRIBED"
-}
-"@  
-
-            $subscribedLibraryId = Invoke-RestMethod -Method POST -Uri "https://$vcenterFqdn/api/content/library?action=find" -Headers $vcenterHeader -body $body
-            
-            $return = Invoke-RestMethod -Method GET -URI "https://$vcenterFqdn/api/content/subscribed-library/$subscribedLibraryId" -Headers $vcenterHeader
-            $return
-
-    } catch {
-        Debug-ExceptionWriter -object $_ 
-    }
-}
-Export-ModuleMember -Function Get-SubscribedLibrary
+Export-ModuleMember -Function Undo-SupervisorCluster
 
 Function New-SupervisorClusterCSR {
     <#
-    	.SYNOPSIS
-    	Create a new certificate signing request for the defined Supervisor Cluster
+        .SYNOPSIS
+        Create a new certificate signing request for the defined Supervisor Cluster
 
-    	.DESCRIPTION
-    	The New-SupervisorClusterCSR cmdlet creates a new certificate signing request for the defined Supervisor Cluster
+        .DESCRIPTION
+        The New-SupervisorClusterCSR cmdlet creates a new certificate signing request for the defined Supervisor Cluster
 
-    	.EXAMPLE
-    	New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-m01-cl01 -CommonName sfo-m01-cl01.sfo.rainpole.io -Organization Rainpole -OrganizationalUnit Rainpole -Country US -StateOrProvince California -Locality "Palo Alto" -AdminEmailAddress admin@rainpole.io -KeySize 2048
-    	This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
-  	#>
+        .EXAMPLE
+        New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -commonName sfo-m01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
+        This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
+    #>
 
-      Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$cluster,
-        [Parameter (Mandatory = $true)] [String]$CommonName,
-        [Parameter (Mandatory = $true)] [String]$Organization,
-        [Parameter (Mandatory = $true)] [String]$OrganizationalUnit,
-        [Parameter (Mandatory = $true)] [String]$Country,
-        [Parameter (Mandatory = $true)] [String]$StateOrProvince,
-        [Parameter (Mandatory = $true)] [String]$Locality,
-        [Parameter (Mandatory = $true)] [String]$AdminEmailAddress,
-        [Parameter (Mandatory = $false)] [String]$KeySize,
-        [Parameter (Mandatory = $false)] [bool]$OutFile,
-        [Parameter (Mandatory = $false)] [String]$FilePath
-
-      )
-    
-    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-    Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-    $vcenterfqdn = $vcenter.fqdn
-
-        if ($KeySize) {
-$body = @"
-{
-    "country": "$Country",
-    "state_or_province": "$StateOrProvince",
-    "email_address": "$AdminEmailAddress",
-    "locality": "$Locality",
-    "organization_name": "$Organization",
-    "common_name": "$CommonName",
-    "organization_unit_name": "$OrganizationalUnit",
-    "key_size": $KeySize
-}
-"@
-        } else {
-$body = @"
-{
-    "country": "$Country",
-    "state_or_province": "$StateOrProvince",
-    "email_address": "$AdminEmailAddress",
-    "locality": "$Locality",
-    "organization_name": "$Organization",
-    "common_name": "$CommonName",
-    "organization_unit_name": "$OrganizationalUnit"
-}
-"@  
-        }
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$commonName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$organization,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$organizationalUnit,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$country,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$stateOrProvince,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$locality,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmailAddress,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$keySize,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath
+    )
 
     Try {
-        $vcenterHeader = @{
-            "vmware-api-session-id" = "$vcToken" 
-            "Content-Type" = "application/json"
-        }
-
-        Try {
-            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters -Headers $vcenterHeader | Where-Object { $_.cluster_name -eq $Cluster }).cluster
-        }
-        Catch {
-            Write-Error $_.Exception.Message
-        }
-
-        $uri = "https://$vcenterFqdn/api/$wmclusterid/csr/tls-endpoint/"
-        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $vcenterHeader -body $body
-        
-        if ($OutFile -or ($OutFile -eq $true)) {
-            if ($response) {
-                $response | Out-File -FilePath $FilePath
-                Write-Host "The certificate signing request for $CommonName has been successfully saved at $FilePath"
-            } else {
-                Write-Error $_.Exception.Message
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                                    if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        if ($PsBoundParameters.ContainsKey("keySize")) {
+                                            Request-WMClusterCSR -cluster $cluster -commonName $commonName -organization $organization -organizationalUnit $organizationalUnit -country $country -stateOrProvince $stateOrProvince -locality $locality -adminEmailAddress $adminEmailAddress -keySize $keySize -filePath $filePath | Out-Null
+                                        }
+                                        else {
+                                            Request-WMClusterCSR -cluster $cluster -commonName $commonName -organization $organization -organizationalUnit $organizationalUnit -country $country -stateOrProvince $stateOrProvince -locality $locality -adminEmailAddress $adminEmailAddress -filePath $filePath | Out-Null
+                                        }
+                                        if (Test-Path -Path $filePath) {
+                                            Write-Output "Creating Certificate Signing Request (.csr) file for ($commonName) to file ($filePath): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Creating Certificate Signing Request (.csr) file for ($commonName) to file ($filePath): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
             }
-        } else {
-            $response
         }
-
     }
     Catch {
-        Write-Error $_.Exception.Message
+        Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function New-SupervisorClusterCSR
 
-Function Add-SupervisorClusterCertificate {
+Function Install-SupervisorClusterCertificate {
     <#
-    	.SYNOPSIS
-    	Add a signed TLS certificate for the defined Supervisor Cluster
+        .SYNOPSIS
+        Add a signed TLS certificate for the defined Supervisor Cluster
 
-    	.DESCRIPTION
-    	The Add-SupervisorClusterCertificate cmdlet adds a signed TLS certificate for the defined Supervisor Cluster
+        .DESCRIPTION
+        The Install-SupervisorClusterCertificate cmdlet adds a signed TLS certificate for the defined Supervisor Cluster
 
-    	.EXAMPLE
-    	Add-SupervisorClusterCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 import-FilePath "C:\Users\Administrator\Desktop\SupervisorCluster.cer"
-    	This example applies the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
-  	#>
+        .EXAMPLE
+        Install-SupervisorClusterCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 -FilePath ".\SupervisorCluster.cer"
+        This example applies the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
+    #>
 
-      Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$cluster,
-        [Parameter (Mandatory = $false)] [String]$FilePath
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$filePath
     )
 
-
-      $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-        $vcenterfqdn = $vcenter.fqdn
-
-        if ($FilePath) {
-            try {
-                $certificate = Get-Content -Path $FilePath -Raw -ErrorAction SilentlyContinue
-                $inputFileName = Split-Path -Path $FilePath -Leaf -ErrorAction SilentlyContinue
-            } catch {
-                Write-Error $_.Exception.Message
-            }
+    if (!$PsBoundParameters.ContainsKey("filePath")) {
+        $filePath = Get-ExternalFileName -title "Select the Supervisor Cluster Certificate File (.cer)" -fileType "cer" -location "default"
+    }
+    elseif ($PsBoundParameters.ContainsKey("filePath")) {
+        if (!(Test-Path -Path $filePath)) {
+            Write-Error "Certificate (cer) file for the Supervisor Cluster '$filePath' File Not Found"
+            Break
         }
-
-        if ($isMacOS -eq $true -or $isLinux -eq $true) {
-            $certificateFormatted = $Certificate -Replace "`n","\n"
-        } elseif ($isWindows -eq $true -or $PSEdition -eq "Desktop") {
-            $certificateFormatted = $Certificate -Replace "`r`n","\n"
-        } else {
-            Write-Error -Message "Unsupported operating system. Exiting."
-            break
-        }
-
-        if (($certificateFormatted | Measure-object -Line).Count -ne 1) {
-            Write-Error -Message "Error parsing TLS certificate. Exiting."
-        }
-
-        $body = @"
-{
-    "tls_endpoint_certificate": "$certificateFormatted"
-}
-"@ 
-
+    }
 
     Try {
-        $vcenterHeader = @{
-            "vmware-api-session-id" = "$vcToken" 
-            "Content-Type" = "application/json"
-        }
-
-        Try {
-            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters -Headers $vcenterHeader | Where-Object { $_.cluster_name -eq $Cluster }).cluster
-        }
-        Catch {
-            Write-Error $_.Exception.Message
-        }
-
-        $uri = "https://$vcenterFqdn/api/vcenter/namespace-management/clusters/$wmClusterId/"
-
-        if ($PSEdition -eq 'Core') {
-            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented
-        }
-        else {
-            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body 
-        }
-
-        if ($response.StatusCode -lt 300) {
-            if ($inputFileName) {
-                Write-Host "The TLS certificate $inputFileName was successfully applied to Supervisor Cluster $cluster in Workload Domain $domain."
-            } else {
-                Write-Host "The TLS certificate was successfully applied to Supervisor Cluster $cluster in Workload Domain $domain."
-            }
-        }
-    }
-    Catch {
-        Write-Error $_.Exception.Response
-    }
-}
-Export-ModuleMember -Function Add-SupervisorClusterCertificate
-
-Function Get-VMClass {
-    <#
-    	.SYNOPSIS
-    	Retrieves information on a Virtual Machine Class
-
-    	.DESCRIPTION
-    	The Get-VMClass cmdlet retrieves information on a Virtual Machine Classs
-
-
-    	.EXAMPLE
-        Get-VMClass -Name guaranteed-small 
-        This example retrieves information on the VM Class guaranteed-small. No Supervisor Cluster definition is required as VM Classes are not bound to an individual Supervisor Cluster.
-  	#>
-
-      Param (
-        [Parameter (Mandatory = $false)] [String]$Name
-    )
-
-    $vcenterHeader = @{
-        "vmware-api-session-id" = "$vcToken"
-    }
-
-    if ($Name) {
-        Try {
-            $getVMClass = Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/virtual-machine-classes/$Name -Headers $vcenterHeader -ErrorAction SilentlyContinue
-            $getVMClass
-        }
-        Catch {
-            Write-Error $_.Exception.Message
-        }
-    } else {
-        Try {
-            $getVMClass = Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/virtual-machine-classes -Headers $vcenterHeader -ErrorAction SilentlyContinue
-            $getVMClass
-        }
-        Catch {
-            Write-Error $_.Exception.Message
-        }
-    }
-}
-Export-ModuleMember -Function Get-VMClass
-
-Function Get-NamespaceVMClasses {
-    <#
-    	.SYNOPSIS
-    	Retrieves any Virtual Machine Classes assigned to a Supervisor Namespace
-
-    	.DESCRIPTION
-    	The Get-NamespaceVMClasses cmdlet retrieves any Virtual Machine Classes assigned to a Supervisor Namespace
-
-    	.EXAMPLE
-        Get-NamespaceVMClasses -Namespace sfo-w01-tkc01 
-        This example retrieves a list of VM Classes assigned to Supervisor Namespace sfo-w01-ns01. No Supervisor Cluster definition is required as VM Classes are not bound to an individual Supervisor Cluster.
-  	#>
-
-      Param (
-        [Parameter (Mandatory = $true)] [String]$Namespace
-    )
-
-    $vcenterHeader = @{
-        "vmware-api-session-id" = "$vcToken"
-    }
-
-    try {
-        $getVMNamespaceClasses = Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespaces/instances/$Namespace -Headers $vcenterHeader -ErrorAction SilentlyContinue
-        $getVMNamespaceOutput = $getVMNamespaceClasses.vm_service_spec.vm_classes
-        $getVMNamespaceOutput
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-NamespaceVMClasses
-
-Function Add-NamespaceVmClass {
-    <#
-    	.SYNOPSIS
-    	Add a VM Class to the defined Supervisor Namespace
-
-    	.DESCRIPTION
-    	The Add-NamespaceVmClass cmdlet adds a VM Class to the defined Supervisor Namespace
-
-    	.EXAMPLE
-    	Add-NamespaceVmClass -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Namespace sfo-w01-tkc01 -VMClass guaranteed-small
-    	This example adds the VM Class guaranteed-small to Supervisor Namespace sfo-tkc-01 in Workload domain sfo-w01
-  	#>
-
-      Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$Namespace,
-        [Parameter (Mandatory = $true)] [String]$VMClass
-    )
-
-
-      $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        Request-VCToken -fqdn $vcenter.fqdn -username $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
-        $vcenterfqdn = $vcenter.fqdn
-
-
-        #Check if the namespace exists
-        try {
-            $checkNamespace = Get-WMNamespace -Name $Namespace -ErrorAction SilentlyContinue
-        } catch {
-            Write-Error $_.Exception.Message
-        }
-
-        if (!$checkNamespace){
-            do {
-                $Namespace = Read-Host -Prompt "The defined Supervisor Namespace is invalid. Please enter the name of your Supervisor Namespace and hit Enter"
-                try {
-                    $checkNamespace = Get-WMNamespace -Name $Namespace -ErrorAction SilentlyContinue
-                } catch {
-                    Write-Error $_.Exception.Message
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                Request-vSphereApiToken -fqdn $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                $response = Install-WMClusterCertificate -cluster $cluster -filePath $filePath
+                                if ($response -match "successfully applied") {
+                                    Write-Output "Installing Signed Certificate ($filePath) to Supervisor Cluster ($cluster): SUCCESSFUL"
+                                }
+                                else {
+                                    Write-Error "Installing Signed Certificate ($filePath) to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
                 }
-            } until ($checkNamespace)
-        }
-
-        #Check if the VM Class exists
-        try {
-            $checkVMClass = Get-VMClass -Name $VMClass -ErrorAction SilentlyContinue
-        } catch {
-            Write-Error $_.Exception.Message
-        }
-
-        if (!$checkVMClass) {
-            do {
-                $VMClass = Read-Host -Prompt "The defined Virtual Machine Class is invalid. Please enter the name of the Virtual Machine Class and hit Enter"
-                try {
-                    $checkVmClass = Get-VMClass -Name $VMClass -ErrorAction SilentlyContinue
-                } catch {
-                    Write-Error $_.Exception.Message
-                }
-            } until ($checkVMClass)
-        }
-
-        #Check if any VM Classes are already there
-        try {
-            $existingVMClasses = Get-NamespaceVMClasses -Namespace $Namespace -ErrorAction SilentlyContinue
-        } catch {
-            Write-Error $_.Exception.Message
-        }
-
-        if ($existingVMClasses) {
-            foreach ($existingVMClass in $existingVMClasses) {
-                if ($existingVMClass -eq $VMClass) {
-                    Write-Error "The Virtual Machine Class $VMClass is already assigned to Supervisor Namespace $Namespace."
-                    Exit
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
-            
-            $existingVMClasses += $VMClass
-            $jsonFormat = Convertto-Json $existingVMClasses
-
-$body = @"
-{
-    "vm_service_spec": {
-        "vm_classes": $jsonFormat
-    }
-}
-"@ 
-        } else {
-$body = @"
-{
-    "vm_service_spec": {
-        "vm_classes": [
-            "$VMClass"
-        ]
-    }
-}
-"@ 
-        }
-
-    Try {
-        $vcenterHeader = @{
-            "vmware-api-session-id" = "$vcToken" 
-            "Content-Type" = "application/json"
-        }
-
-        $uri = "https://$vcenterFqdn/api/vcenter/namespaces/instances/$Namespace"
-
-        if ($PSEdition -eq 'Core') {
-            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented
-        }
-        else {
-            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcenterHeader -body $body 
-        }
-
-        if ($response.StatusCode -lt 300) {
-            Write-Host "The Virtual Machine Class $VMClass was successfully added to Supervisor Namespace $Namespace in Workload Domain $domain."
         }
     }
     Catch {
-        Write-Error $_.Exception.Response
+        Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Add-NamespaceVmClass
+Export-ModuleMember -Function Install-SupervisorClusterCertificate
 
 Function Add-Namespace {
     <#
@@ -4260,55 +4121,119 @@ Function Add-Namespace {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$cluster,
-        [Parameter (Mandatory = $true)] [String]$namespace,
-        [Parameter (Mandatory = $true)] [String]$storagePolicy
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$storagePolicy
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            if (!($getNamespace = Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue)) {
-                if ($clusterExists = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue) {
-                    if ($storagePolicyExists = Get-SpbmStoragePolicy -Name $storagePolicy -ErrorAction SilentlyContinue) {
-                        New-WMNamespace -Name $namespace -Cluster $cluster | Out-Null
-                        if ($getNamespace = Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
-                            New-WMNamespaceStoragePolicy -Namespace $namespace -StoragePolicy $storagePolicy | Out-Null
-                            Write-Output  "Created Namespace $namespace in vCenter Server $($vcenter.fqdn) Successfully"
+
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (!(Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue)) {
+                                    if (Get-Cluster -Name $cluster -ErrorAction SilentlyContinue) {
+                                        if (Get-SpbmStoragePolicy -Name $storagePolicy -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                            New-WMNamespace -Name $namespace -Cluster $cluster | Out-Null
+                                            if (Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
+                                                New-WMNamespaceStoragePolicy -Namespace $namespace -StoragePolicy $storagePolicy | Out-Null
+                                                Write-Output "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            }
+                                            else {
+                                                Write-Error "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        else {
+                                            Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Error  "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
-                        else {
-                            Write-Error "Creation of Namespace $namespace in vCenter Server $($vcenter.fqdn) Failed"
-                        }
-                    }
-                    else {
-                        Write-Error "vSphere Storage Policy $storagePolicy not found in vCenter Server $($vcenter.fqdn)"
                     }
                 }
                 else {
-                    Write-Error  "Cluster $cluster not found in vCenter Server $($vcenter.fqdn)"
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
-            else {
-                Write-Warning "Namespace $namespace already exists in vCenter Server $($vcenter.fqdn)"
-            }
-        }
-        else {
-            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
-    Finally {
-        #Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-    }
 }
 Export-ModuleMember -Function Add-Namespace
+
+Function Undo-Namespace {
+    <#
+        .SYNOPSIS
+        Remove a Namespace
+
+        .DESCRIPTION
+        The Undo-Namespace cmdlet removes a Namespace from the Supervisor Cluster
+
+        .EXAMPLE
+        Undo-Namespace -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -namespace sfo-w01-ns02
+        This example removes the Namespace named sfo-w01-ns02
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-WMNamespace -Name $namespace -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
+                                    Remove-WMNamespace -Namespace $namespace -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                                    if (!(Get-WMNamespace -Name $namespace -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
+                                        Write-Output "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                    }
+                                    else {
+                                        Write-Error "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-Namespace
 
 Function Add-NamespacePermission {
     <#
@@ -4334,8 +4259,7 @@ Function Add-NamespacePermission {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
         [Parameter (Mandatory = $true)] [ValidateSet("edit", "view")] [String]$role,
-        [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type,
-        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [String]$disconnect
+        [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type
     )
 
     Try {
@@ -4343,52 +4267,119 @@ Function Add-NamespacePermission {
         if ($checkAdAuthentication[1] -match "Authentication Successful") {
             $securePass = ConvertTo-SecureString -String $domainBindPass -AsPlainText -Force
             $domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
-            $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain
-            Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-            if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                if ($namespaceExists = Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
-                    if ($type -eq "group") { $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
-                    elseif ($type -eq "user") { $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
-                    if ($adObjectCheck) {
-                        if (!($permissionExist = Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal)) {
-                            New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
-                            if ($permissionExist = Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal) {
-                                Write-Output "Assigned Role $role to $type $principal in Namespace $namespace Successfully"
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }) {
+                        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                            if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                    if (Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
+                                        if ($type -eq "group") { $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
+                                        elseif ($type -eq "user") { $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
+                                        if ($adObjectCheck) {
+                                            if (!(Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal)) {
+                                                New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
+                                                if (Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal) {
+                                                    Write-Output "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): SUCCESSFUL"
+                                                }
+                                                else {
+                                                    Write-Error "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): POST_VALIDATION_FAILED"
+                                                }
+                                            }
+                                            else {
+                                                Write-Warning "Assigning Role ($role) to $type ($principal) in Namespace ($namespace), already assigned: SKIPPED"
+                                            }
+                                        }
+                                        else {
+                                            Write-Error "Active Directory $type ($principal) not found in the Active Directory Domain: PRE_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                            else {
-                                Write-Error "Assigning Role $role to $type $principal in Namespace $namespace Failed"
-                            }
-                        }
-                        else {
-                            Write-Warning "Principal $type $principal already assigned permission $role to Namespace $namespace"
                         }
                     }
                     else {
-                        Write-Error "Active Directory $type $principal not found in the Active Directory Domain, please create and retry"
+                        Write-Error "Unable to find Workload Domain named ($sddcDomain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
-                else {
-                    Write-Error "Namespace $namespace does not exist in vCenter Server $($vcenter.fqdn)"
-                }
-            }
-            else {
-                Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
             }
         }
         else {
-            Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details"
+            Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
-    Finally {
-        if ($disconnect -eq "true") {
-            #Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-        }
-    }
 }
 Export-ModuleMember -Function Add-NamespacePermission
+
+Function Undo-NamespacePermission {
+    <#
+        .SYNOPSIS
+        Remove permissions from a Namespace
+
+        .DESCRIPTION
+        The Undo-NamespacePermission cmdlet removes a permissions from a Namespace
+
+        .EXAMPLE
+        Undo-NamespacePermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -namespace sfo-w01-ns01 -principal gg-kub-admins
+        This example removes the edit role from the Namespace sfo-w01-ns01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $sddcDomain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
+                                    if (Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal) {
+                                        Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal | Remove-WMNamespacePermission -Confirm:$false | Out-Null
+                                        if (!(Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal)) {
+                                            Write-Output "Removing access for principal ($principal) from Namespace ($namespace): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Removing access for principal ($principal) from Namespace ($namespace): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Warning "Removing access for principal ($principal) from Namespace ($namespace), does not exist: SKIPPED"
+                                    }
+                                }
+                                else {
+                                    Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($sddcDomain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NamespacePermission
 
 Function Enable-Registry {
     <#
@@ -4404,168 +4395,314 @@ Function Enable-Registry {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$server,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$pass,
-        [Parameter (Mandatory = $true)] [String]$domain,
-        [Parameter (Mandatory = $true)] [String]$storagePolicy
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$storagePolicy
     )
 
     Try {
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -Password $vcenter.ssoAdminPass -Force | Out-Null
-        Request-vSphereApiToken -Fqdn $vcenter.fqdn -Username $vcenter.ssoadmin -Password $vcenter.ssoAdminPass | Out-Null
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.Name -eq $domain }).clusters.id) }).Name
-            if (!($getRegistry = Get-WMRegistry -Cluster $cluster -ErrorAction SilentlyContinue)) {
-                if ($getStoragePolicy = Get-SpbmStoragePolicy -Name $StoragePolicy -ErrorAction SilentlyContinue) {
-                    Enable-WMRegistry -Cluster $cluster -StoragePolicy $storagePolicy | Out-Null
-                    if ($getRegistry = Get-WMRegistry -Cluster $cluster -ErrorAction SilentlyContinue) {
-                        Write-Output "Enabled the Embedded Registry Service on cluster $cluster in vCenter Server $($vcenter.fqdn) Successfully"
-                    }
-                    else {
-                        Write-Error "Enabling the Embedded Registry Service on cluster $cluster in vCenter Server $($vcenter.fqdn) Failed"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                                    if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.Name -eq $domain }).clusters.id) }).Name
+                                        if (!(Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue)) {
+                                            if (Get-SpbmStoragePolicy -Name $storagePolicy -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                                Enable-WMRegistry -cluster $cluster -StoragePolicy $storagePolicy | Out-Null
+                                                Do {
+                                                    $configStatus = Get-WMRegistry -cluster $cluster | Get-WMRegistryHealth
+                                                } Until ($configStatus -eq "RUNNING")
+                                                if (Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue) {
+                                                    Write-Output "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
+                                                }
+                                                else {
+                                                    Write-Error "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
+                                                }
+                                            }
+                                            else {
+                                                Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        else {
+                                            Write-Warning "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
                     }
                 }
                 else {
-                    Write-Error -Message "vSphere Storage Policy $storagePolicy does not exist in vCenter Server $($vcenter.fqdn)"
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
-            else {
-                Write-Warning "The Embedded Registry Service has already been enabled on cluster $cluster in vCenter Server $($vcenter.fqdn)"
-            }
-        }
-        else {
-            Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
         }
     }
     Catch {
         Debug-ExceptionWriter -object $_
-    }
-    Finally {
-        #Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
     }
 }
 Export-ModuleMember -Function Enable-Registry
 
-Function Connect-SupervisorCluster {
+Function Undo-Registry {
     <#
         .SYNOPSIS
-        Log in to a Supervisor Cluster
+        Disable the embedded Harbor Registry on a Supervisor Cluster
 
         .DESCRIPTION
-        The Connect-SupervisorCluster cmdlet logs the user in to a Supervisor Cluster
+        The Undo-Registry cmdlet disables the embedded Harbor Registry on a Supervisor Cluster
 
         .EXAMPLE
-        Connect-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01
-        This example logs in with the vSphere SSO user administrator@vsphere.local to the Supervisor Cluster sfo-w01-cl01
+        Undo-Registry -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
+        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy
     #>
 
     Param (
-        [Parameter (Mandatory = $true)][string]$server,
-        [Parameter (Mandatory = $true)][string]$user,
-        [Parameter (Mandatory = $true)][string]$pass,
-        [Parameter (Mandatory = $true)][string]$domain,
-        [Parameter (Mandatory = $true)][string]$cluster
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
     )
 
-    if ($accessToken) {
-        checkVCFToken
-    }
-    else {
-        Request-VCFToken -fqdn $Server -username $User -password $Pass | Out-Null
-    }
-
     Try {
-        $viserver = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $viserver.fqdn -User $viserver.ssoAdmin -Password $viserver.ssoAdminPass -Force | Out-Null
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                                    if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.Name -eq $domain }).clusters.id) }).Name
+                                        if (Get-WMRegistry -cluster $cluster -ErrorAction Ignore) {
+                                            Remove-WMRegistry -cluster $cluster | Out-Null
+                                            Do {
+                                                $configStatus = Get-WMRegistry -cluster $cluster -ErrorAction Ignore #| Get-WMRegistryHealth -ErrorAction Ignore
+                                            } Until (!($configStatus))
+                                            if (!(Get-WMRegistry -cluster $cluster -ErrorAction Ignore)) {
+                                                Write-Output "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
+                                            }
+                                            else {
+                                                Write-Error "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        else {
+                                            Write-Warning "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
     }
     Catch {
         Debug-ExceptionWriter -object $_
-    }
-
-    Try {
-        $kubIpAddress = (Get-WMCluster -Cluster $Cluster).KubernetesHostname
-    }
-    Catch {
-        Debug-ExceptionWriter -object $_
-    }
-
-    Try {
-        $env:KUBECTL_VSPHERE_PASSWORD = $pass
-        Invoke-Expression "kubectl vsphere login --server $kubIpAddress --vsphere-username $user --insecure-skip-tls-verify" | Out-Null
-    }
-    Catch {
-        Write-Error "Something went wrong."
-    }
-
-    $tryKubectl = Invoke-Expression "kubectl get nodes"
-
-    if ($tryKubectl) {
-        Write-Output "Connection successful."
     }
 }
-Export-ModuleMember -Function Connect-SupervisorCluster
+Export-ModuleMember -Function Undo-Registry
+
+Function Add-NamespaceVmClass {
+    <#
+        .SYNOPSIS
+        Add a Virtual Machine class to a Namespace
+
+        .DESCRIPTION
+        The Add-NamespaceVmClass cmdlet adds a Virtual Machine Class to a Namespace
+
+        .EXAMPLE
+        Add-NamespaceVmClass -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -namespace sfo-w01-tkc01 -vmClass guaranteed-small
+        This example adds the VM Class guaranteed-small to Supervisor Namespace sfo-tkc-01 in Workload domain sfo-w01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace,
+        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium","guaranteed-large","guaranteed-xlarge","best-effort-4xlarge","guaranteed-small","best-effort-medium","best-effort-2xlarge","guaranteed-2xlarge","best-effort-large","guaranteed-4xlarge","best-effort-8xlarge","best-effort-xsmall","guaranteed-xsmall","best-effort-xlarge","guaranteed-8xlarge","best-effort-small")] [String]$vmClass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                                    if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        if (Get-WMNamespace -Name $namespace -ErrorAction Ignore) {
+                                            if (!(Get-VMClass -namespace $namespace | Where-Object {$_ -eq $vmClass})) {
+                                                Add-VMClass -namespace $namespace -vmClass $vmClass | Out-Null
+                                                if (Get-VMClass -namespace $namespace | Where-Object {$_ -eq $vmClass}) {
+                                                    Write-Output "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace): SUCCESSFUL"
+                                                }
+                                                else {
+                                                    Write-Error "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace): POST_VALIDATION_FAILED"
+                                                }
+                                            }
+                                            else {
+                                                Write-Warning "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace), already exists: SKIPPED"
+                                            }                      
+                                        }
+                                        else {
+                                            Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Response
+    }
+}
+Export-ModuleMember -Function Add-NamespaceVmClass
 
 Function Add-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Create a new Tanzu Kubernetes Cluster on a VCF-deployed Supervisor Cluster
+        Create a new Tanzu Kubernetes Cluster on a Supervisor Cluster
 
         .DESCRIPTION
-        The Add-TanzuKubernetesCluster cmdlet creates a new Tanzu Kubernetes Cluster on a VCF-deployed Supervisor Cluster
+        The Add-TanzuKubernetesCluster cmdlet creates a new Tanzu Kubernetes Cluster on a Supervisor Cluster
 
         .EXAMPLE
-        Add-TanzuKubernetesCluster -Server sfo-vcf01.sfo.rainpole.io -User administrator@vsphere.local -Pass VMware123! -Domain sfo-w01 -Cluster sfo-w01-cl01 -YAML c:\kube\sfo-w01-tkc01.yaml
-        This example creates a Tanzu Kubernetes cluster based on YAML in c:\kube\sfo-w01-tkc01.yaml as the vSphere SSO user administrator@vsphere.local on Supervisor Cluster sfo-w01-cl01
+        Add-TanzuKubernetesCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -yaml .\SampleYaml\sfo-w01-tkc01-cluster.yaml
+        This example creates a Tanzu Kubernetes cluster based on the YAML file .\SampleYaml\sfo-w01-tkc01-cluster.yaml as the vSphere SSO user administrator@vsphere.local on Supervisor Cluster sfo-w01-cl01
     #>
 
     Param (
-        [Parameter (Mandatory = $true)][string]$Server,
-        [Parameter (Mandatory = $true)][string]$User,
-        [Parameter (Mandatory = $true)][string]$Pass,
-        [Parameter (Mandatory = $true)][string]$Domain,
-        [Parameter (Mandatory = $true)][string]$Cluster,
-        [Parameter (Mandatory = $true)][string]$YAML
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$yaml
     )
 
-    if ($accessToken) {
-        checkVCFToken
+    if (!$PsBoundParameters.ContainsKey("yaml")) {
+        $yaml = Get-ExternalFileName -title "Select the YAML File (.yaml)" -fileType "yaml" -location "default"
     }
     else {
-        Request-VCFToken -fqdn $Server -username $User -password $Pass | Out-Null
+        if (!(Test-Path -Path $yaml)) {
+            Write-Error  "YAML File '$yaml' File Not Found"
+            Break
+        }
     }
 
     Try {
-        $viserver = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $viserver.fqdn -User $viserver.ssoAdmin -Password $viserver.ssoAdminPass -Force | Out-Null
-    }
-    Catch {
-        Debug-ExceptionWriter -object $_
-    }
-
-    Try {
-        $kubIpAddress = (Get-WMCluster -Cluster $Cluster).KubernetesHostname
-    }
-    Catch {
-        Debug-ExceptionWriter -object $_
-    }
-
-    Try {
-        Connect-SupervisorCluster -Server $Server -User $User -Pass $Pass -Domain $Domain -Cluster $Cluster | Out-Null
-    }
-    Catch {
-        Debug-ExceptionWriter -object $_
-    }
-
-    Try {
-        New-TanzuKubernetesCluster -YAML $YAML
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                Connect-WMCluster -cluster $cluster -user $user -pass $pass | Out-Null
+                                New-TanzuKubernetesCluster -YAML $yaml | Out-Null
+                                Write-Output "Creating Tanzu Kubernetes Cluster in Supervisor Cluster ($cluster) using YAMP ($yaml): SUCCESSFUL"
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                            Disconnect-WMCluster | Out-Null
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
     }
     Catch {
         Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Add-TanzuKubernetesCluster
+
+Function Undo-TanzuKubernetesCluster {
+    <#
+        .SYNOPSIS
+        Remove a Tanzu Kubernetes Cluster
+
+        .DESCRIPTION
+        The Undo-TanzuKubernetesCluster cmdlet removes a new Tanzu Kubernetes Cluster
+
+        .EXAMPLE
+        Undo-TanzuKubernetesCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01 
+        This example removes a Tanzu Kubernetes Cluster from the a Supervisor Cluster 
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tkc
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-WMCluster -cluster $cluster -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
+                                    Connect-WMCluster -cluster $cluster -user $user -pass $pass | Out-Null
+                                    if (Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore | Out-Null ) {
+                                        Remove-TanzuKubernetesCluster -cluster $tkc -namespace $namespace | Out-Null
+                                        if (!(Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore | Out-Null )) {
+                                            Write-Output "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    else {
+                                        Write-Warning "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc), does not exist: SKIPPED"
+                                    }
+                                }
+                                else {
+                                    Write-Warning "Workload Management is not enabled on Cluster ($server) in vCenter Server ($($vcfVcenterDetails.fqdn))"
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                            Disconnect-WMCluster | Out-Null
+                        }
+                    }
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-TanzuKubernetesCluster
 
 ##########################################  E N D   O F   F U N C T I O N S  ##########################################
 #######################################################################################################################
@@ -4633,8 +4770,8 @@ Function Export-vRLIJsonSpec {
                             $vrliLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
                             if ($vrliLicense.key -eq $licenseKey) {
                                 if ($vrliCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value}) {
-                                    if ($vrliPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value}) {
-                                        $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                                    if ($vrliPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value) {
+                                        $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                         $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value}
 
                                         $infrastructurePropertiesObject = @()
@@ -4749,6 +4886,7 @@ Function Export-vRLIJsonSpec {
                                         $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                         if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0"}
                                         if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
+                                        if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2"}
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
                                             'id' 			= "vrli"
@@ -4842,7 +4980,7 @@ Function New-vRLIDeployment {
                             $json = (Get-Content -Raw .\vrliDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!($environmentExists = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $($jsonSpec.environmentName)}))) {
-                                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.productPassword.Split(":")[3])}) {
+                                if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             $newRequest = Add-vRSLCMEnvironment -json $json
@@ -5474,48 +5612,51 @@ Function Add-vRLIAlertDatacenter {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
-                        if (($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
-                            if (($vcfVcenterDetails = Get-VcenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomainName)) {
-                                if (Test-VsphereConnection -server $vcfVcenterDetails.fqdn) {
-                                    if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
-                                            if (Get-Datacenter $datacenterName -ErrorAction Ignore ) {
-                                                if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
-                                                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
-                                                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                                                            $templateAlerts = (Get-Content -path $alertTemplate -Raw)
-                                                            $templateAlerts = $templateAlerts -replace '!!datacenterName!!',$datacenterName
-                                                            $templateAlerts = $templateAlerts -replace '!!email!!',$email
-                                                            [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
-                                                            foreach ($alert in $allAlerts) {
-                                                                $json = $alert | ConvertTo-Json
-                                                                if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
-                                                                    $entityObjectId =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $datacenterName | Where-Object {$_.identifierType.name -eq "VMEntityObjectID"}).value
-                                                                    $entityVcid =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $datacenterName | Where-Object {$_.identifierType.name -eq "VMEntityVCID"}).value
-                                                                    $vcopsResourceKindKey = '"vcopsResourceKindKey":  "' + 'resourceName='+$datacenterName+'&adapterKindKey='+$adapter+'&resourceKindKey='+$resource+'&identifiers=VMEntityName::'+$datacenterName+'$$$VMEntityObjectID::'+$entityObjectId+'$$$VMEntityVCID::'+$entityVcid + '"'
-                                                                    $json = $json -replace '"vcopsEnabled":  false','"vcopsEnabled":  true'
-                                                                    $json = $json -replace '"vcopsResourceKindKey":  ""',$vcopsResourceKindKey
-                                                                }
-                                                                if (!((Get-vRLIAlert | Select-Object name ) | Where-Object {$_.name -eq $alert.name})) {
-                                                                    Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass | Out-Null
-                                                                    New-vRLIAlert -json $json | Out-Null
-                                                                }
-                                                            }
-                                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                                                            Write-Output "Adding Datacenter Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
-                                                        }
+                        if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
+                            if (!($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
+                                Break
+                            }
+                            else {
+                                if (!(Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn)) { Break }
+                                if (!(Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass)) { Break }
+                            }
+                        }
+                        if (($vcfVcenterDetails = Get-VcenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomainName)) {
+                            if (Test-VsphereConnection -server $vcfVcenterDetails.fqdn) {
+                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                                        if (Get-Datacenter $datacenterName -ErrorAction Ignore ) {
+                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
+                                                $templateAlerts = (Get-Content -path $alertTemplate -Raw)
+                                                $templateAlerts = $templateAlerts -replace '!!datacenterName!!',$datacenterName
+                                                $templateAlerts = $templateAlerts -replace '!!email!!',$email
+                                                [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
+                                                foreach ($alert in $allAlerts) {
+                                                    $json = $alert | ConvertTo-Json
+                                                    if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
+                                                        $entityObjectId =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $datacenterName | Where-Object {$_.identifierType.name -eq "VMEntityObjectID"}).value
+                                                        $entityVcid =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $datacenterName | Where-Object {$_.identifierType.name -eq "VMEntityVCID"}).value
+                                                        $vcopsResourceKindKey = '"vcopsResourceKindKey":  "' + 'resourceName='+$datacenterName+'&adapterKindKey='+$adapter+'&resourceKindKey='+$resource+'&identifiers=VMEntityName::'+$datacenterName+'$$$VMEntityObjectID::'+$entityObjectId+'$$$VMEntityVCID::'+$entityVcid + '"'
+                                                        $json = $json -replace '"vcopsEnabled":  false','"vcopsEnabled":  true'
+                                                        $json = $json -replace '"vcopsResourceKindKey":  ""',$vcopsResourceKindKey
+                                                    }
+                                                    if (!((Get-vRLIAlert | Select-Object name ) | Where-Object {$_.name -eq $alert.name})) {
+                                                        Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass | Out-Null
+                                                        New-vRLIAlert -json $json | Out-Null
                                                     }
                                                 }
+                                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                                Write-Output "Adding Datacenter Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
-                                            else {
-                                                Write-Error "Unable to find Dataceter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                            }
+                                        }
+                                        else {
+                                            Write-Error "Unable to find Dataceter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
                                 }
                             }
                         }
-                    }                         
+                    }                       
                 }
             }
         }
@@ -5571,45 +5712,48 @@ Function Add-vRLIAlertVirtualMachine {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
-                        if (($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
-                            if (($vcfVcenterDetails = Get-VcenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomainName)) {
-                                if (Test-VsphereConnection -server $vcfVcenterDetails.fqdn) {
-                                    if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
-                                            if (Get-VM $vmName -ErrorAction Ignore ) {
-                                                if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
-                                                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
-                                                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                                                            $templateAlerts = (Get-Content -path $alertTemplate -Raw)
-                                                            $templateAlerts = $templateAlerts -replace '!!vmName!!',$vmName
-                                                            $templateAlerts = $templateAlerts -replace '!!email!!',$email
-                                                            [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
-                                                            foreach ($alert in $allAlerts) {
-                                                                $json = $alert | ConvertTo-Json
-                                                                if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
-                                                                    $VMEntityInstanceUUID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityInstanceUUID"}).value
-                                                                    $VMEntityObjectID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityObjectID"}).value
-                                                                    $VMEntityVCID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityVCID"}).value
-                                                                    $VMServiceMonitoringEnabled =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMServiceMonitoringEnabled"}).value
-                                                                    $isPingEnabled =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "isPingEnabled"}).value
-                                                                    $vcopsResourceKindKey = '"vcopsResourceKindKey": "' + 'resourceName='+ $vmName +'&adapterKindKey='+ $adapter+ '&resourceKindKey='+ $resource +'&identifiers=VMEntityInstanceUUID::'+ $VMEntityInstanceUUID  +'$$$VMEntityName::'+ $vmName + '$$$VMEntityObjectID::'+ $VMEntityObjectID +'$$$VMEntityVCID::'+ $VMEntityVCID +'$$$VMServiceMonitoringEnabled::'+ $VMServiceMonitoringEnabled +'$$$isPingEnabled::'+ $isPingEnabled +'"'
-                                                                    $json = $json -replace '"vcopsEnabled":  false','"vcopsEnabled":  true'
-                                                                    $json = $json -replace '"vcopsResourceKindKey":  ""',$vcopsResourceKindKey
-                                                                }
-                                                                if (!((Get-vRLIAlert | Select-Object name ) | Where-Object {$_.name -eq $alert.name})) {
-                                                                    Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass | Out-Null
-                                                                    New-vRLIAlert -json $json | Out-Null
-                                                                }
-                                                            }
-                                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                                                            Write-Output "Adding Virtual Machine Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
-                                                        }
+                        if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
+                            if (!($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
+                                Break
+                            }
+                            else {
+                                if (!(Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn)) { Break }
+                                if (!(Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass)) { Break }
+                            }
+                        }
+                        if (($vcfVcenterDetails = Get-VcenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomainName)) {
+                            if (Test-VsphereConnection -server $vcfVcenterDetails.fqdn) {
+                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                                        if (Get-VM $vmName -ErrorAction Ignore ) {
+                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
+                                                $templateAlerts = (Get-Content -path $alertTemplate -Raw)
+                                                $templateAlerts = $templateAlerts -replace '!!vmName!!',$vmName
+                                                $templateAlerts = $templateAlerts -replace '!!email!!',$email
+                                                [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
+                                                foreach ($alert in $allAlerts) {
+                                                    $json = $alert | ConvertTo-Json
+                                                    if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
+                                                        $VMEntityInstanceUUID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityInstanceUUID"}).value
+                                                        $VMEntityObjectID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityObjectID"}).value
+                                                        $VMEntityVCID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityVCID"}).value
+                                                        $VMServiceMonitoringEnabled =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMServiceMonitoringEnabled"}).value
+                                                        $isPingEnabled =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "isPingEnabled"}).value
+                                                        $vcopsResourceKindKey = '"vcopsResourceKindKey": "' + 'resourceName='+ $vmName +'&adapterKindKey='+ $adapter+ '&resourceKindKey='+ $resource +'&identifiers=VMEntityInstanceUUID::'+ $VMEntityInstanceUUID  +'$$$VMEntityName::'+ $vmName + '$$$VMEntityObjectID::'+ $VMEntityObjectID +'$$$VMEntityVCID::'+ $VMEntityVCID +'$$$VMServiceMonitoringEnabled::'+ $VMServiceMonitoringEnabled +'$$$isPingEnabled::'+ $isPingEnabled +'"'
+                                                        $json = $json -replace '"vcopsEnabled":  false','"vcopsEnabled":  true'
+                                                        $json = $json -replace '"vcopsResourceKindKey":  ""',$vcopsResourceKindKey
+                                                    }
+                                                    if (!((Get-vRLIAlert | Select-Object name ) | Where-Object {$_.name -eq $alert.name})) {
+                                                        Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass | Out-Null
+                                                        New-vRLIAlert -json $json | Out-Null
                                                     }
                                                 }
+                                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                                Write-Output "Adding Virtual Machine Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
-                                            else {
-                                                Write-Error "Unable to find Virtual Machine ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                            }
+                                        }
+                                        else {
+                                            Write-Error "Unable to find Virtual Machine ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
                                 }
@@ -5681,6 +5825,154 @@ Function Undo-vRLIAlert {
 }
 Export-ModuleMember -Function Undo-vRLIAlert
 
+Function Add-NsxtNodeProfileSyslogExporter {
+    <#
+        .SYNOPSIS
+        Sets a syslog exporter on an NSX node profile to vRealize Log Insight
+
+        .DESCRIPTION
+        The Add-NsxtNodeProfileSyslogExporter cmdlet adds a syslog exporter for vRealize Log Insight to an NSX node
+        profile for configuration of syslog on the NSX components included in the node profile. 
+        The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Adds a syslog exporter on the default (All NSX Nodes) or specified node profile for NSX-T Data Center
+
+        .EXAMPLE
+        Add-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
+        This example adds a syslog exporter to vRealize Log Insight for the default (All NSX Nodes) node profile.
+
+        .EXAMPLE
+        Add-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -id "********-****-****-****-************"
+        This example adds a syslog exporter to vRealize Log Insight for a specific node profile with the -id parameter.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if (!($PsBoundParameters.ContainsKey("id"))) {
+            $id = "00000000-0000-0000-0000-000000000001" # Default: (All NSX Nodes)
+        }
+
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                            if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                                    if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                                        if ($profileExists = Get-NsxtNodeProfile -id $id -ErrorAction SilentlyContinue) {
+                                            $displayName = $profileExists.display_name
+                                            if (!($checkSyslogExporter = (Get-NsxtNodeProfile -id $id).syslog.exporters | Where-Object {$_.server -eq $vcfVrliDetails.fqdn -and $_.port -eq 514 -and $_.protocol -eq "TCP" -and $_.max_log_level -eq "INFO"})) {
+                                                Set-NsxtNodeProfileSyslogExporter -id $id -server $vcfVrliDetails.fqdn -port 514 -protocol "TCP" -logLevel "INFO" | Out-Null
+                                                    if ($checkSyslogExporter = (Get-NsxtNodeProfile -id $id).syslog.exporters | Where-Object {$_.server -eq $vcfVrliDetails.fqdn -and $_.port -eq 514 -and $_.protocol -eq "TCP" -and $_.max_log_level -eq "INFO"}) {
+                                                        Write-Output "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($displayName) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
+                                                    }
+                                                    else {
+                                                        Write-Error "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)), check id: FAILED"
+                                                    }     
+                                            }
+                                            else {
+                                                Write-Warning "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($displayName) in NSX Manager ($($vcfNsxDetails.fqdn)), settings already exist: SKIPPED"
+                                            }
+                                        }
+                                        else {
+                                            Write-Error "The NSX node profile ($id) does not exist in NSX Manager ($($vcfNsxDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } 
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtNodeProfileSyslogExporter
+
+Function Undo-NsxtNodeProfileSyslogExporter {
+    <#
+        .SYNOPSIS
+        Removes all syslog exporters on an NSX node profile.
+
+        .DESCRIPTION
+        The Undo-NsxtNodeProfileSyslogExporter cmdlet removes a syslog exporter for vRealize Log Insight from
+        an NSX node profile for configuration of syslog on the NSX components included in the node profile. 
+        The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes all syslog exporters on the default (All NSX Nodes) or specified node profile for NSX-T Data Center
+
+        .EXAMPLE
+        Undo-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
+        This example removes all syslog exporters from the default (All NSX Nodes) node profile.
+
+        .EXAMPLE
+        Undo-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -id "********-****-****-****-************"
+        This example removes all syslog exporters from a specific node profile with the -id parameter.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if (!($PsBoundParameters.ContainsKey("id"))) {
+            $id = "00000000-0000-0000-0000-000000000001"
+        }
+
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                            if ($profileExists = Get-NsxtNodeProfile -id $id -ErrorAction SilentlyContinue) {
+                                $displayName = $profileExists.display_name
+                                if (!($checkSyslogExporter = (Get-NsxtNodeProfile -id $id | Where-Object {$_.syslog -eq $null}))) {
+                                    Remove-NsxtNodeProfileSyslogExporter -id $id | Out-Null
+                                        if ($checkSyslogExporter = (Get-NsxtNodeProfile -id $id | Where-Object {$_.syslog -eq $null})) {
+                                            Write-Output "Removing all syslog exporters from the NSX node profile ($displayName) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Removing all syslog exporters from the NSX node profile ($id) in NSX Manager ($($vcfNsxDetail.fqdn)), check id: FAILED"
+                                        }     
+                                }
+                                else {
+                                    Write-Warning "Removing all syslog exporters from the NSX node profile ($displayName) in NSX Manager ($($vcfNsxDetail.fqdn)), no settings already exist: SKIPPED"
+                                }
+                            }
+                            else {
+                                Write-Error "The NSX node profile ($id) does not exist in NSX Manager ($($vcfNsxDetail.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtNodeProfileSyslogExporter
+
 ###########################################  E N D   O F   F U N C T I O N S  #########################################
 #######################################################################################################################
 
@@ -5747,13 +6039,14 @@ Function Export-vROPsJsonSpec {
                             $vropsLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
                             if ($vropsLicense.key -eq $licenseKey) {
                                 if ($vropsCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value}) {
-                                    if ($defaultPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value}) {
-                                        if ($vropsPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value}) {
-                                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                                    if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value) {
+                                        if ($vropsPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value) {
+                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                             $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
                                             if ($datacenterName) {
+                                                $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
-                                                $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
+                                                # $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
 
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
@@ -5806,7 +6099,7 @@ Function Export-vROPsJsonSpec {
                                                     'isCaEnabled'                   = "false"
                                                 }
 
-                                                #### Generate vRealize Log Insight Cluster Details
+                                                #### Generate vRealize Operations Manager Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
@@ -5823,27 +6116,38 @@ Function Export-vROPsJsonSpec {
                                                 'clusterVips'	= $clusterVipsObject
                                                 }
 
-                                                #### Generate vRealize Log Insight Node Details
-                                                $masterProperties = @()
-                                                $masterProperties += [pscustomobject]@{
-                                                    'vmName'	    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
-                                                    'hostName'	    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
-                                                    'ip'		    = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
-                                                    'gateway'       = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                                                    'searchpath'    = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                                                    'dns'           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                                    'netmask'       = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                                                    'timeZone'      = "UTC"
-                                                    'vCenterHost'   = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                                    'cluster'       = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                                    'network'       = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                                                    'storage'       = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                                    'diskMode'      = "thin"
-                                                    'vCenterName'   = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                                    'vcUsername'    = $vcCredentials.userName
-                                                    'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                    'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                                #### Generate vRealize Operations Manager Node Details
+                                                $masterProperties = New-Object -TypeName psobject
+                                                $masterProperties | Add-Member -notepropertyname 'vmName' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'hostName' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'ip' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_ip"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'gateway' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'domain' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'searchpath' -notepropertyvalue $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                                if ($null -eq $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value) {
+                                                    $masterProperties | Add-Member -notepropertyname 'dns' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_dns1_ip"].Value
+                                                }
+                                                else {
+                                                    $masterProperties | Add-Member -notepropertyname 'dns' -notepropertyvalue ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                                }
+                                                $masterProperties | Add-Member -notepropertyname 'netmask' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'timeZone' -notepropertyvalue "UTC"
+                                                $masterProperties | Add-Member -notepropertyname 'vCenterHost' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'cluster' -notepropertyvalue ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                                $masterProperties | Add-Member -notepropertyname 'network' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'storage' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                                $masterProperties | Add-Member -notepropertyname 'diskMode' -notepropertyvalue "thin"
+                                                $masterProperties | Add-Member -notepropertyname 'vCenterName' -notepropertyvalue ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                                $masterProperties | Add-Member -notepropertyname 'vcUsername' -notepropertyvalue $vcCredentials.userName
+                                                $masterProperties | Add-Member -notepropertyname 'vcPassword' -notepropertyvalue ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                if ($null -eq $pnpWorkbook.Workbook.Names["xregion_ntp2_server"].Value) {
+                                                    $masterProperties | Add-Member -notepropertyname 'ntp' -notepropertyvalue $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                                }
+                                                else {
+                                                    $masterProperties | Add-Member -notepropertyname 'ntp' -notepropertyvalue ($pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value + "," + $pnpWorkbook.Workbook.Names["xregion_ntp2_server"].Value)
+                                                }
+                                                if ($vcfVersion -eq "4.4.0") {
+                                                    $masterProperties | Add-Member -notepropertyname 'extendedStorage' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
                                                 }
 
                                                 $replicaProperties = @()
@@ -5928,10 +6232,10 @@ Function Export-vROPsJsonSpec {
                                                     'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
                                                 }
 
-                                                #### Generate the vRealize Log Insight Properties Section
-                                                $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                                                #### Generate the vRealize Operations Manager Properties Section
                                                 if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
                                                 if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
+                                                if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vrops"
@@ -5960,7 +6264,6 @@ Function Export-vROPsJsonSpec {
                                                 }
 
                                                 $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vropsDeploymentSpec.json" 
-                                            
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Operations Manager: SUCCESSFUL"                            
                                             }
                                             else {
@@ -6041,8 +6344,8 @@ Function New-vROPSDeployment {
                             Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass | Out-Null
                             $json = (Get-Content -Raw .\vropsDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
-                            if (!($checkProducts = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
-                                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.productPassword.Split(":")[3])}) {
+                            if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
+                                if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
@@ -6883,17 +7186,29 @@ Function Update-vROPSAdapterSddcHealth {
                                 Foreach ($adapter in $adapters) {
                                     $collectorDetails = Get-vROPSCollector | Where-Object {$_.id -eq $adapter.collectorId}
                                     $adapterName = (($adapter.resourceKey.name).Split("-"))[0] + "-" + ($collectorDetails.name -Split ("vRealize Operations Manager Collector-"))
-                                    $json = '{
-                                        "resourceKey":  {
-                                                            "name":  "'+ $adapterName +'",
-                                                            "adapterKindKey":  "SDDCHealthAdapter",
-                                                            "resourceKindKey":  "SDDCHealth Instance"
-                                                        },
-                                        "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("vRealize Operations Manager Collector-")) +'",
-                                        "collectorId":  '+ $($collectorDetails.id) +',
-                                        "monitoringInterval":  5,
-                                        "id":  "'+ $($adapter.id) +'"
-                                    }'
+                                    if ($vropsVersion -lt "8.6.2") {
+                                        $json = '{
+                                            "resourceKey":  {
+                                                                "name":  "'+ $adapterName +'",
+                                                                "adapterKindKey":  "SDDCHealthAdapter",
+                                                                "resourceKindKey":  "SDDCHealth Instance"
+                                                            },
+                                            "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "collectorId":  '+ $($collectorDetails.id) +',
+                                            "monitoringInterval":  5,
+                                            "id":  "'+ $($adapter.id) +'"
+                                        }'
+                                    }
+                                    else {
+                                        $json = '{
+                                            "name":  "'+ $adapterName +'",
+                                            "adapterKindKey":  "SDDCHealthAdapter",
+                                            "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "collectorId":  '+ $($collectorDetails.id) +',
+                                            "monitoringInterval":  5,
+                                            "id":  "'+ $($adapter.id) +'"
+                                        }'
+                                    }
                                     
                                     $json | Out-File .\updateAdapter.json
                                     if (!($adapter.resourceKey.name -eq $adapterName)) {
@@ -7260,11 +7575,11 @@ Function Export-vRAJsonSpec {
                             if ($vraLicense.key -eq $licenseKey) { 
                                 $vraCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value}
                                 if ($vraCertificate.alias) {
-                                    $defaultPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value}
+                                    $defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
                                     if ($defaultPassword.alias) {
-                                        $vraPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value}
+                                        $vraPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value
                                         if ($vraPassword.alias) {
-                                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                             $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
                                             if ($datacenterName) {
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
@@ -7376,6 +7691,7 @@ Function Export-vRAJsonSpec {
                                                 $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                                 if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1"}
                                                 if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0"}
+                                                if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vra"
@@ -7484,8 +7800,8 @@ Function New-vRADeployment {
                             Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
                             $json = (Get-Content -Raw .\vraDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
-                            if (!($checkProducts = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
-                                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.productPassword.Split(":")[3])}) {
+                            if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
+                                if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
@@ -8750,7 +9066,7 @@ Function Add-vCenterGlobalPermission {
                                         if ($objectCheck) {
                                             $roleId = (Get-VIRole -Name $role | Select-Object -ExpandProperty Id)
                                             Add-GlobalPermission -vcServer $vcfVcenterDetails.fqdn -vcUsername $vcfVcenterDetails.ssoAdmin -vcPassword $vcfVcenterDetails.ssoAdminPass -roleId $roleId -user $principal -propagate $propagate -type $type
-                                            Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($(($principal.Split("\"))[1])): SUCCESSFUL"
+                                            Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): SUCCESSFUL"
                                         }
                                         else {
                                             if ($localDomain) {
@@ -9987,14 +10303,14 @@ Function New-vRSLCMLockerPassword {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (!(Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias})) {
+                            if (!(Get-vRSLCMLockerPassword -alias $alias)) {
                                 if ($PsBoundParameters.ContainsKey("description")) {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -description $description -userName $userName
                                 }
                                 else {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
                                 }
-                                if ((Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias})) {
+                                if ((Get-vRSLCMLockerPassword -alias $alias)) {
                                     Write-Output "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
                                 else {
@@ -10047,9 +10363,9 @@ Function Undo-vRSLCMLockerPassword {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias}) {
-                                Remove-vRSLCMLockerPassword -vmid (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias}).vmid | Out-Null
-                                if ((Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $alias})) {
+                            if (Get-vRSLCMLockerPassword -alias $alias) {
+                                Remove-vRSLCMLockerPassword -vmid (Get-vRSLCMLockerPassword -alias $alias).vmid | Out-Null
+                                if ((Get-vRSLCMLockerPassword -alias $alias)) {
                                     Write-Error "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                 }
                                 else {
@@ -10286,7 +10602,7 @@ Function New-vRSLCMDatacenterVcenter {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
                             if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
-                                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $userLockerAlias}) {
+                                if (Get-vRSLCMLockerPassword -alias $userLockerAlias) {
                                     if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName  ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue)) {
                                         Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
                                         Start-Sleep 5
@@ -11076,57 +11392,132 @@ Export-ModuleMember -Function Get-vRLIServerDetail
 
 
 ##############################################################
-##################  Begin vSphere Functions  #################
+###########  Begin vSphere API Endpoint Functions  ###########
 
-Function Request-VCToken {
+Function Request-vSphereApiToken {
     <#
         .SYNOPSIS
-        Connects to the specified vCenter Server API and stores the credentials in a base64 string
+        Request an authentication token for the vSphere REST API
 
         .DESCRIPTION
-        The Request-VCToken cmdlet connects to the specified vCenter Server and stores the credentials
-        in a base64 string. It is required once per session before running all other cmdlets
+        The Request-vSphereApiToken cmdlet requests an authentication token for the vSphere REST API
+
+		use -admin to set the Admin token for vCenter Server Management Interface
+        .EXAMPLE
+        Request-vSphereApiToken -Fqdn sfo-w01-vc01.sfo.rainpole.io -Username administrator@vsphere.local -Password VMw@re1!
+        This example requests a vSphere REST API authentication token for user administrator@vsphere.local from vCenter Server sfo-w01-vc01.sfo.rainpole.io
 
         .EXAMPLE
-        Request-VCToken -fqdn sfo-m01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
-        This example shows how to connect to the vCenter Server API
-      #>
+        Get-vCenterServerDetail -Server sfo-vcf01.sfo.rainpole.io -User administrator@vsphere.local -Pass VMw@re1! -Domain sfo-w01 | Request-vSphereApiToken
+        This example requests a vSphere REST API authentication token for user administrator@vsphere.local from the vCenter Server that manages VI workload domain sfo-w01
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$admin,
+        [Parameter (ValueFromPipeline, Mandatory = $false)] [ValidateNotNullOrEmpty()] [psobject]$inputObject
     )
 
-    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
-        $creds = Get-Credential # Request Credentials
-        $username = $creds.UserName.ToString()
-        $password = $creds.GetNetworkCredential().password
+    if ($inputObject) {
+        $username = $inputObject.ssoAdmin
+        $password = $inputObject.ssoAdminPass
+        $fqdn = $inputObject.fqdn
+        $sddcManager = (Get-VCFManager).fqdn
+    }
+    else {
+        if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
+            # Request Credentials
+            $creds = Get-Credential
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        if (!$PsBoundParameters.ContainsKey("fqdn")) {
+            $fqdn = Read-Host "vCenter Server FQDN not found. Please enter a value, e.g., sfo-m01-vc01.sfo.rainpole.io"
+        }
     }
 
-    $Global:vcenterFqdn = $fqdn
-
-    $vcenterHeader = @{"Authorization" = "Basic "+[System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($username+":"+$password))}
-    $contentType = "application/json"
-    $uri = "https://$vcenterFqdn/api/session"
-
     Try {
-        # Checking authentication with vCenter Server API
+        $vcAuthHeaders = createvCenterAuthHeader($username, $password)
+        $Global:vcApiServer = $fqdn
+        $Global:vcApiAdminServer = $fqdn + ":5480"
+
+        # Perform the vCenter REST API call to authenticate and retrieve the session token
+		if ($PsBoundParameters.ContainsKey("admin")) {
+            $uri = "https://$vcApiAdminServer/rest/com/vmware/cis/session"
+            $vcApiAdminSession = (Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
+		}
+        $uri = "https://$vcApiServer/rest/com/vmware/cis/session"
+        $vcApiSession = (Invoke-WebRequest -Method 'POST' -URI $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
+
+        # Use the session token to build the header used from here on
+        $Global:vcApiHeaders = @{"vmware-api-session-id" = $vcApiSession }
+        $vcApiHeaders.Add("Content-Type", "application/json")
+
+        # Use the session token to build the header for admin interface used from here on
+        if ($admin){
+            $Global:vcApiAdminHeaders = @{"vmware-api-session-id" = $vcApiAdminSession }
+            $vcApiAdminHeaders.Add("Content-Type", "application/json")
+        }
+
+        # Validate credentials by executing an API call
+
+        $newUri = "https://$vcApiServer/api/appliance/system/version"
+        $oldUri = "https://$vcApiServer/rest/appliance/system/version"
+
+        # Checking against the vCenter API
+        # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         if ($PSEdition -eq 'Core') {
-            $Global:vcToken = Invoke-RestMethod -Uri $uri -Headers $vcenterHeader -Method POST -ContentType $contentType -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented
+            Try {
+                $response = Invoke-RestMethod -Method GET -Uri $newUri -Headers $vcApiHeaders -SkipCertificateCheck
+                if ($response) {
+                    $responseSplit = $response.version.Split(".")
+                    $global:vCenterApi = $responseSplit[0..2] -join ""
+                }
+            }
+            Catch {
+                $errorStatus = $_.Exception.Response.StatusCode
+            }
+            if ($errorStatus -eq "NotFound") {
+                $response = Invoke-RestMethod -Method GET -Uri $oldUri -Headers $vcApiHeaders -SkipCertificateCheck
+                $responseSplit = $response.value.version.Split(".")
+                $global:vCenterApi = $responseSplit[0..2] -join ""
+            }
         }
         else {
-            $Global:vcToken = Invoke-RestMethod -Uri $uri -Headers $vcenterHeader -Method POST -ContentType $contentType
+            Try {
+                $response = Invoke-RestMethod -Method GET -Uri $newUri -Headers $vcApiHeaders
+
+                if ($response) {
+                    $responseSplit = $response.version.Split(".")
+                    $global:vCenterApi = $responseSplit[0..2] -join ""
+                }
+            }
+            Catch {
+                $errorStatus = $_.Exception.Response.StatusCode
+            }
+
+            if ($errorStatus -eq "NotFound") {
+                $response = Invoke-RestMethod -Method GET -Uri $oldUri -Headers $vcApiHeaders
+                $responseSplit = $response.value.version.Split(".")
+                $global:vCenterApi = $responseSplit[0..2] -join ""
+            }
         }
-        if ($vcToken) {
-            Write-Output "Successfully connected to the vCenter Server API: $vcenterFqdn"
+        if ($response) {
+            if ($inputObject) {
+                Write-Output "Successfully Requested New API Token for vCenter Server $vcApiServer via SDDC Manager $sddcManager"
+            }
+            else {
+                Write-Output "Successfully Requested New API Token for vCenter Server $vcApiServer"
+            }
         }
     }
     Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Request-VCToken
+Export-ModuleMember -Function Request-vSphereApiToken
 
 Function Get-VCVersion {
     <#
@@ -11142,10 +11533,8 @@ Function Get-VCVersion {
     #>
 
     Try {
-        $vcenterHeader = @{"vmware-api-session-id" = "$vcToken"}
-        $uri = "https://$vcenterFqdn/api/appliance/system/version"
-
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterHeader
+        $uri = "https://$vcApiServer/api/appliance/system/version"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
         $response
     }
     Catch {
@@ -11156,22 +11545,20 @@ Export-ModuleMember -Function Get-VCVersion
 
 Function Get-VCConfigurationNTP {
     <#
-    	.SYNOPSIS
-    	Get NTP configuration
+        .SYNOPSIS
+        Get NTP configuration
 
-    	.DESCRIPTION
-    	The Get-VCConfigurationNTP cmdlet gets the NTP configuration of vCenter Server
+        .DESCRIPTION
+        The Get-VCConfigurationNTP cmdlet gets the NTP configuration of vCenter Server
 
-    	.EXAMPLE
-    	Get-VCConfigurationNTP
-    	This example gets the NTP configuration of the vCenter Server
-  	#>
+        .EXAMPLE
+        Get-VCConfigurationNTP
+        This example gets the NTP configuration of the vCenter Server
+    #>
 
     Try {
-        $vcenterHeader = @{"vmware-api-session-id" = "$vcToken"}
-        $uri = "https://$vcenterFqdn/api/appliance/ntp"
-
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterHeader
+        $uri = "https://$vcApiServer/api/appliance/ntp"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
         $response
     }
     Catch {
@@ -11194,10 +11581,8 @@ Function Get-VCConfigurationDNS {
     #>
 
     Try {
-        $vcenterHeader = @{"vmware-api-session-id" = "$vcToken"}
-        $uri = "https://$vcenterFqdn/api/appliance/networking/dns/servers"
-
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterHeader
+        $uri = "https://$vcApiServer/api/appliance/networking/dns/servers"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
         $response
     }
     Catch {
@@ -11220,10 +11605,8 @@ Function Get-VCPasswordPolicy {
     #>
 
     Try {
-        $vcenterHeader = @{"vmware-api-session-id" = "$vcToken"}
-        $uri = "https://$vcenterFqdn/api/appliance/local-accounts/global-policy"
-
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterHeader
+        $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
         $response
     }
     Catch {
@@ -11252,12 +11635,9 @@ Function Set-VCPasswordPolicy {
     )
 
     Try {
-        $vcenterHeader = @{"vmware-api-session-id" = "$vcToken"}
-        $vcenterHeader.Add("Content-Type", "application/json")
-        $uri = "https://$vcenterFqdn/api/appliance/local-accounts/global-policy"
+        $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
         $body = '{ "max_days": '+$maxDays+', "min_days": '+$minDays+', "warn_days": '+$warnDays+' }'
-
-        $response = Invoke-RestMethod -Method PUT -Uri $uri -Headers $vcenterHeader -Body $body
+        $response = Invoke-RestMethod -Method PUT -Uri $uri -Headers $vcApiHeaders -Body $body
         $response
     }
     Catch {
@@ -11280,8 +11660,8 @@ Function Get-VCPasswordExpiry {
     #>
 
     Try {
-        $uri = "https://$currentvCenterServer"+":5480/rest/appliance/local-accounts/root"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcAdminHeaders
+        $uri = "https://$vcApiAdminServer/rest/appliance/local-accounts/root"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiAdminHeaders
         $response
     }
     Catch {
@@ -11313,7 +11693,7 @@ Function Set-VCPasswordExpiry {
     )
 
     Try {
-        $uri = "https://$currentvCenterServer"+":5480/rest/appliance/local-accounts/root"
+        $uri = "https://$vcApiAdminServer/rest/appliance/local-accounts/root"
 
 		if ($passwordExpires) {
 			$body = '{"config":{"password_expires": "'+ $passwordExpires +'", "email": "'+ $email+ '", "max_days_between_password_change": "' + $maxDaysBetweenPasswordChange + '" }}'
@@ -11321,7 +11701,7 @@ Function Set-VCPasswordExpiry {
         else {
 			$body = '{"config":{"password_expires": "'+ $passwordExpires + '"}}'
 		}
-        $response = Invoke-RestMethod -Method PATCH -Uri $uri -Headers $vcAdminHeaders -Body $body
+        $response = Invoke-RestMethod -Method PATCH -Uri $uri -Headers $vcApiAdminHeaders -Body $body
         $response
     }
     Catch {
@@ -11349,13 +11729,13 @@ Function Add-GlobalPermission {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$vcServer,
-        [Parameter (Mandatory = $true)] [String]$vcUsername,
-        [Parameter (Mandatory = $true)] [String]$vcPassword,
-        [Parameter (Mandatory = $true)] [String]$user,
-        [Parameter (Mandatory = $true)] [String]$roleId,
-        [Parameter (Mandatory = $true)] [String]$propagate,
-        [Parameter (Mandatory = $true)] [String]$type
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcUsername,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$propagate,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$type
     )
 
     Try {
@@ -11417,22 +11797,22 @@ Export-ModuleMember -Function Add-GlobalPermission
 
 Function Get-SsoPasswordPolicies {
     <#
-    	.SYNOPSIS
-    	Get vSphere Single-Sign On password policies
+        .SYNOPSIS
+        Get vSphere Single-Sign On password policies
 
-    	.DESCRIPTION
-    	The Get-SsoPasswordPolicies cmdlet gets the vSphere Single-Sign On password policies
+        .DESCRIPTION
+        The Get-SsoPasswordPolicies cmdlet gets the vSphere Single-Sign On password policies
 
-    	.EXAMPLE
-    	Get-SsoPasswordPolicies -ssoAdminPass VMw@re1! -ssoDomain vsphere.local -vmName sfo-m01-vc01 -rootPass VMw@re1!
-    	This example shows how to get vSphere Single-Sign On password policies
-  	#>
+        .EXAMPLE
+        Get-SsoPasswordPolicies -ssoAdminPass VMw@re1! -ssoDomain vsphere.local -vmName sfo-m01-vc01 -rootPass VMw@re1!
+        This example shows how to get vSphere Single-Sign On password policies
+    #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$ssoAdminPass,
-        [Parameter (Mandatory = $true)] [String]$ssoDomain,
-        [Parameter (Mandatory = $true)] [String]$vmName,
-        [Parameter (Mandatory = $true)] [String]$rootPass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass
     )
 
     Try {
@@ -11449,23 +11829,23 @@ Export-ModuleMember -Function Get-SsoPasswordPolicies
 
 Function Add-DrsVmToVmGroup {
     <#
-    	.SYNOPSIS
-    	Creates a vSphere VM to VM Group
+        .SYNOPSIS
+        Creates a vSphere VM to VM Group
 
-    	.DESCRIPTION
-    	The Add-DrsVmToVmGroup cmdlet creates a vSphere VM to VM Group
+        .DESCRIPTION
+        The Add-DrsVmToVmGroup cmdlet creates a vSphere VM to VM Group
 
-    	.EXAMPLE
-    	Add-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -vmGroup sfo-m01-vm-group-wsa -dependOnVmGroup sfo-m01-vm-group-vra -Enabled -cluster sfo-m01-cl01
-    	This example shows how to create a vSphere VM to VM group in the vCenter Server
-  	#>
+        .EXAMPLE
+        Add-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -vmGroup sfo-m01-vm-group-wsa -dependOnVmGroup sfo-m01-vm-group-vra -Enabled -cluster sfo-m01-cl01
+        This example shows how to create a vSphere VM to VM group in the vCenter Server
+    #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$name,
-        [Parameter (Mandatory = $true)] [String]$vmGroup,
-        [Parameter (Mandatory = $true)] [String]$dependOnVmGroup,
-        [Parameter (Mandatory = $false)] [Switch]$enabled=$true,
-        [Parameter (Mandatory = $true)] [String]$cluster
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmGroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dependOnVmGroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$enabled=$true
     )
 
     Try {
@@ -11493,20 +11873,20 @@ Export-ModuleMember -Function Add-DrsVmToVmGroup
 
 Function Get-DrsVmToVmGroup {
     <#
-    	.SYNOPSIS
-    	Gets all vSphere VM to VM Group
+        .SYNOPSIS
+        Gets all vSphere VM to VM Group
 
-    	.DESCRIPTION
-    	The Get-DrsVmToVmGroup cmdlet retrieves the vSphere VM to VM Group
+        .DESCRIPTION
+        The Get-DrsVmToVmGroup cmdlet retrieves the vSphere VM to VM Group
 
-    	.EXAMPLE
-    	Get-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -cluster sfo-m01-cl01
-    	This example shows how to retrieve a vSphere VM to VM group in the vCenter Server
-  	#>
+        .EXAMPLE
+        Get-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -cluster sfo-m01-cl01
+        This example shows how to retrieve a vSphere VM to VM group in the vCenter Server
+    #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$name,
-        [Parameter (Mandatory = $true)] [String]$cluster
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
     )
 
     Try {
@@ -11524,8 +11904,114 @@ Function Get-DrsVmToVmGroup {
 }
 Export-ModuleMember -Function Get-DrsVmToVmGroup
 
+Function Get-VcLicense {
+    <#
+        .SYNOPSIS
+        Get list of licenses in vCenter Server
 
-##################  End vSphere Functions  ###################
+        .DESCRIPTION
+        The Get-VcLicense cmdlet gets a list of licenses in vCenter Server
+
+        .EXAMPLE
+        Get-VcLicense 
+        This example shows how to get a list of licenses in vCenter Server
+    #>
+
+    Try {
+        $licenseManager = Get-View LicenseManager
+        $LicenseManager.Licenses
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-VcLicense
+
+Function New-VcLicense {
+    <#
+        .SYNOPSIS
+        Add a license to vCenter Server
+
+        .DESCRIPTION
+        The New-VcLicense cmdlet adds a license to vCenter Server
+
+        .EXAMPLE
+        New-VcLicense -licenseKey <license_key>
+        This example shows how to add a license to vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey
+    )
+
+    Try {
+        $licenseManager = Get-View LicenseManager
+        $licenseManager.AddLicense($licenseKey,$null)
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-VcLicense
+
+Function Remove-VcLicense {
+    <#
+        .SYNOPSIS
+        Remove a license from vCenter Server
+
+        .DESCRIPTION
+        The Remove-VcLicense cmdlet removes a license from vCenter Server
+
+        .EXAMPLE
+        Remove-VcLicense -licenseKey <license_key>
+        This example shows how to remove a license from vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey
+    )
+
+    Try {
+        $licenseManager = Get-View LicenseManager
+        $licenseManager.RemoveLicense($licenseKey)
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-VcLicense
+
+Function Get-SubscribedLibrary {
+    <#
+        .SYNOPSIS
+        Retrieves the specified Subscribed Content Library
+
+        .DESCRIPTION
+        The Get-SubscribedLibrary cmdlet retrieves the specified Subscribed Content Library
+
+        .EXAMPLE
+        Get-SubscribedLibrary -name Kubernetes
+        This example retrieves the Subscribed Content Library named Kubernetes
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
+    )
+
+    Try {    
+        $body = '{ "name": "' + $name + '", "type": "SUBSCRIBED" }' 
+        $subscribedLibraryId = Invoke-RestMethod -Method POST -Uri "https://$vcApiServer/api/content/library?action=find" -Headers $vcApiHeaders -body $body
+        $return = Invoke-RestMethod -Method GET -URI "https://$vcApiServer/api/content/subscribed-library/$subscribedLibraryId" -Headers $vcApiHeaders
+        $return
+    }
+    Catch {
+        Write-Error $_.Exception.Message 
+    }
+}
+Export-ModuleMember -Function Get-SubscribedLibrary
+
+
+###########  End vSphere API Endpoint Functions  ###########
 ##############################################################
 
 
@@ -12087,6 +12573,7 @@ Function Set-WSARoleMember {
         Write-Error $_.Exception.Message
     }
 }
+Export-ModuleMember -Function Set-WSARoleMember
 
 Function Get-WSARole {
     <#
@@ -13104,16 +13591,16 @@ Function Get-NsxtTransportZone {
         This example gets all Transport Zones
 
         .EXAMPLE
-        Get-NsxtTransportZone -Name overlay-tz-sfo-w01-nsx01.sfo.rainpole.io
+        Get-NsxtTransportZone -name overlay-tz-sfo-w01-nsx01.sfo.rainpole.io
         This example gets the Transport Zone with the name "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io"
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Name
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
     )
 
     Try {
-        if (!$PsBoundParameters.ContainsKey("Name")) {
+        if (!$PsBoundParameters.ContainsKey("name")) {
             $uri = "https://$nsxtManager/api/v1/transport-zones"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Sort-Object display_name
@@ -13121,10 +13608,10 @@ Function Get-NsxtTransportZone {
         elseif ($PsBoundParameters.ContainsKey("Name")) {
             $uri = "https://$nsxtManager/api/v1/transport-zones"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
-            $responseChecked = $response.results | Where-Object { $_.display_name -eq $Name }
+            $responseChecked = $response.results | Where-Object { $_.display_name -eq $name }
 
             if (!$responseChecked) {
-                Write-Output "NSX Transport Zone $Name was not found"
+                Write-Output "NSX Transport Zone $name was not found"
             }
             elseif ($responseChecked) {
                 $responseChecked
@@ -13151,13 +13638,13 @@ Function New-NsxtSegment {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$Name,
-        [Parameter (Mandatory = $false)] [String]$ConnectedGateway,
-        [Parameter (Mandatory = $false)] [String]$Cidr,
-        [Parameter (Mandatory = $true)] [String]$TransportZone,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$Name,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ConnectedGateway,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$Cidr,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$TransportZone,
         [Parameter (Mandatory = $false)] [ValidateSet("Tier0", "Tier1")] [String]$GatewayType,
         [Parameter (Mandatory = $true)] [ValidateSet("Overlay", "VLAN")] [String]$SegmentType,
-        [Parameter (Mandatory = $false)] [String]$VlanId
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$VlanId
     )
 
     if ($GatewayType -eq "Tier0") {
@@ -13231,7 +13718,7 @@ Function Get-NsxtSegment {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$name
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
     )
 
     Try {
@@ -13266,43 +13753,16 @@ Function Remove-NsxtSegment {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Name
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
     )
 
     Try {
-        $preCheckSegment = Get-NsxtSegment -Name $name -ErrorAction SilentlyContinue
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-
-    if ($preCheckSegment -eq "NSX segment $Name was not found") {
-        Write-Error $preCheckSegment
-        Break
-    }
-
-    Try {
         $uri = "https://$nsxtManager/policy/api/v1/infra/segments/$Name"
-        $response = Invoke-RestMethod -Method DELETE -URI $uri -ContentType application/json -headers $nsxtHeaders
+        $response = Invoke-RestMethod -Method DELETE -URI $uri -ContentType application/json -Headers $nsxtHeaders
         $response
     }
     Catch {
         Write-Error $_.Exception.Message
-    }
-
-    # Validation
-    Try {
-        $checkSegment = Get-NsxtSegment -Name $Name -ErrorAction SilentlyContinue
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-
-    if ($checkSegment -eq "NSX segment $Name was not found") {
-        Write-Output "NSX-T Segment $Name has been successfully deleted."
-    }
-    else {
-        Write-Error -Message "NSX-T Segment $Name was not deleted. Please check the logs."
     }
 }
 Export-ModuleMember -Function Remove-NsxtSegment
@@ -13329,8 +13789,8 @@ Function Get-NsxtTier0Gateway {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$name,
-        [Parameter (Mandatory = $false)] [String]$id
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
     )
 
     Try {
@@ -13378,8 +13838,8 @@ Function Get-NsxtTier1Gateway {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$name,
-        [Parameter (Mandatory = $false)] [String]$id
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
     )
 
     Try {
@@ -13418,7 +13878,7 @@ Function Get-NsxtPrefixList {
         This example returns all IP Prefix Lists
 
         .EXAMPLE
-        Get-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01
+        Get-NsxtPrefixList -tier0Gateway sfo-w01-ec01-t0-gw01 -name sfo-w01-cl01-prefix-list
         This example returns the IP Prefix List based on the prefix name provided
 
         .EXAMPLE
@@ -13427,8 +13887,8 @@ Function Get-NsxtPrefixList {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$tier0Gateway,
-        [Parameter (Mandatory = $false)] [String]$name,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
         [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
     )
 
@@ -13481,18 +13941,18 @@ Function New-NsxtPrefixList {
         The New-NsxtPrefixList cmdlet creates a Prefix List on a specified Tier-0 Gateway
 
         .EXAMPLE
-        New-NsxtPrefixList -Name sfo-w01-cl01-prefix-list -Tier0Gateway sfo-w01-ec01-t0-gw01
+        New-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01 -subnetCIDR 192.168.20.0/24 -action PERMIT 
         This example creates a new IP Prefix List on a Tier 0 Gateway
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Name,
-        [Parameter (Mandatory = $false)] [String]$Tier0Gateway,
-        [Parameter (Mandatory = $false)] [String]$SubnetCIDR,
+        [Parameter (Mandatory = $false)] [String]$name,
+        [Parameter (Mandatory = $false)] [String]$tier0Gateway,
+        [Parameter (Mandatory = $false)] [String]$subnetCIDR,
         [Parameter (Mandatory = $false)] [String]$GE,
         [Parameter (Mandatory = $false)] [String]$LE,
-        [Parameter (Mandatory = $false)] [ValidateSet("PERMIT", "DENY")] [String]$Action,
-        [Parameter (Mandatory = $false)] [String]$Json,
+        [Parameter (Mandatory = $false)] [ValidateSet("PERMIT", "DENY")] [String]$action,
+        [Parameter (Mandatory = $false)] [String]$json,
         [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
     )
 
@@ -13549,8 +14009,8 @@ Function New-NsxtPrefixList {
     }
 
     Try {
-        $global:uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists/$Name"
-        $global:response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
+        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists/$name"
+        $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
     }
     Catch {
@@ -13568,64 +14028,23 @@ Function Remove-NsxtPrefixList {
         The Remove-NsxtPrefixList cmdlet removes a IP Prefix List from a specified Tier-0 Gateway
 
         .EXAMPLE
-        Remove-NsxtPrefixList -Name sfo-w01-cl01-prefix-list -Tier0Gateway sfo-w01-ec01-t0-gw01
+        Remove-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01
         This example removes a Prefix List on a Tier 0 Gateway
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Name,
-        [Parameter (Mandatory = $false)] [String]$Tier0Gateway,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway
     )
 
-    # Validating pipeline input resource_type
-    if ($inputObject -and $inputObject.resource_type -eq "Tier0") {
-        $uriPath = $inputObject.path
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
-        Write-Error "Invalid pipeline passthrough. Exiting."
-        Break
-    } elseif (!$inputObject) {
-        if (!$Tier0Gateway) {
-            $Tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
-        }
-        $uriPath = (Get-NsxtTier0Gateway -Name $Tier0Gateway).path
-    }
-
     Try {
-        $preCheckPrefixList = Get-NsxtPrefixList -Name $Name -Tier0Gateway $Tier0Gateway -ErrorAction SilentlyContinue
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-
-    if ($preCheckPrefixList -eq "NSX IP Prefix List $Name was not found") {
-        Write-Error $preCheckPrefixList
-        Break
-    }
-
-    Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists/$Name"
-        $response = Invoke-RestMethod -Method DELETE -URI $uri -headers $nsxtHeaders -ContentType application/json
+        $gatewayId = (Get-NsxtTier0Gateway -name $tier0Gateway).id
+        $uri = "https://$nsxtManager/policy/api/v1/infra/tier-0s/$gatewayId/prefix-lists/$name"
+        $response = Invoke-RestMethod -Method DELETE -URI $uri -ContentType application/json -Headers $nsxtHeaders
         $response
     }
     Catch {
         Write-Error $_.Exception.Message
-    }
-
-    # Validation
-    Try {
-        $checkPrefixList = Get-NsxtPrefixList -Name $Name -Tier0Gateway $Tier0Gateway -ErrorAction SilentlyContinue
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-
-    if ($checkPrefixList -eq "NSX IP Prefix List $Name was not found") {
-        Write-Output "NSX-T PrefixList $Name has been successfully deleted."
-    }
-    else {
-        Write-Error -Message "NSX-T PrefixList $Name was not deleted. Please check the logs."
     }
 }
 Export-ModuleMember -Function Remove-NsxtPrefixList
@@ -13726,91 +14145,6 @@ Function Add-NsxtPrefix {
     }
 }
 Export-ModuleMember -Function Add-NsxtPrefix
-
-Function Add-NsxtPrefixList {
-    <#
-        .SYNOPSIS
-        Add an IP Prefix List to a Route Map
-
-        .DESCRIPTION
-        The Add-NsxtPrefixList cmdlet adds an IP Prefix List to a Route Map
-
-        .EXAMPLE
-        Get-NsxtPrefixList -Name sfo-w01-cl01-prefix-list | Add-NsxtPrefixList -RouteMap sfo-w01-ec01-route-map -Action PERMIT
-        This example adds an IP Prefix List to a specific Route Map
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [String]$Name,
-        [Parameter (Mandatory = $false)] [String]$Tier0Gateway,
-        [Parameter (Mandatory = $false)] [String]$RouteMap,
-        [Parameter (Mandatory = $false)] [String]$Action,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
-    )
-
-    if ($inputObject) {
-        $Tier0GatewayId = $inputObject.parent_path.Split('/')[3]
-        $Tier0Gateway = (Get-NsxtTier0Gateway -Id $Tier0GatewayId).display_name
-
-        if ($inputObject.resource_type -eq "Tier0RouteMap") {
-            $RouteMap = $inputObject.display_name
-            $existingEntries = $inputObject.entries
-            $uriPath = $inputObject.parent_path
-        }
-        elseif ($inputObject.resource_type -eq "PrefixList" -and $RouteMap) {
-            $routeMapInput = Get-NsxtTier0Gateway -Name $Tier0Gateway | Get-NsxtRouteMap -Name $RouteMap
-            $existingEntries = $routeMapInput.entries
-            $uriPath = $routeMapInput.parent_path
-        }
-        else {
-            Write-Error "Invalid pipeline passthrough. Exiting."
-            Break
-        }
-    }
-
-    $prefixListPath = (Get-NsxtTier0Gateway -Name $Tier0Gateway | Get-NsxtPrefixList -Name $Name).path
-    $prefixListPathArray = @()
-    $prefixListPathArray += $prefixListPath
-
-    $existingEntriesPrefixListMatches = $existingEntries.prefix_list_matches
-    $existingPrefixListPathArray = @()
-    $existingPrefixListPathArray += $existingEntriesPrefixListMatches
-
-    $existingEntriesAction = $existingEntries.action
-
-
-    $existingEntry = @{
-        prefix_list_matches = $existingPrefixListPathArray
-        action              = $existingEntriesAction
-    }
-
-    $newEntry = @{
-        prefix_list_matches = $prefixListPathArray
-        action              = $Action
-    }
-
-    $entries = @()
-    $entries += $existingEntry
-    $entries += $newEntry
-
-    $entriesJson = $entries | ConvertTo-Json
-
-    $json = @"
-    {
-        "entries": $entriesJson
-    }
-"@
-
-    Try {
-        $uri = "https://$nsxtmanager/policy/api/v1/"+$uriPath+"/route-maps/$RouteMap"
-        $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
-        $response
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Add-NsxtPrefixList
 
 Function Get-NsxtRouteMap {
     <#
@@ -13991,19 +14325,6 @@ Function Remove-NsxtRouteMap {
     }
 
     Try {
-        $preCheckRouteMap = Get-NsxtRouteMap -name $Name -tier0Gateway $Tier0Gateway -ErrorAction SilentlyContinue
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-
-    if ($preCheckRouteMap -eq "NSX-T RouteMap $Name was not found.") {
-        Write-Error $preCheckRouteMap
-        Break
-    }
-
-    # Check if the route map is applied to the route redistribution configuration
-    Try {
         $getRouteRedistribution = Get-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway
         if ($getRouteRedistribution.route_redistribution_config.redistribution_rules.route_map_path -eq $preCheckRouteMap.path) {
             $getRouteRedistribution | Set-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway -RemoveRouteMap:$True | Out-Null
@@ -14021,21 +14342,6 @@ Function Remove-NsxtRouteMap {
     Catch {
         Write-Error $_.Exception.Message
         Break
-    }
-
-    # Validation
-    Try {
-        $checkRouteMap = Get-NsxtRouteMap -Name $Name -Tier0Gateway $Tier0Gateway -ErrorAction SilentlyContinue
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-
-    if ($checkRouteMap -eq "NSX-T RouteMap $Name was not found.") {
-        Write-Output "NSX-T RouteMap $Name has been successfully deleted."
-    }
-    else {
-        Write-Error -Message "NSX-T RouteMap $Name was not deleted. Please check the logs."
     }
 }
 Export-ModuleMember -Function Remove-NsxtRouteMap
@@ -14530,8 +14836,7 @@ Function Remove-NsxtSyslogExporter {
 }
 Export-ModuleMember -Function Remove-NsxtSyslogExporter
 
-Function Copy-vRealizeLoadBalancer 
-{
+Function Copy-vRealizeLoadBalancer {
     <#
         .SYNOPSIS
         Creates a Load Balancer for vRealize component failover
@@ -14695,8 +15000,7 @@ Function Copy-vRealizeLoadBalancer
 }
 Export-ModuleMember -Function Copy-vRealizeLoadBalancer
 
-Function New-vRealizeLoadBalancerSpec
-{
+Function New-vRealizeLoadBalancerSpec {
     Param (
         [Parameter (Mandatory = $true)] [Array]$xintSegmentDetails,
         [Parameter (Mandatory = $true)] [Array]$serviceInterfaceIp,
@@ -15213,8 +15517,7 @@ Function New-vRealizeLoadBalancerSpec
 }
 Export-ModuleMember -Function New-vRealizeLoadBalancerSpec
 
-Function Get-NsxtGlobalSegmentID
-{
+Function Get-NsxtGlobalSegmentID {
     Param (
         [Parameter (Mandatory=$true)]
             [String]$segmentName
@@ -15233,8 +15536,7 @@ Function Get-NsxtGlobalSegmentID
 }
 Export-ModuleMember -Function Get-NsxtGlobalSegmentID
 
-Function Add-CertToNsxCertificateStore 
-{
+Function Add-CertToNsxCertificateStore {
     Param (
         [Parameter (Mandatory = $true)] [String]$certName 
     )
@@ -15291,16 +15593,8 @@ Function Add-CertToNsxCertificateStore
 }
 Export-ModuleMember -Function Add-CertToNsxCertificateStore
 
-Function Get-NsxtEdgeCluster
-{
+Function Get-NsxtEdgeCluster {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Gets NSX-T Edge Cluster Id
     
@@ -15308,7 +15602,7 @@ Function Get-NsxtEdgeCluster
         The Get-NsxtEdgeCluster cmdlet gets the Edge Cluster Id
     
         .EXAMPLE
-        PS C:\> Get-NsxtEdgeCluster
+        Get-NsxtEdgeCluster
         This example creates a new Route Map on a Tier 0 Gateway
     #>
 
@@ -15323,16 +15617,8 @@ Function Get-NsxtEdgeCluster
 }
 Export-ModuleMember -Function Get-NsxtEdgeCluster
 
-Function New-NsxtTier1
-{
+Function New-NsxtTier1 {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Tier 1 Gateway
     
@@ -15340,22 +15626,19 @@ Function New-NsxtTier1
         The New-NsxtTier1 cmdlet creates a Teir 1 Gateway
     
         .EXAMPLE
-        PS C:\> New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
+        New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
         This example creates a new Tier 1 Gateway
     #>
 
     Param (
-        [Parameter (Mandatory=$true)]
-            [ValidateNotNullOrEmpty()]
-            [string]$tier1Gateway,
-        [Parameter (Mandatory=$true)]
-            [ValidateNotNullOrEmpty()]
-            [string]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15363,16 +15646,8 @@ Function New-NsxtTier1
 }
 Export-ModuleMember -Function New-NsxtTier1
 
-Function Set-NsxtTier1
-{
-        <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
+Function Set-NsxtTier1 {
+    <#
         .SYNOPSIS
         Configures Tier 1 Gateway
     
@@ -15380,20 +15655,19 @@ Function Set-NsxtTier1
         The Set-NsxtTier1 cmdlet configures a Tier 1 Gateway
     
         .EXAMPLE
-        PS C:\> Set-NsxtTier1 -tier1Gateway -json
+        Set-NsxtTier1 -tier1Gateway -json
         This example sets the configuration on a Tier 1 Gateway
     #>
 
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
-      
+
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/locale-services/default"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15401,16 +15675,8 @@ Function Set-NsxtTier1
 }
 Export-ModuleMember -Function Set-NsxtTier1
 
-Function New-NsxtTier1ServiceInterface 
-{
-       <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
+Function New-NsxtTier1ServiceInterface {
+    <#        
         .SYNOPSIS
         Creates Service Interface on Tier 1 Gateway
     
@@ -15418,22 +15684,20 @@ Function New-NsxtTier1ServiceInterface
         The New-NsxtTier1ServiceInterface cmdlet configures a Service Interface on Tier 1 Gateway
     
         .EXAMPLE
-        PS C:\> New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
+        New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
         This example configures a Service Interface on a Tier 1 Gateway
     #>
 
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)]
-            [String]$interfaceId,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$interfaceId,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/locale-services/default/interfaces/$($interfaceId)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15441,16 +15705,8 @@ Function New-NsxtTier1ServiceInterface
 }
 Export-ModuleMember -Function New-NsxtTier1ServiceInterface
 
-Function New-NsxtTier1StaticRoute 
-{
+Function New-NsxtTier1StaticRoute {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates Static Route on Tier 1 Gateway
     
@@ -15458,21 +15714,20 @@ Function New-NsxtTier1StaticRoute
         The New-New-NsxtTier1StaticRoute cmdlet creates a static route on Tier 1 Gateway
     
         .EXAMPLE
-        PS C:\> New-NsxtTier1StaticRoute -tier1Gateway -segment -json
+        New-NsxtTier1StaticRoute -tier1Gateway -segment -json
         This example configures a Service Interface on a Tier 1 Gateway
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)]
-            [String]$segment,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$segment,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/static-routes/$($segment)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15480,16 +15735,8 @@ Function New-NsxtTier1StaticRoute
 }
 Export-ModuleMember -Function New-NsxtTier1StaticRoute
 
-Function New-NsxtLoadBalancer 
-{
+Function New-NsxtLoadBalancer {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Load Balancer 
     
@@ -15497,19 +15744,19 @@ Function New-NsxtLoadBalancer
         The New-NsxtLoadBalancer cmdlet creates a load balancer 
     
         .EXAMPLE
-        PS C:\> New-NsxtLoadBalancer -lbName -json
+        New-NsxtLoadBalancer -lbName -json
         This example creates a load balancer
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$lbName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$lbName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-services/$($lbName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15517,16 +15764,8 @@ Function New-NsxtLoadBalancer
 }
 Export-ModuleMember -Function New-NsxtLoadBalancer
 
-Function New-NsxtLBServiceMonitor 
-{ 
+Function New-NsxtLBServiceMonitor { 
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Load Balancer Service Monitor
     
@@ -15534,19 +15773,19 @@ Function New-NsxtLBServiceMonitor
         The New-NsxtLBServiceMonitor cmdlet creates a Load Balancer Service Monitor
     
         .EXAMPLE
-        PS C:\> New-NsxtLBServiceMonitor -monitorName -json
+        New-NsxtLBServiceMonitor -monitorName -json
         This example creates a Load Balancer Serviec Monitor
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$monitorName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$monitorName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-monitor-profiles/$($monitorName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15554,16 +15793,8 @@ Function New-NsxtLBServiceMonitor
 }
 Export-ModuleMember -Function New-NsxtLBServiceMonitor
 
-Function New-NsxtLBAppProfile 
-{
+Function New-NsxtLBAppProfile {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Load Balancer Application Profile
     
@@ -15571,19 +15802,19 @@ Function New-NsxtLBAppProfile
         The New-NsxtLBAppProfile cmdlet creates a Load Balancer Application Profile
     
         .EXAMPLE
-        PS C:\> New-NsxtLBAppProfile -appProfileName -json
+        New-NsxtLBAppProfile -appProfileName -json
         This example creates a Load Balancer Application Profile
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$appProfileName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
     
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-app-profiles/$($appProfileName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15591,16 +15822,8 @@ Function New-NsxtLBAppProfile
 }
 Export-ModuleMember -Function New-NsxtLBAppProfile
 
-Function New-NsxtLBPersistenceAppProfile 
-{
+Function New-NsxtLBPersistenceAppProfile {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Load Balancer Persistence Application Profile
     
@@ -15608,19 +15831,19 @@ Function New-NsxtLBPersistenceAppProfile
         The New-NsxtLBPersistenceAppProfile cmdlet creates a Load Balancer Persistence Application Profile
     
         .EXAMPLE
-        PS C:\> New-NsxtLBPersistenceAppProfile -appProfileName -json
+        New-NsxtLBPersistenceAppProfile -appProfileName -json
         This example creates a Load Balancer Persistence Application Profile
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$appProfileName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
     
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-persistence-profiles/$($appProfileName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15628,16 +15851,8 @@ Function New-NsxtLBPersistenceAppProfile
 }
 Export-ModuleMember -Function New-NsxtLBPersistenceAppProfile
 
-Function New-NsxtLBPool 
-{
+Function New-NsxtLBPool {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Load Balancer Pool
     
@@ -15645,19 +15860,19 @@ Function New-NsxtLBPool
         The New-NsxtLBPool cmdlet creates a Load Balancer Pool
     
         .EXAMPLE
-        PS C:\> New-NsxtLBPool -poolName -json
+        New-NsxtLBPool -poolName -json
         This example creates a Load Balancer Pool
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$poolName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$poolName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-pools/$($poolName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15665,16 +15880,8 @@ Function New-NsxtLBPool
 }
 Export-ModuleMember -Function New-NsxtLBPool
 
-Function New-NsxtLBVirtualServer 
-{
+Function New-NsxtLBVirtualServer {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Creates a Load Balancer Virtual Server
     
@@ -15682,19 +15889,19 @@ Function New-NsxtLBVirtualServer
         The New-NsxtLBVirtualServer cmdlet creates a Load Balancer Virtual Server
     
         .EXAMPLE
-        PS C:\> New-NsxtLBVirtualServer -virtualServerName -json
+        New-NsxtLBVirtualServer -virtualServerName -json
         This example creates a Load Balancer Virtual Server
     #>
+
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$virtualServerName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$virtualServerName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     ) 
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-virtual-servers/$($virtualServerName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15702,16 +15909,8 @@ Function New-NsxtLBVirtualServer
 }
 Export-ModuleMember -Function New-NsxtLBVirtualServer
 
-Function Get-NsxtCertificate
-{
+Function Get-NsxtCertificate {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Gets NSX-T Certificates
     
@@ -15724,9 +15923,7 @@ Function Get-NsxtCertificate
     #>
 
     Param (
-        [Parameter (Mandatory=$false)]
-            [ValidateNotNullOrEmpty()]
-            [string]$certificateName
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$certificateName
     )
 
     Try {
@@ -15750,13 +15947,6 @@ Export-ModuleMember -Function Get-NsxtCertificate
 Function Set-NsxtCertificate
 {
     <#
-        .NOTES
-        ===========================================================================
-        Created by:		Gary Blake
-        Date:			03/08/2020
-        Organization:	VMware
-        ===========================================================================
-        
         .SYNOPSIS
         Installs a Certificate in NSX-T
     
@@ -15764,21 +15954,19 @@ Function Set-NsxtCertificate
         The Set-NsxtCertificates cmdlet installs certificates in NSX-T
     
         .EXAMPLE
-        PS C:\> Set-NsxtCertificates
+        Set-NsxtCertificates
         This example installs the certificates in NSX-T
     #>
 
     Param (
-        [Parameter (Mandatory=$true)]
-            [ValidateNotNullOrEmpty()]
-            [string]$certificateName,
-        [Parameter (Mandatory=$true)]
-            [String]$json
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$certificateName,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates/$($certificateName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -15786,141 +15974,137 @@ Function Set-NsxtCertificate
 }
 Export-ModuleMember -Function Set-NsxtCertificate
 
+Function Get-NsxtNodeProfile {
+    <#
+        .SYNOPSIS
+        Get the NSX node profiles.
+
+        .DESCRIPTION
+        The Get-NsxtNodeProfile cmdlet returns the node profiles from the NSX Manager
+
+        .EXAMPLE
+        Get-NsxtNodeProfile
+        This example returns all the node profiles from the NSX Manager.
+
+        .EXAMPLE
+        Get-NsxtNodeProfile -id $id
+        This example returns the node profiles from the NSX Manager using the id.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+
+        if ($PsBoundParameters.ContainsKey('id')) {
+            $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/$id"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+            $response
+        }
+        else {
+            $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+            $response.results
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+
+}
+Export-ModuleMember -Function Get-NsxtNodeProfile
+
+Function Set-NsxtNodeProfileSyslogExporter {
+    <#
+        .SYNOPSIS
+        Sets a node profile syslog exporter.
+
+        .DESCRIPTION
+        The Set-NsxtNodeProfileSyslogExporter cmdlet adds a syslog exporter to an NSX node profie for configuration
+        of NSX components included in the node profile.
+
+        .EXAMPLE
+        Set-NsxtNodeProfileSyslogExporter -id "00000000-0000-0000-0000-000000000001" -server "sfo-vrli01.sfo.rainpole.io" -port 514 -protocol TCP -logLevel INFO
+        This example add a single syslog exporter to the NSX node profile the id of the profile.
+
+        Note: This function only supports a single syslog exporter.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$port,
+        [Parameter (Mandatory = $true)] [ValidateSet('TCP', 'UDP', 'LI')] [ValidateNotNullOrEmpty()] [String]$protocol,
+        [Parameter (Mandatory = $true)] [ValidateSet('EMERG', 'ALERT', 'CRIT', 'ERR', 'WARNING', 'NOTICE', 'INFO', 'DEBUG')] [ValidateNotNullOrEmpty()] [String]$logLevel
+    )
+
+    Try {
+        $revision = (Get-NsxtNodeProfile -id $id)._revision
+        $body = '{
+                    "syslog" : {
+                        "exporters" : [ {
+                        "server" : "' + $server + '",
+                        "port" : ' + $port + ',
+                        "protocol" : "' + $protocol + '",
+                        "max_log_level" : "' + $logLevel + '"
+                        } ]
+                    },
+                    "_revision" : ' + $revision + '
+                }'
+        $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/$id"
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $nsxtHeaders -Body $body
+        $response.results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+
+}
+Export-ModuleMember -Function Set-NsxtNodeProfileSyslogExporter
+
+Function Remove-NsxtNodeProfileSyslogExporter {
+    <#
+        .SYNOPSIS
+        Removes all node profile syslog exporters.
+
+        .DESCRIPTION
+        The Remove-NsxtNodeProfileSyslogExporter cmdlet removes all syslog exporters from an NSX node profie for configuration
+        of NSX components included in the node profile.
+
+        .EXAMPLE
+        Remove-NsxtNodeProfileSyslogExporter -id "00000000-0000-0000-0000-000000000001"
+        This example add a single syslog exporter to the NSX node profile the id of the profile.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $revision = (Get-NsxtNodeProfile -id $id)._revision
+        $body = '{
+                    "syslog" : {
+                        "exporters" : []
+                    },
+                    "_revision" : ' + $revision + '
+                }'
+        $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/$id"
+        $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $nsxtHeaders -Body $body
+        $response.results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtNodeProfileSyslogExporter
+
 ##################  End NSX-T Functions #######################
 ###############################################################
 
 
 ###############################################################
 ############  Begin vSphere with Tanzu Functions ##############
-
-Function Request-vSphereApiToken {
-    <#
-        .SYNOPSIS
-        Request an authentication token for the vSphere REST API
-
-        .DESCRIPTION
-        The Request-vSphereApiToken cmdlet requests an authentication token for the vSphere REST API
-
-		use -admin to set the Admin token for vCenter Server Management Interface
-        .EXAMPLE
-        Request-vSphereApiToken -Fqdn sfo-w01-vc01.sfo.rainpole.io -Username administrator@vsphere.local -Password VMw@re1!
-        This example requests a vSphere REST API authentication token for user administrator@vsphere.local from vCenter Server sfo-w01-vc01.sfo.rainpole.io
-
-        .EXAMPLE
-        Get-vCenterServerDetail -Server sfo-vcf01.sfo.rainpole.io -User administrator@vsphere.local -Pass VMw@re1! -Domain sfo-w01 | Request-vSphereApiToken
-        This example requests a vSphere REST API authentication token for user administrator@vsphere.local from the vCenter Server that manages VI workload domain sfo-w01
-    #>
-
-    Param (
-        [Parameter (Mandatory = $false)] [String]$Fqdn,
-        [Parameter (Mandatory = $false)] [String]$Username,
-        [Parameter (Mandatory = $false)] [String]$Password,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psobject]$inputObject,
-		[Parameter (Mandatory = $false)] [switch]$admin
-    )
-
-    if ($inputObject) {
-        $username = $inputObject.ssoAdmin
-        $password = $inputObject.ssoAdminPass
-        $fqdn = $inputObject.fqdn
-        $sddcManager = (Get-VCFManager).fqdn
-    }
-    else {
-        if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
-            # Request Credentials
-            $creds = Get-Credential
-            $username = $creds.UserName.ToString()
-            $password = $creds.GetNetworkCredential().password
-        }
-        if (!$PsBoundParameters.ContainsKey("fqdn")) {
-            $fqdn = Read-Host "vCenter Server FQDN not found. Please enter a value, e.g., sfo-m01-vc01.sfo.rainpole.io"
-        }
-    }
-    $vcAuthHeaders = createvCenterAuthHeader($username, $password)
-
-    # Perform the vCenter REST API call to authenticate and retrieve the session token
-    Try {
-		if ($admin){
-			$tmp = $fqdn
-			$fqdn = $fqdn + ":5480"
-			$vcAdminSession = (Invoke-WebRequest -Method POST -URI https://$fqdn/rest/com/vmware/cis/session -Headers $vcAuthHeaders | ConvertFrom-Json).Value
-			$fqdn = $tmp
-		}
-		$vcSession = (Invoke-WebRequest -Method POST -URI https://$fqdn/rest/com/vmware/cis/session -Headers $vcAuthHeaders | ConvertFrom-Json).Value
-    }
-    Catch {
-        Write-Error -Message "Something went wrong with vCenter Server authentication."
-    }
-
-    # Use the session token to build the header used from here on
-    $Global:vcHeaders = @{"vmware-api-session-id" = $vcSession }
-    $vcHeaders.Add("Content-Type", "application/json")
-
-	# Use the session token to build the header for admin interface used from here on
-	if ($admin){
-		$Global:vcAdminHeaders = @{"vmware-api-session-id" = $vcAdminSession }
-		$vcAdminHeaders.Add("Content-Type", "application/json")
-	}
-
-    # Validate credentials by executing an API call
-    $Global:currentvCenterServer = $fqdn
-
-    $newUri = "https://$fqdn/api/appliance/system/version"
-    $oldUri = "https://$fqdn/rest/appliance/system/version"
-
-    Try {
-        # Checking against the vCenter API
-        # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        if ($PSEdition -eq 'Core') {
-            Try {
-                $response = Invoke-RestMethod -Method GET -Uri $newUri -Headers $vcHeaders -SkipCertificateCheck
-                if ($response) {
-                    $responseSplit = $response.version.Split(".")
-                    $global:vCenterApi = $responseSplit[0..2] -join ""
-                }
-            }
-            Catch {
-                $errorStatus = $_.Exception.Response.StatusCode
-            }
-            if ($errorStatus -eq "NotFound") {
-                $response = Invoke-RestMethod -Method GET -Uri $oldUri -Headers $vcHeaders -SkipCertificateCheck
-                $responseSplit = $response.value.version.Split(".")
-                $global:vCenterApi = $responseSplit[0..2] -join ""
-            }
-        }
-        else {
-            Try {
-                $response = Invoke-RestMethod -Method GET -Uri $newUri -Headers $vcHeaders
-
-                if ($response) {
-                    $responseSplit = $response.version.Split(".")
-                    $global:vCenterApi = $responseSplit[0..2] -join ""
-                }
-            }
-            Catch {
-                $errorStatus = $_.Exception.Response.StatusCode
-            }
-
-            if ($errorStatus -eq "NotFound") {
-                $response = Invoke-RestMethod -Method GET -Uri $oldUri -Headers $vcHeaders
-                $responseSplit = $response.value.version.Split(".")
-                $global:vCenterApi = $responseSplit[0..2] -join ""
-            }
-        }
-        if ($response) {
-            if ($inputObject) {
-                Write-Output "Successfully Requested New API Token for vCenter Server $fqdn via SDDC Manager $sddcManager"
-            }
-            else {
-                Write-Output "Successfully Requested New API Token for vCenter Server $fqdn"
-            }
-        }
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Request-vSphereApiToken
 
 Function Enable-WMRegistry {
     <#
@@ -15931,33 +16115,31 @@ Function Enable-WMRegistry {
         The Enable-WMRegistry cmdlet enables the embedded Harbor Registry on a Supervisor Cluster
 
         .EXAMPLE
-        Enable-WMRegistry -Cluster "sfo-w01-cl01" -StoragePolicy "vsphere-with-tanzu-policy"
-        This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01"
+        Enable-WMRegistry -cluster sfo-w01-cl01 -ctoragePolicy vsphere-with-tanzu-policy
+        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01
 
         .EXAMPLE
-        Get-WMCluster -Cluster "sfo-w01-cl01" | Enable-WMRegistry
-        This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01" via pipeline from Get-WMCluster with the default image storage policy for the Supervisor Cluster
+        Get-WMCluster -cluster sfo-w01-cl01 | Enable-WMRegistry
+        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster with the default image storage policy for the Supervisor Cluster
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Domain,
-        [Parameter (Mandatory = $false)] [String]$Cluster,
-        [Parameter (Mandatory = $false)] [String]$StoragePolicy,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$storagePolicy,
         [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
     )
 
-    $vCenterFqdn = $currentvCenterServer
-
     if ($inputObject) {
-        $Cluster = $inputObject.Name
+        $cluster = $inputObject.Name
     }
 
     Try {
         if ($vCenterApi -le 701) {
-            $getHarborInstalled = (Invoke-RestMethod -Method GET -URI https://$vCenterFqdn/rest/vcenter/content/registries/harbor -Headers $vcHeaders).value
+            $getHarborInstalled = (Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -Headers $vcApiHeaders).value
         }
         elseif ($vCenterApi -ge 702) {
-            $getHarborInstalled = Invoke-RestMethod -Method GET -URI https://$vCenterFqdn/api/vcenter/content/registries/harbor -Headers $vcHeaders
+            $getHarborInstalled = Invoke-RestMethod -Method GET -URI https://$vcApiServer/api/vcenter/content/registries/harbor -Headers $vcApiHeaders
         }
     }
     Catch {
@@ -15966,7 +16148,7 @@ Function Enable-WMRegistry {
 
     if (!$getHarborInstalled) {
         Try {
-            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters -Headers $vcHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
+            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
         }
         Catch {
             Write-Error $_.Exception.Message
@@ -15974,7 +16156,7 @@ Function Enable-WMRegistry {
 
         if (!$StoragePolicy) {
             Try {
-                $storagePolicyId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters/$wmClusterId -Headers $vcHeaders).image_storage.storage_policy
+                $storagePolicyId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters/$wmClusterId -Headers $vcApiHeaders).image_storage.storage_policy
             }
             Catch {
                 Write-Error $_.Exception.Message
@@ -15983,7 +16165,7 @@ Function Enable-WMRegistry {
         elseif ($StoragePolicy) {
             Try {
                 if ($vCenterApi -ge 702) {
-                    $storagePolicyId = ((Invoke-WebRequest -Method GET -URI https://$vCenterFqdn/api/vcenter/storage/policies -Headers $vcHeaders | ConvertFrom-Json) | Where-Object { $_.name -eq $StoragePolicy }).policy
+                    $storagePolicyId = ((Invoke-WebRequest -Method GET -URI https://$vcApiServer/api/vcenter/storage/policies -Headers $vcApiHeaders  -UseBasicParsing | ConvertFrom-Json) | Where-Object { $_.name -eq $StoragePolicy }).policy
                     $json = @"
 {
     "cluster" : "$wmClusterId",
@@ -15997,7 +16179,7 @@ Function Enable-WMRegistry {
 "@
                 }
                 elseif ($vCenterApi -le 701) {
-                    $storagePolicyId = ((Invoke-WebRequest -Method GET -URI https://$vCenterFqdn/rest/vcenter/storage/policies -Headers $vcHeaders | ConvertFrom-Json).value | Where-Object { $_.name -eq $StoragePolicy }).policy
+                    $storagePolicyId = ((Invoke-WebRequest -Method GET -URI https://$vcApiServer/rest/vcenter/storage/policies -Headers $vcApiHeaders -UseBasicParsing | ConvertFrom-Json).value | Where-Object { $_.name -eq $StoragePolicy }).policy
                     $json = @"
 {
     "spec" :
@@ -16022,7 +16204,7 @@ Function Enable-WMRegistry {
     # Send a REST API call to vCenter Server to instantiate the new Harbor registry
         if ($vCenterApi -le 701) {
             Try {
-                $installHarbor = Invoke-RestMethod -Method POST -URI https://$vCenterFqdn/rest/vcenter/content/registries/harbor -Headers $vcHeaders -Body $json -ContentType application/json
+                $installHarbor = Invoke-RestMethod -Method POST -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -Headers $vcApiHeaders -Body $json -ContentType application/json
             }
             Catch {
                 Write-Error $_.Exception.Message
@@ -16030,19 +16212,19 @@ Function Enable-WMRegistry {
 
             if ($installHarbor) {
                 $installHarborValue = $installHarbor.value
-                Write-Output "Embedded registry $installHarborValue deployment successfully started on Supervisor Cluster $Cluster"
+                Write-Output "Embedded registry $installHarborValue deployment successfully started on Supervisor Cluster $cluster"
             }
         }
         elseif ($vCenterApi -ge 702) {
             Try {
-                $installHarbor = Invoke-RestMethod -Method POST -URI https://$vCenterFqdn/api/vcenter/content/registries/harbor -Headers $vcHeaders -Body $json -ContentType application/json
+                $installHarbor = Invoke-RestMethod -Method POST -URI https://$vcApiServer/api/vcenter/content/registries/harbor -Headers $vcApiHeaders -Body $json -ContentType application/json
             }
             Catch {
                 Write-Error $_.Exception.Message
             }
 
             if ($installHarbor) {
-                Write-Output "Embedded registry $installHarbor deployment successfully started on Supervisor Cluster $Cluster"
+                Write-Output "Embedded registry $installHarbor deployment successfully started on Supervisor Cluster $cluster"
             }
         }
 }
@@ -16061,28 +16243,26 @@ Function Get-WMRegistry {
         This example retrieves all embedded Harbor Registries in vCenter Server inventory
 
         .EXAMPLE
-        Get-WMRegistry -Cluster "sfo-w01-cl01"
+        Get-WMRegistry -Cluster sfo-w01-cl01
         This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01"
 
         .EXAMPLE
-        Get-WMCluster -Cluster "sfo-w01-cl01" | Get-WMRegistry
+        Get-WMCluster -Cluster sfo-w01-cl01 | Get-WMRegistry
         This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01" via pipeline from Get-WMCluster
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Cluster,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (ValueFromPipeline, Mandatory = $false)] [ValidateNotNullOrEmpty()] [psObject]$inputObject
     )
 
-    $vCenterFqdn = $currentvCenterServer
-
     if ($inputObject) {
-        $Cluster = $inputObject.Name
+        $cluster = $inputObject.Name
     }
 
     if ($Cluster) {
         Try {
-            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vCenterFqdn/api/vcenter/namespace-management/clusters -Headers $vcHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
+            $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
         }
         Catch {
             Write-Error $_.Exception.Message
@@ -16092,21 +16272,21 @@ Function Get-WMRegistry {
     Try {
         if (!$PsBoundParameters.ContainsKey("Cluster")) {
             if ($vCenterApi -le 701) {
-                $response = Invoke-RestMethod -Method GET -URI https://$vCenterFqdn/rest/vcenter/content/registries/harbor -ContentType application/json -headers $vcHeaders
+                $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response.value
             }
             elseif ($vCenterApi -ge 702) {
-                $response = Invoke-RestMethod -Method GET -URI https://$vCenterFqdn/api/vcenter/content/registries/harbor -ContentType application/json -headers $vcHeaders
+                $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/api/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response
             }
         }
         elseif ($PsBoundParameters.ContainsKey("Cluster")) {
             if ($vCenterApi -le 701) {
-                $response = Invoke-RestMethod -Method GET -URI https://$vCenterFqdn/rest/vcenter/content/registries/harbor -ContentType application/json -headers $vcHeaders
+                $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response.value | Where-Object { $_.cluster -eq $wmClusterId }
             }
             elseif ($vCenterApi -ge 702) {
-                $response = Invoke-RestMethod -Method GET -URI https://$vCenterFqdn/api/vcenter/content/registries/harbor -ContentType application/json -headers $vcHeaders
+                $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/api/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response | Where-Object { $_.cluster -eq $wmClusterId }
             }
         }
@@ -16120,50 +16300,42 @@ Export-ModuleMember -Function Get-WMRegistry
 Function Remove-WMRegistry {
     <#
         .SYNOPSIS
-        Remove the embedded Harbor Registry on a Supervisor Cluster
+        Disable the embedded Harbor Registry on a Supervisor Cluster
 
         .DESCRIPTION
-        The Remove-wmRegistry cmdlet removes the embedded Harbor Registry on a Supervisor Cluster
+        The Remove-WMRegistry cmdlet disables the embedded Harbor Registry on a Supervisor Cluster
 
         .EXAMPLE
-        Get-WMRegistry -Cluster "sfo-w01-cl01" | Remove-WMRegistry
-        This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01" via pipeline from Get-wmCluster with the default storage policy for the Supervisor Cluster
+        Get-WMRegistry -cluster sfo-w01-cl01 | Remove-WMRegistry
+        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster
 
         .EXAMPLE
-        Remove-WMRegistry -Cluster "sfo-w01-cl01"
-        This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01" via pipeline from Get-wmCluster with the default storage policy for the Supervisor Cluster
+        Remove-WMRegistry -cluster sfo-w01-cl01
+        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Cluster,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (ValueFromPipeline, Mandatory = $false)] [ValidateNotNullOrEmpty()] [psObject]$inputObject
     )
 
-    $vCenterFqdn = $currentvCenterServer
-
-    if ($inputObject) {
-        $harborRegistryId = $inputObject.registry
-    }
-    else {
-        Try {
-            $harborRegistryId = (Get-WMRegistry -Cluster $Cluster).registry
-        }
-        Catch {
-            Write-Error $_.Exception.Message
-        }
-    }
-
-    if ($vCenterApi -le 701) {
-        $uri = "https://$vCenterFqdn/rest/vcenter/content/registries/harbor/$harborRegistryId"
-    }
-    elseif ($vCenterApi -ge 702) {
-        $uri = "https://$vCenterFqdn/api/vcenter/content/registries/harbor/$harborRegistryId"
-    }
-
     Try {
-        $response = Invoke-WebRequest -Method DELETE -URI $uri -ContentType application/json -headers $vcHeaders
+        if ($inputObject) {
+            $harborRegistryId = $inputObject.registry
+        }
+        else {
+            $harborRegistryId = (Get-WMRegistry -cluster $cluster).registry
+        }
+
+        if ($vCenterApi -le 701) {
+            $uri = "https://$vcApiServer/rest/vcenter/content/registries/harbor/$harborRegistryId"
+        }
+        elseif ($vCenterApi -ge 702) {
+            $uri = "https://$vcApiServer/api/vcenter/content/registries/harbor/$harborRegistryId"
+        }
+        $response = Invoke-WebRequest -Method DELETE -URI $uri -ContentType application/json -headers $vcApiHeaders -UseBasicParsing
         if ($response.StatusCode -eq 200 -or $response.StatusCode -eq 204) {
-            Write-Output "Embedded registry removal successfully started for Supervisor Cluster $Cluster"
+            Write-Output "Disable embedded Harbor Registry successfully started for Supervisor Cluster $cluster"
         }
     }
     Catch {
@@ -16172,49 +16344,71 @@ Function Remove-WMRegistry {
 }
 Export-ModuleMember -Function Remove-WMRegistry
 
-Function Connect-WMCluster {
+Function Get-WMRegistryHealth {
     <#
         .SYNOPSIS
-        Log in to a Supervisor Cluster
+        Retrieves the embedded Harbor Registry Health
 
         .DESCRIPTION
-        The Connect-WMCluster cmdlet adds a refix List to an NSX-T Route Map
+        The Get-WMRegistry cmdlet retrieves the embedded Harbor Registry Health
 
         .EXAMPLE
-        Connect-WMCluster -Cluster sfo-w01-cl01 -User administrator@vsphere.local -Pass VMw@re1!
-        This example logs the vSphere SSO user administrator@vsphere.local into Supervisor Cluster sfo-w01-cl01
+        Get-WMRegistryHealth -registry <regestry_id>
+        This example gets the health status of the embedded Harbor Registry
+
+        .EXAMPLE
+        Get-WMRegistry -cluster sfo-w01-cl01 | Get-WMRegistryHealth
+        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Cluster,
-        [Parameter (Mandatory = $true)] [String]$User,
-        [Parameter (Mandatory = $true)] [String]$Pass,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psObject]$inputObject
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$registry,
+        [Parameter (ValueFromPipeline, Mandatory = $false)] [ValidateNotNullOrEmpty()] [psObject]$inputObject
     )
 
-    if ($inputObject) {
-        $Server = $inputObject.KubernetesHostname
-    }
-    else {
-        $Server = (Get-WMCluster -Cluster $Cluster).KubernetesHostname
-    }
-
     Try {
-        Start-AwaitSession | Out-Null
-        Send-AwaitCommand "kubectl vsphere login --server $Server --vsphere-username $Username --insecure-skip-tls-verify" | Out-Null
-        Wait-AwaitResponse "Password:" | Out-Null
-        Send-AwaitCommand "$Password"
-        Stop-AwaitSession
-        Start-Sleep -seconds 3 | Out-Null
+        if ($inputObject) {
+            $registry = $inputObject.registry
+        }
+        $uri = "https://$vcApiServer/rest/vcenter/content/registries/$registry/health"
+        $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders -ContentType application/json
+        $response.value.status
     }
     Catch {
-        Write-Error "Something went wrong."
+        Write-Error = $_.Exception
     }
+}
+Export-ModuleMember -Function Get-WMRegistryHealth
 
-    $tryKubectl = Invoke-Expression "kubectl get nodes"
+Function Connect-WMCluster {
+    <#
+        .SYNOPSIS
+        Connect to the Supervisor Cluster
 
-    if ($tryKubectl) {
-        Write-Output "Connection successful."
+        .DESCRIPTION
+        The Connect-WMCluster cmdlet connect to the Supervisor Cluster
+
+        .EXAMPLE
+        Connect-WMCluster -cluster sfo-w01-cl01 -user administrator@vsphere.local -pass VMw@re1!
+        This example connects with the vSphere SSO user administrator@vsphere.local to the Supervisor Cluster sfo-w01-cl01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        $server = (Get-WMCluster -Cluster $cluster).KubernetesHostname
+        $env:KUBECTL_VSPHERE_PASSWORD = $pass
+        Invoke-Expression "kubectl vsphere login --server $server --vsphere-username $user --insecure-skip-tls-verify" | Out-Null
+        if (Invoke-Expression "kubectl get nodes") {
+            Write-Output "Successfully connected to Supervisor Cluster: $server"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Connect-WMCluster
@@ -16222,21 +16416,23 @@ Export-ModuleMember -Function Connect-WMCluster
 Function Disconnect-WMCluster {
     <#
         .SYNOPSIS
-        Add a Prefix List to an NSX-T Route Map
+        Disconnect from o the Supervisor Cluster
 
         .DESCRIPTION
-        The Add-NsxtPrefixList cmdlet adds a refix List to an NSX-T Route Map
+        The Disconnect-WMCluster cmdlet disconnects from the Supervisor Cluster
 
         .EXAMPLE
-        Get-NsxtPrefixList -Name sfo-w01-cl01-prefix-list | Add-NsxtPrefixList -RouteMap sfo-w01-ec01-route-map -Action PERMIT
-        This example creates a new Prefix List on a Tier 0 Gateway
+        Disconnect-WMCluster
+        This example disconnects from the Supervisor Cluster
     #>
 
     Try {
-        Invoke-Expression "kubectl vsphere logout"
+        Invoke-Expression "kubectl vsphere logout" | Out-Null
+        $env:KUBECTL_VSPHERE_PASSWORD = $null
+        Write-Output "Successfully disconnected from Supervisor Cluster"
     }
     Catch {
-        Debug-ExceptionWriter -object $_
+        Write-Error = $_.Exception
     }
 }
 Export-ModuleMember -Function Disconnect-WMCluster
@@ -16244,80 +16440,84 @@ Export-ModuleMember -Function Disconnect-WMCluster
 Function New-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Adds a Tanzu Kubernetes cluster based on the specified YAML file.
+        Adds a Tanzu Kubernetes Cluster based on the specified YAML file.
 
         .DESCRIPTION
-        The New-WMTkgsCluster cmdlet adds a Tanzu Kubernetes cluster based on the specified YAML file.
+        The New-TanzuKubernetesCluster cmdlet adds a Tanzu Kubernetes Cluster based on the specified YAML file.
 
         .EXAMPLE
-        New-WMTkgsCluster -YAML c:\kube\yaml\tkgsCluster.yaml
-        This example creates a new Prefix List on a Tier 0 Gateway
+        New-TanzuKubernetesCluster -YAML .\SampleYaml\sfo-w01-tkc01-cluster.yaml
+        This example creates a Tanzu Kubernetes Cluster based on the yaml file
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$YAML
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$YAML
     )
 
     Try {
         Invoke-Expression "kubectl apply -f $YAML"
     }
     Catch {
-        Debug-ExceptionWriter -object $_
+        Write-Error = $_.Exception
     }
 }
-New-Alias -name Set-TanzuKubernetesCluster -Value Mew-TanzuKubernetesCluster
-Export-ModuleMember -Alias Set-TanzuKubernetesCluster -Function New-TanzuKubernetesCluster
+Export-ModuleMember -Function New-TanzuKubernetesCluster
 
 Function Get-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Retrieves a Tanzu Kubernetes cluster
+        Retrieves a Tanzu Kubernetes Cluster
 
         .DESCRIPTION
-        The Get-TanzuKuberntesCluster cmdlet retrieves a Tanzu Kubernetes cluster
+        The Get-TanzuKuberntesCluster cmdlet retrieves a Tanzu Kubernetes Cluster
 
         .EXAMPLE
         Get-TanzuKubernetesCluster
-        This example retrieves all TanzuKubernetesCluster objects from all namespaces
+        This example retrieves all Tanzu Kubernetes Clusters from all Namespaces
 
         .EXAMPLE
-        Get-TanzuKubernetesCluster -Name sfo-w01-tkc01 -Namespace sfo-w01-tkc01
-        This example retrieves a TanzuKubernetesCluster object named "sfo-w01-tkc01" from the namespace specified "sfo-w01-tkc01"
+        Get-TanzuKubernetesCluster -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01 
+        This example retrieves a Tanzu Kubernetes Cluster named "sfo-w01-tkc01" from the Namespace specified "sfo-w01-tkc01"
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [String]$Name,
-        [Parameter (Mandatory = $false)] [String]$Namespace,
-        [Parameter (Mandatory = $false)] [Bool]$Detailed
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tkc,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$detail
     )
 
-    if ($Detailed -eq $true) {
-        if (!$Name -and !$Namespace) {
-            Invoke-Expression "kubectl describe tkc --all-namespaces"
+    Try {
+        if ($PsBoundParameters.ContainsKey("detail")) {
+            if (!$tkc -and !$namespace) {
+                Invoke-Expression "kubectl describe tkc --all-namespaces"
+            }
+            elseif (!$tkc -and $namespace) {
+                Invoke-Expression "kubectl describe tkc -n $namespace"
+            }
+            elseif ($tkc -and !$namespace) {
+                Write-Error "A resource cannot be retrieved by tkc name across all namespaces"
+            }
+            elseif ($tkc -and $namespace) {
+                Invoke-Expression "kubectl describe tkc $tkc -n $namespace"
+            }
         }
-        elseif (!$Name -and $Namespace) {
-            Invoke-Expression "kubectl describe tkc -n $Namespace"
-        }
-        elseif ($Name -and !$Namespace) {
-            Write-Error "A resource cannot be retrieved by name across all namespaces"
-        }
-        elseif ($Name -and $Namespace) {
-            Invoke-Expression "kubectl describe tkc $Name -n $Namespace"
+        else {
+            if (!$tkc -and !$namespace) {
+                Invoke-Expression "kubectl get tkc --all-namespaces"
+            }
+            elseif (!$tkc -and $namespace) {
+                Invoke-Expression "kubectl get tkc -n $namespace"
+            }
+            elseif ($tkc -and !$namespace) {
+                Write-Error "A resource cannot be retrieved by name across all namespaces"
+            }
+            elseif ($tkc -and $namespace) {
+                Invoke-Expression "kubectl get tkc $tkc -n $namespace"
+            }
         }
     }
-    elseif (!$Detailed -or $Detailed -eq $false) {
-        if (!$Name -and !$Namespace) {
-            Invoke-Expression "kubectl get tkc --all-namespaces"
-        }
-        elseif (!$Name -and $Namespace) {
-            Invoke-Expression "kubectl get tkc -n $Namespace"
-        }
-        elseif ($Name -and !$Namespace) {
-            Write-Error "A resource cannot be retrieved by name across all namespaces"
-        }
-        elseif ($Name -and $Namespace) {
-            Invoke-Expression "kubectl get tkc $Name -n $Namespace"
-        }
+    Catch {
+        Write-Error = $_.Exception
     }
 }
 Export-ModuleMember -Function Get-TanzuKubernetesCluster
@@ -16325,29 +16525,273 @@ Export-ModuleMember -Function Get-TanzuKubernetesCluster
 Function Remove-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Adds a Tanzu Kubernetes cluster based on the specified YAML file.
+        Remove a Tanzu Kubernetes cluster
 
         .DESCRIPTION
-        The New-WMTkgsCluster cmdlet adds a Tanzu Kubernetes cluster based on the specified YAML file.
+        The Remove-TanzuKubernetesCluster cmdlet removes a Tanzu Kubernetes cluster
 
         .EXAMPLE
-        New-WMTkgsCluster -YAML c:\kube\yaml\tkgsCluster.yaml
-        This example creates a new Prefix List on a Tier 0 Gateway
+        Remove-TanzuKubernetesCluster -cluster sfo-w01-tkc01 -namespace sfo-w01-tkc01
+        This example removes the Tanzu Kubernetes cluster
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [String]$Name,
-        [Parameter (Mandatory = $true)] [String]$Namespace
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace
     )
 
     Try {
-        Invoke-Expression "kubectl delete tkc $Name -n $Namespace"
+        Invoke-Expression "kubectl delete tkc $cluster -n $namespace"
     }
     Catch {
-        Write-Error "Something went wrong."
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Remove-TanzuKubernetesCluster
+
+Function Get-VMClass {
+    <#
+        .SYNOPSIS
+        Retrieves information on a Virtual Machine class
+
+        .DESCRIPTION
+        The Get-VMClass cmdlet retrieves information on a Virtual Machine class
+
+        .EXAMPLE
+        Get-VMClass 
+        This example retrieves all Virtual Machine classes
+
+        .EXAMPLE
+        Get-VMClass -vmClass guaranteed-small 
+        This example retrieves information on the Virtual Machine Class guaranteed-small
+
+        .EXAMPLE
+        Get-VMClass -namespace sfo-w01-tkc01 
+        This example retrieves Virtual Machine Classes assigned to the namespace sfo-w01-tkc01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium","guaranteed-large","guaranteed-xlarge","best-effort-4xlarge","guaranteed-small","best-effort-medium","best-effort-2xlarge","guaranteed-2xlarge","best-effort-large","guaranteed-4xlarge","best-effort-8xlarge","best-effort-xsmall","guaranteed-xsmall","best-effort-xlarge","guaranteed-8xlarge","best-effort-small")] [String]$vmClass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("name")) {
+            $uri = "https://$vcApiServer/api/vcenter/namespace-management/virtual-machine-classes/$vmClass"
+            $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
+            $response
+        }
+        elseif ($PsBoundParameters.ContainsKey("namespace")) {
+            $uri = "https://$vcApiServer/api/vcenter/namespaces/instances/$namespace"
+            $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
+            $response.vm_service_spec.vm_classes
+        }
+        else {
+            $uri = " https://$vcApiServer/api/vcenter/namespace-management/virtual-machine-classes"
+            $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-VMClass
+
+Function Add-VMClass {
+    <#
+        .SYNOPSIS
+        Retrieves information on a Virtual Machine class
+
+        .DESCRIPTION
+        The Add-VMClass cmdlet retrieves information on a Virtual Machine class
+
+        .EXAMPLE
+        Add-VMClass -namespace sfo-w01-tkc01 -vmClass guaranteed-small
+        This example retrieves all Virtual Machine classes
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace,
+        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium","guaranteed-large","guaranteed-xlarge","best-effort-4xlarge","guaranteed-small","best-effort-medium","best-effort-2xlarge","guaranteed-2xlarge","best-effort-large","guaranteed-4xlarge","best-effort-8xlarge","best-effort-xsmall","guaranteed-xsmall","best-effort-xlarge","guaranteed-8xlarge","best-effort-small")] [String]$vmClass
+    )
+
+    Try {
+        $existingVmClass = Get-VMClass -namespace $namespace -ErrorAction Ignore
+        if ($existingVmClass) {
+            $newVmClass = New-Object System.Collections.Generic.List[System.Object]
+            foreach ($assignedVMclass in $existingVmClass) {
+                if (!($assignedVMclass -eq $vmClass)) {
+                    $newVmClass += $assignedVMclass
+                }
+            }
+            $newVmClass += $vmClass
+            $jsonFormat = ConvertTo-Json $newVmClass
+
+            $body = '{"vm_service_spec": { "vm_classes": '+ $jsonFormat +'}}'
+        }
+        else {
+            $body = '{ "vm_service_spec": { "vm_classes": [ "' + $vmClass + '" ] }}'
+        }
+
+        $uri = "https://$vcApiServer/api/vcenter/namespaces/instances/$namespace"
+        $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vcApiHeaders -body $body 
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-VMClass
+
+Function Get-WMLicenseStatus {
+    <#
+        .SYNOPSIS
+        Get Workload Management license status
+
+        .DESCRIPTION
+        The Get-WMLicenseStatus cmdlet gets the license status from vCenter Server for Workload Management
+
+        .EXAMPLE
+        Get-WMLicenseStatus
+        This example gets the vSphere with Tanzu licenses status from vCenter Server for Workload Management
+    #>
+
+    # Param (
+    #     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+    #     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    # )
+
+    Try {
+        $uri = "https://$vcApiServer/api/vcenter/namespace-management/capability"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
+        $response
+
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_ 
+    }
+}
+Export-ModuleMember -Function Get-WMLicenseStatus
+
+Function Request-WMClusterCSR {
+    <#
+        .SYNOPSIS
+        Request Certificate Signing Request filr
+
+        .DESCRIPTION
+        The Request-WMClusterCSR cmdlet requests a Certificate Signing Request file for the Supervisor Cluster
+        .EXAMPLE
+        Request-WMClusterCSR -cluster sfo-w01-cl01 -commonName sfo-w01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
+        This example requetes a Certificate Signing Request file for the Supervisor Cluster sfo-w01-cl01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$commonName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$organization,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$organizationalUnit,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$country,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$stateOrProvince,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$locality,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmailAddress,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$keySize,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath
+    )
+
+    Try {
+        $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters"
+        $clusterId = (Invoke-RestMethod -Method GET -URI $uri -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $cluster }).cluster
+        
+        $output = New-Object -TypeName PSCustomObject
+        $output | Add-Member -notepropertyname 'common_name' -notepropertyvalue $commonName
+        $output | Add-Member -notepropertyname 'organization_name' -notepropertyvalue $organization
+        $output | Add-Member -notepropertyname 'organization_unit_name' -notepropertyvalue $organizationalUnit
+        $output | Add-Member -notepropertyname 'country' -notepropertyvalue $country
+        $output | Add-Member -notepropertyname 'state_or_province' -notepropertyvalue $stateOrProvince
+        $output | Add-Member -notepropertyname 'locality' -notepropertyvalue $locality
+        $output | Add-Member -notepropertyname 'email_address' -notepropertyvalue $adminEmailAddress
+        if ($PsBoundParameters.ContainsKey("keySize")){
+            $output | Add-Member -notepropertyname 'keySize' -notepropertyvalue $keySize
+        }
+        $body = $output | ConvertTo-Json
+        $uri = "https://$vcApiServer/api/$clusterId/csr/tls-endpoint/"
+        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $vcApiHeaders -body $body
+        $response | Out-File -FilePath $filePath
+        Write-Output "Certificate Signing Request (.csr) file for ($commonName) has been successfully saved to file ($filePath)"
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-WMClusterCSR
+
+Function Install-WMClusterCertificate {
+    <#
+        .SYNOPSIS
+        Installs a signed TLS certificate for the defined Supervisor Cluster
+
+        .DESCRIPTION
+        The Install-WMClusterCertificate cmdlet installs a signed TLS certificate for the defined Supervisor Cluster
+
+        .EXAMPLE
+        Install-WMClusterCertificate -cluster sfo-w01-cl01 -filePath ".\SupervisorCluster.cer"
+        This example installs the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("filepath")) {
+            if (!(Test-Path $filepath)) {
+                Throw "Certificate File Not Found"
+            }
+            else {
+                $certificate = Get-Content -Path $filePath -Raw -ErrorAction SilentlyContinue
+                $inputFileName = Split-Path -Path $filePath -Leaf -ErrorAction SilentlyContinue
+            }
+        }
+        if ($isMacOS -eq $true -or $isLinux -eq $true) {
+            $certificateFormatted = $Certificate -Replace "`n","\n"
+        }
+        elseif ($isWindows -eq $true -or $PSEdition -eq "Desktop") {
+            $certificateFormatted = $Certificate -Replace "`r`n","\n"
+        }
+        else {
+            Write-Error "Unsupported Operating System"
+            Break
+        }
+        if (($certificateFormatted | Measure-object -Line).Count -ne 1) {
+            Write-Error "Error parsing TLS certificate"
+            Break
+        }
+        $body = '{ "tls_endpoint_certificate": "'+ $certificateFormatted +'" }' 
+        $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters"
+        $clusterId = (Invoke-RestMethod -Method GET -URI $uri -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $cluster }).cluster
+        $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters/$clusterId/"
+        if ($PSEdition -eq 'Core') {
+            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcApiHeaders -body $body -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented
+        }
+        else {
+            $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcApiHeaders -body $body -UseBasicParsing
+        }
+        if ($response.StatusCode -lt 300) {
+            if ($inputFileName) {
+                Write-Output "Signed Certificate ($inputFileName) has been successfully applied to Supervisor Cluster ($cluster)"
+            }
+            else {
+                Write-Output "Signed Certificate has been successfully applied to Supervisor Cluster ($cluster)"
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-WMClusterCertificate
 
 #############  End vSphere with Tanzu Functions ###############
 ###############################################################
@@ -16368,7 +16812,7 @@ Function Request-vRSLCMToken {
         .EXAMPLE
         Request-vRSLCMToken -fqdn xreg-vrslcm.rainpole.io -username admin@local -password VMware1!
         This example shows how to connect to the vRealize Suite Lifecycle Manager appliance
-      #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -16389,10 +16833,10 @@ Function Request-vRSLCMToken {
         # Validate credentials by executing an API call
         $uri = "https://$vrslcmAppliance/lcmversion"
         if ($PSEdition -eq 'Core') {
-            $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+            $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         }
         else {
-            $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders
+            $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -UseBasicParsing
         }
         if ($vrslcmResponse.StatusCode -eq 200) {
             Write-Output "Successfully connected to the vRealize Suite Lifecycle Manager Appliance: $vrslcmAppliance"
@@ -16443,10 +16887,15 @@ Function Get-vRSLCMLockerPassword {
         .EXAMPLE
         Get-vRSLCMLockerPassword -vmid 83abd0fd-c92d-4d8f-a5e8-9a1fc4fa6009
         This example gets the details of a password based on the vmid
+
+        .EXAMPLE
+        Get-vRSLCMLockerPassword -alias xint-env-admin
+        This example gets the details of a password based on the alias
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$alias
     )
 
     Try {
@@ -16455,8 +16904,13 @@ Function Get-vRSLCMLockerPassword {
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
         }
+        elseif ($PsBoundParameters.ContainsKey("alias")){
+            $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords?aliasQuery=$alias"
+            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+            $response.passwords
+        }
         else {
-            $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords"
+            $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords?size=19"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response.passwords
         }
@@ -16648,7 +17102,6 @@ Function Add-vRSLCMLockerCertificate {
         Write-Error $_.Exception.Message
     }
 }
-
 Export-ModuleMember -Function Add-vRSLCMLockerCertificate
 
 Function Remove-vRSLCMLockerCertificate {
@@ -16685,7 +17138,7 @@ Function Get-vRSLCMLockerLicense {
         Get paginated list of License available in the Store
 
         .DESCRIPTION
-        The Get-vRSLCMLockerPassword cmdlet gets a paginated list of license available in the Locker
+        The Get-vRSLCMLockerLicense cmdlet gets a paginated list of license available in the Locker
 
         .EXAMPLE
         Get-vRSLCMLockerLicense
@@ -16959,7 +17412,7 @@ Function Add-vRSLCMDatacenterVcenter {
         The Add-vRSLCMDatacenterVcenter cmdlet adds a vCenter Servers to a Datacenter in vRealize Suite Lifecycle Manager
 
         .EXAMPLE
-        Add-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid>
+        Add-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterFqdn <vcenter_fqdn> -userLockerAlias <user_alias>
         This example adds a vCenter Server to a Datacenter
     #>
 
@@ -16974,9 +17427,9 @@ Function Add-vRSLCMDatacenterVcenter {
         $body = '{
             "vCenterHost": "' + $vcenterFqdn + '",
             "vCenterName": "' + ($vcenterFqdn.Split("."))[0] + '",
-            "vcPassword": "locker:password:' + (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $userLockerAlias}).vmid + ':' + $userLockerAlias + '",
+            "vcPassword": "locker:password:' + (Get-vRSLCMLockerPassword -alias $userLockerAlias).vmid + ':' + $userLockerAlias + '",
             "vcUsedAs": "MANAGEMENT",
-            "vcUsername": "' + (Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $userLockerAlias}).userName +'"
+            "vcUsername": "' + (Get-vRSLCMLockerPassword -alias $userLockerAlias).userName +'"
         }'
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
@@ -17244,10 +17697,10 @@ Function Export-WsaJsonSpec {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
                             if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value}) {
-                                if ($defaultPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value}) { 
-                                    if ($configAdminPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value}) { 
-                                        if ($wsaPassword = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value}) {
-                                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.alias -eq (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)}
+                                if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
+                                    if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
+                                        if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
+                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                             if ($datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}) {
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
                                                 $infrastructurePropertiesObject = @()
@@ -17366,6 +17819,7 @@ Function Export-WsaJsonSpec {
                                                 $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                                 if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5"}
                                                 if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5"}
+                                                if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vidm"
@@ -17465,16 +17919,10 @@ Function New-WSADeployment {
                             $json = (Get-Content -Raw .\wsaDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
-                                if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])}) {
-                                    if (Get-vRSLCMLockerPassword | Where-Object {$_.alias -Match $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])}) {
+                                if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
+                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
                                         if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
-                                            
-                                            #if ($jsonSpec.environmentId) {
-                                            #    $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
-                                            #}
-                                            #else {
-                                                $newRequest = Add-vRSLCMEnvironment -json $json
-                                            #}
+                                            $newRequest = Add-vRSLCMEnvironment -json $json
                                             if ($newRequest) {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
@@ -17569,10 +18017,10 @@ Function Request-vRAToken {
         }
 
         if ($PSEdition -eq 'Core') {
-            $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+            $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         }
         else {
-            $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body
+            $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body -UseBasicParsing
         }
 
         if ($vraResponse.StatusCode -eq 200) {
@@ -18827,18 +19275,18 @@ Function Invoke-vRORestMethod {
     Try {
         if ($PSEdition -eq 'Core') {
             if ($PSBoundParameters.ContainsKey("webRequest")) {
-                Invoke-WebRequest @Params -SkipCertificateCheck
+                Invoke-WebRequest @Params -SkipCertificateCheck -UseBasicParsing
             }
             else {
-                Invoke-RestMethod @Params -SkipCertificateCheck
+                Invoke-RestMethod @Params -SkipCertificateCheck -UseBasicParsing
             }
         }
         else {
             if ($PSBoundParameters.ContainsKey("webRequest")) {
-                Invoke-WebRequest @Params
+                Invoke-WebRequest @Params -UseBasicParsing
             }
             else {
-                Invoke-RestMethod @Params
+                Invoke-RestMethod @Params -UseBasicParsing
             }
         }
     }
@@ -19382,7 +19830,7 @@ Function Request-vROPSToken {
         .EXAMPLE
         Request-vROPSToken -fqdn xint-vrops01.rainpole.io -username admin -password VMw@re1!
         This example shows how to connect to the vRealize Operations Manager appliance
-      #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -19426,6 +19874,45 @@ Function Request-vROPSToken {
     }
 }
 Export-ModuleMember -Function Request-vROPSToken
+
+Function Get-vROPSVersion {
+    <#
+        .SYNOPSIS
+        Get version informartion
+
+        .DESCRIPTION
+        The Get-vROPSVersion cmdlet gets version information for vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSVersion 
+        This example gets the current version of the service
+
+        .EXAMPLE
+        Get-vROPSVersion -all
+        This example gets a list of all versions supported by the service
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$all
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("all")) {
+            $uri = "https://$vropsAppliance/suite-api/api/versions"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.values
+        }
+        else {
+            $uri = "https://$vropsAppliance/suite-api/api/versions/current"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSVersion
 
 Function Get-vROPSCollector {
     <#
@@ -19669,7 +20156,7 @@ Function Add-vROPSAdapter {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
- 
+
         $uri = "https://$vropsAppliance/suite-api/api/adapters"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
         $response
@@ -19679,6 +20166,44 @@ Function Add-vROPSAdapter {
     }
 }
 Export-ModuleMember -Function Add-vROPSAdapter
+
+Function Test-vROPSAdapterConnection {
+    <#
+        .SYNOPSIS
+        Test adapter connection
+
+        .DESCRIPTION
+        The Test-vROPSAdapterConnection cmdlet tests the connection in vRealize Operations Manager
+
+        .EXAMPLE
+        Test-vROPSAdapterConnection -json <json>
+        This example tests the connection based on the JSON file provided
+    #>
+
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("json")) {
+            if (!(Test-Path $json)) {
+                Throw "JSON File Not Found"
+            }
+            else {
+                $body = (Get-Content $json) # Read the json file contents into the $body variable
+            }
+        }
+
+        $uri = "https://$vropsAppliance/suite-api/api/adapters/testConnection"
+        $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-vROPSAdapterConnection
 
 Function Start-vROPSAdapter {
     <#
@@ -19699,8 +20224,7 @@ Function Start-vROPSAdapter {
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/adapters/$adapterId/monitoringstate/start"
-        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders
-        $response
+        Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders # API has no response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -20808,7 +21332,7 @@ Function Request-vRLIToken {
         .EXAMPLE
         Request-vRLIToken -fqdn sfo-vvrli01.sfo.rainpole.io -username admin -password VMw@re1!
         This example shows how to connect to the vRealize Log Insight appliance
-      #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -21529,7 +22053,7 @@ Function Request-CSPToken {
         .EXAMPLE
         Request-CSPToken -fqdn console.cloud.vmware.com -apiKey SfCaVKm8NPhVda3T1j3KXNMdwSfCaVKm8NPhVda3T1j3KXNMdw 
         This example shows how to connect to the Cloud Services Portal
-      #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -21628,8 +22152,7 @@ Function Debug-ExceptionWriter {
 }
 Export-ModuleMember -Function Debug-ExceptionWriter
 
-Function Get-ExternalFileName ($title, $fileType, $location)
-{
+Function Get-ExternalFileName ($title, $fileType, $location) {
     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.Title = "$title"
@@ -22015,6 +22538,54 @@ Function Test-SSOAuthentication {
 }
 Export-ModuleMember -Function Test-SSOAuthentication
 
+Function Test-vSphereApiConnection {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
+        $vSphereApiConnection = $True
+        Return $vSphereApiConnection
+    }   
+    else { 
+        Write-Error "Unable to communicate with vSphere API Endpoint ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        $vSphereApiConnection = $False
+        Return $vSphereApiConnection
+    }
+}
+Export-ModuleMember -Function Test-vSphereApiConnection
+
+Function Test-vSphereApiAuthentication {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [Switch]$admin
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("admin")) {
+            $response = Request-vSphereApiToken -fqdn $server -username $user -password $pass -admin
+        }
+        else {
+            $response = Request-vSphereApiToken -fqdn $server -username $user -password $pass
+        }
+        if ($response -match "Successfully Requested") {
+            $vSphereApiAuthentication = $True
+            Return $vSphereApiAuthentication
+        }   
+        else {
+            Write-Error "Unable to authenticate to vSphere API Endpoint ($server), check credentials: PRE_VALIDATION_FAILED"
+            $vSphereApiAuthentication = $False
+            Return $vSphereApiAuthentication
+        }
+    }
+    Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Test-vSphereApiAuthentication
+
 Function Test-NSXTConnection {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
@@ -22278,6 +22849,215 @@ Function Test-WSAAuthentication {
     }
 }
 Export-ModuleMember -Function Test-WSAAuthentication
+
+Function Test-SubnetInput {
+    <#
+        .SYNOPSIS
+        Tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
+
+        .DESCRIPTION
+        The Test-SubnetInput cmdlet tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
+        
+        .EXAMPLE
+        Test-SubnetInput -Subnet 192.168.21.0/24 -SubnetType Ingress
+        This example will return that the subnet 192.168.21.0/24 is valid for the type Ingress.
+
+        #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$Subnet,
+        [Parameter (Mandatory = $true)] [String]$SubnetType
+    )
+
+    if ($SubnetType -eq "Pod") {
+        $subnetMinimum = 23
+        $subnetFormat = "100.100.0.0/20"
+    } elseif ($SubnetType -eq "Service") {
+        $subnetMinimum = 22
+        $subnetFormat = "100.200.0.0/22"
+    } elseif ($SubnetType -eq "Egress") {
+        $subnetMinimum = 27
+        $subnetFormat = "192.168.22.0/24"
+    } elseif ($subnettype -eq "Ingress") {
+        $subnetMinimum = 27
+        $subnetFormat = "192.168.21.0/24"
+    }
+
+
+    $alteredSubnet = $false
+
+    do {
+        try {
+            $checkSubnet = $null
+            $subnetStart = $null
+
+            $subnetStart = $Subnet.Split("/")[0]
+            try {
+                $checkSubnet = [IPAddress]$subnetStart
+            } catch {}
+
+            if ($checksubnet.IPAddressToString -ne $subnetStart -or !$checkSubnet) {
+                $alteredSubnet = $true
+                $Subnet = Read-Host "Improperly formatted $subnetType subnet ($subnet). Please enter a correctly formatted (CIDR notation - e.g., $subnetFormat) subnet and press Enter"
+            } else {
+                $subnetFormatValidated = $true
+            }
+        } catch {
+            Debug-ExceptionWriter -object $_
+        }
+
+        if ($subnetFormatValidated) {
+            $suffix = $Subnet.Split("/")[1]
+            $checkSuffix = [int[]]$suffix
+
+            try {
+                if ($checkSuffix -gt $subnetMinimum -or !$checkSuffix) {
+                    $alteredSubnet = $true
+                    do {
+                        [Int[]]$newSuffix = Read-Host "Improperly sized $subnetType subnet ($subnet). Please enter a new host prefix length (At least $subnetminimum) and press Enter"
+                    }until ($newSuffix.length -ne [int]::empty -and  $newSuffix -le $subnetMinimum)
+
+                    $newSubnetAddress = $subnet.Split("/")[0]
+                    $subnet = "$newSubnetAddress/$newSuffix"
+                } else {
+                    $subnetSizeValidated = $true
+                }
+            } catch {
+                Debug-ExceptionWriter -object $_
+            }
+        }
+    } until ($subnetFormatValidated -eq $true -and $subnetSizeValidated -eq $true)
+
+    $output = New-Object -TypeName PSCustomObject
+    $output | Add-Member -notepropertyname 'Validated' -notepropertyvalue $true
+    $output | Add-Member -notepropertyname 'Altered' -notepropertyvalue $alteredSubnet
+    $output | Add-Member -notepropertyname 'Subnet' -notepropertyvalue $subnet
+    $output
+}
+Export-ModuleMember -Function Test-SubnetInput
+
+Function Test-IpAddress {
+    <#
+        .SYNOPSIS
+        Tests whether an IPv4 address is in a specified subnet.
+
+        .DESCRIPTION
+        The Test-IpAddress cmdlet tests whether an IPv4 address is in a specified subnet.
+
+        .EXAMPLE
+        Test-IpAddress -ipAddress 192.168.20.10 -Subnet 192.168.20.0/24
+        This example will test whether the IPv4 address 192.168.20.10 is in the 192.168.20.0/24 subnet.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [String]$Subnet
+    )
+
+    $subnetStart = $Subnet.Split("/")[0]
+    $suffix = $Subnet.Split("/")[1]
+
+    $subnetStartBinary = $subnetStart -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
+    $subnetStartBinary =  $subnetStartBinary -join ""
+    $subnetStartBinary = ($subnetStartBinary).ToCharArray()
+
+    $ipAddressBinary = $ipAddress -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
+    $ipAddressBinary =  $ipAddressBinary -join ""
+    $ipAddressBinary = ($ipAddressBinary).ToCharArray()
+
+    for($i=0;$i -lt $subnetStartBinary.length;$i++){
+        if($i -ge $suffix){
+            $subnetStartBinary[$i] = "1"
+        } 
+    }
+
+    for ($i = 0;$i -lt $subnetStartBinary.length;$i++) {
+        $partSubnetStartBinary += $subnetStartBinary[$i] 
+        if(($i+1)%8 -eq 0){
+            $partSubnetStartBinary = $partSubnetStartBinary -join ""
+            $subnetBroadcastBinary += $partSubnetStartBinary -join ""
+            $partSubnetStartBinary = ""
+        }
+    }
+
+    $subnetBroadcastBinary = $subnetBroadcastBinary.ToCharArray()
+
+    [Int[]]$suffixComparison = (1..32)
+
+    for($i=0; $i -lt $suffixComparison.length; $i++){
+        if($suffixComparison[$i] -gt $suffix) {
+            $suffixComparison[$i] = "0"
+        } else {
+            $suffixComparison[$i] = "1"
+        }
+    }
+        
+    [string]$suffixBinaryString = $suffixComparison -join ""
+    [char[]]$suffixBinary = $suffixBinaryString.ToCharArray()
+    $comparison = $true
+
+    for ($i=0; $i -le $subnetStartBinary.length; $i++){
+        if($subnetStartBinary[$i] -ne $ipAddressBinary[$i] -and $suffixBinary[$i] -ne "0") {
+            $comparison = $false
+        } 
+    }
+
+    $output = New-Object -TypeName PSCustomObject
+    $output | Add-Member -notepropertyname 'IpAddress' -notepropertyvalue $ipAddress
+    $output | Add-Member -notepropertyname 'Subnet' -notepropertyvalue $subnet
+    $output | Add-Member -notepropertyname 'Validated' -notepropertyvalue $comparison
+    $output
+}
+Export-ModuleMember -Function Test-IpAddress
+
+Function Get-NtpServer {
+    <#
+        .SYNOPSIS
+        Checks the status of an NTP server
+
+        .DESCRIPTION
+        The Get-NtpServer cmdlet checks the status of an NTP server
+
+        .EXAMPLE
+        Get-NtpServer -Server pool.ntp.org
+        This example will return the status of the NTP server responding at pool.ntp.org
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$server
+    )
+
+    try {
+        [Byte[]]$NtpData = ,0 * 48
+        $NtpData[0] = 0x1B
+    
+        $Socket = New-Object Net.Sockets.Socket([Net.Sockets.AddressFamily]::InterNetwork,
+                                                [Net.Sockets.SocketType]::Dgram,
+                                                [Net.Sockets.ProtocolType]::Udp)
+    
+        $Socket.ReceiveTimeout = 2000
+        $Socket.SendTimeout = 2000
+    
+        $Socket.Connect($Server,123)
+    
+        [Void]$Socket.Send($NtpData)
+        [Void]$Socket.Receive($NtpData)  
+        $Socket.Close()
+    } catch {}   
+
+    if ($ntpData -eq 0x1B) {
+        $ntpFunction = "Not Working"
+    } else {
+        $ntpFunction = "Working"
+    }
+    
+    $properties = @{'NTP_Server'=$server;
+                    'Results'=$ntpFunction}
+
+    $output = New-Object -TypeName PSObject -Property $properties
+    $output
+}
+Export-ModuleMember -Function Get-NtpServer
 
 ###########################  End  of Test  Functions  ###########################
 #################################################################################

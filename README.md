@@ -15,10 +15,11 @@ Using the cmdlets developed, we are providing our customers an infrastructure-as
 If you want to use this Microsoft PowerShell module to perform implementation and configuration procedures, you must first install a number of PowerShell module from the PowerShell Gallery. To do this, run the following in your PowerShell console:
 
 ```PowerShell
-Install-Module -Name VMware.PowerCLI -MinimumVersion 12.3.0
+Install-Module -Name VMware.PowerCLI -MinimumVersion 12.4.1
 Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.7
+Install-Module -Name ImportExcel -MinimumVersion 7.1.1
 Install-Module -Name PowerVCF -MinimumVersion 2.1.7
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.3.0
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.4.0
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.
@@ -27,7 +28,7 @@ To verify the modules are installed, run the following command in the PowerShell
 Get-InstalledModule
 ```
 
-Once installed, any new cmdlet associated with PowerValidatedSolutions will be availble for use.
+Once installed, any new cmdlet associated with PowerValidatedSolutions will be available for use.
 
 ## Known Issues
 
