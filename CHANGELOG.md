@@ -1,4 +1,5 @@
 # Release History
+
 ## v1.4.0 (2022-22-02)
 - Enhanced all Developer Ready Infrastructure Solution cmdlets for better error handling and message output.
 - Added `Undo-NetworkSegment` cmdlet to remove an NSX segment from an NSX Management Cluster.
