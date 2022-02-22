@@ -1,6 +1,4 @@
-![](https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge)
-[<img alt="Changelog" src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge">](CHANGELOG.md)
-![](https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge)
+[<img alt="PowerShell Gallery" src="https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge">](https://www.powershellgallery.com/packages/PowerValidatedSolutions/1.4.0) &nbsp; [<img alt="PowerShell Gallery" src="https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge">](https://www.powershellgallery.com/packages/PowerValidatedSolutions/1.4.0) &nbsp; [<img alt="Changelog" src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge">](CHANGELOG.md)
 
 # PowerValidatedSolutions
 ## Overview
