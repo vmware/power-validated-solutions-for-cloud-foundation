@@ -1,9 +1,14 @@
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <#
     .NOTES
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-09
-    Copyright 2022 VMware, Inc.
+    Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
@@ -129,6 +134,29 @@ Try {
             Get-SsoPasswordPolicy | Set-SsoPasswordPolicy -ProhibitedPreviousPasswordsCount $passwordCount -MinLength $minLength -MaxLength $maxLength -MinNumericCount $minNumericCount -MinSpecialCharCount $minSpecialCharCount -MaxIdenticalAdjacentCharacters $maxIdenticalAdjacentCharacters -MinAlphabeticCount $minAlphabeticCount -MinUppercaseCount $minUppercaseCount -MinLowercaseCount $minLowercaseCount -PasswordLifetimeDays $passwordLifetimeDays | Out-Null
             Disconnect-SsoAdminServer -Server $ssoServerFqdn | Out-Null
             Write-LogMessage -Type INFO -Message "Configuring vCenter Single Sign-On Password Policy: SUCCESSFUL"
+
+            # Attempting to Configure the vCenter Single Sign-On Lockout Policy
+            Write-LogMessage -Type INFO -Message "Attempting to Configure the vCenter Single Sign-On Lockout Policy"
+            Connect-SsoAdminServer -Server $ssoServerFqdn -User $ssoServerUser -Password $ssoServerPass | Out-Null
+            Get-SsoLockoutPolicy | Set-SsoLockoutPolicy -AutoUnlockIntervalSec $autoUnlockIntervalSec -FailedAttemptIntervalSec $failedAttemptIntervalSec -MaxFailedAttempts $maxFailedAttempts | Out-Null
+            Disconnect-SsoAdminServer -Server $ssoServerFqdn | Out-Null
+            Write-LogMessage -Type INFO -Message "Configuring vCenter Single Sign-On Lockout Policy: SUCCESSFUL"
+
+            # Attempting to Assign Active Directory Groups to Roles in SDDC Manager
+            Write-LogMessage -Type INFO -Message "Attempting to Assign Active Directory Groups to Roles in SDDC Manager"
+            $StatusMsg = Add-SddcManagerRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcfAdminGroup -role ADMIN -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-SddcManagerRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcfOperatorGroup -role OPERATOR -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-SddcManagerRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcfViewerGroup -role VIEWER -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+
+            # Attempting to Configure ESXi Hosts Password and Lockout Policies
+            Write-LogMessage -Type INFO -Message "Attempting to Configure ESXi Hosts Password and Lockout Policies"
+            $StatusMsg = Set-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $mgmtSddcDomainName -cluster $mgmtCluster -policy $policy -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Set-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wldCluster -policy $policy -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red } 
         }
     }
 }

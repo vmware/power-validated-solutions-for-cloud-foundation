@@ -1,9 +1,14 @@
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <#
     .NOTES
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-09
-    Copyright 2022 VMware, Inc.
+    Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
@@ -84,9 +89,9 @@ Try {
             # Attempting to Integrate NSX-T Data Center with the Standalone Workspace ONE Access Instance
             Write-LogMessage -Type INFO -Message "Attempting to Integrate NSX-T Data Center with the Standalone Workspace ONE Access Instance"
             $StatusMsg = Set-WorkspaceOneNsxtIntegration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $mgmtSddcDomainName -wsaFqdn $wsaFqdn -wsaUser admin -wsaPass $wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg -match "SUCCESFUL" ) { Write-LogMessage -Type INFO -Message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($mgmtSddcDomainName): SUCCESFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($mgmtSddcDomainName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Set-WorkspaceOneNsxtIntegration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -wsaFqdn $wsaFqdn -wsaUser admin -wsaPass $wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg -match "SUCCESFUL" ) { Write-LogMessage -Type INFO -Message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($wldSddcDomainName): SUCCESFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($wldSddcDomainName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Attempting to Assign NSX-T Data Center Roles to Active Directory Groups
             Write-LogMessage -Type INFO -Message "Attempting to Assign NSX-T Data Center Roles to Active Directory Groups"
