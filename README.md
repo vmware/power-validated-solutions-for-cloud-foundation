@@ -1,4 +1,6 @@
-[<img alt="PowerShell Gallery" src="https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge">](https://www.powershellgallery.com/packages/PowerValidatedSolutions/1.4.0) &nbsp; [<img alt="PowerShell Gallery" src="https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge">](https://www.powershellgallery.com/packages/PowerValidatedSolutions/1.4.0) &nbsp; [<img alt="Changelog" src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge">](CHANGELOG.md)
+![](https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge)
+[<img alt="Changelog" src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge">](CHANGELOG.md)
+![](https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge)
 
 # PowerValidatedSolutions
 ## Overview
@@ -17,7 +19,7 @@ Install-Module -Name VMware.PowerCLI -MinimumVersion 12.4.1
 Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.7
 Install-Module -Name ImportExcel -MinimumVersion 7.1.1
 Install-Module -Name PowerVCF -MinimumVersion 2.1.7
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.4.0
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.5.0
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.
@@ -31,7 +33,7 @@ Once installed, any new cmdlet associated with PowerValidatedSolutions will be a
 ## Known Issues
 
 Currently tracking no known issues.
-                                    
+
 ## Contributing
 
 The PowerValidatedSolutions project team welcomes contributions from the community. Before you start working with PowerValidatedSolutions, please
@@ -41,7 +43,7 @@ as an open-source patch. For more detailed information, refer to [CONTRIBUTING.m
 
 ## License
 
-Copyright 2021 VMware, Inc.
+Copyright 2021-2022 VMware, Inc.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

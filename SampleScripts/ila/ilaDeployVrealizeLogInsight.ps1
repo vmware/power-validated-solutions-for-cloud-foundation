@@ -1,9 +1,14 @@
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <#
     .NOTES
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-27
-    Copyright 2021 VMware, Inc.
+    Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
@@ -104,7 +109,7 @@ Try {
             if (!(Test-Path ($filePath + "\" + $vrliPem) )) { Write-LogMessage -Type ERROR -Message "Unable to Find Certificate File: $vrliPem, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found Certificate File: $vrliPem" }
 
             # Add vRealize Log Insight License to vRealize Suite Lifecycle Manager
-            Write-LogMessage -Type INFO -Message "Add the vRealize Operations Manager License to vRealize Suite Lifecycle Manager"
+            Write-LogMessage -Type INFO -Message "Add the vRealize Log Insight License to vRealize Suite Lifecycle Manager"
             $StatusMsg = New-vRSLCMLockerLicense -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -alias $licenseAlias -license $licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
@@ -169,7 +174,7 @@ Try {
 
             # Sync Active Directory Groups to Workspace ONE Access
             Write-LogMessage -Type INFO -Message "Sync Active Directory Groups to Workspace ONE Access"
-            $StatusMsg = Add-WorkspaceOneDirectoryGroup -server $wsaFqdn -user $wsaUser -pass $wsaPass -domain $domain -bindUser $bindUser -bindPass  $bindPass -baseDnGroup $baseDnGroup -adGroups $adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            $StatusMsg = Add-WorkspaceOneDirectoryGroup -server $wsaFqdn -user $wsaUser -pass $wsaPass -domain $domain -bindUser $bindUser -bindPass $bindPass -baseDnGroup $baseDnGroup -adGroups $adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             
             # Assign vRealize Log Insight Roles to Active Directory Groups

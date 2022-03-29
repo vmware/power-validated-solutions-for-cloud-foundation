@@ -1,14 +1,20 @@
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <#
     .NOTES
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-10
-    Copyright 2022 VMware, Inc.
+    Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
     - 1.0.001   (Gary Blake / 2022-01-04) - Improved the connection handling when starting the script
     - 1.0.002   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
+    - 1.0.003   (Gary Blake / 2022-03-01) - Updated input values to use latest VCF 4.4.x Planning and Prep Workbook
 
     ===================================================================================================================
 
@@ -61,44 +67,44 @@ Try {
                 Break
             }
 
-            $domainFqdn                         = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-            $mgmtSddcDomainName                 = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-            $wsaFolder                          = $pnpWorkbook.Workbook.Names["mgmt_region_wsa_vm_folder"].Value
-            $wsaIpAddress                       = $pnpWorkbook.Workbook.Names["region_wsa_ip"].Value
-            $wsaGateway                         = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-            $wsaSubnetMask                      = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-            $wsaOvaFile                         = "identity-manager-3.3.5.0-18049997_OVF10.ova"
+            $domainFqdn                             = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            $mgmtSddcDomainName                     = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+            $wsaFolder                              = $pnpWorkbook.Workbook.Names["mgmt_region_wsa_vm_folder"].Value
+            $wsaIpAddress                           = $pnpWorkbook.Workbook.Names["region_wsa_ip"].Value
+            $wsaGateway                             = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+            $wsaSubnetMask                          = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+            $wsaOvaFile                             = "identity-manager-3.3.6.0-19203469_OVF10.ova"
             if (!(Test-Path ($filePath + "\" + $wsaOvaFile) )) { Write-LogMessage -Type ERROR -Message "Unable to Find OVA File: $wsaOvaFile, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found OVA File: $wsaOvaFile" }
-            $wsaFqdn                            = $pnpWorkbook.Workbook.Names["region_wsa_fqdn"].Value
-            $wsaHostname                        = $wsaFqdn.Split(".")[0]
-            $drsGroupName                       = "sfo-m01-vm-group-wsa"
-            $drsGroupVMs                        = "sfo-wsa01"
-            $wsaAdminPassword                   = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_admin_password"].Value
-            $wsaRootPassword                    = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_root_password"].Value
-            $wsaSshUserPassword                 = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_sshuser_password"].Value
-            $smtpServerFqdn                     = $pnpWorkbook.Workbook.Names["smtp_server"].Value
-            $smtpServerPort                     = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value
-            $smtpEmailAddress                   = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_notifications_address"].Value
-            $baseGroupDn                        = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value 
-            $baseUserDn                         = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
-            $wsabindUserDn                      = "cn=" + $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value + "," + $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
-            $wsabindUserPassword                = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
-            $wsaSuperAdminGroup                 = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
-            $wsaDirAdminGroup                   = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
-            $wsaReadOnlyGroup                   = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
-            $adGroups                           = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)","$wsaSuperAdminGroup","$wsaDirAdminGroup","$wsaReadOnlyGroup"
-            $minLen                             = $pnpWorkbook.Workbook.Names["standalone_wsa_password_min_length"].Value
-            $minLower                           = $pnpWorkbook.Workbook.Names["standalone_wsa_password_lowercase_chars"].Value
-            $minUpper                           = $pnpWorkbook.Workbook.Names["standalone_wsa_password_uppercase_chars"].Value
-            $minDigit                           = $pnpWorkbook.Workbook.Names["standalone_wsa_password_numerical_chars"].Value
-            $minSpecial                         = $pnpWorkbook.Workbook.Names["standalone_wsa_password_special_chars"].Value
-            $history                            = $pnpWorkbook.Workbook.Names["standalone_wsa_password_history"].Value
-            $maxConsecutiveIdenticalCharacters  = $pnpWorkbook.Workbook.Names["standalone_wsa_password_consecutive_identical_chars"].Value
-            $tempPasswordTtlInHrs               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_temp_lifetime"].Value
+            $wsaFqdn                                = $pnpWorkbook.Workbook.Names["region_wsa_fqdn"].Value
+            $wsaHostname                            = $wsaFqdn.Split(".")[0]
+            $drsGroupName                           = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value + "-vm-group-wsa"
+            $drsGroupVMs                            = $wsaHostname
+            $wsaAdminPassword                       = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_admin_password"].Value
+            $wsaRootPassword                        = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_root_password"].Value
+            $wsaSshUserPassword                     = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_sshuser_password"].Value
+            $smtpServerFqdn                         = $pnpWorkbook.Workbook.Names["smtp_server"].Value
+            $smtpServerPort                         = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value
+            $smtpEmailAddress                       = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_notifications_address"].Value
+            $baseGroupDn                            = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value 
+            $baseUserDn                             = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
+            $wsabindUserDn                          = "cn=" + $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value + "," + $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
+            $wsabindUserPassword                    = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
+            $wsaSuperAdminGroup                     = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
+            $wsaDirAdminGroup                       = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
+            $wsaReadOnlyGroup                       = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
+            $adGroups                               = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)","$wsaSuperAdminGroup","$wsaDirAdminGroup","$wsaReadOnlyGroup"
+            $minLen                                 = $pnpWorkbook.Workbook.Names["standalone_wsa_password_min_length"].Value
+            $minLower                               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_lowercase_chars"].Value
+            $minUpper                               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_uppercase_chars"].Value
+            $minDigit                               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_numerical_chars"].Value
+            $minSpecial                             = $pnpWorkbook.Workbook.Names["standalone_wsa_password_special_chars"].Value
+            $history                                = $pnpWorkbook.Workbook.Names["standalone_wsa_password_history"].Value
+            $maxConsecutiveIdenticalCharacters      = $pnpWorkbook.Workbook.Names["standalone_wsa_password_consecutive_identical_chars"].Value
+            $tempPasswordTtlInHrs                   = $pnpWorkbook.Workbook.Names["standalone_wsa_password_temp_lifetime"].Value
             $maxPreviousPasswordCharactersReused    = "0"
-            $passwordTtlInDays                      = "90"
-            $notificationThresholdInDays            = "15"
-            $notificationIntervalInDays             = "3"
+            $passwordTtlInDays                      = $pnpWorkbook.Workbook.Names["standalone_wsa_password_lifetime"].Value
+            $notificationThresholdInDays            = $pnpWorkbook.Workbook.Names["standalone_wsa_password_reminder"].Value
+            $notificationIntervalInDays             = $pnpWorkbook.Workbook.Names["standalone_wsa_password_reminder_notification_frequency"].Value
             $numAttempts                            = $pnpWorkbook.Workbook.Names["standalone_wsa_password_failed_attempts"].Value
             $attemptInterval                        = $pnpWorkbook.Workbook.Names["standalone_wsa_password_failed_auth_attempts_interval"].Value
             $unlockInterval                         = $pnpWorkbook.Workbook.Names["standalone_wsa_password_account_lockdown_duration"].Value

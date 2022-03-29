@@ -1,9 +1,14 @@
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 <#
     .NOTES
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-27
-    Copyright 2021 VMware, Inc.
+    Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
@@ -64,8 +69,6 @@ Try {
             $sddcWldDomainName          = $pnpWorkbook.Workbook.Names["wld_sddc_domain"].Value
             $domain                     = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
             $subDomain                  = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-
-            $exportName                 = "ILA-VRLI"
             $vmNameNode1                = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
             $vmNameNode2                = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
             $vmNameNode3                = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
@@ -80,9 +83,9 @@ Try {
 
             # Configure the NSX Edge Nodes to Forward Log Events to vRealize Log Insight
             Write-LogMessage -Type INFO -Message "Configure the NSX Edge Nodes to Forward Log Events to vRealize Log Insight"
-            $StatusMsg = Set-vRLISyslogEdgeCluster -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -exportname $exportName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            $StatusMsg = Add-NsxtNodeProfileSyslogExporter -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "Configuring the NSX Edge Nodes to Forward Log Events to vRealize Log Insight for Workload Domain ($sddcDomainName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Configuring the NSX Edge Nodes to Forward Log Events to vRealize Log Insight for Workload Domain ($sddcWldDomainName), already exists: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Set-vRLISyslogEdgeCluster -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -exportname $exportName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            $StatusMsg = Add-NsxtNodeProfileSyslogExporter -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "Configuring the NSX Edge Nodes to Forward Log Events to vRealize Log Insight for Workload Domain ($sddcWldDomainName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Configuring the NSX Edge Nodes to Forward Log Events to vRealize Log Insight for Workload Domain ($sddcWldDomainName), already exists: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Download, Install and Configure the vRealize Log Insight Agent on the Clustered Workspace ONE Access Nodes
