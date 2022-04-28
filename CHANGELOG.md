@@ -1,5 +1,24 @@
 # Release History
 
+## v1.6.0 (2022-28-04)
+- Fixed `Add-vROPSAdapterNsxt` cmdlet so that the description is maintained when validating the certificate of the NSX-T Adapter
+- Added `Add-vROPSAdapterIdentityManager` cmdlet to support adding a new Identity Manager Adapter in vRealize Operations Manager.
+- Added `Undo-vROPSAdapter` cmdlet to support the removal of an Adapter from vRealize Operations Manager.
+- Added `Undo-vROPSCredential` cmdlet to support the removal of an Adapter Credential from vRealize Operations Manager.
+- Added `Update-vROPSAdapterCollecterGroup` cmdlet tto support updating the collector group for an Adapter in vRealize Operations Manager
+- Added `Set-vRADnsConfig` cmdlet to configure the DNS server(s) and DNS search domain(s) on vRealize Automation to use custom settings.
+- Added `Undo-vRADnsConfig` cmdlet to revert the DNS configuration of vRealize Automation to match SDDC Manager.
+- Added `Set-vRANtpConfig` cmdlet to configure the NTP server(s) on vRealize Automation to use custom settings.
+- Added `Undo-vRANtpConfig` cmdlet to revert the NTP configuration of vRealize Automation to match SDDC Manager.
+- Added `Add-SRMMapping` cmdlet to create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
+instances in Site Recovery Manager
+- Added `Undo-SRMMapping` cmdlet to remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
+instances in Site Recovery Manager
+- Added `New-SRMSitePair` cmdlet to create a site pair between Site Recovery Manager instances
+- Added `Undo-SRMSitePair` cmdlet to remove an existing site pair between Site Recovery Manager instances.
+- Added `New-vSRPortGroup` cmdlet to create port groups for vSphere Replication appliances in the protected and recovery sites.
+- Added `Undo-vSRPortGroup` cmdlet to remove port groups for vSphere Replication appliances in the protected and recovery sites.
+
 ## v1.5.0 (2022-29-03)
 - Enhanced `Add-SsoPermission` cmdlet to verify that the SSO Group exists in vCenter Single Sign-On.
 - Enhanced `Enable-SupervisorCluster` cmdlet additional enhancements around pre-validation of inputs.

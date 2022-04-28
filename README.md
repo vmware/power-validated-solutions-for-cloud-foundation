@@ -19,7 +19,7 @@ Install-Module -Name VMware.PowerCLI -MinimumVersion 12.4.1
 Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.7
 Install-Module -Name ImportExcel -MinimumVersion 7.1.1
 Install-Module -Name PowerVCF -MinimumVersion 2.1.7
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.5.0
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.6.0
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.
