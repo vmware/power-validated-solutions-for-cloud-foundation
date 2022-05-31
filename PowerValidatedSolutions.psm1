@@ -2181,6 +2181,164 @@ Function Get-DRSolutionSummary {
 }    
 Export-ModuleMember -Function Get-DRSolutionSummary
 
+Function Get-DRSolutionNetworkConfig {
+    <#
+		.SYNOPSIS
+        Retrieves the Site Recovery Manager appliance network configuration
+
+        .DESCRIPTION
+        The Get-DRSolutionNetworkConfig cmdlet retrieves the Site Recovery Manager appliance network configuration
+
+        .EXAMPLE
+        Get-DRSolutionNetworkConfig -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example retrieves the Site Recovery Manager appliance network configuration
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {   
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getNetworkingInfo"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $body
+                $response.data
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Get-DRSolutionNetworkConfig
+
+Function Set-DRSolutionNetworkAdapter {
+    <#
+		.SYNOPSIS
+        Configures an ethernet adapter on a DR solution via VAMI interface
+
+        .DESCRIPTION
+        The Set-DRSolutionNetworkAdapter cmdlet configures an ethernet adapter on a DR solution via VAMI interface
+
+        .EXAMPLE
+        Set-DRSolutionNetworkAdapter -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1! -interfaceName eth1 -defaultGateway 172.16.11.253 -cidrPrefix 24 -ipAddress 172.16.11.123
+        This example configures the Site Recovery Manager appliance secondary ethernet adapter
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$defaultGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$cidrPrefix,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $networkConfig = Get-DRSolutionNetworkConfig -fqdn $fqdn -username $username -password $password
+                $ipv4 =  [PSCustomObject] @{
+                    "interfaceName" = "$interfaceName"
+                    "defaultGateway" = "$defaultGateway"
+                    "prefix" = $cidrPrefix
+                    "mode" = "STATICMODE"
+                    "address" = "$ipAddress"
+                }
+                ($networkConfig.interfaces | Where-Object {$_.Name -eq $interfaceName}).ipv4 = $ipv4
+                ($networkConfig.interfaces | Where-Object {$_.Name -eq $interfaceName}).ipv6 = $null
+                $networkConfig = $networkConfig | ConvertTo-Json -Depth 10
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/editNetworking"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $networkConfig
+                $response
+            }
+        }        
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Set-DRSolutionNetworkAdapter
+
+Function Set-vSRIncomingStorageTraffic {
+    <#
+		.SYNOPSIS
+        Configures the IP address for incoming storage traffic on vSphere Replication via VAMI interface
+
+        .DESCRIPTION
+        The Set-vSRIncomingStorageTraffic cmdlet configures the IP address for incoming storage traffic on vSphere
+        Replication via VAMI interface
+
+        .EXAMPLE
+        Set-vSRIncomingStorageTraffic -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1! -ipAddress 172.27.15.123
+        This example sets the IP address for incoming storage traffic on vSphere Replication appliance sfo-m01-vrms01.sfo.rainpole.io to 172.27.15.123
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $data =  [PSCustomObject] @{
+                    "filterIp" = "$ipAddress"
+                    "managementIp" = ""
+                }
+                $data = $data | ConvertTo-Json
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/setHbrNic"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $data
+                $response
+            }
+        }        
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Set-vSRIncomingStorageTraffic
+
+Function Get-vSRIncomingStorageTraffic {
+    <#
+		.SYNOPSIS
+        Retrieves the IP address for incoming storage traffic on vSphere Replication via VAMI interface
+
+        .DESCRIPTION
+        The Get-vSRIncomingStorageTraffic cmdlet retrieves the IP address for incoming storage traffic on vSphere
+        Replication via VAMI interface
+
+        .EXAMPLE
+        Get-vSRIncomingStorageTraffic -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1!
+        This example retrieves the IP address for incoming storage traffic on vSphere Replication appliance sfo-m01-vrms01.sfo.rainpole.io
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getHbrNic"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders
+                $response.data
+            }
+        }        
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Get-vSRIncomingStorageTraffic
 Function Register-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
@@ -5261,6 +5419,1722 @@ Function Undo-vSRPortGroup {
     }
 }
 Export-ModuleMember -Function Undo-vSRPortGroup
+
+Function Set-vSRNetworkConfig {
+    <#
+		.SYNOPSIS
+        Configure the secondary ethernet adapter and configures the required routing for vSphere Replication appliances
+        in the protected and recovery sites
+
+        .DESCRIPTION
+        The Set-vSRNetworkConfig cmdlet configures the secondary ethernet adapter and configures the required routing 
+        for vSphere Replication appliances in the protected and recovery sites. The cmdlet connects to SDDC Manager in 
+        both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, 
+        -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Configures the secondary ethernet adapter and configures the required routing for vSphere Replication
+        appliances in the protected and recovery sites
+
+        .EXAMPLE
+        Set-vSRNetworkConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -eth1VLANSiteA 2715 -eth1SubnetSiteA 172.27.15.0/24 -eth1IpAddressSiteA 172.27.15.123 -eth1GatewaySiteA 172.27.15.1 -vSRApplianceRootPassSiteA VMw@re1! -vSRApplianceAdminPassSiteA VMw@re1! -eth1VLANSiteB 2815 -eth1SubnetSiteB 172.28.15.0/24 -eth1IpAddressSiteB 172.28.15.123 -eth1GatewaySiteB 172.28.15.1 -vSRApplianceRootPassSiteB VMw@re1! -vSRApplianceAdminPassSiteB VMw@re1!
+        This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$eth1VLANSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1SubnetSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1IpAddressSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1GatewaySiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceRootPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceAdminPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$eth1VLANSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1SubnetSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1IpAddressSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1GatewaySiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceRootPassSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceAdminPassSiteB
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $hmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $eth1VLANSiteA}
+                                                if (!$VDPortGroupSiteA) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($eth1VLANSiteA) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                }
+                                                if ($VDPortGroupSiteA.Count -gt 1) {
+                                                    $VDPortGroupSiteA = $VDPortGRoupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                                }
+                                                $hmsAVmName = $hmsAFqdn.Split(".")[0]
+                                                $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
+                                                if ($numEthAdaptersA -le 1) {
+                                                    $addEth1 = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | New-NetworkAdapter -Server $siteAvCenterDetails.fqdn -NetworkName $VDPortGroupSiteA.Name -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop
+                                                    if (!$addEth1) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Create ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                'New-NetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )       
+                                                    }
+                                                    [int]$hmsACidr = $eth1SubnetSiteA.Split("/")[1]
+                                                    Set-DRSolutionNetworkAdapter -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA -interfaceName eth1 -defaultGateway $eth1GatewaySiteA -cidrPrefix $hmsACidr -ipAddress $eth1IpAddressSiteA -ErrorAction Stop | Out-Null
+                                                    Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Restart-VMGuest -Confirm:$False | Out-Null                                                
+                                                    do{
+                                                        Start-Sleep -Seconds 1
+                                                        $vmRestart = Get-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName
+                                                        $vamiStatus = Test-VAMIAuthentication -server $hmsAFqdn -user admin -pass $vSRApplianceAdminPassSiteA -ErrorAction SilentlyContinue
+                                                    }
+                                                    until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    $hmsANetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
+                                                    if (($hmsANetConfig.defaultGateway -ne $eth1GatewaySiteA) -or ($hmsANetConfig.prefix -ne $hmsACidr) -or ($hmsANetConfig.address -ne $eth1IpAddressSiteA) -or ($trySetHmsANetConfig.successful -eq $false)) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Configure second ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-DRSolutionNetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )     
+                                                    }
+                                                    try {
+                                                        $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    try {
+                                                        $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteA\nDestination=$eth1SubnetSiteB' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    try {
+                                                        $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn
+                                                        if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteA") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteB")) {                                                
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.SetValueException]"Set static route for remote vSphere Replication network ($eth1SubnetSiteB): POST_VALIDATION_FAILED"),
+                                                                    'Set-vSRNetworkConfig',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        } 
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $eth1IpAddressSiteA -ErrorAction SilentlyContinue | Out-Null
+                                                    $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
+                                                    if (!($incomingStorageTrafficHmsA.filterIp -match $eth1IpAddressSiteA)) {                                                
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-vSRIncomingStorageTraffic',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )
+                                                    }
+                                                    else {
+                                                        Write-Output "Configure vSphere Replication appliance ($hmsAVmName) secondary ethernet adapter: SUCCESSFUL"
+                                                    }
+                                                }
+                                                else {
+                                                    Write-Warning "vSphere Replication appliance ($hmsAVmName) has more than one ethernet adapter: SKIPPING"
+                                                }
+                                                $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $eth1VLANSiteB}
+                                                if (!$VDPortGroupSiteB) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($eth1VLANSiteB) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                }
+                                                if ($VDPortGroupSiteB.Count -gt 1) {
+                                                    $VDPortGroupSiteB = $VDPortGRoupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                                }
+                                                $hmsBVmName = $hmsBFqdn.Split(".")[0]
+                                                $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
+                                                if ($numEthAdaptersB -le 1) {
+                                                    $addEth1 = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | New-NetworkAdapter -Server $siteBvCenterDetails.fqdn -NetworkName $VDPortGroupSiteB.Name -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue
+                                                    if (!$addEth1) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Create ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                'New-NetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )       
+                                                    }
+                                                    [int]$hmsBCidr = $eth1SubnetSiteB.Split("/")[1]
+                                                    Set-DRSolutionNetworkAdapter -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB -interfaceName eth1 -defaultGateway $eth1GatewaySiteB -cidrPrefix $hmsBCidr -ipAddress $eth1IpAddressSiteB -ErrorAction Stop | Out-Null
+                                                    Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Restart-VMGuest -Confirm:$False | Out-Null
+                                                    do{
+                                                        Start-Sleep -Seconds 1
+                                                        $vmRestart = Get-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName
+                                                        $vamiStatus = Test-VAMIAuthentication -server $hmsBFqdn -user admin -pass $vSRApplianceAdminPassSiteB -ErrorAction SilentlyContinue
+                                                    }
+                                                    until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    $hmsBNetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
+                                                    if (($hmsBNetConfig.defaultGateway -ne $eth1GatewaySiteB) -or ($hmsBNetConfig.prefix -ne $hmsBCidr) -or ($hmsBNetConfig.address -ne $eth1IpAddressSiteB) -or ($trySetHmsBNetConfig.successful -eq $false)) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Configure second ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-DRSolutionNetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )     
+                                                    }
+                                                    try {
+                                                        $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn  
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    try {
+                                                        $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteB\nDestination=$eth1SubnetSiteA' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    try {
+                                                        $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
+                                                        if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteB") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteA")) {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.SetValueException]"Set static route for remote vSphere Replication network ($($eth1SubnetSiteA)): POST_VALIDATION_FAILED"),
+                                                                    'Set-vSRNetworkConfig',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $eth1IpAddressSiteB -ErrorAction SilentlyContinue | Out-Null
+                                                    $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
+                                                    if (!($incomingStorageTrafficHmsB.filterIp -match $eth1IpAddressSiteB)) {                                                
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-vSRIncomingStorageTraffic',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )
+                                                    }
+                                                    else {
+                                                        Write-Output "Configure vSphere Replication appliance ($hmsBVmName) secondary ethernet adapter: SUCCESSFUL"
+                                                    }
+                                                }
+                                                else {
+                                                    Write-Warning "vSphere Replication appliance ($hmsBVmName) has more than one ethernet adapter: SKIPPING"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-vSRNetworkConfig
+
+Function Undo-vSRNetworkConfig {
+    <#
+		.SYNOPSIS
+        Removes the secondary ethernet adapter and configures the required routing for vSphere Replication appliances
+        in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSRNetworkConfig cmdlet configures the secondary ethernet adapter and configures the required routing 
+        for vSphere Replication appliances in the protected and recovery sites. The cmdlet connects to SDDC Manager in 
+        both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, 
+        -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Removes the secondary ethernet adapter and static routes for vSphere Replication appliances in the protected
+        and recovery sites
+
+        .EXAMPLE
+        Undo-vSRNetworkConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815
+        This example removes the secondary ethernet adapter and static routes for vSphere Replication appliances in the protected and recovery sites
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $hmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $siteAVLAN}
+                                                if (!$VDPortGroupSiteA) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($siteAVLAN) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                }
+                                                else {
+                                                    try {
+                                                        $hmsAVmName = $hmsAFqdn.Split(".")[0]
+                                                        $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
+                                                        if ($numEthAdaptersA -gt 1) {
+                                                            try {
+                                                                $managementIpA = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
+                                                                Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $managementIpA -ErrorAction SilentlyContinue | Out-Null
+                                                                $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
+                                                                if (!($incomingStorageTrafficHmsA.filterIp -match $managementIpA)) {                                                
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                            'Set-vSRIncomingStorageTraffic',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            if ($VDPortGroupSiteA.Count -gt 1) {
+                                                                $VDPortGroupSiteA = $VDPortGRoupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                                            }
+                                                            $hmsAVmPowerState = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName).PowerState
+                                                            if ($hmsAVmPowerState -eq "PoweredOn") {
+                                                                Stop-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                do {
+                                                                    Start-Sleep -Seconds 1
+                                                                    $hmsAVmState = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName
+                                                                }
+                                                                until ($hmsAVmState.PowerState -eq "PoweredOff")
+                                                            }
+                                                            try {
+                                                                Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA.Name} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            $validateRemovedEth1SiteA = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA}
+                                                            if ($validateRemovedEth1SiteA) {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.SetValueException]"Remove ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                        'Remove-NetworkAdapter',
+                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                        ""
+                                                                    )
+                                                                )       
+                                                            }
+                                                            else {
+                                                                try {
+                                                                    Start-VM -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                }
+                                                                catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                            Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsAVmName): SUCCESSFUL"
+                                                        }
+                                                        else {
+                                                            Write-Warning "vSphere Replication appliance ($hmsAVmName) only has one ethernet adapter: SKIPPING"
+                                                        }
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                                $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $siteBVLAN}
+                                                if (!$VDPortGroupSiteB) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($siteBVLAN) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                }
+                                                else {
+                                                    try {
+                                                        $hmsBVmName = $hmsBFqdn.Split(".")[0]
+                                                        $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
+                                                        if ($numEthAdaptersB -gt 1) {
+                                                            try {
+                                                                $managementIpB = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
+                                                                Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $managementIpB -ErrorAction SilentlyContinue | Out-Null
+                                                                $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
+                                                                if (!($incomingStorageTrafficHmsB.filterIp -match $managementIpB)) {                                                
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                            'Set-vSRIncomingStorageTraffic',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            if ($VDPortGroupSiteB.Count -gt 1) {
+                                                                $VDPortGroupSiteB = $VDPortGRoupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                                            }
+                                                            $hmsBVmPowerState = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName).PowerState
+                                                            if ($hmsBVmPowerState -eq "PoweredOn") {
+                                                                Stop-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                do {
+                                                                    Start-Sleep -Seconds 1
+                                                                    $hmsBVmState = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName
+                                                                }
+                                                                until ($hmsBVmState.PowerState -eq "PoweredOff")
+                                                            }
+                                                            try {
+                                                                Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            $validateRemovedEth1SiteB = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB}
+                                                            if ($validateRemovedEth1SiteB) {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.SetValueException]"Remove ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                        'Remove-NetworkAdapter',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
+                                                                    )
+                                                                )       
+                                                            }
+                                                            else {
+                                                                try {
+                                                                    Start-VM -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                }
+                                                                catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                            Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsBVmName): SUCCESSFUL"
+                                                        }
+                                                        else {
+                                                            Write-Warning "vSphere Replication appliance ($hmsBVmName) only has one ethernet adapter: SKIPPING"
+                                                        }
+                                                    }
+                                                    catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSRNetworkConfig
+
+Function New-vSRVMkernelPort {
+    <#
+		.SYNOPSIS
+        Create VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The New-vSRVMKernelPort cmdlet creates VMkernel ports on ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Creates VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        defined in -siteAVLAN, -siteBVLAN, -siteANetMask, -siteBNetMask, -siteAIpAddresses, and -siteBIpAddresses
+        paramters.
+
+        .EXAMPLE
+        New-vSRVMkernelPort -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteANetMask 255.255.255.0 -siteBNetMask 255.255.255.0 -siteAIpAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104") -siteBIpAddresses @("172.28.15.101","172.28.15.102","172.28.15.103","172.28.15.104")
+        This example creates a VMkernel port on VLAN ID 2715 for each ESXi host in the protected site VCF management domain and a VMkernel port on VLAN ID 2815 for each ESXi host in the recovery site VCF management domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteANetMask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBNetMask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$siteAIpAddresses,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$siteBIpAddresses
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $existingVDSwitchSiteA = Get-VDSwitch -Server $siteAvCenterDetails.fqdn -Name $existingPortGroupSiteA.VDSwitch
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if (!$existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
+                                }
+                                else {
+                                    if ($vmHostsToConfigure.Count -ne $siteAIpAddresses.Count) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.SetValueException]"The number of IP addresses supplied for VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) and the number of ESXi hosts to be configured do not match: PRE_VALIDATION_FAILED"),
+                                                'Add-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    else {
+                                        for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            try {
+                                                New-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteAIpAddresses[$i] -SubnetMask $siteANetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
+                                            }
+                                            catch {
+                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                            }
+                                        }
+                                        $validateVMkernelCreated = @()
+                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                        if ($validateVMkernelCreated.Count -ne $vmHostsToConfigure.Count) {
+                                            $PSCmdlet.ThrowTerminatingError(
+                                                [System.Management.Automation.ErrorRecord]::new(
+                                                    ([System.Management.Automation.GetValueException]"Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                    'Add-vSRVMkernelPort',
+                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                    ""
+                                                )
+                                            )
+                                        }
+                                        else {
+                                            Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            $existingVDSwitchSiteB = Get-VDSwitch -Server $siteBvCenterDetails.fqdn -Name $existingPortGroupSiteB.VDSwitch
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if (!$existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
+                                }
+                                else {
+                                    if ($vmHostsToConfigure.Count -ne $siteBIpAddresses.Count) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.SetValueException]"The number of IP addresses supplied for VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) and the number of ESXi hosts to be configured do not match: PRE_VALIDATION_FAILED"),
+                                                'Add-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    else {
+                                        for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            try {
+                                                New-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteBIpAddresses[$i] -SubnetMask $siteBNetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
+                                            }
+                                            catch {
+                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                            }
+                                        }
+                                        $validateVMkernelCreated = @()
+                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                        if ($validateVMkernelCreated.Count -ne $vmHostsToConfigure.Count) {
+                                            $PSCmdlet.ThrowTerminatingError(
+                                                [System.Management.Automation.ErrorRecord]::new(
+                                                    ([System.Management.Automation.GetValueException]"Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                    'Add-vSRVMkernelPort',
+                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                    ""
+                                                )
+                                            )
+                                        }
+                                        else {
+                                            Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vSRVMKernelPort
+Function Undo-vSRVMkernelPort {
+    <#
+		.SYNOPSIS
+        Remove VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSRVMKernelPort cmdlet removes VMkernel ports on ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites that
+        match the VLAN IDs defined in -siteAVLAN and -siteBVLAN paramters.
+
+        .EXAMPLE
+        Undo-vSRVMkernelPort -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815
+        This example removes VMkernel ports on VLAN ID 2715 in the protected site VCF management domain and VMkernel ports on VLAN ID 2815 in the recovery site VCF management domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $existingVDSwitchSiteA = Get-VDSwitch -Server $siteAvCenterDetails.fqdn -Name $existingPortGroupSiteA.VDSwitch
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteAVLAN): SKIPPING"
+                                }
+                                else {
+                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        try {
+                                            Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteA -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
+                                        }
+                                        catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                    $validateVMkernelRemoved = @()
+                                    $validateVMkernelRemoved = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -PortGroup $existingPortGroupSiteA | Where-Object {$_.VSphereReplicationEnabled -eq $true -or $_.VSphereReplicationNfcEnabled -eq $true}
+                                    if ($validateVMkernelRemoved.Count -gt 0) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.GetValueException]"Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                'Undo-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    else {
+                                        Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteBVLAN): SKIPPING"
+                                }
+                                else {
+                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        try {
+                                            Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteB -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
+                                        }
+                                        catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                    $validateVMkernelRemoved = @()
+                                    $validateVMkernelRemoved = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -PortGroup $existingPortGroupSiteB | Where-Object {$_.VSphereReplicationEnabled -eq $true -or $_.VSphereReplicationNfcEnabled -eq $true}
+                                    if ($validateVMkernelRemoved.Count -gt 0) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.GetValueException]"Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                'Undo-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    else {
+                                        Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSRVMKernelPort
+
+Function New-vSREsxiStaticRoute {
+    <#
+		.SYNOPSIS
+        Create a static route on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The New-vSREsxiStaticRoute cmdlet creates a static route on ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Creates static routes on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        defined in -siteAVLAN, -siteBVLAN, -siteASubnet, -siteBSubnet, -siteAGateway, and -siteBGateway paramters.
+
+        .EXAMPLE
+        New-vSREsxiStaticRoute -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteASubnet 172.27.15.0/24 -siteBSubnet 172.28.15.0/24 -siteAGateway 172.27.15.1 -siteBGateway 172.28.15.1
+        This example adds a static route to each ESXi host in the protected site VCF Management Domain to the recovery site vSphere Replication subnet (172.28.15.0/24) via the protected site vSphere Replication network gateway (172.27.15.1).
+        This example also adds a static route to each ESXi host in the recovery site VCF Management Domain to the protected site vSphere Replication subnet (172.27.15.0/24) via the recovery site vSphere Replication network gateway (172.28.15.1).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteASubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBSubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteAGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBGateway
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $siteANetwork = $siteASubnet.Split("/")[0]
+                            $siteACidr = $siteASubnet.Split("/")[1]
+                            [ipaddress] $siteANetmaskStub = 0
+                            $siteANetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteACidr) -shr (32 - $siteACidr)
+                            $siteANetmask = $siteANetmaskStub.IPAddressToString
+                            $siteBNetwork = $siteBSubnet.Split("/")[0]
+                            $siteBCidr = $siteBSubnet.Split("/")[1]
+                            [ipaddress] $siteBNetmaskStub = 0
+                            $siteBNetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteBCidr) -shr (32 - $siteBCidr)
+                            $siteBNetmask = $siteBNetmaskStub.IPAddressToString
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                }
+                                else {
+                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        try {
+                                            $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $skipAdd = $null
+                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                    $skipAdd = $true
+                                                    $skipCountSiteA++
+                                                }
+                                            }
+                                            if (!$skipAdd) {
+                                                try {
+                                                    $newStaticRouteArgs = $null
+                                                    $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
+                                                    $newStaticRouteArgs.gateway = $siteAGateway
+                                                    $newStaticRouteArgs.network = $siteBSubnet
+                                                    $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
+                                                }
+                                                catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteValidated = $null
+                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                        $staticRouteValidated = $true
+                                                    }
+                                                }
+                                                if (!$staticRouteValidated) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been added to ESXi host ($($vmHostsToConfigure[$i].fqdn)): POST_VALIDATION_FAILED"),
+                                                            'New-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                }
+                                                else {
+                                                    Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            }
+                                            else {
+                                                Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        }
+                                        catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                }
+                                else {
+                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        try {
+                                            $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $skipAdd = $null
+                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                    $skipAdd = $true
+                                                }
+                                            }
+                                            if (!$skipAdd) {
+                                                try {
+                                                    $newStaticRouteArgs = $null
+                                                    $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
+                                                    $newStaticRouteArgs.gateway = $siteBGateway
+                                                    $newStaticRouteArgs.network = $siteASubnet
+                                                    $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
+                                                }
+                                                catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteValidated = $null
+                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                        $staticRouteValidated = $true
+                                                    }
+                                                }
+                                                if (!$staticRouteValidated) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been added to ESXi host ($($vmHostsToConfigure[$i])): POST_VALIDATION_FAILED"),
+                                                            'New-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                }
+                                                else {
+                                                    Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            }
+                                            else {
+                                                Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        }
+                                        catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vSREsxiStaticRoute
+
+Function Undo-vSREsxiStaticRoute {
+    <#
+		.SYNOPSIS
+        Remove a static route from ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSREsxiStaticRoute cmdlet removes a static route from ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes a static route on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        defined in -siteAVLAN, -siteBVLAN, -siteASubnet, -siteBSubnet, -siteAGateway, and -siteBGateway paramters.
+
+        .EXAMPLE
+        Undo-vSREsxiStaticRoute -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteASubnet 172.27.15.0/24 -siteBSubnet 172.28.15.0/24 -siteAGateway 172.27.15.1 -siteBGateway 172.28.15.1
+        This example removes a static route, if present, from each ESXi host in the protected site VCF Management Domain from the protected site to the recovery site vSphere Replication subnet (172.28.15.0/24) via the protected site vSphere Replication network gateway (172.27.15.1).
+        This example also removes a static route, if present, from each ESXi host in the recovery site VCF Management Domain from the recovery site to the protected site vSphere Replication subnet (172.27.15.0/24) via the recovery site vSphere Replication network gateway (172.28.15.1).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteASubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBSubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteAGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBGateway
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $siteANetwork = $siteASubnet.Split("/")[0]
+                            $siteACidr = $siteASubnet.Split("/")[1]
+                            [ipaddress] $siteANetmaskStub = 0
+                            $siteANetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteACidr) -shr (32 - $siteACidr)
+                            $siteANetmask = $siteANetmaskStub.IPAddressToString
+                            $siteBNetwork = $siteBSubnet.Split("/")[0]
+                            $siteBCidr = $siteBSubnet.Split("/")[1]
+                            [ipaddress] $siteBNetmaskStub = 0
+                            $siteBNetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteBCidr) -shr (32 - $siteBCidr)
+                            $siteBNetmask = $siteBNetmaskStub.IPAddressToString
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                }
+                                else {
+                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        try {
+                                            $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $existingRouteToRemove = $null
+                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                    $existingRouteToRemove = $true
+                                                }
+                                            }
+                                            if ($existingRouteToRemove) {
+                                                try {
+                                                    $removeStaticRouteArgs = $null
+                                                    $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
+                                                    $removeStaticRouteArgs.gateway = $siteAGateway
+                                                    $removeStaticRouteArgs.network = $siteBSubnet
+                                                    $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
+                                                }
+                                                catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteStillExists = $null
+                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                        $staticRouteStillExists = $true
+                                                    }
+                                                }
+                                                if ($staticRouteStillExists) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been removed from ESXi host ($($vmHostsToConfigure[$i].fqdn)): POST_VALIDATION_FAILED"),
+                                                            'Undo-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                }
+                                                else {
+                                                    Write-Output "Remove static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            }
+                                            else {
+                                                Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        }
+                                        catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            }
+                            else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                }
+                                else {
+                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        try {
+                                            $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $existingRouteToRemove = $null
+                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                    $existingRouteToRemove = $true
+                                                }
+                                            }
+                                            if ($existingRouteToRemove) {
+                                                try {
+                                                    $removeStaticRouteArgs = $null
+                                                    $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
+                                                    $removeStaticRouteArgs.gateway = $siteBGateway
+                                                    $removeStaticRouteArgs.network = $siteASubnet
+                                                    $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
+                                                }
+                                                catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteStillExists = $null
+                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                        $staticRouteStillExists = $true
+                                                    }
+                                                }
+                                                if ($staticRouteStillExists) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been removed from ESXi host ($($vmHostsToConfigure[$i])): POST_VALIDATION_FAILED"),
+                                                            'Undo-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                }
+                                                else {
+                                                    Write-Output "Remove static route vSphere Replication traffic from ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            }
+                                            else {
+                                                Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        }
+                                        catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSREsxiStaticRoute
+
+Function Set-SRMLicenseConfig {
+    <#
+		.SYNOPSIS
+        Configure the license for Site Recovery Manager in the protected and recovery sites
+
+        .DESCRIPTION
+        The Set-SRMLicenseConfig cmdlet configures the license for Site Recovery Manager in the protected and recovery
+        sites. 
+        The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
+        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Validates whether the license keys exist in vCenter Server inventory, and if not, installs them
+        - Configures the license for Site Recovery Manager in the protected and recovery sites.
+
+        .EXAMPLE
+        Set-SRMLicenseConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vCenterSiteARootPass VMw@re1! -vCenterSiteBRootPass VMw@re1! -srmSiteAKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE -srmSiteBKey 00000-11111-22222-33333-4444
+        This example configures the Site Recovery Manager instances in the protected and recovery sites with their respective license key.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteAKey,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteBKey
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
+                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceA = Get-View -Server $siteAvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerA = Get-View -Server $siteAvCenterDetails.fqdn $serviceInstanceA.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteAvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerA = Get-View -Server $siteAvCenterDetails.fqdn $licenseManagerA.licenseAssignmentManager
+                                                        $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                        if ($licenseExistsA) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) has already been installed on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseManagerA.AddLicense($srmSiteAKey,$null) | Out-Null
+                                                                $licenseManagerA.UpdateViewData()
+                                                                $validateLicenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                                if ($validateLicenseExistsA) {
+                                                                    Write-Output "Add license key for Site Recovery Manager ($srmSiteAKey) to vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been added to vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                        $srmASiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmAFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmAPartialUuid = ($licenseAssignmentManagerA.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmASiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteAvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteA -Server $siteAvCenterDetails.fqdn
+                                                        $srmAUuid = ($srmAPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $existingSrmALicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                        if ($existingSrmALicenseKey -eq $srmSiteAKey) {
+                                                            Write-Warning "License key ($srmSiteAKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseAssignmentManagerA.UpdateAssignedLicense($srmAUuid,$srmSiteAKey,$null) | Out-Null
+                                                                $licenseAssignmentManagerA.UpdateViewData() | Out-Null
+                                                                $validateSrmLicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                                if ($validateSrmLicenseKey -eq $srmSiteAKey) {
+                                                                    Write-Output "Configure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                    }
+                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceB = Get-View -Server $siteBvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerB = Get-View -Server $siteBvCenterDetails.fqdn $serviceInstanceB.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteBvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerB = Get-View -Server $siteBvCenterDetails.fqdn $licenseManagerB.licenseAssignmentManager
+                                                        $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                        if ($licenseExistsB) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) has already been installed on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseManagerB.AddLicense($srmSiteBKey,$null) | Out-Null
+                                                                $licenseManagerB.UpdateViewData()
+                                                                $validateLicenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                                if ($validateLicenseExistsB) {
+                                                                    Write-Output "Add license key for Site Recovery Manager ($srmSiteBKey) to vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been added to vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                        $srmBSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmBFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmBPartialUuid = ($licenseAssignmentManagerB.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmBSiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteBvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteB -Server $siteBvCenterDetails.fqdn
+                                                        $srmBUuid = ($srmBPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                        if ($existingSrmBLicenseKey -eq $srmSiteBKey) {
+                                                            Write-Warning "License key ($srmSiteBKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseAssignmentManagerB.UpdateAssignedLicense($srmBUuid,$srmSiteBKey,$null) | Out-Null
+                                                                $licenseAssignmentManagerB.UpdateViewData() | Out-Null
+                                                                $validateSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                                if ($validateSrmBLicenseKey -eq $srmSiteBKey) {
+                                                                    Write-Output "Configure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-SRMLicenseConfig
+
+Function Undo-SRMLicenseConfig {
+    <#
+		.SYNOPSIS
+        Removes the license configuration for Site Recovery Manager in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-SRMLicenseConfig cmdlet removes the license configuration from Site Recovery Manager in the protected
+        and recovery sites. 
+        The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
+        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Validates whether the license keys exist in vCenter Server inventory, and if not, installs them
+        - Removes the license configuration for Site Recovery Manager in the protected and recovery sites
+
+        .EXAMPLE
+        Undo-SRMLicenseConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vCenterSiteARootPass VMw@re1! -vCenterSiteBRootPass VMw@re1! -srmSiteAKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE -srmSiteBKey 00000-11111-22222-33333-4444
+        This example removes the license configuration from Site Recovery Manager instances in the protected and recovery sites with their respective license key.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteAKey,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteBKey
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
+                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceA = Get-View -Server $siteAvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerA = Get-View -Server $siteAvCenterDetails.fqdn $serviceInstanceA.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteAvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerA = Get-View -Server $siteAvCenterDetails.fqdn $licenseManagerA.licenseAssignmentManager
+                                                        $srmASiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmAFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmAPartialUuid = ($licenseAssignmentManagerA.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmASiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteAvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteA -Server $siteAvCenterDetails.fqdn
+                                                        $srmAUuid = ($srmAPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $srmALicenseKeyAlreadyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                        if (!$srmALicenseKeyAlreadyRemoved -or $srmALicenseKeyAlreadyRemoved -eq "00000-00000-00000-00000-00000") {
+                                                            Write-Warning "License key ($srmSiteAKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseAssignmentManagerA.RemoveAssignedLicense($srmAUuid) | Out-Null
+                                                                $licenseAssignmentManagerA.UpdateViewData() | Out-Null
+                                                                $validateSrmALicenseKeyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                                if (!$validateSrmALicenseKeyRemoved) {
+                                                                    Write-Output "Unconfigure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been unconfigured from Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                        $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                        if (!$licenseExistsA) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) does not exist on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseManagerA.RemoveLicense($srmSiteAKey) | Out-Null
+                                                                $licenseManagerA.UpdateViewData()
+                                                                $validateLicenseRemovedA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                                if (!$validateLicenseRemovedA) {
+                                                                    Write-Output "Remove license key for Site Recovery Manager ($srmSiteAKey) from vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been removed from vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                    }
+                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceB = Get-View -Server $siteBvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerB = Get-View -Server $siteBvCenterDetails.fqdn $serviceInstanceB.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteBvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerB = Get-View -Server $siteBvCenterDetails.fqdn $licenseManagerB.licenseAssignmentManager
+                                                        $srmBSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmBFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmBPartialUuid = ($licenseAssignmentManagerB.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmBSiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteBvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteB -Server $siteBvCenterDetails.fqdn
+                                                        $srmBUuid = ($srmBPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                        if (!$existingSrmBLicenseKey -or $existingSrmBLicenseKey -eq "00000-00000-00000-00000-00000") {
+                                                            Write-Warning "License key ($srmSiteBKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseAssignmentManagerB.RemoveAssignedLicense($srmBUuid) | Out-Null
+                                                                $licenseAssignmentManagerB.UpdateViewData() | Out-Null
+                                                                $validateSrmBLicenseKeyRemoved = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                                if (!$validateSrmBLicenseKeyRemoved) {
+                                                                    Write-Output "Unconfigure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                        $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                        if (!$licenseExistsB) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) does not exist on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        }
+                                                        else {
+                                                            try {
+                                                                $licenseManagerB.RemoveLicense($srmSiteBKey) | Out-Null
+                                                                $licenseManagerB.UpdateViewData() | Out-Null
+                                                                $validateLicenseBRemoved = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                                if (!$validateLicenseBRemoved) {
+                                                                    Write-Output "Remove license key for Site Recovery Manager ($srmSiteBKey) from vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                }
+                                                                else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been removed from vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            }
+                                                            catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SRMLicenseConfig
 
 #######################################################################################################################
 ##################  D E V E L O P E R   R E A D Y   I N F R A S T R U C T U R E   F U N C T I O N S   #################
@@ -15505,10 +17379,19 @@ Function Request-vSphereApiToken {
         # Perform the vCenter REST API call to authenticate and retrieve the session token
 		if ($PsBoundParameters.ContainsKey("admin")) {
             $uri = "https://$vcApiAdminServer/rest/com/vmware/cis/session"
-            $vcApiAdminSession = (Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
-		}
-        $uri = "https://$vcApiServer/rest/com/vmware/cis/session"
-        $vcApiSession = (Invoke-WebRequest -Method 'POST' -URI $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
+            if ($PSEdition -eq 'Core') {
+                $vcApiAdminSession = (Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcAuthHeaders -UseBasicParsing -SkipCertificateCheck | ConvertFrom-Json).Value
+            } else {
+                $vcApiAdminSession = (Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
+            }
+		} else {
+            $uri = "https://$vcApiServer/rest/com/vmware/cis/session"
+            if ($PSEdition -eq 'Core') {
+                $vcApiSession = (Invoke-WebRequest -Method 'POST' -URI $uri -Headers $vcAuthHeaders -UseBasicParsing -SkipCertificateCheck | ConvertFrom-Json).Value
+            } else {
+                $vcApiSession = (Invoke-WebRequest -Method 'POST' -URI $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
+            }
+        }
 
         # Use the session token to build the header used from here on
         $Global:vcApiHeaders = @{"vmware-api-session-id" = $vcApiSession }
@@ -15577,6 +17460,92 @@ Function Request-vSphereApiToken {
     }
 }
 Export-ModuleMember -Function Request-vSphereApiToken
+
+Function Request-VcenterApiToken {
+    <#
+        .SYNOPSIS
+        Request an authentication token for the vCenter Server REST API
+
+        .DESCRIPTION
+        The Request-VcenterApiToken cmdlet requests an authentication token for the vCenter Server REST API
+
+        .EXAMPLE
+        Request-VcenterApiToken -fqdn sfo-w01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
+        This example requests a vCenter Server REST API authentication token for user administrator@vsphere.local from vCenter Server sfo-w01-vc01.sfo.rainpole.io
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$skipCertificateCheck
+    )
+
+    if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) { # Request Credentials
+        $creds = Get-Credential
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+    if (!$PsBoundParameters.ContainsKey("fqdn")) {
+        $fqdn = Read-Host "vCenter Server FQDN not found. Please enter a value, e.g., sfo-m01-vc01.sfo.rainpole.io"
+    }
+    if ($PsBoundParameters.ContainsKey("skipCertificateCheck")) {
+        if (-not("dummy" -as [type])) {
+            add-type -TypeDefinition @"
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+public static class Dummy {
+    public static bool ReturnTrue(object sender,
+        X509Certificate certificate,
+        X509Chain chain,
+        SslPolicyErrors sslPolicyErrors) { return true; }
+
+    public static RemoteCertificateValidationCallback GetDelegate() {
+        return new RemoteCertificateValidationCallback(Dummy.ReturnTrue);
+    }
+}
+"@
+} 
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [dummy]::GetDelegate()
+    }
+
+    Try {
+        Remove-Item variable:vcenterApiSession -Force -Confirm:$false -ErrorAction Ignore
+        Remove-Item variable:vcenterApiHeaders -Force -Confirm:$false -ErrorAction Ignore
+        Remove-Item variable:response -Force -Confirm:$false -ErrorAction Ignore
+        Remove-Item variable:errorStatus -Force -Confirm:$false -ErrorAction Ignore
+        $Global:vcenterAuthHeaders = createvCenterAuthHeader ($username, $password)
+        $Global:vcenterApiServer = $fqdn
+
+        Try {
+            $uri = "https://$vcenterApiServer/api/session" # Perform the vCenter REST API call to authenticate and retrieve the session token
+            $response = Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcenterAuthHeaders -UseBasicParsing
+            
+        } Catch {
+            $errorStatus = $_.Exception
+        }
+        if ($response.StatusCode -eq '201') {
+            $vcenterApiSession = $response | ConvertFrom-Json
+        } elseif ($response.StatusCode -eq '201') {
+            $vcenterApiSession = ($response | ConvertFrom-Json).Value
+        }
+        if ($vcenterApiSession) {
+            $Global:vcenterApiHeaders = @{"vmware-api-session-id" = $vcenterApiSession } # Use the session token to build the header used from here on
+            $vcenterApiHeaders.Add("Content-Type", "application/json")
+            Write-Output "Successfully Requested New API Session Token for vCenter Server: $vcenterApiServer"
+        }
+        if ($errorStatus -match "401") {
+            Write-Warning "Unable to Obtain an API Session Token from vCenter Server: $vcenterApiServer (401 Unauthorized)"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-VcenterApiToken
 
 Function Connect-vSphereMobServer {
     <#
@@ -15782,6 +17751,31 @@ Function Set-VCPasswordPolicy {
     }
 }
 Export-ModuleMember -Function Set-VCPasswordPolicy
+
+Function Get-VCRootPasswordExpiry {
+    <#
+    .SYNOPSIS
+		Get the vCenter Servver root user password expiry date.
+
+        .DESCRIPTION
+        The Get-VCRootPasswordExpiry cmdlet gets password expiration settings for the vCenter Server root account
+
+        .EXAMPLE
+        Get-VCRootPasswordExpiry
+        This example gets the password policy of the vCenter Server root account
+    #>
+
+    Try {
+        if ($vcenterApiHeaders) {
+            $uri = "https://$vcenterApiServer/rest/appliance/local-accounts/root"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterApiHeaders).Value
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-VCRootPasswordExpiry
 
 Function Get-VCPasswordExpiry {
     <#
@@ -16255,6 +18249,187 @@ Function Get-SubscribedLibrary {
 }
 Export-ModuleMember -Function Get-SubscribedLibrary
 
+Function Get-VcenterBackupStatus {
+    <#
+        .SYNOPSIS
+        Returns a list of all backup jobs performed on a vCenter Server instance.
+
+        .DESCRIPTION
+        The Get-VcenterBackupStatus cmdlet returns a list of all backups performed on a vCenter Server instance.
+
+        .EXAMPLE
+        Get-VcenterBackupStatus | Select-Object -Last 1
+        This example demonstrates piping the results of this function into Select-Object to return the status of the last backup.
+    #>
+
+    Try {
+        if ($vcenterApiHeaders) {
+            $uri = "https://$vcenterApiServer/rest/appliance/recovery/backup/job/details"
+            (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vcenterApiHeaders).Value
+        }
+    }
+    Catch {
+        $errorStatus = $_.Exception
+    }
+}
+Export-ModuleMember -Function Get-VcenterBackupStatus
+
+Function Get-SnapshotStatus {
+    <#
+        .SYNOPSIS
+        Returns the status of a virtual machine's snapshots.
+
+        .DESCRIPTION
+        The Get-SnapshotStatus cmdlet returns the status of a virtual machine's snapshots.
+
+        .EXAMPLE
+        Get-SnapshotStatus -vm "foo"
+        This example returns the status of the snapshots for the virtual machine named "foo".
+    #>
+
+    Param (
+        [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vm
+    )
+
+    Try {
+        $response = Get-VM $vm | Get-Snapshot | Select-Object -Property Name, Created, isCurrent # Get the snapshot details
+        $response # Return the snapshot details
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-SnapshotStatus
+
+Function Get-SnapshotConsolidation {
+    <#
+        .SYNOPSIS
+        Returns the status of a virtual machine's need for snapshot consolidation.
+
+        .DESCRIPTION
+        The Get-SnapshotConsolidation cmdlet returns the status of a virtual machine's need for snapshot consolidation.
+
+        .EXAMPLE
+        Get-SnapshotConsolidation -vm "foo"
+        This example returns the status of the snapshot consolidation for the virtual machine named "foo".
+    #>
+
+    Param (
+        [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vm
+    )
+
+    Try {
+        $response = (Get-View -ViewType VirtualMachine -Filter @{'Name' = $vm }).Runtime.ConsolidationNeeded # Get the consolidation status
+        $response # Return the consolidation status
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-SnapshotConsolidation
+
+Function Get-EsxiAlert {
+    <#
+        .SYNOPSIS
+        Returns the triggered alarms for an ESXi host.
+
+        .DESCRIPTION
+        The Get-EsxiAlert cmdlet returns all triggered alarms for ESXi host.
+
+        .EXAMPLE
+        Get-EsxiAlert -host sfo-w01-esx01.sfo.rainpole.io
+        This example returns all triggered alarms for and ESXi host named sfo-w01-esx01.sfo.rainpole.io.
+    #>
+
+    Param (
+
+        [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$host
+    )
+    $vmhosts = Get-VMHost
+    $vmhost = $vmhosts | Where-Object {$_.name -eq $host}
+    foreach ($triggeredAlarm in $vmhost.ExtensionData.TriggeredAlarmState) {
+        $alarm = "" | Select-Object Entity, Alarm, Status, Time, Acknowledged, AckBy, AckTime
+        $alarm.Alarm = (Get-AlarmDefinition -id $triggeredAlarm.alarm).name
+        $alarm.Entity =  ( $vmhosts | Where-Object {$_.id -eq $triggeredAlarm.Entity} ).name # or just $host
+        $alarm.Status = $triggeredAlarm.OverallStatus
+        $alarm.Time = $triggeredAlarm.Time
+        $alarm.Acknowledged = $triggeredAlarm.Acknowledged
+        $alarm.AckBy = $triggeredAlarm.AcknowledgedByUser
+        $alarm.AckTime = $triggeredAlarm.AcknowledgedTime
+        $alarm
+    }
+}
+Export-ModuleMember -Function Get-EsxiAlert
+
+Function Get-VsanHealthTest {
+    <#
+        .SYNOPSIS
+        Returns the vSAN healthcheck tests from a vSAN cluster in vCenter Server.
+
+        .DESCRIPTION
+        The Get-VsanHealthTest cmdlet returns all vSAN healthcheck tests from a VSAN cluster in vCenter Server.
+
+        .EXAMPLE
+        Get-VsanHealthTest -cluster sfo-m01-c01
+        This example returns all vSAN healthcheck tests from vSAN cluster sfo-m01-c01 in connected vCenter Server.
+    #>
+
+    Param (
+        [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+    )
+
+    $vsanClusterHealthSystem = Get-VSANView -Id "VsanVcClusterHealthSystem-vsan-cluster-health-system"
+    $clusterView = (Get-Cluster -Name $cluster).ExtensionData.MoRef
+    $results = $vsanClusterHealthSystem.VsanQueryVcClusterHealthSummary($clusterView,$null,$null,$true,$null,$null,'defaultView')
+    $healthCheckGroups = $results.groups
+    
+    $healthTests = New-Object System.Collections.ArrayList
+    
+    foreach ($healthCheckGroup in $healthCheckGroups) {
+        foreach ($test in $healthCheckGroup.GroupTests) {
+            $testResult = [pscustomobject] @{
+                GroupName = $healthCheckGroup.GroupName
+                TestName = $test.TestName
+                TestHealth = $test.TestHealth.ToUpper()
+            }
+            $healthTests += $testResult
+        }
+    }
+    $healthTests 
+}
+Export-ModuleMember -Function Get-VsanHealthTest
+
+Function Get-VcenterTriggeredAlarm {
+    <#
+        .SYNOPSIS
+        Returns the triggered alarms for a vCenter Server instance.
+
+        .DESCRIPTION
+        The Get-VcenterTriggeredAlarm cmdlet returns all triggered alarms from vCenter Server instance.
+
+        .EXAMPLE
+        Get-VcenterTriggeredAlarm -server sfo-w01-vc01.sfo.rainpole.io
+        This example returns all triggered alarms for a vCenter Server instance named sfo-w01-vc01.sfo.rainpole.io.
+    #>
+
+    Param (
+        [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    $rootFolder = Get-Folder -Server $server "Datacenters"
+    foreach ($triggeredAlarm in $rootFolder.ExtensionData.TriggeredAlarmState) {
+        $alarm = "" | Select-Object EntityType, Alarm, Status, Time, Acknowledged, AckBy, AckTime
+        $alarm.Alarm = (Get-View -Server $server $triggeredAlarm.Alarm).Info.Name
+        $alarm.EntityType = (Get-View -Server $server $triggeredAlarm.Entity).GetType().Name
+        $alarm.Status = $triggeredAlarm.OverallStatus
+        $alarm.Time = $triggeredAlarm.Time
+        $alarm.Acknowledged = $triggeredAlarm.Acknowledged
+        $alarm.AckBy = $triggeredAlarm.AcknowledgedByUser
+        $alarm.AckTime = $triggeredAlarm.AcknowledgedTime
+        $alarm
+    }
+}
+Export-ModuleMember -Function Get-VcenterTriggeredAlarm
 
 ###########  End vSphere API Endpoint Functions  ###########
 ##############################################################
@@ -17358,20 +19533,20 @@ Export-ModuleMember -Function Set-WSAPasswordPolicy
 ##############################################################
 ############  Begin NSX-T Data Center Functions  #############
 
-Function Request-NsxToken {
+Function Request-NsxtToken {
     <#
         .SYNOPSIS
         Connects to the specified NSX Manager
 
         .DESCRIPTION
-        The Request-NsxToken cmdlet connects to the specified NSX Manager with the supplied credentials
+        The Request-NsxtToken cmdlet connects to the specified NSX Manager with the supplied credentials
 
         .EXAMPLE
-        Request-NsxToken -fqdn sfo-w01-nsx01.sfo.rainpole.io -username admin -password VMware1!VMw@re1!
+        Request-NsxtToken -fqdn sfo-w01-nsx01.sfo.rainpole.io -username admin -password VMware1!VMw@re1!
         This example shows how to connect to NSX Manager
 
         .EXAMPLE
-        Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domain sfo-w01 | Request-NsxToken
+        Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domain sfo-w01 | Request-NsxtToken
         This example shows how to connect to NSX Manager using pipeline input from Get-NsxtServerDetail
     #>
 
@@ -17379,7 +19554,8 @@ Function Request-NsxToken {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()][String]$fqdn,
         [Parameter (Mandatory = $false)] [String]$username,
         [Parameter (Mandatory = $false)] [String]$password,
-        [Parameter (ValueFromPipeline, Mandatory = $false)] [psobject]$inputObject
+        [Parameter (ValueFromPipeline, Mandatory = $false)] [psobject]$inputObject,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$skipCertificateCheck
     )
 
     if ($inputObject) {
@@ -17387,8 +19563,7 @@ Function Request-NsxToken {
         $password = $inputObject.adminPass
         $fqdn = $inputObject.fqdn
         $sddcManager = (Get-VCFManager).fqdn
-    }
-    else {
+    } else {
         if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
             # Request Credentials
             $creds = Get-Credential
@@ -17398,6 +19573,29 @@ Function Request-NsxToken {
         if (!$PsBoundParameters.ContainsKey("fqdn")) {
             $fqdn = Read-Host "NSX Manager FQDN not found, please enter a value e.g. sfo-m01-nsx01.sfo.rainpole.io"
         }
+    }
+
+    if ($PsBoundParameters.ContainsKey("skipCertificateCheck")) {
+        if (-not("dummy" -as [type])) {
+            add-type -TypeDefinition @"
+using System;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+public static class Dummy {
+    public static bool ReturnTrue(object sender,
+        X509Certificate certificate,
+        X509Chain chain,
+        SslPolicyErrors sslPolicyErrors) { return true; }
+
+    public static RemoteCertificateValidationCallback GetDelegate() {
+        return new RemoteCertificateValidationCallback(Dummy.ReturnTrue);
+    }
+}
+"@
+} 
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [dummy]::GetDelegate()
     }
 
     # Validate credentials by executing an API call
@@ -17410,15 +19608,13 @@ Function Request-NsxToken {
         # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         if ($PSEdition -eq 'Core') {
             $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders -SkipCertificateCheck
-        }
-        else {
+        } else {
             $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders
         }
         if ($response) {
             if ($inputObject) {
                 Write-Output "Successfully Requested New API Token for NSX Manager $nsxtmanager via SDDC Manager $sddcManager"
-            }
-            else {
+            } else {
                 Write-Output "Successfully Requested New API Token for NSX Manager $nsxtmanager"
             }
         }
@@ -17427,7 +19623,8 @@ Function Request-NsxToken {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Request-NsxToken
+New-Alias -name Request-NsxToken -Value Request-NsxtToken
+Export-ModuleMember -Alias Request-NsxToken -Function Request-NsxtToken
 
 Function Get-NsxtComputeManager {
     <#
@@ -20350,6 +22547,502 @@ Function Remove-NsxtNodeProfileSyslogExporter {
     }
 }
 Export-ModuleMember -Function Remove-NsxtNodeProfileSyslogExporter
+
+Function Get-NsxtBackupConfiguration {
+    <#
+        .SYNOPSIS
+        Return the backup configuration for an NSX Manager cluster.
+
+        .DESCRIPTION
+        The Get-NsxtBackupConfiguration cmdlet returns the backup configuration for an NSX Manager cluster
+
+        .EXAMPLE
+        Get-NsxtBackupConfiguration -fqdn sfo-w01-nsx01.sfo.rainpole.io
+        This example returns the backup configuration for the NSX Manager cluster named 'sfo-w01-nsx01.sfo.rainpole.io'.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
+    )
+
+    Try {
+        $uri = "https://$fqdn/api/v1/cluster/backups/config"
+        # Note: NSX-T v3.2.0 and later use `/policy/api/v1/cluster/backups/config` or `/api/v1/cluster/backups/config`
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtBackupConfiguration
+
+Function Get-NsxtBackupHistory {
+    <#
+        .SYNOPSIS
+        Return the backup history for an NSX Manager cluster.
+
+        .DESCRIPTION
+        The Get-NsxtBackupHistory cmdlet returns the backup history for an NSX Manager cluster
+
+        .EXAMPLE
+        Get-NsxtBackupHistory -fqdn sfo-w01-nsx01.sfo.rainpole.io
+        This example returns the backup history for the NSX Manager cluster named 'sfo-w01-nsx01.sfo.rainpole.io'.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/cluster/backups/history"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtBackupHistory
+
+Function Get-NsxtAlarm {
+    <#
+        .SYNOPSIS
+        Return the triggered alarms for an NSX Manager cluster.
+
+        .DESCRIPTION
+        The Get-NsxtAlarm cmdlet returns all triggered alarms for an NSX Manager cluster.
+
+        .EXAMPLE
+        Get-NsxtAlarm -fqdn sfo-w01-nsx01.sfo.rainpole.io
+        This example returns all triggered alarms for an NSX Manager cluster named sfo-w01-nsx01.sfo.rainpole.io.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/alarms"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtAlarm
+
+Function Get-NsxtEvent {
+    <#
+        .SYNOPSIS
+        Return the events for an NSX Manager cluster.
+
+        .DESCRIPTION
+        The Get-NsxtEvent cmdlet returns the events for an NSX Manager cluster.
+
+        .EXAMPLE
+        Get-NsxtEvent -fqdn sfo-w01-nsx01.sfo.rainpole.io
+        This example returns events for an NSX Manager cluster named sfo-w01-nsx01.sfo.rainpole.io.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/events"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtEvent
+
+Function Get-NsxtTier0BgpStatus {
+    <#
+        .SYNOPSIS
+        Returns the status of the BGP routing for NSX Tier-0 gateways.
+
+        .DESCRIPTION
+        The Get-NsxtTier0BgpStatus cmdlet returns the status of the BGP routing for NSX Tier-0 gateways.
+
+        .EXAMPLE
+        Get-NsxtTier0BgpStatus -id <guid>
+        This example returns the status of the BGP routing for NSX Tier-0 gateway.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/policy/api/v1/infra/tier-0s/$id/locale-services/default/bgp/neighbors/status"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
+        $response.results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtTier0BgpStatus
+
+Function Get-NsxtEdgeNode {
+    <#
+        .SYNOPSIS
+        Get details for NSX Edge.
+
+        .DESCRIPTION
+        The Get-NsxtEdgeNode cmdlet returns the details of an NSX Edge node
+
+        .EXAMPLE
+        Get-NsxtEdgeNode -transportNodeId sfo-w01-nsx01.sfo.rainpole.io
+        This example returns the details of an NSX Edge node
+    #>
+
+	Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportNodeId
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeId"
+        Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtEdgeNode
+
+Function Get-NsxtTier0LocaleServiceBgp {
+    <#
+        .SYNOPSIS
+        Get details for BGP in the locale services.
+
+        .DESCRIPTION
+        The Get-NsxtTier0LocaleServiceBgp cmdlet returns the details for BGP in the locale services.
+
+        .EXAMPLE
+        Get-NsxtTier0LocaleServiceBgp -id <guid>
+        This example returns the details for BGP in the locale services.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/default/bgp"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtTier0LocaleServiceBgp
+
+Function Get-NsxtVidmStatus {
+    <#
+        .SYNOPSIS
+        Get the status of the Identity Manager integration.
+
+        .DESCRIPTION
+        The Get-NsxtVidmStatus cmdlet returns the status of the Identity Manager integration.
+
+        .EXAMPLE
+        Get-NsxtVidmStatus
+        This example returns the status of the Identity Manager integration.
+    #>
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm/status"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtVidmStatus
+
+Function Get-NsxtTransportNode {
+    <#
+        .SYNOPSIS
+        Returns information about all transport nodes with host or edge details.
+
+        .DESCRIPTION
+        The Get-NsxtTransportNode cmdlet returns information about all transport nodes with host or edge details.
+
+        .EXAMPLE
+        Get-NsxtTransportNode
+        This example returns information about all transport nodes with host or edge details.
+
+        .EXAMPLE
+        Get-NsxtTransportNode -type edge
+        This example returns information about all edge transport nodes with details.
+
+        .EXAMPLE
+        Get-NsxtTransportNode -type host
+        This example returns information about all host transport nodes with details.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('type')) {
+            if ($type -eq 'host') {
+                $uri = "https://$nsxtManager/api/v1/transport-nodes?node_types=HostNode"
+            } else {
+                $uri = "https://$nsxtManager/api/v1/transport-nodes?node_types=EdgeNode"
+            }
+        } else {
+            $uri = "https://$nsxtManager/api/v1/transport-nodes"
+        }
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        $response.results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtTransportNode
+
+Function Get-NsxtTransportNodeStatus {
+    <#
+        .SYNOPSIS
+        Get the status of the NSX transport nodes.
+
+        .DESCRIPTION
+        The Get-NsxtTransportNodeStatus cmdlet returns the status of the transport nodes.
+
+        .EXAMPLE
+        Get-NsxtTransportNodeStatus
+        This example returns the status of all transport nodes.
+
+        .EXAMPLE
+        Get-NsxtTransportNodeStatus -type edge
+        This example returns the status of the edge transport nodes.
+
+        .EXAMPLE
+        Get-NsxtTransportNodeStatus -type host
+        This example returns the status of the host transport nodes.   
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('type')) {
+            $uri = "https://$nsxtManager/api/v1/transport-nodes/status?node_type=$($type.ToUpper())"
+        } else {
+            $uri = "https://$nsxtManager/api/v1/transport-nodes/status"
+        }
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtTransportNodeStatus
+
+Function Get-NsxtTransportNodeTunnel {
+    <#
+        .SYNOPSIS
+        Returns a list of tunnel connections to transport node.
+
+        .DESCRIPTION
+        The Get-NsxtTransportNodeTunnel cmdlet returns a list of tunnel connections to transport node.
+
+        .EXAMPLE
+        Get-NsxtTransportNodeTunnel -id <guid>
+        This example returns a list of tunnel connections to transport node.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/transport-nodes/$id/tunnels"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtTransportNodeTunnel
+
+Function Get-NsxtTransportNodeTunnelStatus {
+    <#
+        .SYNOPSIS
+        Returns the status of all transport nodes with tunnel connections to transport node.
+
+        .DESCRIPTION
+        The Get-NsxtTransportNodeTunnelStatus cmdlet returns the status of all transport nodes with tunnel connections to transport node.
+
+        .EXAMPLE
+        Get-NsxtTransportNodeTunnelStatus -id <guid>
+        This example returns the status of all transport nodes with tunnel connections to transport node.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/transport-nodes/$id/remote-transport-node-status"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        $response.results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtTransportNodeTunnelStatus
+
+Function Get-NsxtComputeManagerStatus {
+    <#
+        .SYNOPSIS
+        Get the status of a compute manager registered to the NSX Manager cluster.
+
+        .DESCRIPTION
+        The Get-NsxtComputeManagerStatus cmdlet returns the status of a compute manager registered to the NSX Manager cluster.
+
+        .EXAMPLE
+        Get-NsxtComputeManagerStatus -id <guid>
+        This example returns the status of a compute manager registered to the NSX Manager cluster.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/api/v1/fabric/compute-managers/$id/status"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtComputeManagerStatus
+
+Function Get-NsxtApplianceUser {
+    <#
+        .SYNOPSIS
+        Returns the list of users configued to log in to the NSX appliance.
+
+        .DESCRIPTION
+        The Get-NsxtApplianceUser cmdlet returns the list of users configued to log in to the NSX appliance.
+
+        .EXAMPLE
+        Get-NsxtApplianceUser
+        This example returns a all users configued to log in to the NSX appliance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clusterNodeId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("transportNodeId")) {
+            $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeId/node/users"
+        } elseif ($PsBoundParameters.ContainsKey("clusterNodeId")) {
+            $uri = "https://$nsxtmanager/api/v1/cluster/$clusterNodeId/node/users"
+        } else {
+            $uri = "https://$nsxtmanager/api/v1/node/users"
+        }
+        (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtApplianceUser
+
+Function Set-NsxtApplianceUserExpirationPolicy {
+    <#
+        .SYNOPSIS
+        Updates the password expiration policy for NSX appliance user.
+
+        .DESCRIPTION
+        The Set-NsxtApplianceUserExpirationPolicy cmdlet updates the password expiration policy for an NSX appliance user.
+
+        .EXAMPLE
+        Set-NsxtApplianceUserExpirationPolicy -userId 0 -days 9999
+        This example updates the password expiration policy for the userId 0 (root) to 9999 days.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,9999)] [Int]$days,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clusterNodeId
+    )
+
+    Try {
+        $json = '{"password_change_frequency": ' + $days + ' }'
+        if ($PsBoundParameters.ContainsKey("transportNodeId")) {
+            $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeId/node/users/$userId"
+        } elseif ($PsBoundParameters.ContainsKey("clusterNodeId")) {
+            $uri = "https://$nsxtmanager/api/v1/cluster/$clusterNodeId/node/users/$userId"
+        } else {
+            $uri = "https://$nsxtmanager/api/v1/node/users/$userId"
+        }
+        (Invoke-RestMethod $uri -Method 'PUT' -Headers $nsxtHeaders -Body $json).results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtApplianceUserExpirationPolicy
+
+Function Set-NsxtApplianceUserPassword {
+    <#
+        .SYNOPSIS
+        Updates the password for NSX appliance user.
+
+        .DESCRIPTION
+        The Set-NsxtApplianceUserPassword cmdlet updates the password for an NSX appliance user.
+
+        .EXAMPLE
+        Set-NsxtApplianceUserPassword -userId 0 -password VMware123!VMware123!
+        This example updates the password for the userId 0 (root).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()]  [String]$password,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clusterNodeId
+    )
+
+    Try {
+        $json = '{"password": "' + $password + '" }'
+        if ($PsBoundParameters.ContainsKey("transportNodeId")) {
+            $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeId/node/users/$userId`?action=reset_password"
+        } elseif ($PsBoundParameters.ContainsKey("clusterNodeId")) {
+            $uri = "https://$nsxtmanager/api/v1/cluster/$clusterNodeId/node/users/$userId`?action=reset_password"
+        } else {
+            $uri = "https://$nsxtmanager/api/v1/node/users/$userId`?action=reset_password"
+        }
+        (Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -Body $json).results
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtApplianceUserPassword
 
 ##################  End NSX-T Functions #######################
 ###############################################################
@@ -27178,7 +29871,7 @@ Function Test-VCFAuthentication {
     Remove-Item variable:accessToken -Force -Confirm:$false -ErrorAction Ignore
 
     Try {
-        Request-VCFToken -fqdn $server -Username $user -Password $pass -ErrorAction Ignore -ErrorVariable ErrMsg | Out-Null
+        Request-VCFToken -fqdn $server -Username $user -Password $pass -skipCertificateCheck -ErrorAction Ignore -ErrorVariable ErrMsg | Out-Null
         if ($accessToken) {
             $vcfAuthentication = $True
             Return $vcfAuthentication
@@ -27354,7 +30047,7 @@ Function Test-NSXTAuthentication {
     Remove-Item variable:nsxtHeaders -Force -Confirm:$false -ErrorAction Ignore
 
     Try {
-        $response = Request-NSXToken -fqdn $server -username $user -password $pass
+        $response = Request-NsxtToken -fqdn $server -username $user -password $pass -skipCertificateCheck
         if ($response -match "Successfully Requested") {
             $nsxtAuthentication = $True
             Return $nsxtAuthentication
@@ -27591,6 +30284,68 @@ Function Test-WSAAuthentication {
 }
 Export-ModuleMember -Function Test-WSAAuthentication
 
+Function Test-VAMIConnection {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
+        $vamiConnection = $True
+        Return $vamiConnection
+    }   
+    else { 
+        Write-Error "Unable to communicate with appliance VAMI interface ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        $vamiConnection = $False
+        Return $vamiConnection
+    }
+}
+Export-ModuleMember -Function Test-VAMIConnection
+
+Function Test-VAMIAuthentication {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Remove-Variable -Name VAMIAuthHeaders -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+    Remove-Variable -Name SessionId -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+
+    Try {
+        $i=0
+        do {
+            $i++
+            Start-Sleep -Seconds 1
+            Request-VAMISessionId -fqdn $server -username $user -password $pass -ErrorAction SilentlyContinue
+            if ($i -ge 30) {
+                $PSCmdlet.ThrowTerminatingError(
+                    [System.Management.Automation.ErrorRecord]::new(
+                        ([System.Management.Automation.GetValueException]"Get session ID from appliance VAMI interface ($server): PRE_VALIDATION_FAILED"),
+                        'Request-VAMISessionId',
+                        [System.Management.Automation.ErrorCategory]::ConnectionError,
+                        ""
+                    )
+                )   
+            }
+        }
+        while ($global:sessionId -eq $null)
+        $global:VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
+
+        if ($VAMIAuthHeaders) {
+            $vamiAuthentication = $True
+            Return $vamiAuthentication
+        }   
+        else {
+            Write-Error "Unable to authenticate with appliance VAMI interface ($server), check credentials: PRE_VALIDATION_FAILED"
+            $vamiAuthentication = $False
+            Return $vamiAuthentication
+        }
+    }
+    Catch {
+        $PSCmdlet.ThrowTerminatingError($PSItem)
+    }
+}
+Export-ModuleMember -Function Test-VAMIAuthentication
 Function Test-SRMConnection {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
@@ -27926,7 +30681,6 @@ Function Test-DnsServers {
             else {
                 $resolveResult = $true
             }
- 
         }
         Return $resolveResult
     }
@@ -28110,5 +30864,6 @@ Function Add-ESXiDomainUser {
     }
 }
 Export-ModuleMember -Function Add-ESXiDomainUser
+
 #######################  End Unused Functions  #########################
 ########################################################################
