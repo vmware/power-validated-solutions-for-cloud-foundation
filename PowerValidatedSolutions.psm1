@@ -9541,6 +9541,7 @@ Function Export-vRLIJsonSpec {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrli_license"].Value) {
@@ -9553,7 +9554,11 @@ Function Export-vRLIJsonSpec {
                             if ($vrliLicense.key -eq $licenseKey) {
                                 if ($vrliCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value}) {
                                     if ($vrliPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value) {
-                                        $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                        if ($vcfVersion -eq "4.5.0") {
+                                            $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
+                                        } else {
+                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                        }
                                         $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value}
 
                                         $infrastructurePropertiesObject = @()
@@ -9665,10 +9670,11 @@ Function Export-vRLIJsonSpec {
                                         }
                                         
                                         #### Generate the vRealize Log Insight Properties Section
-                                        $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                         if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0"}
                                         if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
                                         if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2"}
+                                        if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2"}
+										if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.0"}
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
                                             'id' 			= "vrli"
@@ -10998,6 +11004,7 @@ Function Export-vROPsJsonSpec {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrops_license"].Value) {
@@ -11011,7 +11018,11 @@ Function Export-vROPsJsonSpec {
                                 if ($vropsCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value}) {
                                     if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value) {
                                         if ($vropsPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value) {
-                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            if ($vcfVersion -eq "4.5.0") {
+                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
+                                            } else {
+                                                $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            }
                                             $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
                                             if ($datacenterName) {
                                                 $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
@@ -11206,6 +11217,8 @@ Function Export-vROPsJsonSpec {
                                                 if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
                                                 if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
                                                 if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
+                                                if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
+												if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vrops"
@@ -12879,6 +12892,7 @@ Function Export-vRAJsonSpec {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vra_license"].Value) {
@@ -12895,7 +12909,11 @@ Function Export-vRAJsonSpec {
                                     if ($defaultPassword.alias) {
                                         $vraPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value
                                         if ($vraPassword.alias) {
-                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            if ($vcfVersion -eq "4.5.0") {
+                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
+                                            } else {
+                                                $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            }
                                             $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
                                             if ($datacenterName) {
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
@@ -12950,7 +12968,7 @@ Function Export-vRAJsonSpec {
                                                     'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
 
-                                                #### Generate vRealize Log Insight Cluster Details
+                                                #### Generate vRealize Automation Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
@@ -12967,7 +12985,7 @@ Function Export-vRAJsonSpec {
                                                 'clusterVips'	= $clusterVipsObject
                                                 }
 
-                                                #### Generate vRealize Log Insight Node Details
+                                                #### Generate vRealize Automation Node Details
                                                 $vraPrimaryProperties = @()
                                                 $vraPrimaryProperties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value
@@ -13003,11 +13021,12 @@ Function Export-vRAJsonSpec {
                                                     'properties'	= ($vraSecondary2Properties | Select-Object -Skip 0)
                                                 }
 
-                                                #### Generate the vRealize Log Insight Properties Section
-                                                $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                                                #### Generate the vRealize Automation Properties Section
                                                 if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1"}
                                                 if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0"}
                                                 if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2"}
+                                                if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2"}
+												if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.0"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vra"
@@ -24713,13 +24732,18 @@ Function Export-WsaJsonSpec {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
                             if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value}) {
                                 if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
                                     if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
                                         if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
-                                            $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            if ($vcfVersion -eq "4.5.0") {
+                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
+                                            } else {
+                                                $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            }
                                             if ($datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}) {
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
                                                 $infrastructurePropertiesObject = @()
@@ -24834,11 +24858,12 @@ Function Export-WsaJsonSpec {
                                                     'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
                                                 }
 
-                                                #### Generate the vRealize Log Insight Properties Section
-                                                $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                                                #### Generate the Workspace ONE Properties Section
                                                 if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5"}
                                                 if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5"}
                                                 if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
+                                                if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
+												if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vidm"
@@ -30681,6 +30706,7 @@ Function Test-DnsServers {
             else {
                 $resolveResult = $true
             }
+ 
         }
         Return $resolveResult
     }
