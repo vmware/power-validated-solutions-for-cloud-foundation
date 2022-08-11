@@ -12841,6 +12841,106 @@ Function Import-vROPSNotification {
 }
 Export-ModuleMember -Function Import-vROPSNotification
 
+Function Test-vROPsAdapterStatus {
+    <#
+        .SYNOPSIS
+        Validates the integration status of a vROPs adapter through adapter's ID
+        
+        .DESCRIPTION
+        The Test-vROPsAdapterStatus cmdlet validates the integration status between vRealize Operations Manager and configured adapter.
+    
+        .EXAMPLE
+        PS C:\> Test-vROPsAdapterStatus -resourcelId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
+        This example validate the integration status between vRealize Operations Manager and configured adapter through its ID. 
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourcelId
+    )
+    $name = (Get-vROPSAdapter | Where-Object { $_.id -eq $resourcelId }).resourceKey.name
+    write-output "Adapter Name : $($name)"
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/resources/$resourcelId"
+        if ($PSEdition -eq 'Core') {
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
+        }
+        if ($vropsresponse.resourceHealth -eq "GREEN") {
+            Write-Output "Adapter Health Status: GREEN" 
+        }
+        elseif ($vropsresponse.resourceHealth -eq "ORANGE") { 
+            Write-Error "Adapter Health Status: $($vropsresponse.resourceHealth), verify the status after sometime"
+        }
+        else { 
+            Write-Error "Adapter Health Status: $($vropsresponse.resourceHealth), check the log status"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-vROPsAdapterStatus
+
+Function Test-vROPsAdapterStatusByType {
+    <#
+		.SYNOPSIS
+        Validates the integration status of vROPs adapter.
+
+        .DESCRIPTION
+        The Test-vROPsAdapterStatusByType cmdlet tests the integration status between vRealize Operations Manager and configured adapter.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates the integration status between vRealize Operations Manager and configured adapter     
+
+        .EXAMPLE
+        PS C:\> Test-vROPSAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re123!" -adapterKind NSXTAdapter
+        This example validates the integration status between vRealize Operations Manager and NSXT adapter.
+
+        .EXAMPLE
+        PS C:\> Test-vROPSAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re123!" -adapterKind CASAdapter
+        This example validates the integration status between vRealize Operations Manager and vRealize Automation adapter.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateSet("Container", "EP Ops Adapter", "Http Post", "LogInsight", "MicrosoftAzureAdapter", "AmazonAWSAdapter", "NSXTAdapter", "PingAdapter", "SDDCHealthAdapter", "APPLICATIONDISCOVERY", "VMWARE", "VmcAdapter", "IdentityManagerAdapter", "APPOSUCP", "VOAAdapter", "CASAdapter", "LogInsightAdapter", "NETWORK_INSIGHT", "vCenter Operations Adapter", "vRealizeOpsMgrAPI", "VirtualAndPhysicalSANAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
+    )
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {   
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {  
+                                if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {  
+                                    $adapterJson = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind } 
+                                    $adapterJson | ForEach-Object {
+                                        Test-vROPSAdapterStatus -resourcelId $_.id
+                                    }
+                                }
+                                else {
+                                    Write-Error "'$($adapterKind)' Adapter is not configured" 
+                                }
+                            }
+                            else { 
+                                Write-Error "Unable to find '$($adapterKind)' Adapter" 
+                            }
+                        }                                          
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-vROPsAdapterStatusByType
 
 ###########################################  E N D   O F   F U N C T I O N S  #########################################
 #######################################################################################################################
