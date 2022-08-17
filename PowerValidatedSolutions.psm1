@@ -11674,6 +11674,7 @@ Function Update-vROPSAdapterVcenter {
     }
 }
 Export-ModuleMember -Function Update-vROPSAdapterVcenter
+
 Function Update-vROPSAdapterCollecterGroup {
     <#
 		.SYNOPSIS
@@ -29602,45 +29603,64 @@ Export-ModuleMember -Function Remove-vRLIAlert
 Function Request-CSPToken {
     <#
         .SYNOPSIS
-        Connects to the specified Cloud Services Portal and obtains authorization token
+        Request authorization token from VMware Cloud Service
 
         .DESCRIPTION
-        The Request-CSPToken cmdlet connects to the specified Cloud Services Portal and obtains an authorization token.
+        The Request-CSPToken cmdlet connects to the VMware Cloud Service and obtains an authorization token.
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
-        Request-CSPToken -fqdn console.cloud.vmware.com -apiKey SfCaVKm8NPhVda3T1j3KXNMdwSfCaVKm8NPhVda3T1j3KXNMdw 
-        This example shows how to connect to the Cloud Services Portal
+        VMware Cloud Service -environment production -apiToken <string>
+        This example shows how to connect to the production VMware Cloud Service and obtain an authorization token.
+
+        .EXAMPLE
+        VMware Cloud Service -environment staging -apiToken <string>
+        This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token.
+
+        .EXAMPLE
+        VMware Cloud Service -environment staging -apiToken <string> -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io
+        This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token and set
+        set the fqdn for the Cloud Extensibility Proxy for vRealize Orchestrator configuration.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiKey
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy
     )
 
     Try {
+        if ($environment -eq "staging") {
+            $Global:cspBaseUrl = "https://console-stg.cloud.vmware.com"
+        } elseif ($environment -eq "production") {
+            $Global:cspBaseUrl = "https://console.cloud.vmware.com"
+        }
 
-        $Global:cspAppliance = $fqdn
-        $Global:cspHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-        $cspHeaders.Add("Accept", "application/json")
-        $cspHeaders.Add("Content-Type", "application/x-www-form-urlencoded")
-        $uri = "https://$cspAppliance/csp/gateway/am/api/auth/api-tokens/authorize"
+        if ($PSBoundParameters.ContainsKey('extensibilityProxy')) {
+            $Global:cepAppliance = $extensibilityProxy
+        }
         
-        $body = "refresh_token=$apiKey"
+        $Global:basicHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $basicHeader.Add("Content-Type", "application/x-www-form-urlencoded")
+        $path = "/csp/gateway/am/api/auth/api-tokens/authorize?refresh_token=$apiToken"
+        $uri = $cspBaseUrl + $path
 
         if ($PSEdition -eq 'Core') {
-            $cspResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $cspHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
-            $cspResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $cspHeaders -Body $body
+            $cspResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $basicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $cspResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $basicHeader -UseBasicParsing
         }
 
-        if ($($cspResponse.token_type) -eq "bearer") {
-            $cspHeaders.Add("Authorization", "Bearer " + $($cspResponse.access_token))
-            Write-Output "Successfully connected to Cloud Services Portal: $cspAppliance"
+        if ($cspResponse.StatusCode -eq 200) {
+            $Global:cspHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+            $cspHeader.Add("Accept", "application/json")
+            $cspHeader.Add("Content-Type", "application/json")
+            $cspHeader.Add("Authorization", "Bearer " + ($cspResponse.Content | ConvertFrom-Json).access_token)
+            Write-Output "Successfully connected to VMware Cloud Console: $cspBaseUrl"
+        } else {
+            Write-Error "Invalid API Token Failed to connect to VMware Cloud Console: $cspBaseUrl"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29685,7 +29705,689 @@ Function Get-CSPPoxyAppliance {
 }
 Export-ModuleMember -Function Get-CSPPoxyAppliance
 
-#########################  End vRealize Log Insight Functions  #########################
+Function Get-vROVersion {
+    <#
+        .SYNOPSIS
+        Retrieve the vRealize Orchestrator version details
+        
+        .DESCRIPTION
+        The Get-vROVersion cmdlest retrieves the vRealize Orchestrator version information. It supports the following:
+        (Requires an access token before a connection can be made)
+        - Standalone vRealize Orchestrator
+        - Embedded vRealize Orchestrator with vRealize Automation
+        - Cloud Extensibility Proxy with vRealize Orchestrator
+
+        .EXAMPLE
+        Get-vROVersion -standalone
+        This examples retrieves the version details from a standlaone vRealize Orchestrator appliance
+
+        .EXAMPLE
+        Get-vROVersion -embedded
+        This examples retrieves the version details from an embedded vRealize Orchestrator instance running within the
+        vRealize Automation appliances.
+
+        .EXAMPLE
+        Get-vROVersion -extensibility
+        This examples retrieves the version details from a vRealize Orchestrator instance running within the
+        vCloud Extensibility Proxy appliance.
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "embedded")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $false, ParameterSetName = "standalone")] [ValidateNotNullOrEmpty()] [Switch]$standalone,
+        [Parameter (Mandatory = $false, ParameterSetName = "embedded")] [ValidateNotNullOrEmpty()] [Switch]$embedded,
+        [Parameter (Mandatory = $false, ParameterSetName = "extensibility")] [ValidateNotNullOrEmpty()] [Switch]$extensibility
+    )
+
+    Try {
+        Switch ($PsCmdlet.ParameterSetName) {
+            "standalone" {
+                $baseUrl = "https://$vroAppliance"
+                Break
+            }
+            "embedded" {
+                $baseUrl = "https://$vraAppliance"
+                Break
+            }
+            "extensibility" {
+                $baseUrl = "https://$cepAppliance"
+                Break
+            }
+        }
+
+        $path = "/vco/api/about"
+        $uri = $baseUrl + $path
+        Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
+    } 
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROVersion
+
+Function Get-CEPWorkflow {
+    <#
+        .SYNOPSIS
+        Get vRealize Orchestrator workflows
+
+        .DESCRIPTION
+        The Get-CEPWorkflow cmdlet returns details for vRealize Orchestrator workflows
+
+        .EXAMPLE
+        Get-CEPWorkflow
+
+        .EXAMPLE
+        Get-CEPWorkflow -categoryName 'SSL Trust Manager'
+
+        .EXAMPLE
+        Get-CEPWorkflow -categoryId 3f23f186158a4869b464b7271fc216ba
+
+        .EXAMPLE
+        Get-CEPWorkflow -id '93a7bb21-0255-4750-9293-2437abe9d2e5'
+
+        .EXAMPLE
+        Get-CEPWorkflow -name 'Import a trusted certificate from a file'
+
+        .EXAMPLE
+        Get-CEPWorkflow -name 'Import a trusted certificate' -wildcard
+
+        .NOTES
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "All")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $false, ParameterSetName = "categoryName")] [Alias("Category")] [String]$categoryName,
+        [Parameter (Mandatory = $false, ParameterSetName = "categoryId")] [String]$categoryId,
+        [Parameter (Mandatory = $false, ParameterSetName = "id")] [String]$id,
+        [Parameter (Mandatory = $false, ParameterSetName = "name")] [String]$name,
+        [Parameter (Mandatory = $false, ParameterSetName = "name")] [Switch]$wildcard,
+        [Parameter (Mandatory = $false, ParameterSetName = "all")]
+        [Parameter (Mandatory = $false, ParameterSetName = "categoryName")]
+        [Parameter (Mandatory = $false, ParameterSetName = "category")] [String[]]$tag
+    )
+
+    Try {
+        Switch ($PsCmdlet.ParameterSetName) {
+            "all" {
+                $uri = "https://$cepAppliance/vco/api/workflows"
+                break
+            }
+            "categoryName" {
+                $uri = "https://$cepAppliance/vco/api/workflows/?conditions=categoryName=$($categoryName)"
+                break
+            }
+            "categoryId" {
+                $uri = "https://$cepAppliance/vco/api/catalog/System/WorkflowCategory/$($categoryId)/workflows"
+                break
+            }
+            "id" {
+                $uri = "https://$cepAppliance/vco/api/workflows/$($id)"
+                break
+            }
+            "name" {
+                if ($PSBoundParameters.ContainsKey('wildcard')) {
+                    $uri = "https://$cepAppliance/vco/api/workflows/?conditions=name~$($name)"
+                }
+                else {
+                    $uri = "https://$cepAppliance/vco/api/workflows/?conditions=name=$($name)"
+                }
+                break
+            }
+        }
+        # Filter by tag, if needed    
+        if ($PSBoundParameters.ContainsKey('tag')) {
+            $uri += if ($PSCmdlet.ParameterSetName -eq 'all') { '?' } else { '&' }
+            $newParams = @()
+            foreach ($tagAttr in $tag) {
+                $newParams += "tags=$($tagAttr)"
+            }
+            $uri += $newParams -join '&'
+        }
+        Switch ($PsCmdlet.ParameterSetName) {
+            "id" {
+                $workflow = Invoke-RestMethod -method 'GET' -uri $uri -Headers $cspHeader
+                [pscustomobject]@{
+                    Name         = $workflow.name
+                    ID           = $workflow.id
+                    Description  = $workflow.description
+                    ItemHref     = $workflow.href
+                    Version      = $workflow.version
+                    CategoryName = $null
+                    CategoryHref = $null
+                    CustomIcon   = $workflow.'customized-icon'
+                    CanExecute   = $null
+                    CanEdit      = $null
+                }
+            }
+            "categoryId" {
+                $workflows = Invoke-RestMethod -method 'GET' -uri $uri -Headers $cspHeader
+                foreach ($workflow in $workflows.link) {
+                    $returnObject = @{
+                        Name         = ($workflow.attributes | Where-Object { $_.name -eq 'name' }).value
+                        ID           = ($workflow.attributes | Where-Object { $_.name -eq 'id' }).value
+                        Description  = ($workflow.attributes | Where-Object { $_.name -eq 'description' }).value
+                        ItemHref     = $workflow.href
+                        Version      = ($workflow.attributes | Where-Object { $_.name -eq 'version' }).value
+                        CategoryName = ($workflow.attributes | Where-Object { $_.name -eq 'categoryName' }).value
+                        CategoryHref = ($workflow.attributes | Where-Object { $_.name -eq 'categoryHref' }).value
+                        CustomIcon   = ($workflow.attributes | Where-Object { $_.name -eq 'customIcon' }).value
+                        CanExecute   = ($workflow.attributes | Where-Object { $_.name -eq 'canExecute' }).value
+                        CanEdit      = ($workflow.attributes | Where-Object { $_.name -eq 'canEdit' }).value
+                    }
+                    # Add tags if needed
+                    $tags = $workflow.attributes | Where-Object { $_.name -eq 'globalTags' } | Select-Object -ExpandProperty 'value'
+                    if ($tags) {
+                        $tagsArray = ($tags -replace ':__SYSTEM_TAG__|.$', '').Split(' ')
+                        $returnObject.Add('tags', $tagsArray)
+                    }
+                    [PSCustomObject]$returnObject
+                }
+            }
+            Default {
+                $workflows = Invoke-RestMethod -method 'GET' -uri $uri -Headers $cspHeader
+                Foreach ($workflow in $workflows.link) {
+                    $returnObject = @{
+                        Name         = ($workflow.attributes | Where-Object { $_.name -eq 'name' }).value
+                        ID           = ($workflow.attributes | Where-Object { $_.name -eq 'id' }).value
+                        Description  = ($workflow.attributes | Where-Object { $_.name -eq 'description' }).value
+                        ItemHref     = ($workflow.attributes | Where-Object { $_.name -eq 'itemHref' }).value
+                        Version      = ($workflow.attributes | Where-Object { $_.name -eq 'version' }).value
+                        CategoryName = ($workflow.attributes | Where-Object { $_.name -eq 'categoryName' }).value
+                        CategoryHref = ($workflow.attributes | Where-Object { $_.name -eq 'categoryHref' }).value
+                        CustomIcon   = ($workflow.attributes | Where-Object { $_.name -eq 'customIcon' }).value
+                        CanExecute   = ($workflow.attributes | Where-Object { $_.name -eq 'canExecute' }).value
+                        CanEdit      = ($workflow.attributes | Where-Object { $_.name -eq 'canEdit' }).value
+                    }
+                    # Add tags, if needed
+                    $tags = $workflow.attributes | Where-Object { $_.name -eq 'globalTags' } | Select-Object -ExpandProperty 'value'
+                    if ($tags) {
+                        $tagsArray = ($tags -replace ':__SYSTEM_TAG__|.$', '').Split(' ')
+                        $returnObject.Add('tags', $tagsArray)
+                    }
+                    [PSCustomObject]$returnObject
+                }
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-CEPWorkflow
+
+Function Invoke-CEPWorkflow {
+    <#
+        .SYNOPSIS
+        Invoke a vRealize Orchestrator workflow
+
+        .DESCRIPTION
+        The Invoke-CEPWorkflow cmdlet starts a vRealize Orchestrator workflow
+
+        .EXAMPLE
+        Invoke-CEPWorkflow -ID 3f23f186-158a-4869-b464-b7271fc216ba
+
+        .EXAMPLE
+        Invoke-CEPWorkflow -ID 3f23f186-158a-4869-b464-b7271fc216ba -parameterName 'text' -parameterValue 'foo' -parameterType 'string'
+
+        .EXAMPLE
+        $Parameters =  @"
+        {"parameters":
+            [
+                {
+                    "value": {"string":{ "value": "bar"}},
+                    "type": "string",
+                    "name": "foo",
+                    "scope": "local"
+                },
+                {
+                    "value": {"number":{ "value": 2022}},
+                    "type": "number",
+                    "name": "year",
+                    "scope": "local"
+                }
+            ]
+        }
+        "@
+
+        Invoke-CEPWorkflow -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters ($parameters | ConvertFrom-Json).parameters
+
+        .EXAMPLE
+        $param1 = New-vROParameterDefinition -name 'foo' -value 'bar' -type string -scope LOCAL
+        Invoke-CEPWorkflow -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters $param1
+
+        .EXAMPLE
+        Invoke-CEPWorkflow -name 'Import a trusted certificate from a file' | Invoke-CEPWorkflow -parameterName 'foo' -parameterValue 'bar' -parameterType string
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $true, ValueFromPipelinebyPropertyName = $true, ParameterSetName = "A")]
+        [Parameter (Mandatory = $true, ParameterSetName = "B")] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $false, ParameterSetName = "A")] [Parameter (ParameterSetName = "C")] [ValidateNotNullOrEmpty()] [String]$parameterName,
+        [Parameter (Mandatory = $false, ParameterSetName = "A")] [Parameter (ParameterSetName = "C")] [String]$parameterValue,
+        [Parameter (Mandatory = $false, ParameterSetName = "A")] [Parameter (ParameterSetName = "C")] [ValidateNotNullOrEmpty()] [String]$parameterType,
+        [Parameter (Mandatory = $false, ParameterSetName = "B")] [Parameter (ParameterSetName = "D")] [ValidateNotNullOrEmpty()] [PSCustomObject[]]$parameters
+    )
+
+    Begin {}
+    Process {
+        Try {
+            if ($PSBoundParameters.ContainsKey('parameterType')) {
+                $parameterType = $parameterType.ToLower()
+                $body = @"
+{"parameters":
+	[
+        {
+            "value": {"$($parameterType)":{ "value": "$($parameterValue)"}},
+            "type": "$($parameterType)",
+            "name": "$($parameterName)",
+            "scope": "local"
+        }
+	]
+}
+"@
+            }
+            elseif ($PSBoundParameters.ContainsKey('parameters')) {
+                $object = [PSCustomObject]@{
+                    parameters = @()
+                }
+                foreach ($parameter in $parameters) {
+                    $object.parameters += $parameter
+                }
+                $body = $object | ConvertTo-Json -Depth 100
+            } else {
+                $body = @"
+{"parameters":
+[
+]
+}
+"@
+            }
+            $uri = "https://$cepAppliance/vco/api/workflows/$id/executions/"
+            $response = Invoke-RestMethod -method 'POST' -uri $uri -body $body -Headers $cspHeader
+
+            if ($PSEdition -eq 'Core') {
+                [pscustomobject]@{
+                    StatusCode        = $response.StatusCode
+                    StatusDescription = $response.StatusDescription
+                    Execution         = ([System.Uri]$response.Headers.Location[0]).LocalPath
+                }
+            } else {
+                [pscustomobject]@{
+                    StatusCode        = $response.StatusCode
+                    StatusDescription = $response.StatusDescription
+                    Execution         = ([System.Uri]$response.Headers.Location).LocalPath
+                }
+            }
+        }
+        Catch {
+            Write-Error $_.Exception.Message
+        }
+    }
+}
+Export-ModuleMember -Function Invoke-CEPWorkflow
+
+Function Get-CEPWorkflowExecution {
+    <#
+        .SYNOPSIS
+        Retrieve vRealize Orchestrator Workflow Status
+
+        .DESCRIPTION
+        The Get-CEPWorkflowExecution cmdlet returns the execution status for a vRealize Orchestrator workflow
+
+        .EXAMPLE
+        Get-CEPWorkflowExecution -id 93a7bb21-0255-4750-9293-2437abe9d2e5
+        The example retrieves the status for all workflows based on workflow ID
+
+        .EXAMPLE
+        Get-CEPWorkflowExecution -name 'Import a trusted certificate from a file'
+        The example retrieves the status for all workflows based on workflow name
+
+        .EXAMPLE
+        Get-CEPWorkflowExecution -name 'Import a trusted certificate from a file' -executionId 397a7b99-cdd0-427e-8fa1-2ff9cdd96fae
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (   
+        [Parameter (Mandatory = $false, ParameterSetName = "id")] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $false, ParameterSetName = "name")] [ValidateNotNullOrEmpty()] [String]$name
+    )
+
+    Try {
+        if ($PSCmdlet.ParameterSetName -eq "name") {
+            $id = (Get-CEPWorkflow -name $name).id
+        }
+        $uri = "https://$cepAppliance/vco/api/workflows/$id/executions"
+        $response = Invoke-RESTMethod -Method 'GET' -Uri $uri -Headers $cspHeader
+        $data = $response.relations.link | Where-Object { $_.attributes }
+        Foreach ($execution in $data) {
+            [PSCustomObject]@{                                
+                Name      = ($execution.attributes | Where-Object { $_.name -eq 'name' }).value
+                ID        = ($execution.attributes | Where-Object { $_.name -eq 'id' }).value
+                Execution = "$uri/$(($execution.attributes | Where-Object {$_.name -eq 'id'}).value)/"
+                State     = ($execution.attributes | Where-Object { $_.name -eq 'state' }).value
+                StartedBy = ($execution.attributes | Where-Object { $_.name -eq 'startedBy' }).value
+                StartDate = ($execution.attributes | Where-Object { $_.name -eq 'StartDate' }).value
+                EndDate   = ($execution.attributes | Where-Object { $_.name -eq 'EndDate' }).value
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-CEPWorkflowExecution
+
+Function Get-CEPWorkflowExecutionState {
+    <#
+        .SYNOPSIS
+        Get a vRealize Orchestrator Workflow execution state
+
+        .DESCRIPTION
+        The Get-CEPWorkflowExecutionState cmdlet returns the status of vRealize Orchestrator workflow execution runs
+
+        .EXAMPLE
+        Get-CEPWorkflowExecutionState -workflowId 93a7bb21-0255-4750-9293-2437abe9d2e5 -executionId 0f37aa69-b95c-4c80-8b63-b8e5085aa3fd
+        The examples returns the execution status of a workflow based on the Workflow ID and Execution ID
+    #>
+
+    Param (   
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workflowId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$executionId
+    )
+
+    Try {
+        $uri = "https://$cepAppliance/vco/api/workflows/$workflowId/executions/$executionId/state"   
+        (Invoke-RestMethod -method 'GET' -uri $uri -Headers $cspHeader).value
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-CEPWorkflowExecutionState
+
+Function Add-CEPTrustedCertificate {
+    <#
+        .SYNOPSIS
+        Adds a trusted certificate to an embedded vRealize Orchestrator.
+
+        .DESCRIPTION
+        The Add-vROTrustedCertificateOnCEP cmdlet invokes a workflow in vRealize Orchestrator to add trusted certificate.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
+        - Makes a connection to the embedded vRealize Orchestrator using the -vraUser and -vraPass values.
+        - Verifies the workflow exists.
+        - Adds the trusted certificate using the -certFile value.
+
+        .EXAMPLE
+        Add-CEPTrustedCertificate -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -environment staging -apiToken <string> -certFile "C:\Root64.pem"
+        This example adds a trusted certificate in PEM-encoded format to the Cloud Extensibility Proxy vRealize Orchestrator instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy,
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certFile
+    )
+
+    $workflowName = "Import a trusted certificate from a file"
+
+    if (!$PsBoundParameters.ContainsKey("certFile")) {
+        $certFile = Get-ExternalFileName -title "Select the trusted certificate file (.cer)" -fileType "cer" -location "default"
+    } elseif ($PsBoundParameters.ContainsKey("certFile")) {
+        if (!(Test-Path -Path $certFile)) {
+            Write-Error  "Selecting the trusted certificate file ($certFile), file not found: PRE_VALIDATION_FAILED"
+            Break
+        }
+    }
+
+    Try {
+        Request-CSPToken -environment $environment -apiToken $apiToken -extensibilityProxy $extensibilityProxy | Out-Null
+        if ($workflow = Get-CEPWorkflow -name $workflowName) {
+            $certName = Split-Path -Path "$certFile" -Leaf
+            $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$certFile"))
+            $Global:parameters =  
+            @"
+{"parameters":
+    [
+        {"value": {
+            "mime-attachment": {
+                "name":"$certName",
+                "content": "$certContent",
+                "mime-type": "application/x-x509-ca-cert"}
+            },
+            "type": "MimeAttachment",
+            "name": "cer",
+            "scope": "local"
+        }
+    ]
+}
+"@
+            Invoke-CEPWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters | Out-Null
+            $workflowExecution = (Get-CEPWorkflowExecution -name $workflowName | Select-Object -last 1)
+            if (Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID | Where-Object { $_.State -ne "failed" }) {
+                Do {
+                    $workflowStatus = Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID
+                } 
+                Until ($workflowStatus.State -ne "running")
+                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") { 
+                    Write-Output "Adding trusted certificate ($certFile) to the vRealize Orchestrator ($($extensibilityProxy)): SUCCESSFUL"
+                } else {
+                    Write-Error "Adding trusted certificate ($certFile) to the vRealize Orchestrator ($($extensibilityProxy)), check certificate format: POST_VALIDATION_FAILED"
+                }
+            } else {
+                Write-Error "Adding trusted certificate ($certFile) to the vRealize Orchestrator ($($extensibilityProxy)): FAILED"
+            }
+        } 
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-CEPTrustedCertificate
+
+Function Add-CEPvCenterServer {
+    <#
+        .SYNOPSIS
+        Adds a vCenter Server instance to an embedded vRealize Orchestrator.
+
+        .DESCRIPTION
+        The Add-vROvCenterServer cmdlet invokes the workflow in vRealize Orchestrator to add a vCenter Server.
+        The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
+        to return the workload domain vCenter Server details from its inventory and then:
+        - Makes a connection to the Cloud Extensibility Proxy vRealize Orchestrator instance using the -apiToken.
+        - Verifies the workflow exists.
+        - Adds the vCenter Server instance using the -serviceAccount and -servicePassword values.
+
+        .EXAMPLE
+        Add-CEPvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -apiToken <string> -environment staging -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -serviceAccount svc-vro-vsphere@sfo.rainpole.io -servicePassword VMw@re1!
+        This example adds the vCenter Server instance from the "sfo-w01" workload domain to the Cloud Extensibility Proxy vRealize Orchestrator instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceAccount,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$servicePassword
+    )
+
+    $workflowName = "Add a vCenter Server instance"
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain          
+                    Request-CSPToken -environment $environment -apiToken $apiToken -extensibilityProxy $extensibilityProxy | Out-Null
+                    $checkExists = (Invoke-RestMethod -Method 'GET' -URI "https://$cepAppliance/vco/api/catalog/VC" -headers $cspHeader)
+                    if ((($checkExists.relations.link.attributes | Where-Object { $_.name -eq "id" }).value) -ne "$($vcenter.fqdn)") {
+                        if ($workflow = Get-CEPWorkflow -name $workflowName) {
+                            $parameters =  
+                            @"
+{"parameters":
+    [
+        {
+            "value": {
+                "boolean": {
+                    "value": true
+                }
+            },
+            "type": "boolean",
+            "name": "enabled",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "$($vcenter.fqdn)"
+                }
+            },
+            "type": "string",
+            "name": "host",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "number": {
+                    "value": 443
+                }
+            },
+            "type": "number",
+            "name": "port",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "/sdk"
+                }
+            },
+            "type": "string",
+            "name": "path",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "boolean": {
+                    "value": false
+                }
+            },
+            "type": "boolean",
+            "name": "sessionPerUser",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "$serviceAccount"
+                }
+            },
+            "type": "string",
+            "name": "userName",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "$servicePassword"
+                }
+            },
+            "type": "string",
+            "name": "password",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "boolean": {
+                    "value": true
+                }
+            },
+            "type": "boolean",
+            "name": "ignoreCertificateWarnings",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "number": {
+                    "value": 443
+                }
+            },
+            "type": "number",
+            "name": "httpPort",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "https://$($vcenter.fqdn):443/pbm"
+                }
+            },
+            "type": "string",
+            "name": "pbmUrl",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "https://$($vcenter.fqdn):443/sms/sdk"
+                }
+            },
+            "type": "string",
+            "name": "smsUrl",
+            "scope": "local"
+        }
+    ]
+}
+"@
+                            Invoke-CEPWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters | Out-Null
+                            $workflowExecution = (Get-CEPWorkflowExecution -name $workflowName | Select-Object -last 1)
+                            if (Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID | Where-Object { $_.State -ne "failed" }) { 
+                                Do {
+                                    $workflowStatus = Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID
+                                } 
+                                Until ($workflowStatus -ne "running")
+                                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") { 
+                                    Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain): SUCCESSFUL"
+                                }
+                                else {
+                                    Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
+                                }
+                            }
+                            else {
+                                Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain): FAILED"
+                            }
+                        }
+                        else {
+                            Write-Error "Unable to find the workflow named ($workflowName) to vRealize Orcherator ($cepAppliance): PRE_VALIDATION_FAILED"
+                        }
+                    }
+                    else {
+                        Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain), already exists: SKIPPED"
+                    }                                
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-CEPvCenterServer
+
+########################  End vRealize Cloud Services Functions  #######################
 ########################################################################################
 
 ##########################################  E N D   O F   F U N C T I O N S  ##########################################
