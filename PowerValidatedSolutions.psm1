@@ -30191,6 +30191,202 @@ Function Add-CEPTrustedCertificate {
 }
 Export-ModuleMember -Function Add-CEPTrustedCertificate
 
+Function Add-CEPvCenterServer {
+    <#
+        .SYNOPSIS
+        Adds a vCenter Server instance to an embedded vRealize Orchestrator.
+
+        .DESCRIPTION
+        The Add-vROvCenterServer cmdlet invokes the workflow in vRealize Orchestrator to add a vCenter Server.
+        The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
+        to return the workload domain vCenter Server details from its inventory and then:
+        - Makes a connection to the Cloud Extensibility Proxy vRealize Orchestrator instance using the -apiToken.
+        - Verifies the workflow exists.
+        - Adds the vCenter Server instance using the -serviceAccount and -servicePassword values.
+
+        .EXAMPLE
+        Add-CEPvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -apiToken <string> -environment staging -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -serviceAccount svc-vro-vsphere@sfo.rainpole.io -servicePassword VMw@re1!
+        This example adds the vCenter Server instance from the "sfo-w01" workload domain to the Cloud Extensibility Proxy vRealize Orchestrator instance.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceAccount,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$servicePassword
+    )
+
+    $workflowName = "Add a vCenter Server instance"
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain          
+                    Request-CSPToken -environment $environment -apiToken $apiToken -extensibilityProxy $extensibilityProxy | Out-Null
+                    $checkExists = (Invoke-RestMethod -Method 'GET' -URI "https://$cepAppliance/vco/api/catalog/VC" -headers $cspHeader)
+                    if ((($checkExists.relations.link.attributes | Where-Object { $_.name -eq "id" }).value) -ne "$($vcenter.fqdn)") {
+                        if ($workflow = Get-CEPWorkflow -name $workflowName) {
+                            $parameters =  
+                            @"
+{"parameters":
+    [
+        {
+            "value": {
+                "boolean": {
+                    "value": true
+                }
+            },
+            "type": "boolean",
+            "name": "enabled",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "$($vcenter.fqdn)"
+                }
+            },
+            "type": "string",
+            "name": "host",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "number": {
+                    "value": 443
+                }
+            },
+            "type": "number",
+            "name": "port",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "/sdk"
+                }
+            },
+            "type": "string",
+            "name": "path",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "boolean": {
+                    "value": false
+                }
+            },
+            "type": "boolean",
+            "name": "sessionPerUser",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "$serviceAccount"
+                }
+            },
+            "type": "string",
+            "name": "userName",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "$servicePassword"
+                }
+            },
+            "type": "string",
+            "name": "password",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "boolean": {
+                    "value": true
+                }
+            },
+            "type": "boolean",
+            "name": "ignoreCertificateWarnings",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "number": {
+                    "value": 443
+                }
+            },
+            "type": "number",
+            "name": "httpPort",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "https://$($vcenter.fqdn):443/pbm"
+                }
+            },
+            "type": "string",
+            "name": "pbmUrl",
+            "scope": "local"
+        },
+        {
+            "value": {
+                "string": {
+                    "value": "https://$($vcenter.fqdn):443/sms/sdk"
+                }
+            },
+            "type": "string",
+            "name": "smsUrl",
+            "scope": "local"
+        }
+    ]
+}
+"@
+                            Invoke-CEPWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters | Out-Null
+                            $workflowExecution = (Get-CEPWorkflowExecution -name $workflowName | Select-Object -last 1)
+                            if (Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID | Where-Object { $_.State -ne "failed" }) { 
+                                Do {
+                                    $workflowStatus = Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID
+                                } 
+                                Until ($workflowStatus -ne "running")
+                                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") { 
+                                    Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain): SUCCESSFUL"
+                                }
+                                else {
+                                    Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
+                                }
+                            }
+                            else {
+                                Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain): FAILED"
+                            }
+                        }
+                        else {
+                            Write-Error "Unable to find the workflow named ($workflowName) to vRealize Orcherator ($cepAppliance): PRE_VALIDATION_FAILED"
+                        }
+                    }
+                    else {
+                        Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain), already exists: SKIPPED"
+                    }                                
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-CEPvCenterServer
+
 ########################  End vRealize Cloud Services Functions  #######################
 ########################################################################################
 
