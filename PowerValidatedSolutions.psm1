@@ -29952,14 +29952,14 @@ Function Invoke-CEPWorkflow {
         }
         "@
 
-        Invoke-vROWorkflowOnCEP -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters ($parameters | ConvertFrom-Json).parameters
+        Invoke-CEPWorkflow -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters ($parameters | ConvertFrom-Json).parameters
 
         .EXAMPLE
         $param1 = New-vROParameterDefinition -name 'foo' -value 'bar' -type string -scope LOCAL
-        Invoke-vROWorkflowOnCEP -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters $param1
+        Invoke-CEPWorkflow -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters $param1
 
         .EXAMPLE
-        Invoke-vROWorkflowOnCEP -name 'Import a trusted certificate from a file' | Invoke-vROWorkflowOnCEP -parameterName 'foo' -parameterValue 'bar' -parameterType string
+        Invoke-CEPWorkflow -name 'Import a trusted certificate from a file' | Invoke-CEPWorkflow -parameterName 'foo' -parameterValue 'bar' -parameterType string
     #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
