@@ -12870,11 +12870,8 @@ Function Test-vROPsAdapterStatus {
         if ($vropsresponse.resourceHealth -eq "GREEN") {
             Write-Output "Adapter Name : $($name), Health Status: GREEN" 
         }
-        elseif ($vropsresponse.resourceHealth -eq "ORANGE") { 
-            Write-Error "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), verify the status after sometime"
-        }
         else { 
-            Write-Error "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), check the log status"
+            Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
         }
     }
     Catch {
