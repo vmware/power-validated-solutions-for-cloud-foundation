@@ -105,7 +105,7 @@ Function Resolve-PSModule {
 }
 
 #######################################################################################################################
-#################  I D E N T I T Y   A N D   A C C E S S   M A N A G E M E N T   F U N C T I O N S   ##################
+#Region             I D E N T I T Y  A N D  A C C E S S  M A N A G E M E N T  F U N C T I O N S             ###########
 
 Function Add-IdentitySource {
     <#
@@ -1827,11 +1827,11 @@ Function Set-NsxtEdgeNodeAuthenticationPolicy {
 }
 Export-ModuleMember -Function Set-NsxtEdgeNodeAuthenticationPolicy
 
-##########################################  E N D   O F   F U N C T I O N S  ##########################################
+#EndRegion                                  E N D  O F  F U N C T I O N S                                   ########### 
 #######################################################################################################################
 
-################################################################################################################
-##############  S I T E  P R O T E C T I O N  &  R E C O V E R Y   F U N C T I O N S   ##############
+#######################################################################################################################
+#Region          S I T E  P R O T E C T I O N  &  D I S A S T E R  R E C O V E R Y  F U N C T I O N S       ###########
 
 Function Install-SiteRecoveryManager {
     <#
@@ -6110,6 +6110,7 @@ Function New-vSRVMkernelPort {
     }
 }
 Export-ModuleMember -Function New-vSRVMKernelPort
+
 Function Undo-vSRVMkernelPort {
     <#
 		.SYNOPSIS
@@ -7136,8 +7137,11 @@ Function Undo-SRMLicenseConfig {
 }
 Export-ModuleMember -Function Undo-SRMLicenseConfig
 
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
-##################  D E V E L O P E R   R E A D Y   I N F R A S T R U C T U R E   F U N C T I O N S   #################
+
+#######################################################################################################################
+#Region             D E V E L O P E R  R E A D Y  I N F R A S T R U C T U R E  F U N C T I O N S            ###########
 
 Function Add-NetworkSegment {
     <#
@@ -9486,12 +9490,11 @@ Function Undo-TanzuKubernetesCluster {
 }
 Export-ModuleMember -Function Undo-TanzuKubernetesCluster
 
-##########################################  E N D   O F   F U N C T I O N S  ##########################################
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
-
 #######################################################################################################################
-#################  I N T E L L I G E N T   L O G G I N G   &   A N A L Y T I C S   F U N C T I O N S   ################
+#Region            I N T E L L I G E N T  L O G G I N G  & A N A L Y T I C S  F U N C T I O N S             ###########
 
 Function Export-vRLIJsonSpec {
     <#
@@ -10949,12 +10952,11 @@ Function Undo-NsxtNodeProfileSyslogExporter {
 }
 Export-ModuleMember -Function Undo-NsxtNodeProfileSyslogExporter
 
-###########################################  E N D   O F   F U N C T I O N S  #########################################
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
-
 #######################################################################################################################
-###############  I N T E L L I G E N T   O P E R A T I O N S  M A N A G E M E N T   F U N C T I O N S   ###############
+#Region          I N T E L L I G E N T  O P E R A T I O N S  M A N A G E M E N T  F U N C T I O N S         ###########
 
 Function Export-vROPsJsonSpec {
     <#
@@ -12858,7 +12860,9 @@ Function Test-vROPsAdapterStatus {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
     )
+
     $name = (Get-vROPSAdapter | Where-Object { $_.id -eq $resourceId }).resourceKey.name
+
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/resources/$resourceId"
         if ($PSEdition -eq 'Core') {
@@ -12939,12 +12943,11 @@ Function Test-vROPsAdapterStatusByType {
 }
 Export-ModuleMember -Function Test-vROPsAdapterStatusByType
 
-###########################################  E N D   O F   F U N C T I O N S  #########################################
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
-
 #######################################################################################################################
-########################  P R I V A T E   C L O U D  A U T O M A T I O N   F U N C T I O N S   ########################
+#Region                  P R I V A T E  C L O U D  A U T O M A T I O N  F U N C T I O N S                   ###########
 
 Function Export-vRAJsonSpec {
     <#
@@ -14392,12 +14395,12 @@ Function Undo-vRAGroup {
 }
 Export-ModuleMember -Function Undo-vRAGroup
 
-###########################################  E N D   O F   F U N C T I O N S  ##########################################
-########################################################################################################################
 
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
 
 #######################################################################################################################
-#################   S H A R E D   P O W E R   V A L I D A T E D  S O L U T I O N   F U N C T I O N S   ################
+#Region            S H A R E D  P O W E R  V A L I D A T E D  S O L U T I O N S  F U N C T I O N S          ###########
 
 Function Add-vCenterGlobalPermission {
     <#
@@ -15691,7 +15694,7 @@ Export-ModuleMember -Function Add-ClusterGroup
 
 Function Undo-ClusterGroup {
     <#
-    .SYNOPSIS
+        .SYNOPSIS
         Removes a vSphere DRS Cluster Group
 
         .DESCRIPTION
@@ -16898,15 +16901,14 @@ Function Update-SddcDeployedFlavor {
 }
 Export-ModuleMember -Function Update-SddcDeployedFlavor
 
-##########################################  E N D   O F   F U N C T I O N S  ##########################################
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
-
 #######################################################################################################################
-#####################################  S U P P O R T I N G   F U N C T I O N S   ######################################
+#Region                               S U P P O R T I N G  F U N C T I O N S                                ###########
 
-##############################################################
-#############  Begin Active Directory Functions  #############
+#####################################################################
+#Region     Begin Active Directory Functions                   ######
 
 Function Test-ADAuthentication {
     <#
@@ -16992,12 +16994,11 @@ Function Get-ADPrincipalGuid {
 }
 Export-ModuleMember -Function Get-ADPrincipalGuid
 
-##############  End Active Directory Functions  ##############
-##############################################################
+#EndRegion  End Active Directory Functions                     ######
+#####################################################################
 
-
-##############################################################
-#############  Begin Cloud Foundation Functions  #############
+#####################################################################
+#Region     Begin Cloud Foundation Functions                   ######
 
 Function Get-vCenterServerDetail {
     Param (
@@ -17436,12 +17437,11 @@ Function Get-VCFDnsSearchDomain {
 }
 Export-ModuleMember -Function Get-VCFDnsSearchDomain
 
-##############  End Cloud Foundation Functions  ##############
-##############################################################
+#EndRegion  End Cloud Foundation Functions                     ######
+#####################################################################
 
-
-##############################################################
-###########  Begin vSphere API Endpoint Functions  ###########
+#####################################################################
+#Region     Begin vSphere API Endpoint Functions               ######
 
 Function Request-vSphereApiToken {
     <#
@@ -18547,25 +18547,24 @@ Function Get-VcenterTriggeredAlarm {
 }
 Export-ModuleMember -Function Get-VcenterTriggeredAlarm
 
-###########  End vSphere API Endpoint Functions  ###########
-##############################################################
+#EndRegion  End vSphere API Endpoint Functions                 ######
+#####################################################################
 
-
-##############################################################
-###########  Begin Workspace ONE Access Functions  ###########
+#####################################################################
+#Region     Begin Workspace ONE Access Functions               ######
 
 Function Request-WSAToken {
     <#
 		.SYNOPSIS
-    	Connects to the specified Workspace ONE Access instance to obtain a session token
+        Connects to the specified Workspace ONE Access instance to obtain a session token
 
-    	.DESCRIPTION
-    	The Request-WSAToken cmdlet connects to the specified Workspace ONE Access instance and requests a session token
+        .DESCRIPTION
+        The Request-WSAToken cmdlet connects to the specified Workspace ONE Access instance and requests a session token
 
-    	.EXAMPLE
-    	Request-WSAToken -fqdn sfo-wsa01.sfo.rainpole.io -user admin -pass VMware1!
+        .EXAMPLE
+        Request-WSAToken -fqdn sfo-wsa01.sfo.rainpole.io -user admin -pass VMware1!
         This example shows how to connect to a Workspace ONE Access instance and request a session token
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -18720,7 +18719,6 @@ Function Get-WSADirectory {
         [Parameter (ParameterSetName = "connector", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$directoryId,
         [Parameter (ParameterSetName = "connector",Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$connector
     )
-
 
     Try {
         if ($PsBoundParameters.ContainsKey("connector")){
@@ -19642,12 +19640,11 @@ Function Set-WSAPasswordPolicy {
 }
 Export-ModuleMember -Function Set-WSAPasswordPolicy
 
-############  End Workspace ONE Access Functions  ############
-##############################################################
+#EndRegion  End Workspace ONE Access Functions                 ######
+#####################################################################
 
-
-##############################################################
-############  Begin NSX-T Data Center Functions  #############
+#####################################################################
+#Region     Begin NSX-T Data Center Functions                  ######
 
 Function Request-NsxtToken {
     <#
@@ -22509,8 +22506,7 @@ Function Get-NsxtCertificate {
 }
 Export-ModuleMember -Function Get-NsxtCertificate
 
-Function Set-NsxtCertificate
-{
+Function Set-NsxtCertificate {
     <#
         .SYNOPSIS
         Installs a Certificate in NSX-T
@@ -23160,12 +23156,11 @@ Function Set-NsxtApplianceUserPassword {
 }
 Export-ModuleMember -Function Set-NsxtApplianceUserPassword
 
-##################  End NSX-T Functions #######################
-###############################################################
+#EndRegion  End NSX-T Functions                                ######
+#####################################################################
 
-
-###############################################################
-############  Begin vSphere with Tanzu Functions ##############
+#####################################################################
+#Region     Begin vSphere with Tanzu Functions                 ######
 
 Function Enable-WMRegistry {
     <#
@@ -23899,12 +23894,11 @@ Function Watch-WmClusterConfigStatus {
 }
 Export-ModuleMember -Function Watch-WmClusterConfigStatus
 
-#############  End vSphere with Tanzu Functions ###############
-###############################################################
+#EndRegion  End vSphere with Tanzu Functions                   ######
+#####################################################################
 
-
-########################################################################################
-##################  Start vRealize Suite Lifecycle Manager Functions ###################
+#####################################################################
+#Region     Start vRealize Suite Lifecycle Manager Functions   ######
 
 Function Request-vRSLCMToken {
     <#
@@ -25474,12 +25468,11 @@ Function Start-vRSLCMProductNode {
 }
 Export-ModuleMember -Function Start-vRSLCMProductNode
 
-###################  End vRealize Suite Lifecycle Manager Functions ####################
-########################################################################################
+#EndRegion  End vRealize Suite Lifecycle Manager Functions     ######
+#####################################################################
 
-
-#########################################################################################
-#########################  Start vRealize Automation Functions  #########################
+#####################################################################
+#Region     Start vRealize Automation Functions               ######
 
 Function Request-vRAToken {
     <#
@@ -26447,7 +26440,6 @@ Function Remove-vRAGroupOrgRole {
     Catch {
         Write-Error $_.Exception.Message
     }
-
 }
 Export-ModuleMember -Function Remove-vRAGroupOrgRole
 
@@ -26711,11 +26703,11 @@ Function Remove-vRAUserServiceRole {
 }
 Export-ModuleMember -Function Remove-vRAUserServiceRole
 
-##########################  End vRealize Automation Functions  #########################
-########################################################################################
+#EndRegion  End vRealize Automation Functions                  ######
+#####################################################################
 
-########################################################################################
-###################  Start vRealize Orchestrator (Embedded) Functions  #################
+#####################################################################
+#Region     Start vRealize Orchestrator (Embedded) Functions   ######
 
 Function Invoke-vRORestMethod {
     <#
@@ -27322,11 +27314,11 @@ function Get-vROWorkflowExecutionResult {
 }
 Export-ModuleMember -Function Get-vROWorkflowExecutionResult
 
-####################  End vRealize Orchestrator (Embedded) Functions  ##################
-########################################################################################
+#EndRegion  End vRealize Orchestrator (Embedded) Functions     ######
+#####################################################################
 
-########################################################################################
-####################  Start vRealize Operations Manager Functions  #####################
+#####################################################################
+#Region     Start vRealize Operations Manager Functions        ######
 
 Function Request-vROPSToken {
     <#
@@ -28870,12 +28862,11 @@ Function Remove-vROPSNotification {
 }
 Export-ModuleMember -Function Remove-vROPSNotification
 
-####################  End vRealize Operations Manager Functions  #######################
-########################################################################################
+#EndRegion  End vRealize Operations Manager Functions          ######
+#####################################################################
 
-
-########################################################################################
-#######################  Start vRealize Log Insight Functions  #########################
+#####################################################################
+#Region     Start vRealize Log Insight Functions               ######
 
 Function Request-vRLIToken {
     <#
@@ -29590,12 +29581,11 @@ Function Remove-vRLIAlert {
 }
 Export-ModuleMember -Function Remove-vRLIAlert
 
-#########################  End vRealize Log Insight Functions  #########################
-########################################################################################
+#EndRegion  End vRealize Log Insight Functions                 ######
+#####################################################################
 
-
-########################################################################################
-######################  Start vRealize Cloud Services Functions  #######################
+#####################################################################
+#Region    Start vRealize Cloud Services Functions             ######
 
 Function Request-CSPToken {
     <#
@@ -30384,15 +30374,11 @@ Function Add-CEPvCenterServer {
 }
 Export-ModuleMember -Function Add-CEPvCenterServer
 
-########################  End vRealize Cloud Services Functions  #######################
-########################################################################################
+#EndRegion End vRealize Cloud Services Functions               ######
+#####################################################################
 
-##########################################  E N D   O F   F U N C T I O N S  ##########################################
-#######################################################################################################################
-
-
-###############################################################
-##################  Start Utility Functions ###################
+#####################################################################
+#Region     Start Utility Functions                            ######
 
 Function Debug-ExceptionWriter {
     Param (
@@ -30604,8 +30590,7 @@ Function createVAMIAuthHeader {
     $VAMIAuthheaders
 }
 
-Function Request-VAMISessionId
-{
+Function Request-VAMISessionId {
     <#
 		.SYNOPSIS
     	Connects to the specified VAMI interface and requests a session token
@@ -30660,12 +30645,11 @@ Function Request-VAMISessionId
 }
 Export-ModuleMember -Function Request-VAMISessionId
 
-############################  End Utility Functions  ############################
-#################################################################################
+#EndRegion  End Utility Functions                              ######
+#####################################################################
 
-
-#################################################################################
-##########################  Start of Test  Functions  ###########################
+#####################################################################
+#Region     Start of Test  Functions                           ######
 
 Function Test-VCFConnection {
     Param (
@@ -31169,6 +31153,7 @@ Function Test-VAMIAuthentication {
     }
 }
 Export-ModuleMember -Function Test-VAMIAuthentication
+
 Function Test-SRMConnection {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
@@ -31562,12 +31547,14 @@ Function Test-NtpServer {
 Export-ModuleMember -Function Test-NtpServer
 
 
-###########################  End  of Test  Functions  ###########################
-#################################################################################
+#EndRegion  End  of Test  Functions                            ######
+#####################################################################
 
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
 
-########################################################################
-#####################  Start of Depreicated Functions  ######################
+#######################################################################################################################
+#Region                                D E P R E C A T E D  F U N C T I O N S                               ###########
 
 Function Join-ESXiActiveDirectory {
     # Join each ESXi Host to the Active Directory Domain
@@ -31689,5 +31676,5 @@ Function Add-ESXiDomainUser {
 }
 Export-ModuleMember -Function Add-ESXiDomainUser
 
-#######################  End Unused Functions  #########################
-########################################################################
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
