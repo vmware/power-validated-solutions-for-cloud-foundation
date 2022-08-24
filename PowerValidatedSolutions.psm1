@@ -12958,7 +12958,7 @@ Function Update-vROPSvRAAdapterCredential {
         - Verifies the vRealize Automation adapter status in vRealize Operations Manager after updating the credential
 
         .EXAMPLE
-        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "vRealize Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! 
+        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "vRealize Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! -adapterKind CASAdapter
         This example update the credential of vRealize Automation adapter with name "vRealize Automation Credentials" in vRealize Operations Manager
     #>
 
