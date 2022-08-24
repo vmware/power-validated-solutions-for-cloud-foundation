@@ -12950,7 +12950,7 @@ Function Update-vROPSvRAAdapterCredential {
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Operations Manager has been deployed in VMware Cloud Foundation aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
         - Validates that network connectivity is possible to vRealize Automation
         - Validates that the vRealize Automation adapter exists and configured in vRealize Operations Manager
         - Validates that the credential name of vRealize Automation adapter does not already exist in vRealize Operations Manager
@@ -12958,7 +12958,7 @@ Function Update-vROPSvRAAdapterCredential {
         - Verifies the vRealize Automation adapter status in vRealize Operations Manager after updating the credential
 
         .EXAMPLE
-        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vRACredName "vRealize Automation Credentials" -vRAcredUserName svc-vrops-vra@sfo.rainpole.io -vRACredPass VMw@re1! 
+        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "vRealize Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! 
         This example update the credential of vRealize Automation adapter with name "vRealize Automation Credentials" in vRealize Operations Manager
     #>
 
@@ -12966,9 +12966,10 @@ Function Update-vROPSvRAAdapterCredential {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vRACredName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vRAcredUserName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vRACredPass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_displayname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_password,
+        [Parameter (Mandatory = $true)] [ValidateSet("CASAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
     )
 
     Try {
@@ -12979,30 +12980,30 @@ Function Update-vROPSvRAAdapterCredential {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
                                 if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {  
-                                    if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq "CASAdapter" }) {
-                                        if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq "CASAdapter" })) {
-                                            if (!(Get-vROPSCredential | Where-Object { $_.name -eq $vRACredName })) {
+                                    if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {
+                                        if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {
+                                            if (!(Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) {
                                                 $credentialJson = ' {
-                                                                        "name" : "'+ $vRACredName + '",
-                                                                        "adapterKindKey" : "CASAdapter",
+                                                                        "name" : "'+ $credential_displayname + '",
+                                                                        "adapterKindKey" : "'+ $adapterKind + '",
                                                                         "credentialKindKey" : "CMPCREDENTIALS",                                                                    
                                                                             "fields" : [ {
                                                                                 "name" : "USERNAME",
-                                                                                "value" : "'+ $vRAcredUserName + '"
+                                                                                "value" : "'+ $credential_username + '"
                                                                                 }, {
                                                                                 "name" : "PASSWORD",
-                                                                                "value" : "'+ $vRACredPass + '"
+                                                                                "value" : "'+ $credential_password + '"
                                                                             } ]
                                                                         }'
                                                 $credentialJson | Out-File .\addCredential.json
                                                 Add-vROPSCredential -json .\addCredential.json | Out-Null
                                                 Remove-Item .\addCredential.json -Force -Confirm:$false
-                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $vRACredName })) { 
-                                                    Write-Output "Adding vRealize Automation credential named ($vRACredName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"
-                                                    $vraAdapterObj = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq "CASAdapter" } 
+                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) { 
+                                                    Write-Output "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"
+                                                    $vraAdapterObj = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind } 
                                                     $vraAdapterId = $vraAdapterObj.id
                                                     $adapterName = $vraAdapterObj.resourceKey.name
-                                                    $credid = (Get-vROPSCredential | Where-Object { $_.name -eq $vRACredName }).id
+                                                    $credid = (Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname }).id
                                                     $vraAdapterObj.credentialInstanceId = $credid
                                                     $vraAdapterObj.PSObject.Properties.Remove('links')
                                                     $vraAdapterObj.PSObject.Properties.Remove('lastHeartbeat')
@@ -13015,7 +13016,7 @@ Function Update-vROPSvRAAdapterCredential {
                                                     $vraAdapterObj | ConvertTo-Json -Depth 4 | Out-File .\vraadapter.json
                                                     $testresponse = Test-vROPSAdapterConnection -json .\vraadapter.json -patch
                                                     if ($testresponse.Count) { 
-                                                        Write-Output "Validating vRealize Automation credential named ($vRACredName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"
+                                                        Write-Output "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"
                                                         Set-vROPSAdapter -json .\vraadapter.json | Out-Null
                                                         Write-Output "Updating vRealize Automation adapter named ($adapterName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"
                                                         Start-vROPSAdapter -adapterId $vraAdapterId | Out-Null
@@ -13023,19 +13024,19 @@ Function Update-vROPSvRAAdapterCredential {
                                                         Write-Output "Verifying vRealize Automation adapter status... $(Test-vROPsAdapterStatus -resourceId $vraAdapterId)"
                                                     }
                                                     else {
-                                                        Write-Error "Validating vRealize Automation credential named ($vRACredName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : POST_VALDATION_FAILED"
+                                                        Write-Error "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : POST_VALDATION_FAILED"
                                                         Remove-vROPSCredential -credentialId $credid
-                                                        Write-Output "Removing vRealize Automation credential named ($vRACredName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"    
+                                                        Write-Output "Removing vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : SUCCESSFUL"    
                                                     }
                                                     Remove-Item .\vraadapter.json -Force -Confirm:$false 
                                                 }
                                                 else {
-                                                    Write-Error "Adding vRealize Automation credential named ($vRACredName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : POST_VALDATION_FAILED"
+                                                    Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) : POST_VALDATION_FAILED"
                                                     break
                                                 }
                                             }
                                             else {
-                                                Write-Error "Adding vRealize Automation credential named ($vRACredName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
+                                                Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                                 break
                                             }
                                         }
