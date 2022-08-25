@@ -491,6 +491,81 @@ Function Set-vCenterPasswordExpiration {
 }
 Export-ModuleMember -Function Set-vCenterPasswordExpiration
 
+Function Set-EsxiPasswordExpirationPeriod {
+	<#
+		.SYNOPSIS
+        Set ESXi password expiration period in days
+
+        .DESCRIPTION
+		The Set-EsxiPasswordExpirationPeriod cmdlet configures the password expiration period policies on ESXi. 
+		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configured all ESXi hosts in he provided cluster
+
+        EXAMPLE
+        Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
+    #>
+	Param(
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ExpirationInDays,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+	)
+	
+	Try{
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object { $_.Name -eq $cluster }) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost
+									Foreach ($esxiHost in $esxiHosts) {
+										$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+										if ($passwordExpire) {
+											Set-AdvancedSetting -AdvancedSetting $passwordExpire -Value $ExpirationInDays -Confirm:$false | Out-Null
+											$checkSetting = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+                                            if ($checkSetting -match $ExpirationInDays) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            }
+                                            else {
+                                                Write-Error "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+										}
+										else {
+											Write-Error "Error applying password policy"
+										}
+									}
+									if ($detail -eq "false") {
+                                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+								}
+								else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($vcfVcenterDetails.fqdn), check details and retry: PRE_VALIDATION_FAILED"
+                                }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	Catch{
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Set-EsxiPasswordExpirationPeriod
+
 Function Set-EsxiPasswordPolicy {
     <#
 		.SYNOPSIS
