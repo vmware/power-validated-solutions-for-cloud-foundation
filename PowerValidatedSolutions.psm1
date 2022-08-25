@@ -29855,6 +29855,52 @@ Function Get-CloudProxy {
 }
 Export-ModuleMember -Function Get-CloudProxy
 
+Function Get-CloudProxyOtk {
+    <#
+        .SYNOPSIS
+        Request One Time Key (OTK) for Cloud Proxies from VMware Cloud Service
+
+        .DESCRIPTION
+        The Get-CloudProxyOtk cmdlet connects to the VMware Cloud Service and requests a One Time Key (OTK) which is
+        used during the deployment of the OVA.
+
+        .EXAMPLE
+        Get-CloudProxyOtk -environment production -type 'Cloud Proxy'
+        This example shows how to get the One Time Key (OTK) for the Cloud Proxy.
+
+        .EXAMPLE
+        Get-CloudProxyOtk -environment production -type 'Cloud Extensibility Proxy'
+        This example shows how to get the One Time Key (OTK) for the Cloud Extensibility Proxy.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type
+    )
+
+    Try {
+        if ($environment -eq "staging") {
+            $baseUrl = "https://api.staging.symphony-dev.com"
+        } elseif ($environment -eq "production") {
+            $baseUrl = "https://api.mgmt.cloud.vmware.com"
+        }
+        $apiUrl = "/api/otk-v3"
+        $uri = $baseUrl + $apiUrl
+
+        if ($type -eq "Cloud Proxy") {
+            $body = '{"url":"https://api.staging.symphony-dev.com","service":"cloud_assembly"}'
+        } elseif ($type -eq "Cloud Extensibility Proxy") {
+            $body = '{"url":"https://api.staging.symphony-dev.com","service":"cloud_assembly_extensibility"}'
+        }
+        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $cspHeader -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-CloudProxyOtk
+
 Function Get-vROVersion {
     <#
         .SYNOPSIS
