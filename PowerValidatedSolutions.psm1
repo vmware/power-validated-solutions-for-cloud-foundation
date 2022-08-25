@@ -29733,7 +29733,7 @@ Function Request-CSPToken {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy
     )
@@ -29775,44 +29775,85 @@ Function Request-CSPToken {
 }
 Export-ModuleMember -Function Request-CSPToken
 
-Function Get-CSPPoxyAppliance {
+Function Get-CloudProxy {
+    <#
+        .SYNOPSIS
+        Request Cloud Proxies from VMware Cloud Service
+
+        .DESCRIPTION
+        The Get-CloudProxy cmdlet connects to the VMware Cloud Service and either downloads the OVA or
+        supplies the OVA link.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -type 'Cloud Proxy' -download -path <string>
+        This example shows how to download the Cloud Proxy OVA to the path provided.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -type 'Cloud Extensibility Proxy' -download -path <string>
+        This example shows how to download the Cloud Extensibility Proxy OVA to the path provided.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -type 'Cloud Proxy' -ovaUrl
+        This example shows how to obtain the URL to the Cloud Proxy OVA.
+    #>
+
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$path
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
+        [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [Switch]$download,
+        [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [String]$path,
+        [Parameter (Mandatory = $false, ParameterSetName = 'ovaUrl')] [ValidateNotNullOrEmpty()] [Switch]$ovaUrl
     )
 
     Try {
-
-        $uri = "https://api.mgmt.cloud.vmware.com/iaas/api/data-collectors"
-        $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $cspHeaders
-        
-        $cloudProxyUrl = $response.ovaLink
-        if ($PsBoundParameters.ContainsKey("path")) {
-            $cloudProxyOva = $path + "\" + ($response.ovaLink -Split (".com/"))[1]
-        }
-        else {
-            $cloudProxyOva = $PSScriptRoot + "\" + ($response.ovaLink -Split (".com/"))[1]
+        if ($environment -eq "staging") {
+            $baseUrl = "https://api.staging.symphony-dev.com"
+        } elseif ($environment -eq "production") {
+            $baseUrl = "https://api.mgmt.cloud.vmware.com"
         }
 
-        if (!(Test-Path $cloudProxyOva)) {
-            Write-Output "Starting to Download the Cloud Service Proxy OVA to '$cloudProxyOva'"
-            (New-Object System.Net.WebClient).DownloadFile($cloudProxyUrl, $cloudProxyOva)
-            if (Test-Path $cloudProxyOva) {
-                Write-Output "Downloaded the Cloud Service Proxy OVA to '$cloudProxyOva' Successfully"
-            }
-            else {
-                Write-Error "Cloud Service Proxy OVA Download Failed, please try again"
-            }
+        if ($type -eq "Cloud Proxy") {
+            $apiUrl = "/api/artifact-provider?artifact=data-collector"
+            $uri = $baseUrl + $apiUrl
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
+            $ovaName = ($response.providerUrl -Split (".com/"))[1]
+        } elseif ($type -eq "Cloud Extensibility Proxy") {
+            $apiUrl = "/api/artifact-provider?artifact=cexp-data-collector"
+            $uri = $baseUrl + $apiUrl
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
+            $ovaName = ($response.providerUrl -Split (".com/staging/"))[1]
         }
-        else {
-            Write-Warning "Cloud Service Proxy OVA '$cloudProxyOva' Already Downloaded"
+
+        if ($PsBoundParameters.ContainsKey("download")) {
+            if ($PsBoundParameters.ContainsKey("path")) {
+                $downloadPath = $path + "\" + $ovaName
+            } else {
+                $downloadPath = $PSScriptRoot + "\" + $ovaName
+            }
+            if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux" -or ($PSVersionTable.OS).Split(' ')[0] -eq "Darwin" ) {
+                $downloadPath = ($downloadPath).split('\') -join '/' | Split-Path -NoQualifier
+            }
+
+            if (!(Test-Path $downloadPath)) {
+                Write-Output "Started to Download the Cloud Assembly Cloud Proxy OVA to '$downloadPath'"
+                (New-Object System.Net.WebClient).DownloadFile($($response.providerUrl), $downloadPath)
+                if (Test-Path $downloadPath) {
+                    Write-Output "Downloading the Cloud Assembly Cloud Proxy OVA to '$downloadPath': SUCCESSFUL"
+                } else {
+                    Write-Error "Downloading the Cloud Assembly Cloud Proxy OVA to '$downloadPath': POST_VALIDATION_FAILED"
+                }
+            } else {
+                Write-Warning "Downloading the Cloud Assembly Cloud Proxy OVA to '$downloadPath', already downloaded: SKIPPED"
+            }
+        } elseif ($PsBoundParameters.ContainsKey("ovaUrl")) {
+            $response.providerUrl
         }
-        
     }
     Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-CSPPoxyAppliance
+Export-ModuleMember -Function Get-CloudProxy
 
 Function Get-vROVersion {
     <#
@@ -29820,7 +29861,7 @@ Function Get-vROVersion {
         Retrieve the vRealize Orchestrator version details
         
         .DESCRIPTION
-        The Get-vROVersion cmdlest retrieves the vRealize Orchestrator version information. It supports the following:
+        The Get-vROVersion cmdlet retrieves the vRealize Orchestrator version information. It supports the following:
         (Requires an access token before a connection can be made)
         - Standalone vRealize Orchestrator
         - Embedded vRealize Orchestrator with vRealize Automation
