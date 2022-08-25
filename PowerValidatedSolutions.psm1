@@ -422,6 +422,158 @@ Function Undo-SddcManagerRole {
 }
 Export-ModuleMember -Function Undo-SddcManagerRole
 
+Function Get-EsxiPasswordPolicy {
+	<#
+        .SYNOPSIS
+        Retrieves ESXi Host Password Policies
+
+        .DESCRIPTION
+        The Get-EsxiPasswordPolicy cmdlet retrieves a list of ESXi hosts displaying the currently
+        configured password policy nested within a vSphere cluster  
+		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Retrieve all ESXi hosts password policies
+
+        .EXAMPLE
+        Get-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl0l
+        This example retrieves all ESXi hosts password policies within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
+
+    #>
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+	)
+	
+	# Create the ESXi Host object
+	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
+									if ($esxiHosts) {
+										Foreach ($esxiHost in $esxiHosts) {
+											# retreving ESXi password policy string
+											$passwordPolicy = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+											# retreving ESXi password Expiration Period
+											$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+											if ($passwordPolicy -and $passwordExpire) {
+												# parsing ESXi password policy string
+												$nodePasswdPolicy = New-Object -TypeName psobject
+												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordMaxDays" -notepropertyvalue $passwordExpire.Value
+												$nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordPolicy.Value
+												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+												Remove-Variable -Name nodePasswdPolicy
+											}
+											else {
+												Write-Error "Unable to retrieve password policy from ESXi host '$esxiHost.Name'"
+											}
+										}
+										return $esxiPasswdPolicy
+									}
+									else {
+										Write-Warning "No ESXi hosts found within $cluster cluster."
+									}
+								}
+								else {
+										Write-Error "Unable to locate Cluster $cluster in $vcfVcenterDetails.fqdn vCenter Server: PRE_VALIDATION_FAILED"
+								}
+							}
+						}
+					}
+				}
+                else {
+                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	}
+	Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Get-EsxiPasswordPolicy
+
+Function Get-VCServerPasswordPolicy {
+	<#
+        .SYNOPSIS
+        Retrieves a vCenter servers' Password Policies
+
+        .DESCRIPTION
+        The Get-VCServerPasswordPolicy cmdlet returns the currently configured password expiration period
+		and the email for warning notification settings for the vCenter Server root account
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
+
+        .EXAMPLE
+        Get-VCServerPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
+
+    #>
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
+								$pwdExpirySettings = Get-VCPasswordExpiry
+								if ($pwdExpirySettings){
+									foreach ($configurationString in $pwdExpirySettings.PSObject.Properties) {
+										if ($configurationString.name -eq "email") {
+											$passwdNotifyEmail = $configurationString.value
+										}
+										if ($configurationString.name -eq "max_days_between_password_change") {
+											$passwdExpInDays = $configurationString.value
+										}
+									}
+									$vcPasswdPolicy = New-Object -TypeName psobject
+									$vcPasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $vcfVcenterDetails.fqdn
+									$vcPasswdPolicy | Add-Member -notepropertyname "email" -notepropertyvalue $passwdNotifyEmail
+									$vcPasswdPolicy | Add-Member -notepropertyname "max_days_between_password_change" -notepropertyvalue $passwdExpInDays
+									return $vcPasswdPolicy
+								}
+								else {
+									Write-Error "Unable to retrieve password policy for vCenter server '$server'"
+								}
+							}
+						}
+					}
+				}
+                else {
+                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	}
+	Catch{
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Get-VCServerPasswordPolicy
+
 Function Set-vCenterPasswordExpiration {
     <#
 		.SYNOPSIS
