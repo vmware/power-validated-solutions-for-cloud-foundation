@@ -509,7 +509,7 @@ Function Set-EsxiPasswordExpirationPeriod {
         Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
         This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
     #>
-	Param(
+	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
@@ -519,7 +519,7 @@ Function Set-EsxiPasswordExpirationPeriod {
         [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
 	)
 	
-	Try{
+	Try {
 		if (Test-Connection -server $server) {
 			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
 				if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
@@ -560,7 +560,7 @@ Function Set-EsxiPasswordExpirationPeriod {
 			}
 		}
 	}
-	Catch{
+	Catch {
 		Debug-ExceptionWriter -object $_
 	}
 }
