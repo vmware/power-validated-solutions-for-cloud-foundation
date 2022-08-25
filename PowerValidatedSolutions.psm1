@@ -507,7 +507,7 @@ Function Set-EsxiPasswordExpirationPeriod {
 
         EXAMPLE
         Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
-        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
     #>
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -543,7 +543,7 @@ Function Set-EsxiPasswordExpirationPeriod {
                                             }
 										}
 										else {
-											Write-Error "Error applying password policy"
+											Write-Error "Error applying Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
 										}
 									}
 									if ($detail -eq "false") {
