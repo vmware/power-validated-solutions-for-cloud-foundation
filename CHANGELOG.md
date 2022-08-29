@@ -1,4 +1,29 @@
 # Release History
+
+## Unreleased
+- Adds region blocks for easier code navigation.
+- Added a the vRealize Automation Cloud to vSphere integration role for Cloud Assembly.
+- Adds `Test-vROPsAdapterStatus` and `Test-vROPsAdapterStatusByType` cmdlets to test the status vRealize Operations adapters.
+- Enhanced the `Request-CSPToken` cmdlet to request a token from VMware Cloud.
+- Renamed to `Get-CSPPoxyAppliance` cmdlet to `Get-CloudProxy` and added:
+    - `-environment` switch to support Production and Staging VMC
+    - Support for both Cloud Proxy and Cloud Extensibility Proxy.
+    - Support for either downloading or simply providing the URL path.
+    - Support for downloading on Core (Linux, Windows and Mac).
+- Added the `Get-CloudProxyOtk` cmdlet to retrieve the One Time Key (OTK) for both the Cloud Proxy and the Cloud Extensibility Proxy.
+- Added the `Get-vROVersion` cmdlet with support for standalone, embedded, and cloud extensibility proxy vRealize Orchestrator instance.
+- Added the `Get-CEPWorkflow` cmdlet to return workflows from cloud extensibility proxy's vRealize Orchestrator instance.
+- Added the `Invoke-CEPWorkflow` cmdlet to start a Workflow on a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added the `Get-CEPWorkflowExecution` cmdlet to return the Workflow Execution ID from a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added the `Get-CEPWorkflowExecutionState` cmdlet to return the Workflow Execution State from a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added the `Add-CEPTrustedCertificate` cmdlet to add a trusted cert to a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added the `Add-CEPvCenterServer` cmdlet to add a vCenter server to a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added the `Update-vROPSvRAAdapterCredential` cmd to support updatin the vRealize Automation Integration credential in vRealize Operations Manager.
+- Enhances the `Update-vRACloudAccountZone` and `Update-vRACloudZone` cmdlets to support placement policy for cloud zones in vRealize Automation.
+- Added the `Get-vRAAPIVersion` and `Get-vRAIntegrationDetail` cmdlets to support support updating the placement policy for cloud zones in vRealize Automation.
+- Added the `Get-ESXiPasswordPolicy` and `Get-VCServerPasswordPolicy` to return the password expiration policy for an ESXi host and vCenter Server instance in number.
+- Added the `Set-EsxiPasswordExpirationPeriod` cmdlet to set the password expiration period on an ESXi host in number of days.
+
 ## v1.7.0 (2022-31-05)
 - Added `Set-vSRNetworkConfig` cmdlet to configure a secondary ethernet adapter and the required routing for vSphere Replication appliances in the protected and recovery sites
 - Added `Undo-vSRNetworkConfig` cmdlet to remove the secondary ethernet adapter and its configuration from vSphere Replication appliances in the protected and recovery sites
