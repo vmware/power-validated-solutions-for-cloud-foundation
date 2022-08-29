@@ -13901,7 +13901,7 @@ Function Update-vRACloudAccountZone {
         
         .EXAMPLE
         Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -placementPolicy ADVANCED
-        This example updates the placement policy for Cloud Zones to ADVANCED in vRealize Automation
+        This example updates the placement policy for the Cloud Zone to ADVANCED in vRealize Automation
     #>
 
     Param (
@@ -26354,7 +26354,7 @@ Function Get-vRAAPIVersion {
         Retrieve the vRealize Automation version information
         
         .DESCRIPTION
-        The GGet-vRAAPIVersion cmdlest retrieves the ApiVersion of vRealize Automation
+        The Get-vRAAPIVersion cmdlet returns the latest version of the API
 
         .EXAMPLE
         Get-vRAAPIVersion 
@@ -26376,14 +26376,14 @@ Function Get-vRAIntegrationDetail {
         Get an integration detail of an item from vRealize Automation
 
         .DESCRIPTION
-        The Get-vRAIntegrationDetail cmdlet get an integration details of an item from vRealize Automation
+        The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from vRealize Automation
 
         .EXAMPLE
         Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
-        This example gets the vCenter Servers ids managed by the vRealize Operations Manager
+        This example returns the ids of the vCenter Server instances managed by the vRealize Operations Manager
 
         Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "vRealize Operations Manager" -getIntegrationID
-        This example gets the integration id of vRealize Operations Manager which is integrated with the vRealize Automation
+        This example returns the integration id of vRealize Operations Manager which is integrated with the vRealize Automation
     #>
 
     Param (
@@ -26401,7 +26401,7 @@ Function Get-vRAIntegrationDetail {
         }
         if ($getIntegrationID) {
             if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
-                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object  name -Match $integrationName).id        
+                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match $integrationName).id        
             }
         }
     }
@@ -26443,7 +26443,7 @@ Function Update-vRACloudZone {
     Try {
         $cloudZoneDetails = Get-VRACloudZone -id $id
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("folder")) {
-            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder + '" }'
+            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder +'" }'
         }
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("tagKey") -and $PsBoundParameters.ContainsKey("tagValue")) {
             $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "tagsToMatch": [ { "key": "' + $tagKey + '", "value": "' + $tagValue + '" } ] }'
@@ -26456,7 +26456,7 @@ Function Update-vRACloudZone {
                     $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
                 }
                 else {
-                    Write-Error "vRealize Operations Manager is not integrated  with the vRealize Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
+                    Write-Error "vRealize Operations Manager is not integrated with vRealize Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
                     break
                 }
             }
