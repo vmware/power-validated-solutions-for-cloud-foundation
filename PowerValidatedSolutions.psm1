@@ -13893,10 +13893,15 @@ Function Update-vRACloudAccountZone {
         - Adds the tag to the Resource Pool Compute Resource
         - Adds the folder to the Cloud Account Zone as a target
         - Adds a dynamic filter to use the defined tags
+        - Updates the placement policy
 
         .EXAMPLE
         Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -tagKey enabled -tagValue true -folder "sfo-w01-fd-workload" -resourcePool "sfo-w01-cl01-rp-workload"
         This example updates the Cloud Zone for the Workload Domain with a default folder and adds tags to the resource pool for dynamic provisioning in vRealize Automation
+        
+        .EXAMPLE
+        Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -placementPolicy ADVANCED
+        This example updates the placement policy for Cloud Zones to ADVANCED in vRealize Automation
     #>
 
     Param (
@@ -13906,10 +13911,11 @@ Function Update-vRACloudAccountZone {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagKey,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagValue,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folder,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourcePool
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagKey,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagValue,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$folder,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$resourcePool,
+        [Parameter (Mandatory = $false)] [ValidateSet("ADVANCED", "DEFAULT", "SPREAD", "BINPACK")][ValidateNotNullOrEmpty()] [String]$placementPolicy
     )
 
     Try {
@@ -13920,21 +13926,28 @@ Function Update-vRACloudAccountZone {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             $vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                             if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                                if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
-                                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                                    if (Get-vRAResourceCompute | Where-Object {$_.name -eq ($cluster + " / " + $resourcePool)}) {
-                                        $cloudZoneDetails = Get-vRACloudZone | Where-Object {$_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}).id }
-                                        Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object {$_.name -eq ($cluster + " / " + $resourcePool)}).id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                        Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
-                                        Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                        Write-Output "Updating Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
-                                    }
-                                    else {
-                                        Write-Error "Unable to find Resource Pool in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool) : PRE_VALIDATION_FAILED"
+                                if (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }) {
+                                    if ($PsBoundParameters.ContainsKey("resourcePool")) { 
+                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                        if (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }) {
+                                            $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
+                                            Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }).id -tagKey $tagKey -tagValue $tagValue | Out-Null
+                                            Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
+                                            Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
+                                            Write-Output "Updating Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Unable to find Resource Pool in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool): PRE_VALIDATION_FAILED"
+                                        } 
+                                    } 
+                                    if ($PsBoundParameters.ContainsKey("placementPolicy")) { 
+                                        $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
+                                        Update-VRACloudZone -id $cloudZoneDetails.id -placementPolicy $placementPolicy | Out-Null
+                                        Write-Output "Updating placement policy to $placementPolicy in Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     }
                                 }
                                 else {
-                                    Write-Error "Unable to find vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)) : PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                                 }
                             }
                             else {
@@ -26335,6 +26348,69 @@ Function Get-vRACloudZone {
 }
 Export-ModuleMember -Function Get-vRACloudZone
 
+Function Get-vRAAPIVersion {
+    <#
+        .SYNOPSIS
+        Retrieve the vRealize Automation version information
+        
+        .DESCRIPTION
+        The GGet-vRAAPIVersion cmdlest retrieves the ApiVersion of vRealize Automation
+
+        .EXAMPLE
+        Get-vRAAPIVersion 
+    #>
+    Try {
+        $uri = "https://$vraAppliance/iaas/api/about"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
+        $response.latestApiVersion         
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRAAPIVersion
+
+Function Get-vRAIntegrationDetail {
+    <#
+        .SYNOPSIS
+        Get an integration detail of an item from vRealize Automation
+
+        .DESCRIPTION
+        The Get-vRAIntegrationDetail cmdlet get an integration details of an item from vRealize Automation
+
+        .EXAMPLE
+        Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
+        This example gets the vCenter Servers ids managed by the vRealize Operations Manager
+
+        Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "vRealize Operations Manager" -getIntegrationID
+        This example gets the integration id of vRealize Operations Manager which is integrated with the vRealize Automation
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationName,
+        [switch]$getVCID,
+        [switch]$getIntegrationID
+    )
+    Try {
+        $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
+        $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"        
+        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
+        if ($getVCID) {
+            ($response.content | Where-Object integrationType -Match $integrationType).customProperties.vcIds
+        }
+        if ($getIntegrationID) {
+            if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
+                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object  name -Match $integrationName).id        
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRAIntegrationDetail
+
 Function Update-vRACloudZone {
     <#
         .SYNOPSIS
@@ -26350,24 +26426,46 @@ Function Update-vRACloudZone {
         .EXAMPLE
         Update-vRACloudZone -id <cloud_zone_id> -tagKey enabled -tagValue true
         This example adds tags that should be used to dynamically obtain resources for a Cloud Zone in vRealize Automation by id
+
+        .EXAMPLE
+        Update-vRACloudZone -id <cloud_zone_id> placementPolicy ADVANCED
+        This example updates the placement policy for Cloud Zones to ADVANCED in vRealize Automation by id
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
         [Parameter (ParameterSetName = "folder", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$folder,
-        [Parameter (ParameterSetName = "tag", Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagKey,
-        [Parameter (ParameterSetName = "tag", Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagValue
+        [Parameter (ParameterSetName = "tag", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagKey,
+        [Parameter (ParameterSetName = "tag", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagValue,
+        [Parameter (ParameterSetName = "placementPolicy", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$placementPolicy
+   
     )
-
     Try {
         $cloudZoneDetails = Get-VRACloudZone -id $id
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("folder")) {
-            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder +'" }'
+            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder + '" }'
         }
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("tagKey") -and $PsBoundParameters.ContainsKey("tagValue")) {
-            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "tagsToMatch": [ { "key": "' + $tagKey +'", "value": "' + $tagValue +'" } ] }'
+            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "tagsToMatch": [ { "key": "' + $tagKey + '", "value": "' + $tagValue + '" } ] }'
         }
-
+        if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("placementPolicy")) {
+            if ($placementPolicy -eq "ADVANCED") {
+                if (((Get-vRAIntegrationDetail -integrationType vrops -getVCID).split(',')).contains(((Get-vRACloudAccount -type vsphere).customProperties.vcUuid))) {
+                    $cloudZoneDetails.placementPolicy = $placementPolicy
+                    $cloudZoneDetails.customProperties | Add-Member -Type NoteProperty  -Name "__ignoreAdvancedPolicyFailure" -Value "true" -Force
+                    $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
+                }
+                else {
+                    Write-Error "vRealize Operations Manager is not integrated  with the vRealize Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
+                    break
+                }
+            }
+            else {   
+                $cloudZoneDetails.placementPolicy = $placementPolicy
+                $cloudZoneDetails.customProperties.PSObject.Properties.Remove('__ignoreAdvancedPolicyFailure')
+                $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
+            }
+        }
         $uri = "https://$vraAppliance/iaas/api/zones/$id"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $json
         $response
