@@ -9044,11 +9044,17 @@ Function Add-SupervisorClusterLicense {
                                                     Start-Sleep 10
                                                 } while ($taskStatus -eq "In Progress")
                                                 if ($taskStatus -eq "Successful") {
-                                                    Write-Output "Assign license key ($licenseKey) to Supervisior cluster ($cluster) : SUCCESSFUL"
+                                                    Write-Output "Assign license key ($licenseKey) to Supervisior cluster ($cluster): SUCCESSFUL"
                                                 }
                                                 else {
-                                                    Write-Error "Assign license key ($licenseKey) to Supervisior cluster ($cluster) : FAILED"
-                                                    break
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
+                                                            'Add-SupervisorClusterLicense',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
                                                 } 
                                             }
                                             Catch {
@@ -9056,11 +9062,17 @@ Function Add-SupervisorClusterLicense {
                                             }
                                         }
                                         else {
-                                            Write-Error "Adding license key ($licenseKey) in SDDC manager ($sddcManager): POST_VALIDATION_FAILED"
-                                            break
+                                            $PSCmdlet.ThrowTerminatingError(
+                                                [System.Management.Automation.ErrorRecord]::new(
+                                                    ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
+                                                    'Add-SupervisorClusterLicense',
+                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                    ""
+                                                )
+                                            )
                                         }
                                     } else {
-                                        Write-Warning "Adding license key ($licenseKey) in SDDC manager ($sddcManager), already exists: SKIPPED"
+                                        Write-Warning "License key ($licenseKey) already exists in SDDC manager ($sddcManager) inventory: SKIPPED"
                                     }
                                     
                                 }
@@ -9068,12 +9080,26 @@ Function Add-SupervisorClusterLicense {
                             }
                         }
                         else {
-                            Write-Error "Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                            $PSCmdlet.ThrowTerminatingError(
+                                [System.Management.Automation.ErrorRecord]::new(
+                                    ([System.Management.Automation.ItemNotFoundException]"Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
+                                    'Add-SupervisorClusterLicense',
+                                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                    ""
+                                )
+                            )
                         }
                     }
                 }
                 else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                    $PSCmdlet.ThrowTerminatingError(
+                        [System.Management.Automation.ErrorRecord]::new(
+                            ([System.Management.Automation.ItemNotFoundException]"Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
+                            'Add-SupervisorClusterLicense',
+                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                            ""
+                        )
+                    )
                 }
             }
         }
