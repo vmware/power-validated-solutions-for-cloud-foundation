@@ -1,0 +1,167 @@
+---
+name: Bug Report
+description: Is something not working as expected? Submit a bug.
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing an issue, please [search the existing issues](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues?q=is%3Aissue+is%3Aopen+label%3Abug) (open or closed), and use the [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) feature to add up-votes to existing issues.
+        
+        When filing an issue, please include the following information.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: The Code of Conduct applies to you when interacting with the community here on GitHub and contributing code.
+      options:
+        - label: I have read and agree to the [Code of Conduct](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/blob/main/CODE_OF_CONDUCT.md).
+          required: true
+        - label: Vote on this issue by adding a 👍 [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue initial description to help the maintainers prioritize.
+          required: false
+        - label: Do not leave "+1" or other comments that do not add relevant information or questions.
+          required: false
+        - label: If you are interested in working on this issue or have submitted a pull request, please leave a comment.
+          required: false
+  - type: input
+    id: version-vcf
+    attributes:
+      label: VMware Cloud Foundation
+      description: Please provide the VMware Cloud Foundation version.
+      placeholder: 4.4.1
+    validations:
+      required: true
+  - type: input
+    id: module-version
+    attributes:
+      label: Module Version
+      description: >-
+        Please provide the PowerShell module version.
+        
+        Results of: `Get-InstalledModule PowerValidatedSolutions`
+      placeholder: 1.7.0
+    validations:
+      required: true
+  - type: input
+    id: version-powershell
+    attributes:
+      label: PowerShell Version
+      description: >
+        Please provide the PowerShell version.
+        
+        Results of: `$PSVersionTable`
+      placeholder: Windows PowerShell 5.1
+    validations:
+      required: true
+  - type: input
+    id: version-powercli
+    attributes:
+      label: PowerCLI Version
+      description: >
+        Please provide the VMware PowerCLI version.
+        
+        Results of `Get-InstalledModule VMware.PowerCLI`
+      placeholder: 12.7.0
+    validations:
+      required: true
+  - type: input
+    id: version-powervcf
+    attributes:
+      label: PowerVCF Version
+      description: >
+        Please provide the PowerVCF version.
+        
+        Results of `Get-InstalledModule PowerVCF`
+      placeholder: 2.2.0
+    validations:
+      required: true
+  - type: input
+    id: guest-os
+    attributes:
+      label: Guest Operating System
+      description: Please provide the guest operating system.
+      placeholder: Windows Server 2022
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Please add any information you can provide about the environment.
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >-
+        Please provide a clear and concise description of the issue you are
+        experiencing.
+    validations:
+      required: true
+  - type: textarea
+    id: debug
+    attributes:
+      label: Error or Debug Output
+      description: |
+        Please provide a link to a [GitHub Gist](https://gist.github.com/) containing the complete error or debug output.
+      placeholder:
+        Link to a GitHub Gist. Please do not paste the debug output in the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: >
+        What is it you expected to happen?
+
+        This should be a description of how the functionality you tried to use
+        is supposed to work.
+      placeholder: null
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened that's different from the expected behavior?
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide the steps to reproduce the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log Fragments and Files
+      description: >
+        Please include appropriate redacted log fragments. If the log is longer than a
+        few dozen lines, please include the URL to the
+        [Gist](https://gist.github.com/) of the log or use the [GitHub detailed
+        format](https://gist.github.com/ericclemmons/b146fe5da72ca1f706b2ef72a20ac39d)
+        instead of posting it directly in the issue.
+    validations:
+      required: false
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshots
+      description: Screenshots of the issue, if applicable.
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: |
+        Please provide any related GitHub issues or pull requests (open or closed) or documentation.
+        Learn about [Referencing Github Issues](https://help.github.com/articles/basic-writing-and-formatting-syntax/#referencing-issues-and-pull-requests).
+      placeholder: |
+        #GH-0000
