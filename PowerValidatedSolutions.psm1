@@ -31032,98 +31032,6 @@ Function cidrMaskLookup {
     Return $returnValue
 }
 
-Function checkVCFToken {
-    if (!$accessToken) {
-        Write-Error "API Access Token Required. Request an Access Token by running Request-VCFToken"
-        Break
-    }
-    else {
-        $expiryDetails = Get-JWTDetail $accessToken
-        if ($expiryDetails.timeToExpiry.Hours -eq 0 -and $expiryDetails.timeToExpiry.Minutes -lt 2) {
-       	    Write-Output "API Access Token Expired. Requesting a new access token with current refresh token"
-            $headers = @{"Accept" = "application/json" }
-            $uri = "https://$sddcManager/v1/tokens/access-token/refresh"
-            $response = Invoke-RestMethod -Method PATCH -Uri $uri -Headers $headers -body $refreshToken
-            $Global:accessToken = $response
-        }
-    }
-} Export-ModuleMember -Function checkVCFToken
-
-Function Get-JWTDetail {
-    [cmdletbinding()]
-
-    Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [string]$token
-    )
-
-    <#
-        .SYNOPSIS
-        Decode a JWT Access Token and convert to a PowerShell Object.
-        JWT Access Token updated to include the JWT Signature (sig), JWT Token Expiry (expiryDateTime) and JWT Token time to expiry (timeToExpiry).
-        Written by Darren Robinson
-        https://blog.darrenjrobinson.com
-        https://blog.darrenjrobinson.com/jwtdetails-powershell-module-for-decoding-jwt-access-tokens-with-readable-token-expiry-time/
-        .DESCRIPTION
-        Decode a JWT Access Token and convert to a PowerShell Object.
-        JWT Access Token updated to include the JWT Signature (sig), JWT Token Expiry (expiryDateTime) and JWT Token time to expiry (timeToExpiry).
-        .PARAMETER token
-        The JWT Access Token to decode and udpate with expiry time and time to expiry
-        .INPUTS
-        Token from Pipeline
-        .OUTPUTS
-        PowerShell Object
-        .SYNTAX
-        Get-JWTDetail (accesstoken)
-        .EXAMPLE
-        PS> Get-JWTDetail ('eyJ0eXAiOi........XmN4GnWQAw7OwMA')
-    #>
-
-
-    if (!$token.Contains(".") -or !$token.StartsWith("eyJ")) { Write-Error "Invalid token" -ErrorAction Stop }
-
-    # Token
-    Foreach ($i in 0..1) {
-        $data = $token.Split('.')[$i].Replace('-', '+').Replace('_', '/')
-        Switch ($data.Length % 4) {
-            0 { break }
-            2 { $data += '==' }
-            3 { $data += '=' }
-        }
-    }
-
-    $decodedToken = [System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String($data)) | ConvertFrom-Json
-    Write-Verbose "JWT Token:"
-    Write-Verbose $decodedToken
-
-    # Signature
-    Foreach ($i in 0..2) {
-        $sig = $token.Split('.')[$i].Replace('-', '+').Replace('_', '/')
-        Switch ($sig.Length % 4) {
-            0 { break }
-            2 { $sig += '==' }
-            3 { $sig += '=' }
-        }
-    }
-    Write-Verbose "JWT Signature:"
-    Write-Verbose $sig
-    $decodedToken | Add-Member -Type NoteProperty -Name "sig" -Value $sig
-
-    # Convert Expiry time to PowerShell DateTime
-    $orig = (Get-Date -Year 1970 -Month 1 -Day 1 -hour 0 -Minute 0 -Second 0 -Millisecond 0)
-    $timeZone = Get-TimeZone
-    $utcTime = $orig.AddSeconds($decodedToken.exp)
-    $hoursOffset = $timeZone.GetUtcOffset($(Get-Date)).hours #Daylight saving needs to be calculated
-    $localTime = $utcTime.AddHours($hoursOffset)     # Return local time,
-    $decodedToken | Add-Member -Type NoteProperty -Name "expiryDateTime" -Value $localTime
-
-    # Time to Expiry
-    $timeToExpiry = ($localTime - (get-date))
-    $decodedToken | Add-Member -Type NoteProperty -Name "timeToExpiry" -Value $timeToExpiry
-
-    Return $decodedToken
-} Export-ModuleMember -Function Get-JWTDetail
-
 Function createHeader {
     $Global:headers = @{"Accept" = "application/json" }
     $Global:headers.Add("Authorization", "Bearer $accessToken")
@@ -31209,7 +31117,7 @@ Export-ModuleMember -Function Request-VAMISessionId
 #####################################################################
 
 #####################################################################
-#Region     Start of Test  Functions                           ######
+#Region     Start of Test Functions                            ######
 
 Function Test-VCFConnection {
     Param (
@@ -32107,7 +32015,7 @@ Function Test-NtpServer {
 Export-ModuleMember -Function Test-NtpServer
 
 
-#EndRegion  End  of Test  Functions                            ######
+#EndRegion  End of Test Functions                              ######
 #####################################################################
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
