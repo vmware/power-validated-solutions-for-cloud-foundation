@@ -9,15 +9,15 @@
 
 `PowerValidatedSolutions` is a PowerShell module that has been written to support the automation of many procedures associated with the implementation of the [VMware Validated Solutions for VMware Cloud Foundation][vvs].
 
-The module helps reduce human error, delivers consistency and robustness, and accelerates the time-to-deploy these solutions. The module's cmdlets reduce complexity and by automating the deployment and configuration steps using the product APIs or command-line tools.
+The module helps reduce human error, delivers consistency and robustness, and accelerates the time-to-deploy these solutions. The module's cmdlets reduce complexity by automating the deployment and configuration steps using the product APIs or command-line tools.
 
-This infrastructure-as-code model enables you to use the module "out-of-the-box" or develop incorporate into your own end-to-end automation.
+This infrastructure-as-code model enables you to use the module "out-of-the-box" or in your own end-to-end automation.
 
 ## Requirements
 
 ### Platform
 
-* [VMware Cloud Foundation][vmware-cloud-foundation] 4.3 or higher
+* [VMware Cloud Foundation][vmware-cloud-foundation] 4.2 or higher
 
 ### Powershell
 
@@ -55,7 +55,7 @@ Get-InstalledModule
 
 Once installed, any cmdlets associated with `PowerValidatedSolutions` and the supporting PowerShell modules will be available for use.
 
-To view the cmdlets for available in the module, run the following command in the PowerShell console.
+To view the cmdlets available in the module, run the following command in the PowerShell console.
 
 ```powershell
 Get-Command -Module PowerValidatedSolutions
