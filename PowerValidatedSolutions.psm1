@@ -147,8 +147,7 @@ Function Add-IdentitySource {
 
     if (!$PsBoundParameters.ContainsKey("certificate") -and ($protocol -eq "ldaps")) {
         $certificate = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer" -location "default"
-    }
-    elseif ($protocol -eq "ldaps") {
+    } elseif ($protocol -eq "ldaps") {
         if (!(Test-Path -Path $certificate)) {
             Write-Error  "Certificate (cer) for Root Certificate Authority '$certificate' File Not Found"
             Break
@@ -159,8 +158,7 @@ Function Add-IdentitySource {
     $bindUser = $domainBindUser + '@' + ($domain.Split("."))[0].ToLower()
     if ($protocol -eq "ldaps") {
         $primaryUrl = 'ldaps://' + $dcMachineName + '.' + $domain + ':636'
-    }
-    elseif ($protocol -eq "ldap") {
+    } elseif ($protocol -eq "ldap") {
         $primaryUrl = 'ldap://' + $dcMachineName + '.' + $domain + ':389'
     }
 
@@ -174,8 +172,7 @@ Function Add-IdentitySource {
                                 if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
                                     if ($protocol -eq "ldaps") {
                                         Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass -Certificate $certificate
-                                    }
-                                    else {
+                                    } else {
                                         Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
                                     }
                                     if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
@@ -187,18 +184,15 @@ Function Add-IdentitySource {
                                                 Write-Output "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): SUCCESSFUL"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), already exists: SKIPPED"
                             }
                         }
@@ -206,8 +200,7 @@ Function Add-IdentitySource {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -247,13 +240,11 @@ Function Undo-IdentitySource {
                                 Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain } | Remove-IdentitySource | Out-Null
                                 if (!(Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain })) {
                                     Write-Output "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
                                 }                                
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), does not exist: SKIPPED"
                             }
                         }
@@ -261,8 +252,7 @@ Function Undo-IdentitySource {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -322,40 +312,33 @@ Function Add-SddcManagerRole {
                                             $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
                                             if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
                                                 Write-Warning "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal), already assigned: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 New-VCFGroup -group $principal -domain $domain -role $role | Out-Null
                                                 $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
                                                 if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
                                                     Write-Output "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): POST_VALIDATION_FAILED"
                                                 }
                                             }
-                                        }
-                                        elseif ($type -eq "user") {
+                                        } elseif ($type -eq "user") {
                                             $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
                                             if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
                                                 Write-Warning "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal), already assigned: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 New-VCFUser -user ($principal + "@" + $domain.ToUpper()) -role $role | Out-Null
                                                 $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
                                                 if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
                                                     Write-Output "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): POST_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find $type ($principal) in the Active Directory Domain: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                 }
                             }
@@ -363,12 +346,10 @@ Function Add-SddcManagerRole {
                     }
                 }
             }
-        }
-        else {
+        } else {
             Write-Error  "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -405,18 +386,15 @@ Function Undo-SddcManagerRole {
                     Remove-VCFUser -id (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}).id
                     if (!(Get-VCFUser -type $type | Where-Object {$_.name -match $principal})) { 
                         Write-Output "Removing $type from SDDC Manager ($server) named ($principal): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Removing $type from SDDC Manager ($server) named ($principal): POST_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Warning "Removing $type from SDDC Manager ($server) named ($principal), not assigned: SKIPPED"
                 }                                 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -440,8 +418,8 @@ Function Get-EsxiPasswordPolicy {
         .EXAMPLE
         Get-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl0l
         This example retrieves all ESXi hosts password policies within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
-
     #>
+
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -476,31 +454,26 @@ Function Get-EsxiPasswordPolicy {
 												$nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordPolicy.Value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
-											}
-											else {
+											} else {
 												Write-Error "Unable to retrieve password policy from ESXi host '$esxiHost.Name'"
 											}
 										}
 										return $esxiPasswdPolicy
-									}
-									else {
+									} else {
 										Write-Warning "No ESXi hosts found within $cluster cluster."
 									}
-								}
-								else {
-										Write-Error "Unable to locate Cluster $cluster in $vcfVcenterDetails.fqdn vCenter Server: PRE_VALIDATION_FAILED"
+								} else {
+                                    Write-Error "Unable to locate Cluster $cluster in $vcfVcenterDetails.fqdn vCenter Server: PRE_VALIDATION_FAILED"
 								}
 							}
 						}
 					}
-				}
-                else {
+				} else {
                     Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
                 }
 			}
 		}
-	}
-	Catch {
+	} Catch {
 		Debug-ExceptionWriter -object $_
 	}
 }
@@ -522,8 +495,8 @@ Function Get-VCServerPasswordPolicy {
         .EXAMPLE
         Get-VCServerPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
         This example retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
-
     #>
+
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -554,21 +527,18 @@ Function Get-VCServerPasswordPolicy {
 									$vcPasswdPolicy | Add-Member -notepropertyname "email" -notepropertyvalue $passwdNotifyEmail
 									$vcPasswdPolicy | Add-Member -notepropertyname "max_days_between_password_change" -notepropertyvalue $passwdExpInDays
 									return $vcPasswdPolicy
-								}
-								else {
+								} else {
 									Write-Error "Unable to retrieve password policy for vCenter server '$server'"
 								}
 							}
 						}
 					}
-				}
-                else {
+				} else {
                     Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
                 }
 			}
 		}
-	}
-	Catch{
+	} Catch{
 		Debug-ExceptionWriter -object $_
 	}
 }
@@ -617,27 +587,23 @@ Function Set-vCenterPasswordExpiration {
                             $pwdExpirySettings = Get-VCPasswordExpiry
                             if ($passwordExpires) {
                                 Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
-                            }
-                            else {
+                            } else {
                                 Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
                             }
                             $pwdExpirySettings = Get-VCPasswordExpiry
                             if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
                                 Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to (Never Expire): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to ($($pwdExpirySettings.max_days_between_password_change) days) and Email Notification to ($($pwdExpirySettings.email)): SUCCESSFUL"
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-	}
-    Catch {
+	} Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -661,6 +627,7 @@ Function Set-EsxiPasswordExpirationPeriod {
         Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
         This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
     #>
+
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -689,20 +656,17 @@ Function Set-EsxiPasswordExpirationPeriod {
                                                 if ($detail -eq "true") {
                                                     Write-Output "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
                                             }
-										}
-										else {
+										} else {
 											Write-Error "Error applying Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
 										}
 									}
 									if ($detail -eq "false") {
                                         Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
                                     }
-								}
-								else {
+								} else {
                                     Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($vcfVcenterDetails.fqdn), check details and retry: PRE_VALIDATION_FAILED"
                                 }
 							}
@@ -711,8 +675,7 @@ Function Set-EsxiPasswordExpirationPeriod {
 				}
 			}
 		}
-	}
-	Catch {
+	} Catch {
 		Debug-ExceptionWriter -object $_
 	}
 }
@@ -765,8 +728,7 @@ Function Set-EsxiPasswordPolicy {
                                                 if ($detail -eq "true") {
                                                     Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
                                             }
                                         }
@@ -775,22 +737,19 @@ Function Set-EsxiPasswordPolicy {
                                     if ($detail -eq "false") {
                                         Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), check details and retry: PRE_VALIDATION_FOUND"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }    
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -829,8 +788,7 @@ Function Install-WorkspaceOne {
     Try {
         if (!$PsBoundParameters.ContainsKey("wsaOvaPath")) {
             $wsaOvaPath = Get-ExternalFileName -title "Select the Workspace ONE Access OVA file (.ova)" -fileType "ova" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $wsaOvaPath)) {
                 Write-Error  "Workspace ONE Access OVA '$wsaOvaPath' File Not Found"
                 Break
@@ -844,8 +802,7 @@ Function Install-WorkspaceOne {
                             $wsaHostname = $wsaFqdn.Split(".")[0]
                             if (Get-VM -Name $wsaHostname -ErrorAction Ignore) {
                                 Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname), already exists: SKIPPED"
-                            }
-                            else {
+                            } else {
                                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).Name
@@ -870,11 +827,9 @@ Function Install-WorkspaceOne {
                                                 }
                                                 Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                                             }
-                                        }
-                                        Catch {
+                                        } Catch {
                                             Write-Error "Failed to get a Response from Workspace ONE Access Instance ($wsaFqdn): POST_VALIDATION_FAILURE"
-                                        }
-                                        Finally {
+                                        } Finally {
                                             $timer.Stop()  ## Stop the timer
                                         }
                                         $Timeout = 900  ## seconds
@@ -891,8 +846,7 @@ Function Install-WorkspaceOne {
                                                         Write-Output "Deploying Workspace ONE Access Instance ($wsaFqdn) using ($wsaOvaPath): SUCCESSFUL"
                                                         break
                                                     }
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Write-Output "Waiting for ($wsaFqdn) to fully boot up. Checking every $CheckEvery seconds"
                                                 }
                                                 Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
@@ -900,19 +854,15 @@ Function Install-WorkspaceOne {
                                             if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
                                                     Write-Error "Workspace ONE Access Instance ($wsaFqdn) failed to initialize properly. Please delete the VM from vCenter Server ($($vcfVcenterDetails.fqdn)) and retry: POST_VAIDATION_FAILED"
                                             }
-                                        }
-                                        Catch {
+                                        } Catch {
                                             Debug-ExceptionWriter -object $_
-                                        }
-                                        Finally {
+                                        } Finally {
                                             $timer.Stop()  ## Stop the timer
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Deployment of Workspace ONE Access Instance ($wsaFqdn): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error  "Application Virtual Networks have not been configured in SDDC Manager ($server), unable to find REGION_A details. Deploy and try again: PRE_VALIDATION_FAILED"
                                 }
                             }
@@ -922,8 +872,7 @@ Function Install-WorkspaceOne {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -970,12 +919,10 @@ Function Undo-WorkspaceOne {
                                 Remove-VM $wsaHostname -DeletePermanently -Confirm:$false | Out-null
                                 if (!(Get-VM -Name $wsaHostname -ErrorAction Ignore)) {
                                     Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname), already removed: SKIPPED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -984,8 +931,7 @@ Function Undo-WorkspaceOne {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1044,13 +990,11 @@ Function Initialize-WorkspaceOne {
                 $uri = $baseUri + "/cfg/setup/activateConnector"
                 Invoke-RestMethod $uri -Method 'POST' -Headers $headers -WebSession $webSession  | Out-Null
                 Write-Output "Initial Configuration of Workspace ONE Access Instance ($wsaFqdn): SUCCESSFUL"
-            }
-            else {
+            } else {
                 Write-Warning "Initial Configuration of Workspace ONE Access Instance ($wsaFqdn), already performed: SKIPPED"
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1097,12 +1041,11 @@ Function Set-WorkspaceOneNtpConfig {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (!$ntpServer) {
                                 $ntpServer = (Get-VCFConfigurationNTP).ipAddress
-                            }
-                            else {
+                            } else {
                                 $testNtp = Test-NtpServer -Server $ntpServer
                                 if ($testNtp -eq $false) {
                                     Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
-                                    break
+                                    Break
                                 }
                                 $existingNtpServer = (Get-VCFConfigurationNTP).ipAddress
                                 $ntpServer = $existingNtpServer + "," + $ntpServer
@@ -1115,20 +1058,17 @@ Function Set-WorkspaceOneNtpConfig {
                                             if (Test-WSAConnection -server $wsaVm.hostname) {
                                                 if ((Get-VM -Name $wsaVm.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                                     Set-WorkspaceOneApplianceNtpConfig -vmName $wsaVm.vmName -rootPass $rootPass -ntpServer $ntpServer
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to locate a virtual machine named ($($wsaVm.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to connect to vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn) to gather Workspace ONE Access appliance inventory: PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
-                            }
-                            else {
+                            } else {
                                 if (!$wsaFqdn) {
                                     Write-Error "The FQDN parameter (-wsaFqdn) is required for a standalone Workspace ONE Access instance: PRE_VALIDATION_FAILED"
                                 }
@@ -1136,8 +1076,7 @@ Function Set-WorkspaceOneNtpConfig {
                                 if (Test-WSAConnection -server $wsaFqdn) {
                                     if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                         Set-WorkspaceOneApplianceNtpConfig -vmName $vmName -rootPass $rootPass -ntpServer $ntpServer
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error  "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -1148,8 +1087,7 @@ Function Set-WorkspaceOneNtpConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1186,37 +1124,30 @@ Function Install-WorkspaceOneCertificate {
     )
 
     Try {
-
         if (!$PsBoundParameters.ContainsKey("rootCa")) {
             $rootCa = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer" -location "default"
-        }
-        elseif ($PsBoundParameters.ContainsKey("rootCa")) {
+        } elseif ($PsBoundParameters.ContainsKey("rootCa")) {
             if (!(Test-Path -Path $rootCa)) {
                 Write-Error  "Certificate (.cer) for Root Certificate Authority ($rootCa) File Not Found"
                 Break
             }
         }
-
         if (!$PsBoundParameters.ContainsKey("wsaCertKey")) {
             $wsaCertKey = Get-ExternalFileName -title "Select the Workspace ONE Access Certificate Key (.key)" -fileType "key" -locaion "default"
-        }
-        elseif ($PsBoundParameters.ContainsKey("wsaCertKey")) {
+        } elseif ($PsBoundParameters.ContainsKey("wsaCertKey")) {
             if (!(Test-Path -Path $wsaCertKey)) {
                 Write-Error  "Certificate Key (.key) for Workspace ONE Access ($wsaCertKey) File Not Found"
                 Break
             }
         }
-
         if (!$PsBoundParameters.ContainsKey("wsaCert")) {
             $wsaCert = Get-ExternalFileName -title "Select the Workspace ONE Access Certificate File (.cer)" -fileType "cer" -location "default"
-        }
-        elseif ($PsBoundParameters.ContainsKey("wsaCert")) {
+        } elseif ($PsBoundParameters.ContainsKey("wsaCert")) {
             if (!(Test-Path -Path $wsaCert)) {
                 Write-Error  "Certificate (.cer) for Workspace ONE Access ($wsaCert) File Not Found"
                 Break
             }
         }
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
@@ -1237,8 +1168,7 @@ Function Install-WorkspaceOneCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1282,18 +1212,15 @@ Function Set-WorkspaceOneSmtpConfig {
                     }
                     if (Get-WSASmtpConfiguration | Where-Object {$_.host -eq $smtpFqdn}) {
                         Write-Output "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn): POST_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Warning "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn), already exists: SKIPPED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1332,8 +1259,7 @@ Function Add-WorkspaceOneDirectory {
 
     if (!$PsBoundParameters.ContainsKey("certificate") -and ($protocol -eq "ldaps")) {
         $certificate = Get-ExternalFileName -title "Select the Root CA Certificate File (.pem)" -fileType "pem" -location "default"
-    }
-    elseif ($protocol -eq "ldaps") {
+    } elseif ($protocol -eq "ldaps") {
         if (!(Test-Path -Path $certificate)) {
             Write-Error  "Certificate (cer) for Root Certificate Authority ($certificate') File Not Found"
             Break
@@ -1348,8 +1274,7 @@ Function Add-WorkspaceOneDirectory {
                     if (!(Get-WSADirectory | Where-Object { ($_.name -eq $domain) })) {
                         if ($protocol -eq "ldaps") {
                             $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn -certificate $certificate
-                        }
-                        else{
+                        } else{
                             $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn
                         }
                         $connector = Get-WSAConnector | Where-Object {$_.host -eq $server}
@@ -1371,8 +1296,7 @@ Function Add-WorkspaceOneDirectory {
                                     'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
                                     'selected'    = $true
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Group $group is not available in Active Directory Domain: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -1396,18 +1320,15 @@ Function Add-WorkspaceOneDirectory {
                         Set-WSASyncSetting -directoryId $directory.directoryConfigId | Out-Null
                         Start-WSADirectorySync -directoryId $directory.directoryConfigId | Out-Null
                         Write-Output "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Warning "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain), already exists: SKIPPED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Authenticating as Active Directory Domain User ($(($bindUserDn.Split(",")[0]).Split("=")[1])): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1463,21 +1384,18 @@ Function Set-WorkspaceOneNsxtIntegration {
                                             Add-WSAClient -clientId $clientId -sharedSecret $sharedSecret | Out-Null
                                             if (Get-WSAClient | Where-Object { $_.clientId -eq $clientId }) {
                                                 Write-Output "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId):  SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId):  POST_VALIDATION_FAILED"
                                                 Break
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId), already exists: SKIPPED"
                                         }
                                         if (Get-NsxtVidm) {
                                             $clientIdSecret = (Get-WSAClient -clientId $clientId).secret
                                             Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $clientIdSecret -nsxHostname $vcfNsxDetails.fqdn | Out-Null
                                             Write-Output "Updating integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $sharedSecret -nsxHostname $vcfNsxDetails.fqdn | Out-Null
                                             Write-Output "Creating integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
                                         }
@@ -1486,14 +1404,12 @@ Function Set-WorkspaceOneNsxtIntegration {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1549,12 +1465,10 @@ Function Undo-WorkspaceOneNsxtIntegration {
                                             Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $clientIdSecret -nsxHostname $vcfNsxDetails.fqdn -disable | Out-Null
                                             if ((Get-NsxtVidm).vidm_enable -match "False") {
                                                 Write-Output "Disabling integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Disabling integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): POST_VALIDATION_FAILEDg"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Disabling integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn), already disabled: SKIPPED"
                                         }
                                     }
@@ -1562,14 +1476,12 @@ Function Undo-WorkspaceOneNsxtIntegration {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1617,29 +1529,24 @@ Function Add-NsxtVidmRole {
                                         Invoke-Expression "Set-NsxtRole -principal $principal -type remote_$type -role $role -identitySource VIDM | Out-Null"
                                         if (Get-NsxtUser | Where-Object { $_.name -eq $principal }) {
                                             Write-Output "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain), already exists: SKIPPED"
                                     }    
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find $type ($principal) in Workspace ONE Access for NSX-T Data Center, check $type synchronization: PRE_VALIDATION_FAILED"
                                 }
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1669,6 +1576,7 @@ Function Undo-NsxtVidmRole {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal
     )
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -1680,25 +1588,21 @@ Function Undo-NsxtVidmRole {
                                     Remove-NsxtRole -id (Get-NsxtUser | Where-Object { $_.name -eq $principal }).id
                                     if (!(Get-NsxtUser | Where-Object { $_.name -eq $principal })) {
                                         Write-Output "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain), already removed: SKIPPED"
                                 }
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1737,14 +1641,12 @@ Function Add-WorkspaceOneRole {
                 $roleId = Get-WSARoleId -role $role
                 if (!$roleId) {
                     Write-Error "Unable to find role id ($roleId) for role ($role) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
-                }
-                else {
+                } else {
                     $groupDetails = Get-WSAActiveDirectoryGroupDetail -group $group
                     $groupId = $groupDetails.Resources.id
                     if (!$groupId) {
                         Write-Error "Unable to find the group ($group) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
-                    }
-                    else {
+                    } else {
                         $associations = Get-WSARoleAssociation -roleId $roleId
                         $assign = $true
                         if ($associations.groups) {
@@ -1763,11 +1665,9 @@ Function Add-WorkspaceOneRole {
                             $response = Add-WSARoleAssociation -roleId $roleId -groupId $groupId
                             if ($response.operations.code -eq "200") {
                                 Write-Output "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server): SUCCESSFUL"
-                            }
-                            elseif ($response.operations.code -eq "409") {
+                            } elseif ($response.operations.code -eq "409") {
                                 Write-Warning "$($response.operations.reason)"
-                            }
-                            else {
+                            } else {
                                 Write-Error "$($response.operations.reason)"
                             }
                         }
@@ -1775,8 +1675,7 @@ Function Add-WorkspaceOneRole {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1830,8 +1729,7 @@ Function Get-NsxtManagerAuthenticationPolicy {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1914,14 +1812,12 @@ Function Set-NsxtManagerAuthenticationPolicy {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1973,8 +1869,7 @@ Function Get-NsxtEdgeNodeAuthenticationPolicy {
                 }
             }
         }   
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2041,14 +1936,12 @@ Function Set-NsxtEdgeNodeAuthenticationPolicy {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
