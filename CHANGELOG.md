@@ -23,6 +23,7 @@
 - Added the `Get-vRAAPIVersion` and `Get-vRAIntegrationDetail` cmdlets to support support updating the placement policy for cloud zones in vRealize Automation.
 - Added the `Get-ESXiPasswordPolicy` and `Get-VCServerPasswordPolicy` to return the password expiration policy for an ESXi host and vCenter Server instance in number.
 - Added the `Set-EsxiPasswordExpirationPeriod` cmdlet to set the password expiration period on an ESXi host in number of days.
+- Updated `Confirm-PSModule` so its an exported function and can be executed on the command line.
 
 ## v1.7.0 (2022-31-05)
 - Added `Set-vSRNetworkConfig` cmdlet to configure a secondary ethernet adapter and the required routing for vSphere Replication appliances in the protected and recovery sites
