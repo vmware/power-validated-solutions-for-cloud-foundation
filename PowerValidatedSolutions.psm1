@@ -7305,24 +7305,20 @@ Function Add-NetworkSegment {
                                             Write-Error "NSX Transport Zone $transportZone does not match the defined segment Type $segmentType in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                             Break
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find NSX Transport Zone ($transportZone) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         Break
                                     }
                                     New-NsxtSegment -name $segmentName -connectedGateway $connectedGateway -cidr $cidr -transportZone $transportZone -gatewayType $gatewayType -segmentType $segmentType | Out-Null
                                     if (Get-NsxtSegment -name $segmentName) {
                                         Write-Output "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find NSX $gatewayType Gateway $connectedGateway in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName), already exists: SKIPPED"
                             }
                         }
@@ -7330,8 +7326,7 @@ Function Add-NetworkSegment {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7372,12 +7367,10 @@ Function Undo-NetworkSegment {
                                 Remove-NsxtSegment -name $segmentName | Out-Null
                                 if (!(Get-NsxtSegment -name $segmentName)) {
                                     Write-Output "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName), does not exist: SKIPPED"
                             }
                         }
@@ -7385,8 +7378,7 @@ Function Undo-NetworkSegment {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7437,16 +7429,13 @@ Function Add-PrefixList {
                                         Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $ingressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
                                         Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $egressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
                                         Write-Output "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7454,8 +7443,7 @@ Function Add-PrefixList {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7498,16 +7486,13 @@ Function Undo-PrefixList {
                                     Remove-NsxtPrefixList -name $prefixListName -tier0Gateway $tier0Gateway | Out-Null
                                     if (!(Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue)) {
                                         Write-Output "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName), does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7515,8 +7500,7 @@ Function Undo-PrefixList {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7566,20 +7550,16 @@ Function Add-RouteMap {
                                                 Get-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway | Set-NsxtRouteRedistributionPolicy -routeMap $routeMapName | Out-Null
                                             }
                                             Write-Output "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find NSX Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7587,8 +7567,7 @@ Function Add-RouteMap {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7631,16 +7610,13 @@ Function Undo-RouteMap {
                                     Remove-NsxtRouteMap -name $routeMapName -tier0Gateway $tier0Gateway | Out-Null
                                     if (!(Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue)) {
                                         Write-Output "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName), does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7648,8 +7624,7 @@ Function Undo-RouteMap {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7700,30 +7675,25 @@ Function Set-DatastoreTag {
                                         Get-Datastore -Name $Datastore -Server $vcfVcenterDetails.fqdn | New-TagAssignment -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                         if ((Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
                                             Write-Output "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7767,26 +7737,22 @@ Function Undo-DatastoreTag {
                                     Remove-TagCategory -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {                                            
                                         Write-Output "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"                                        
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vSphere Tag ($tagName) and Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7830,30 +7796,25 @@ Function Add-StoragePolicy {
                                         New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName -Server $vcfVcenterDetails.fqdn)) -Server $vcfVcenterDetails.fqdn | Out-Null
                                         if (Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
                                             Write-Output "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find vSphere Tag ($tagName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), already exists: SKIPPED"                                    
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7895,26 +7856,22 @@ Function Undo-StoragePolicy {
                                     Remove-SpbmStoragePolicy -StoragePolicy $policyName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                         Write-Output "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), does not exist: SKIPPED"                                    
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7985,36 +7942,30 @@ Function Add-ContentLibrary {
                                             }
 
                                             New-ContentLibrary @contentLibraryInput -Server $vcfVcenterDetails.fqdn | Out-Null
-                                        }
-                                        elseif ($published) {
+                                        } elseif ($published) {
                                             New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcfVcenterDetails.fqdn | Out-Null
                                         }
                                         if (Get-ContentLibrary -Name $contentLibraryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
                                             Write-Output "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Datastore named ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName), already exists: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8056,26 +8007,22 @@ Function Undo-ContentLibrary {
                                     Remove-ContentLibrary -ContentLibrary $contentLibraryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-ContentLibrary -Name $contentLibraryName -ErrorAction Ignore)) {
                                         Write-Output "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8179,18 +8126,14 @@ Function Enable-SupervisorCluster {
                                 if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
                                     if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
                                         [bool]$inputParameterValidation = $true
-                                        
                                         #Check SkipValidation parameter
                                         if (($SkipValidation.isPreset)) {
-                                            
                                             # Validate if vCenter uses 'local'
                                             if ($vcfVcenterDetails.fqdn) {
                                                 if (($vcfVcenterDetails.fqdn.split(".")[$_.count-1] -eq "local") -and ($masterDnsSearchDomain.split(".")[$_.count-1] -ne "local")) {
                                                     Write-Warning "'local' domain detected in ($(vcfVcenterDetails.fqdn)), make sure you have provided masterDnsSearchDomain ($masterDnsSearchDomain) to match"
                                                 }
                                             }
-                                        
-
                                             # Validate management network inputs
                                             # Valid Starting IP Address is an actual IPv4 address
                                             if ($managementNetworkStartIpAddress) {
@@ -8199,16 +8142,13 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
                                             # Valid Subnet Mask
                                             if ($managementNetworkSubnetMask) {
                                                 if (!(Test-IPaddressArray -IPaddressArray $managementNetworkSubnetMask)) {
                                                     Write-Error "Management Network Subnet Mask ($managementNetworkSubnetMask) validation failed: PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-
                                             }
-
                                             # Validate Gateway IP Address is an actual IPv4 address and exists in the same subnet as the management starting address
                                             if ($managementNetworkGateway) {
                                                 Try {
@@ -8217,102 +8157,84 @@ Function Enable-SupervisorCluster {
                                                         $checkManagementNetworkGatewayInSubnet = $null
                                                         Try {
                                                             $checkManagementNetworkGatewayInSubnet = Test-IpAddress -IpAddress $managementNetworkGateway -Subnet "$managementNetworkStartIpAddress/$managementNetworkCidr"
-                                                        } catch {}
-
+                                                        } Catch {}
                                                         if ($checkManagementNetworkGatewayInSubnet.Validated -eq $false) {
                                                             Write-Error "Cannot validate the gateway IP address for the Management Network ($managementNetworkGateway) is from the same subnet as the Management Network Starting IP Address ($managementNetworkStartIpAddress/$managementNetworkCidr): PRE_VLALIDATION_FAILED"
                                                             $inputParameterValidation = $false
                                                         }
                                                     }
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Write-Error "Invalid IP address ($managementNetworkGateway) : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
                                             # Validate Management Virtual Network (dvPortGroup) exists
                                             if ($ManagementVirtualNetwork) {
                                                 Try {
                                                     $checkManagementVirtualNetwork = Get-VirtualNetwork -Name $ManagementVirtualNetwork -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
                                                     Write-Error "Invalid Management Virtual Network ($ManagementVirtualNetwork): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 } 
                                             }
-
                                             # Validate Ephemeral Storage Policy exists
                                             if ($ephemeralStoragePolicy){
                                                 $checkEphemeralStoragePolicy = $null
                                                 Try {
                                                     $checkEphemeralStoragePolicy = Get-SpbmStoragePolicy -Name $EphemeralStoragePolicy -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkEphemeralStoragePolicy -or !$ephemeralStoragePolicy) {
                                                     Write-Error "Invalid Ephemeral Storage Policy ($EphemeralStoragePolicy): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
                                             # Validate Image Storage Policy exists
                                             if ($imageStoragePolicy) {
                                                 $checkImageStoragePolicy = $null
                                                 Try {
                                                     $checkImageStoragePolicy = Get-SpbmStoragePolicy -Name $ImageStoragePolicy -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkImageStoragePolicy -or !$imageStoragePolicy) {
                                                     Write-Error "Invalid Image Storage Policy ($ImageStoragePolicy): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate Master Storage Policy exists
+                                            # Validate Master Storage Policy exists
                                             if ($masterStoragePolicy) {
                                                 $checkMasterStoragePolicy = $null
                                                 Try {
                                                     $checkMasterStoragePolicy = Get-SpbmStoragePolicy -Name $MasterStoragePolicy -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                }Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkMasterStoragePolicy -or !$masterStoragePolicy) {
                                                     Write-Error "Invalid Master Storage Policy ($MasterStoragePolicy): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate NSX Edge Cluster exists and lookup ID. TBD chech status of the Edge Cluster and TNs
+                                            # Validate NSX Edge Cluster exists and lookup ID. TBD chech status of the Edge Cluster and TNs
                                             if ($nsxEdgeCluster) {
                                                 $nsxEdgeClusterId = $null
                                                 $checkNsxEdgeCluster = $null
                                                 Try {
                                                     $checkNsxEdgeCluster = Get-NsxEdgeCluster -Name $nsxEdgeCluster -ErrorAction SilentlyContinue
                                                     $nsxEdgeClusterId = $checkNsxEdgeCluster.Id
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$nsxEdgeClusterId -or !$nsxEdgeCluster) {
                                                     Write-Error "Invalid NSX Edge Cluster ($NsxEdgeCluster): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-                                            #Validate control plane NTP servers exist and are functional
+                                            # Validate control plane NTP servers exist and are functional
                                             if ($masterNtpServers) {
                                                 Foreach ($masterNtpServer in $masterNtpServers) {
                                                     $checkNtpServer = $null
@@ -8320,12 +8242,10 @@ Function Enable-SupervisorCluster {
                                                     if (!($checkNtpServer)) {
                                                         Write-Error "Invalid master NTP server ($masterNtpServer) : PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
-                                                        
                                                     }
                                                 }
                                             }
-
-                                            #Validate control plane DNS servers exist and are functional
+                                            # Validate control plane DNS servers exist and are functional
                                             if ($masterDnsServers) {
                                                 $checkDnsServers = $null
                                                 $checkDnsServers = Test-DnsServers $masterDnsServers
@@ -8334,8 +8254,7 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-                                            #Validate worker DNS servers exist and are functional
+                                            # Validate worker DNS servers exist and are functional
                                             if ($workerDnsServers) {
                                                 $checkDnsServers = $null
                                                 $checkDnsServers = Test-DnsServers $workerDnsServers
@@ -8344,15 +8263,13 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate ContentLibrary exists
+                                            # Validate ContentLibrary exists
                                             #Full validation (checking type, subscription, etc.) is TBD
                                             if ($contentLibrary) {
                                                 $checkContentLibrary = $null
                                                 Try {
                                                     $checkContentLibrary = Get-SubscribedLibrary -Name $contentLibrary -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Debug-ExceptionWriter -object $_
                                                 }
                                                 if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
@@ -8360,14 +8277,12 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 } 
                                             }
-                                            
-                                            #Validate Distributed Virtual Switch exists
+                                            # Validate Distributed Virtual Switch exists
                                             if ($distributedSwitch) {
                                                 $checkDistributedSwitch = $null
                                                 Try {
                                                     $checkDistributedSwitch = Get-VDSwitch -Name $distributedSwitch -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Debug-ExceptionWriter -object $_
                                                 }
                                                 if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
@@ -8375,7 +8290,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 } 
                                             } 
-
                                             # Validates Pod subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($podCIDRs) {
                                                 $checkPodCidr = $null
@@ -8385,7 +8299,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
                                             # Validates Service subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($serviceCIDR) {
                                                 $checkServiceCidr = $null
@@ -8395,8 +8308,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-                                            
                                             # Validates Ingress subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($externalIngressCIDRs) {
                                                 $checkIngressCidr = $null
@@ -8406,8 +8317,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-
                                             # Validates Egress subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($externalEgressCIDRs) {
                                                 $checkEgressCidr = $null
@@ -8417,32 +8326,24 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate control plane Kubernetes API endpoint is valid and in DNS
+                                            # Validate control plane Kubernetes API endpoint is valid and in DNS
                                             # TBD as this is not mandatory parameter
                                             if ($masterDnsName) {
-                                                
                                                 foreach ($dnsName in $masterDnsName) {
                                                     $checkDnsName = $null
-                                                
                                                     Try {
                                                         $checkDnsName = Resolve-DnsName -Name $DnsName -Type A -QuickTimeout -ErrorAction Stop
-                                                    }
-                                                    Catch [System.ComponentModel.Win32Exception] {
+                                                    } Catch [System.ComponentModel.Win32Exception] {
                                                         Write-Error "Invalid control plane DNS name ($DnsName): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
                                                     }
-                                                
-                                                    
                                                     if ($checkDnsName) {
                                                         $checkMasterIpAddress = $null
                                                         Try {
                                                             $checkMasterIpAddress = Test-IpAddress -IpAddress $checkDnsName.Answers[0].Address.IPAddressToString -Subnet $externalIngressCIDRs
-                                                        }
-                                                        Catch {
+                                                        } Catch {
                                                             #Do nothing
                                                         }
-
                                                         if ($checkMasterIpAddress.Validated -eq $false) {
                                                             Write-Error -Message "Cannot validate the IP address for $DnsName ($DnsNameIpAddress) is from the external ingress CIDR ($externalIngressCIDRs). : PRE_VALIDATION_FAILED"
                                                             $inputParameterValidation = $false
@@ -8450,60 +8351,45 @@ Function Enable-SupervisorCluster {
                                                     }
                                                 }
                                             }
-
-                                            #Validate master DNS search domain is formatted correctly and exists in DNS
+                                            # Validate master DNS search domain is formatted correctly and exists in DNS
                                             if ($masterDnsSearchDomain) {
                                                 $checkMasterDnsSearchDomain = $null
-                                                
                                                 Try {
                                                     $checkMasterDnsSearchDomain = Resolve-DnsName -Name $masterDnsSearchDomain -Type A -QuickTimeout -ErrorAction Stop
-                                                }
-                                                Catch [System.ComponentModel.Win32Exception] {
+                                                } Catch [System.ComponentModel.Win32Exception] {
                                                     Write-Error "Invalid control plane DNS search domain ($masterDnsSearchDomain): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-                                                    
-                                                
                                             }
-                                        
-                                            #Validate vSphere license is in place
-                                            
+                                            # Validate vSphere license is in place
                                             Try {
                                                 $checkLicense = Get-WMLicenseStatus -server $server -domain $domain -ErrorAction SilentlyContinue
-
                                                 if ($checkLicense.namespaces_licensed -eq $false) {
                                                     Write-Error -Message "The vSphere license applied to cluster $cluster does not support Workload Management or is expired. Please resolve this and try again : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
-                                                }
-                                                elseif ($checklicense.namespaces_supported -eq $false) {
+                                                } elseif ($checklicense.namespaces_supported -eq $false) {
                                                     Write-Error -Message "The cluster $cluster does not support Workload Management. Please resolve this and try again. : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-                                            }
-                                            Catch {
+                                            } Catch {
                                                 Debug-ExceptionWriter -object $_
                                             }
-
-                                            #Validate the cluster is present
+                                            # Validate the cluster is present
                                             if ($cluster) {
                                                 $checkCluster = $null
                                                 Try {
                                                     $checkCluster = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkCluster -or ($checkCluster.Name -ne $cluster)) {
                                                     Write-Error "Invalid vSphere cluster $cluster. : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-
                                                 $checkWmCluster = $null
                                                 Try {
                                                     $checkWmCluster = Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
                                                 if ($checkWmCluster) {
@@ -8511,19 +8397,14 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-
-
                                             # If any of the prevalidation failed
                                             if ($inputParameterValidation) {
                                                 Write-Output "Pre-validation : SUCESSFULL" 
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
                                                 Break
                                             }
                                         }
-
                                         # TBD MasterDnsServerIpAddress          = $masterDnsServers
                                         if ($inputParameterValidation) {
                                             $internalWMClusterInput = @{
@@ -8551,13 +8432,10 @@ Function Enable-SupervisorCluster {
                                                 MasterDnsServerIpAddress          = $masterDnsServers
                                                 MasterDnsSearchDomain             = $masterDnsSearchDomain
                                             }
-                                        
                                         }
-                                        
                                         if ($ValidateOnly.isPresent) {
                                             Write-Output "Validation completed : SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Enable-WMCluster @internalWMClusterInput -RunAsync -ConfigurationTimeoutSeconds $ConfigurationTimeoutSeconds | Out-Null
                                             Write-Output  "Submitted Creation of Supervisor Cluster $cluster in vCenter Server $($vcfVcenterDetails.fqdn). This may take a while to complete. Operation will timeout after ($ConfigurationTimeoutSeconds) seconds"
                                             $startSleep = 300
@@ -8620,18 +8498,15 @@ Function Undo-SupervisorCluster {
                                         if (Get-WMCluster -cluster $cluster -ErrorAction Ignore) {
                                             if (!$PsBoundParameters.ContainsKey("RunAsync")) {
                                                 Disable-WMCluster -WMCluster $cluster -RunAsync -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
-                                            }
-                                            else {
+                                            } else {
                                                 Disable-WMCluster -WMCluster $cluster -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                             }
                                             if (!(Get-WMCluster -cluster $cluster -ErrorAction Ignore)) {
                                                 Write-Output "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                         }
                                     }
@@ -8640,14 +8515,12 @@ Function Undo-SupervisorCluster {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8698,14 +8571,12 @@ Function New-SupervisorClusterCSR {
                                     if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         if ($PsBoundParameters.ContainsKey("keySize")) {
                                             Request-WMClusterCSR -cluster $cluster -commonName $commonName -organization $organization -organizationalUnit $organizationalUnit -country $country -stateOrProvince $stateOrProvince -locality $locality -adminEmailAddress $adminEmailAddress -keySize $keySize -filePath $filePath | Out-Null
-                                        }
-                                        else {
+                                        } else {
                                             Request-WMClusterCSR -cluster $cluster -commonName $commonName -organization $organization -organizationalUnit $organizationalUnit -country $country -stateOrProvince $stateOrProvince -locality $locality -adminEmailAddress $adminEmailAddress -filePath $filePath | Out-Null
                                         }
                                         if (Test-Path -Path $filePath) {
                                             Write-Output "Creating Certificate Signing Request (.csr) file for ($commonName) to file ($filePath): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating Certificate Signing Request (.csr) file for ($commonName) to file ($filePath): POST_VALIDATION_FAILED"
                                         }
                                     }
@@ -8714,14 +8585,12 @@ Function New-SupervisorClusterCSR {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8742,6 +8611,7 @@ Function Request-SignedCertificate {
         Request-SignedCertificate -mscaComputerName dc-rpl01.rainpole.io -mscaName rainpole-DC-RPL01-CA -domainUsername "administrator@rainpole.io" -domainPassword "VMw@re1!" -certificateTemplate VMware -certificateRequestFile "c:\temp\SupervisorCluster.csr" -CertificateFile "c:\temp\SupervisorCluster.cer" 
         This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer" 
     #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mscaComputerName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mscaName,
@@ -8786,22 +8656,18 @@ Function Request-SignedCertificate {
                 Start-Sleep 5
                 if ($resultExecution -match "(Issued)") {
                     Write-Output "Issued certificate ($certificateFile): SUCCESSFUL"
-                }
-                else {
+                } else {
                     Write-Error "Certificate issuing to file ($certificateFile) failed with ($resultExecution): FAILED"
-                    break
+                    Break
                 }
-            }
-            else {
+            } else {
                 Write-Output "Pre-validate Only: SUCCESSFUL"
             }
-        }
-        else {
+        } else {
             Write-Error "At least one Pre-Validation check failed: PRE_VALIDATION_FAILED"
-            break
+            Break
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8835,8 +8701,7 @@ Function Install-SupervisorClusterCertificate {
 
     if (!$PsBoundParameters.ContainsKey("filePath")) {
         $filePath = Get-ExternalFileName -title "Select the Supervisor Cluster Certificate File (.cer)" -fileType "cer" -location "default"
-    }
-    elseif ($PsBoundParameters.ContainsKey("filePath")) {
+    } elseif ($PsBoundParameters.ContainsKey("filePath")) {
         if (!(Test-Path -Path $filePath)) {
             Write-Error "Certificate (cer) file for the Supervisor Cluster '$filePath' File Not Found"
             Break
@@ -8854,22 +8719,19 @@ Function Install-SupervisorClusterCertificate {
                                 $response = Install-WMClusterCertificate -cluster $cluster -filePath $filePath
                                 if ($response -match "successfully applied") {
                                     Write-Output "Installing Signed Certificate ($filePath) to Supervisor Cluster ($cluster): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Installing Signed Certificate ($filePath) to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8891,6 +8753,7 @@ Function Add-SupervisorClusterLicense {
         Add-SupervisorClusterLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 -LicenseKey "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
         This example adds a license to the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
     #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -8912,11 +8775,10 @@ Function Add-SupervisorClusterLicense {
                                     $licenseExists = $null
                                     Try {
                                         $licenseExists = Get-VCFLicenseKey -key $licenseKey -ErrorAction SilentlyContinue
-                                    }
-                                    Catch {
+                                    } Catch {
                                         # Do nothing
                                     }
-                                    If (!($licenseExists)) {
+                                    if (!($licenseExists)) {
                                         New-VCFLicenseKey -key $licenseKey -productType WCP -description "WCP license"
                                         Start-Sleep 10
                                         if (Get-VCFLicenseKey -key $licenseKey) {
@@ -8931,11 +8793,10 @@ Function Add-SupervisorClusterLicense {
                                                 Do {
                                                     $taskStatus = (Get-VCFTask -id $response.id).status
                                                     Start-Sleep 10
-                                                } while ($taskStatus -eq "In Progress")
+                                                } While ($taskStatus -eq "In Progress")
                                                 if ($taskStatus -eq "Successful") {
                                                     Write-Output "Assign license key ($licenseKey) to Supervisior cluster ($cluster): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     $PSCmdlet.ThrowTerminatingError(
                                                         [System.Management.Automation.ErrorRecord]::new(
                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
@@ -8945,12 +8806,10 @@ Function Add-SupervisorClusterLicense {
                                                         )
                                                     )
                                                 } 
-                                            }
-                                            Catch {
+                                            } Catch {
                                                 Debug-ExceptionWriter -object $_
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             $PSCmdlet.ThrowTerminatingError(
                                                 [System.Management.Automation.ErrorRecord]::new(
                                                     ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
@@ -8967,8 +8826,7 @@ Function Add-SupervisorClusterLicense {
                                 }
                                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                        }
-                        else {
+                        } else {
                             $PSCmdlet.ThrowTerminatingError(
                                 [System.Management.Automation.ErrorRecord]::new(
                                     ([System.Management.Automation.ItemNotFoundException]"Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
@@ -8979,8 +8837,7 @@ Function Add-SupervisorClusterLicense {
                             )
                         }
                     }
-                }
-                else {
+                } else {
                     $PSCmdlet.ThrowTerminatingError(
                         [System.Management.Automation.ErrorRecord]::new(
                             ([System.Management.Automation.ItemNotFoundException]"Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
@@ -8992,8 +8849,7 @@ Function Add-SupervisorClusterLicense {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9027,7 +8883,6 @@ Function Add-Namespace {
     )
 
     Try {
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
@@ -9041,34 +8896,28 @@ Function Add-Namespace {
                                             if (Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
                                                 New-WMNamespaceStoragePolicy -Namespace $namespace -StoragePolicy $storagePolicy | Out-Null
                                                 Write-Output "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error  "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9110,26 +8959,22 @@ Function Undo-Namespace {
                                     Remove-WMNamespace -Namespace $namespace -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-WMNamespace -Name $namespace -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                         Write-Output "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9185,38 +9030,31 @@ Function Add-NamespacePermission {
                                                 New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
                                                 if (Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal) {
                                                     Write-Output "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assigning Role ($role) to $type ($principal) in Namespace ($namespace), already assigned: SKIPPED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Active Directory $type ($principal) not found in the Active Directory Domain: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 }
                                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to find Workload Domain named ($sddcDomain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9260,30 +9098,25 @@ Function Undo-NamespacePermission {
                                         Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal | Remove-WMNamespacePermission -Confirm:$false | Out-Null
                                         if (!(Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal)) {
                                             Write-Output "Removing access for principal ($principal) from Namespace ($namespace): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing access for principal ($principal) from Namespace ($namespace): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing access for principal ($principal) from Namespace ($namespace), does not exist: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($sddcDomain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9332,16 +9165,13 @@ Function Enable-Registry {
                                                 } Until ($configStatus -eq "RUNNING")
                                                 if (Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue) {
                                                     Write-Output "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
                                         }
                                     }
@@ -9350,14 +9180,12 @@ Function Enable-Registry {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9404,12 +9232,10 @@ Function Undo-Registry {
                                             } Until (!($configStatus))
                                             if (!(Get-WMRegistry -cluster $cluster -ErrorAction Ignore)) {
                                                 Write-Output "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
                                         }
                                     }
@@ -9418,14 +9244,12 @@ Function Undo-Registry {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9471,16 +9295,13 @@ Function Add-NamespaceVmClass {
                                                 Add-VMClass -namespace $namespace -vmClass $vmClass | Out-Null
                                                 if (Get-VMClass -namespace $namespace | Where-Object {$_ -eq $vmClass}) {
                                                     Write-Output "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace), already exists: SKIPPED"
                                             }                      
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -9491,8 +9312,7 @@ Function Add-NamespaceVmClass {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Response
     }
 }
@@ -9526,8 +9346,7 @@ Function Add-TanzuKubernetesCluster {
 
     if (!$PsBoundParameters.ContainsKey("yaml")) {
         $yaml = Get-ExternalFileName -title "Select the YAML File (.yaml)" -fileType "yaml" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $yaml)) {
             Write-Error  "YAML File '$yaml' File Not Found"
             Break
@@ -9549,14 +9368,12 @@ Function Add-TanzuKubernetesCluster {
                             Disconnect-WMCluster | Out-Null
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9602,16 +9419,13 @@ Function Undo-TanzuKubernetesCluster {
                                         Remove-TanzuKubernetesCluster -cluster $tkc -namespace $namespace | Out-Null
                                         if (!(Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore | Out-Null )) {
                                             Write-Output "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc), does not exist: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Workload Management is not enabled on Cluster ($server) in vCenter Server ($($vcfVcenterDetails.fqdn))"
                                 }
                             }
@@ -9619,14 +9433,12 @@ Function Undo-TanzuKubernetesCluster {
                             Disconnect-WMCluster | Out-Null
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
