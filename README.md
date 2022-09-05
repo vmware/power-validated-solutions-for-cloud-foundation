@@ -2,8 +2,7 @@
 
 # A PowerShell Module for VMware Validated Solutions
 
-[<img src="https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge" alt="PowerShell Gallery" >][module-powervalidatedsolutions]&nbsp;&nbsp;[<img src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge" alt="CHANGELOG" >][changelog]&nbsp;&nbsp;
-![](https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge)
+[<img src="https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge&logo=powershell&logoColor=white" alt="PowerShell Gallery" >][module-powervalidatedsolutions]&nbsp;&nbsp;[<img src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge&logo=github&logoColor=white" alt="CHANGELOG" >][changelog]&nbsp;&nbsp;[<img src="https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge&logo=powershell&logoColor=white" alt="PowerShell Gallery Downloads" >][module-powervcf]&nbsp;&nbsp;
 
 ## Overview
 
