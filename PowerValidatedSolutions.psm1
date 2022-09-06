@@ -9481,11 +9481,9 @@ Function Export-vRLIJsonSpec {
     )
 
     Try {
-
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -9503,8 +9501,7 @@ Function Export-vRLIJsonSpec {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrli_license"].Value) {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrli_license"].Value
-                            }
-                            else {
+                            } else {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vrliLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
@@ -9517,7 +9514,6 @@ Function Export-vRLIJsonSpec {
                                             $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                         }
                                         $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value}
-
                                         $infrastructurePropertiesObject = @()
                                         $infrastructurePropertiesObject += [pscustomobject]@{
                                             'dataCenterVmid'		= $datacenterName.dataCenterVmid
@@ -9546,12 +9542,11 @@ Function Export-vRLIJsonSpec {
                                             'isDhcp'				= "false"
                                             'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                         }
-                                        
                                         $infrastructureObject = @()
                                         $infrastructureObject += [pscustomobject]@{
                                             'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
                                         }
-                                        
+
                                         ### Generate the Properties Details
                                         $productPropertiesObject = @()
                                         $productPropertiesObject += [pscustomobject]@{
@@ -9570,20 +9565,18 @@ Function Export-vRLIJsonSpec {
                                             'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
                                             'timeSyncMode'					= "ntp"
                                         }
-                                        
+
                                         #### Generate vRealize Log Insight Cluster Details
                                         $clusterVipProperties = @()
                                         $clusterVipProperties += [pscustomobject]@{
                                             'hostName'	= $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
                                             'ip'		= $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
                                         }
-                                        
                                         $clusterVipsObject = @()
                                         $clusterVipsObject += [pscustomobject]@{
                                             'type'			= "vrli-cluster-1"
                                             'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                         }
-                                        
                                         $clusterObject = @()
                                         $clusterObject += [pscustomobject]@{
                                         'clusterVips'	= $clusterVipsObject
@@ -9597,21 +9590,18 @@ Function Export-vRLIJsonSpec {
                                             'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
                                             'folderName'    = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
                                         }
-                                        
                                         $worker1Properties = @()
                                         $worker1Properties += [pscustomobject]@{
                                             'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
                                             'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
                                             'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
                                         }
-                                        
                                         $worker2Properties = @()
                                         $worker2Properties += [pscustomobject]@{
                                             'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
                                             'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
                                             'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
                                         }
-                                        
                                         $nodesObject = @()
                                         $nodesobject += [pscustomobject]@{
                                             'type'			= "vrli-master"
@@ -9625,7 +9615,7 @@ Function Export-vRLIJsonSpec {
                                             'type'			= "vrli-worker"
                                             'properties'	= ($worker2Properties | Select-Object -Skip 0)
                                         }
-                                        
+
                                         #### Generate the vRealize Log Insight Properties Section
                                         if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0"}
                                         if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
@@ -9640,28 +9630,22 @@ Function Export-vRLIJsonSpec {
                                             'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
                                             'nodes'			= $nodesObject	
                                         }
-                                        
                                         $vrliDeploymentObject = @()
                                         $vrliDeploymentObject += [pscustomobject]@{
                                             'environmentName'                   = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
                                             'infrastructure'                    = ($infrastructureObject  | Select-Object -Skip 0)
                                             'products'                          = $productsObject     
                                         }
-                                        
                                         $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vrliDeploymentSpec.json" 
-                                        
                                         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
                                         Write-Output "Creation of Deployment JSON Specification file for vRealize Log Insight: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Admin Password with alias ($($pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value)) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Certificate with alias ($($pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value)) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find License key ($licenseKey) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -9669,8 +9653,7 @@ Function Export-vRLIJsonSpec {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9708,8 +9691,7 @@ Function New-vRLIDeployment {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error "Planning and Preparation Workbook (.xlsx) ($workbook), File Not Found"
                 Break
@@ -9733,28 +9715,22 @@ Function New-vRLIDeployment {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Request for vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "License with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Certificate with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Environment with name ($($jsonSpec.environmentName)) already exists in vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)) with a status of ($($environmentExists.environmentStatus)): SKIPPED"
                             }
                         }
@@ -9762,8 +9738,7 @@ Function New-vRLIDeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9809,20 +9784,16 @@ Function Undo-vRLIDeployment {
                                         Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                         if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName})) {
                                             Write-Output "Removal of vRealize Log Insight from vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removal of vRealize Log Insight from vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Removal request of vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removel request of vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Environment with name ($environmentName) in vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)), already removed: SKIPPED"
                             }
                         }
@@ -9830,8 +9801,7 @@ Function Undo-vRLIDeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9878,16 +9848,13 @@ Function Add-vRLISmtpConfiguration {
                                     Set-vRLISmtpConfiguration -smtpServer $smtpServer -port $port -sender $sender -username $smtpUser -password $smtpPass | Out-Null
                                     if (Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer}) {
                                         Write-Output "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to communicate with SMTP Server ($smtpServer), check details: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -9895,8 +9862,7 @@ Function Add-vRLISmtpConfiguration {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9941,16 +9907,13 @@ Function Add-vRLIAuthenticationWSA {
                                     Set-vRLIAuthenticationWSA -hostname $wsaFqdn -port 443 -redirectUrl $vcfVrliDetails.fqdn -username $wsaUser -password $wsaPass
                                     if ((Get-vRLIAuthenticationWSA).enabled -eq $true) {
                                         Write-Output "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to communicate with Workspace ONE Access Instance ($wsaFqdn), check details: POST_VALIDATION_FAILED"
                             }
                         }
@@ -9958,8 +9921,7 @@ Function Add-vRLIAuthenticationWSA {
                 }
             }
         } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10007,15 +9969,14 @@ Function Install-vRLIPhotonAgent {
                                             $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                             if ($output.ScriptOutput.Contains("/lib/systemd/system/liagentd.service; enabled")) {
                                                 Write-Warning "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName), already exists: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 Invoke-VMScript -VM $vmName -ScriptText "rm /tmp/liagent.rpm && rm /tmp/installAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                 $installAgent = @(
                                                     "curl -k -o /tmp/liagent.rpm https://$($vcfVrliDetails.fqdn)/api/v1/agent/packages/types/rpm; rpm -Uvh /tmp/liagent.rpm",
                                                     "systemctl enable liagentd",
                                                     "systemctl status liagentd"
                                                 )
-                                                foreach ($line in $installAgent) {
+                                                Foreach ($line in $installAgent) {
                                                     Invoke-VMScript -VM $vmName -ScriptText "echo ""$line"">>/tmp/installAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                 }
                                                 $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/installAgent.sh && /tmp/installAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
@@ -10028,23 +9989,20 @@ Function Install-vRLIPhotonAgent {
                                                         "systemctl restart liagentd",
                                                         "systemctl status liagentd"
                                                     )
-                                                    foreach ($line in $configureAgent) {
+                                                    Foreach ($line in $configureAgent) {
                                                         Invoke-VMScript -VM $vmName -ScriptText "echo ""$line"">>/tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                     }
                                                     $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/configureAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                                     if ($output.ScriptOutput.Contains("active (running)")) {
                                                         Write-Output "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): SUCCESSFUL"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Enabling vRealize Log Insight Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Virtual Machine ($vmName), not Found in vCenter Server ($($vcfVcenterDetails.fqdn)) Inventory, check details and try again: PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10055,8 +10013,7 @@ Function Install-vRLIPhotonAgent {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10105,16 +10062,13 @@ Function Undo-vRLIPhotonAgent {
                                             $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                             if ($output.ScriptOutput.Contains("liagentd.service could not be found")) {
                                                 Write-Output "Removing vRealize Log Insight Agent from ($vmName): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Removing vRealize Log Insight Agent from ($vmName): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Removing vRealize Log Insight Agent from ($vmName), already performed: SKIPPED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Virtual Machine ($vmName), not Found in vCenter Server ($($vcfVcenterDetails.fqdn)) Inventory, check details and try again: PRE_VALIDATION_FAILED"
                                     }
                                 }
@@ -10124,8 +10078,7 @@ Function Undo-vRLIPhotonAgent {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10172,12 +10125,10 @@ Function Add-vRLIAgentGroup {
                                 New-vRLIAgentGroup -agentGroupType $agentGroupType -criteria $criteria -agentGroupName $agentGroupName | Out-Null
                                 if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName}) {
                                     Write-Output "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), already exists: SKIPPED"
                             }
                         }
@@ -10185,8 +10136,7 @@ Function Add-vRLIAgentGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10237,16 +10187,13 @@ Function Register-vRLIWorkloadDomain {
                                     } Until ($configStatus -ne "IN_PROGRESS")
                                     if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
                                         Write-Output "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10254,8 +10201,7 @@ Function Register-vRLIWorkloadDomain {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10302,16 +10248,13 @@ Function Set-vRLISyslogEdgeCluster {
                                         Set-NsxtSyslogExporter -transport -id $nodeId -exporterName $exportName -logLevel INFO -port 514 -protocol TCP -server $vcfVrliDetails.fqdn | Out-Null
                                         if (Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName}) {
                                             Write-Output "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Configuring Syslog Server ($($vcfVrliDetails.fqdn)) on Edge Node ($nodeId), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId), already exists: SKIPPED"
                                 }
                             }
@@ -10320,8 +10263,7 @@ Function Set-vRLISyslogEdgeCluster {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10366,12 +10308,10 @@ Function Undo-vRLISyslogEdgeCluster {
                                     Remove-NsxtSyslogExporter -transport -id $nodeId -exporterName $exportName | Out-Null
                                     if (!(Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName})) {
                                         Write-Output "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId), already removed: SKIPPED"
                                 }
                             }
@@ -10380,8 +10320,7 @@ Function Undo-vRLISyslogEdgeCluster {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10434,8 +10373,7 @@ Function Add-vRLILogArchive {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10481,16 +10419,13 @@ Function Add-vRLIAuthenticationGroup {
                                     Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
                                     if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
                                         Write-Output "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Workspace ONE Integration on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10498,8 +10433,7 @@ Function Add-vRLIAuthenticationGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10550,8 +10484,7 @@ Function Add-vRLIAlertDatacenter {
                         if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                             if (!($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
                                 Break
-                            }
-                            else {
+                            } else {
                                 if (!(Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn)) { Break }
                                 if (!(Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass)) { Break }
                             }
@@ -10566,7 +10499,7 @@ Function Add-vRLIAlertDatacenter {
                                                 $templateAlerts = $templateAlerts -replace '!!datacenterName!!',$datacenterName
                                                 $templateAlerts = $templateAlerts -replace '!!email!!',$email
                                                 [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
-                                                foreach ($alert in $allAlerts) {
+                                                Foreach ($alert in $allAlerts) {
                                                     $json = $alert | ConvertTo-Json
                                                     if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                                                         $entityObjectId =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $datacenterName | Where-Object {$_.identifierType.name -eq "VMEntityObjectID"}).value
@@ -10583,8 +10516,7 @@ Function Add-vRLIAlertDatacenter {
                                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                                 Write-Output "Adding Datacenter Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Dataceter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10594,12 +10526,10 @@ Function Add-vRLIAlertDatacenter {
                     }                       
                 }
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to find template Alert JSON ($alertTemplate): PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10650,8 +10580,7 @@ Function Add-vRLIAlertVirtualMachine {
                         if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                             if (!($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
                                 Break
-                            }
-                            else {
+                            } else {
                                 if (!(Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn)) { Break }
                                 if (!(Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass)) { Break }
                             }
@@ -10666,7 +10595,7 @@ Function Add-vRLIAlertVirtualMachine {
                                                 $templateAlerts = $templateAlerts -replace '!!vmName!!',$vmName
                                                 $templateAlerts = $templateAlerts -replace '!!email!!',$email
                                                 [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
-                                                foreach ($alert in $allAlerts) {
+                                                Foreach ($alert in $allAlerts) {
                                                     $json = $alert | ConvertTo-Json
                                                     if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                                                         $VMEntityInstanceUUID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityInstanceUUID"}).value
@@ -10686,8 +10615,7 @@ Function Add-vRLIAlertVirtualMachine {
                                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                                 Write-Output "Adding Virtual Machine Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Virtual Machine ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10697,12 +10625,10 @@ Function Add-vRLIAlertVirtualMachine {
                     }                         
                 }
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to find template Alert JSON ($alertTemplate): PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10744,8 +10670,7 @@ Function Undo-vRLIAlert {
                                     Remove-vRLIAlert -alertId $alert.id | Out-Null
                                 }
                                 Write-Output "Removing Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with name ($name): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for name ($name), none exist: SKIPPED"
                             }
                         }
@@ -10753,8 +10678,7 @@ Function Undo-vRLIAlert {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10796,7 +10720,6 @@ Function Add-NsxtNodeProfileSyslogExporter {
         if (!($PsBoundParameters.ContainsKey("id"))) {
             $id = "00000000-0000-0000-0000-000000000001" # Default: (All NSX Nodes)
         }
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
@@ -10810,16 +10733,13 @@ Function Add-NsxtNodeProfileSyslogExporter {
                                                 Set-NsxtNodeProfileSyslogExporter -id $id -server $vcfVrliDetails.fqdn -port 514 -protocol "TCP" -logLevel "INFO" | Out-Null
                                                     if ((Get-NsxtNodeProfile -id $id).syslog.exporters | Where-Object {$_.server -eq $vcfVrliDetails.fqdn -and $_.port -eq 514 -and $_.protocol -eq "TCP" -and $_.max_log_level -eq "INFO"}) {
                                                         Write-Output "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($($profileExists.display_name)) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                                     }     
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($($profileExists.display_name)) in NSX Manager ($($vcfNsxDetails.fqdn)), already exist: SKIPPED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "The NSX node profile ($id) does not exist in NSX Manager ($($vcfNsxDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10830,8 +10750,7 @@ Function Add-NsxtNodeProfileSyslogExporter {
                 }
             }
         } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10871,7 +10790,6 @@ Function Undo-NsxtNodeProfileSyslogExporter {
         if (!($PsBoundParameters.ContainsKey("id"))) {
             $id = "00000000-0000-0000-0000-000000000001"
         }
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
@@ -10882,16 +10800,13 @@ Function Undo-NsxtNodeProfileSyslogExporter {
                                     Remove-NsxtNodeProfileSyslogExporter -id $id | Out-Null
                                     if (Get-NsxtNodeProfile -id $id | Where-Object {$null -eq $_.syslog}) {
                                         Write-Output "Removing all syslog exporters from the NSX node profile ($($profileExists.display_name)) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing all syslog exporters from the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }     
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing all syslog exporters from the NSX node profile ($($profileExists.display_name)) in NSX Manager ($($vcfNsxDetails.fqdn)), already removed: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "The NSX node profile ($id) does not exist in NSX Manager ($($vcfNsxDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10899,8 +10814,7 @@ Function Undo-NsxtNodeProfileSyslogExporter {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
