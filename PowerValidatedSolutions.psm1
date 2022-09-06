@@ -10562,8 +10562,7 @@ Function Export-vROPsJsonSpec {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -10581,8 +10580,7 @@ Function Export-vROPsJsonSpec {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrops_license"].Value) {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrops_license"].Value
-                            }
-                            else {
+                            } else {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vropsLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
@@ -10599,8 +10597,8 @@ Function Export-vROPsJsonSpec {
                                             if ($datacenterName) {
                                                 $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
+                                                
                                                 # $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
-
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
                                                     'dataCenterVmid'		= $datacenterName.dataCenterVmid
@@ -10629,7 +10627,6 @@ Function Export-vROPsJsonSpec {
                                                     'isDhcp'				= "false"
                                                     'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                                 }
-
                                                 $infrastructureObject = @()
                                                 $infrastructureObject += [pscustomobject]@{
                                                     'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
@@ -10657,13 +10654,11 @@ Function Export-vROPsJsonSpec {
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
                                                 }
-
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
                                                     'type'			= "vrops-cluster"
                                                     'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                                 }
-
                                                 $clusterObject = @()
                                                 $clusterObject += [pscustomobject]@{
                                                 'clusterVips'	= $clusterVipsObject
@@ -10679,8 +10674,7 @@ Function Export-vROPsJsonSpec {
                                                 $masterProperties | Add-Member -notepropertyname 'searchpath' -notepropertyvalue $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
                                                 if ($null -eq $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value) {
                                                     $masterProperties | Add-Member -notepropertyname 'dns' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_dns1_ip"].Value
-                                                }
-                                                else {
+                                                } else {
                                                     $masterProperties | Add-Member -notepropertyname 'dns' -notepropertyvalue ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                                                 }
                                                 $masterProperties | Add-Member -notepropertyname 'netmask' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
@@ -10702,21 +10696,18 @@ Function Export-vROPsJsonSpec {
                                                 if ($vcfVersion -eq "4.4.0") {
                                                     $masterProperties | Add-Member -notepropertyname 'extendedStorage' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
                                                 }
-
                                                 $replicaProperties = @()
                                                 $replicaProperties += [pscustomobject]@{
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
                                                     'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
                                                 }
-
                                                 $dataProperties = @()
                                                 $dataProperties += [pscustomobject]@{
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
                                                     'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
                                                 }
-
                                                 $remoteCollector1Properties = @()
                                                 $remoteCollector1Properties += [pscustomobject]@{
                                                     'vmName'	    = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
@@ -10739,7 +10730,6 @@ Function Export-vROPsJsonSpec {
                                                     'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
                                                     'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                                                 }
-
                                                 $remoteCollector2Properties = @()
                                                 $remoteCollector2Properties += [pscustomobject]@{
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
@@ -10762,7 +10752,6 @@ Function Export-vROPsJsonSpec {
                                                     'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
                                                     'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                                                 }
-
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
                                                     'type'			= "master"
@@ -10799,7 +10788,6 @@ Function Export-vROPsJsonSpec {
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
                                                     'nodes'			= $nodesObject	
                                                 }
-
                                                 if (!($xintEnvironment)) { 
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
@@ -10807,8 +10795,7 @@ Function Export-vROPsJsonSpec {
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
                                                         'products'              = $productsObject     
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
                                                         'environmentId'         = $xintEnvironment.environmentId
@@ -10820,24 +10807,19 @@ Function Export-vROPsJsonSpec {
 
                                                 $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vropsDeploymentSpec.json" 
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Operations Manager: SUCCESSFUL"                            
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist: PRE_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10846,8 +10828,7 @@ Function Export-vROPsJsonSpec {
             }
         }
         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10882,8 +10863,7 @@ Function New-vROPSDeployment {
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
         $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $workbook)) {
             Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
             Break
@@ -10905,36 +10885,29 @@ Function New-vROPSDeployment {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-                                            }
-                                            else {
+                                            } else {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
                                             }
                                             if ($newRequest) {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Rquest for vRealize Operations Manager Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy vRealize Operations Manager failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "License in vRealize Suite Lifecycle Manager ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "vRealize Operations Manager in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
@@ -10942,8 +10915,7 @@ Function New-vROPSDeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10992,24 +10964,19 @@ Function Import-vROPSUserGroup {
                                             Add-vROPSUserGroup -sourceId (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}).id -userGroup ($groupName + '@' + $domain) -role $role | Out-Null
                                             if (Get-vROPSUserGroup -name ($groupName + '@' + $domain)) {
                                                 Write-Output "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to locate Role in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to locate User Group in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($groupName): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate Authentication Source in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)), already performed: SKIPPED"
                             }
                         }
@@ -11017,8 +10984,7 @@ Function Import-vROPSUserGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11068,23 +11034,19 @@ Function Register-vROPSWorkloadDomain {
                             } Until ($configStatus -ne "IN_PROGRESS")
                             if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
                                 Write-Output "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Error "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): POST_VALIDATION_FAILED"
                             }
-                        }
-                        else {
+                        } else {
                             Write-Warning "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain), already enabled: SKIPPED"
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11130,12 +11092,10 @@ Function Add-vROPSGroupRemoteCollectors {
                                 Add-vROPSCollectorGroup -name $collectorGroupName -collectorIds $collectorIds
                                 if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
                                     Write-Output "Creating Remote Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Creating Remote Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating Remote Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), already exists: SKIPPED"
                             }
                         }
@@ -11143,8 +11103,7 @@ Function Add-vROPSGroupRemoteCollectors {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11225,14 +11184,12 @@ Function Update-vROPSAdapterVcenter {
                                     if (!($($adapter.collectorGroupId) -eq $collectorGroupId)) {
                                         Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                         Write-Output "Assiging vCenter Adapter ($($adapter.resourceKey.name)) to Remote Collector Group ($collectorGroupName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Assiging vCenter Adapter ($($adapter.resourceKey.name)) to Remote Collector Group ($collectorGroupName), already assigned: SKIPPED"
                                     }
                                     Remove-Item .\updateAdapter.json -Force -Confirm:$false
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -11240,8 +11197,7 @@ Function Update-vROPSAdapterVcenter {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11278,7 +11234,7 @@ Function Update-vROPSAdapterCollecterGroup {
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -adaptertype "IdentityManagerAdapter" -adaptername "vRSLCM_VCF_Workspace ONE Access Adapter"
         This example updates Identity Manager Adapter with name "vRSLCM_VCF_Workspace ONE Access Adapter" to use the default Remote Collector Group named "Default collector group"
-        #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11288,6 +11244,7 @@ Function Update-vROPSAdapterCollecterGroup {
         [Parameter (Mandatory = $true)] [ValidateSet("VMWARE","LogInsightAdapter","IdentityManagerAdapter","NSXTAdapter","PingAdapter","CASAdapter")] [String]$adapterType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$adapterName
     )
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -11299,10 +11256,9 @@ Function Update-vROPSAdapterCollecterGroup {
                                 if ($adapterName) {
                                     if ($adapters | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                         $adapters = $adapters | Where-Object {$_.resourceKey.name -eq $adapterName}
-                                    }
-                                    else {
-                                       Write-Error "Adapter with name $adapterName not found"
-                                        break
+                                    } else {
+                                        Write-Error "Adapter with name $adapterName not found"
+                                        Break
                                     }
                                 }
                                 Foreach ($adapter in $adapters) {
@@ -11315,13 +11271,11 @@ Function Update-vROPSAdapterCollecterGroup {
                                                 Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                                 Write-Output "Assiging Collector Group ($collectorGroupName) to instance - ($($adapter.resourceKey.name)) : SUCCESSFUL"
                                                 Remove-Item .\updateAdapter.json -Force -Confirm:$false
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assiging Collector Group ($collectorGroupName) to instance - ($($adapter.resourceKey.name)) : already assigned: SKIPPED"
                                             }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -11329,9 +11283,7 @@ Function Update-vROPSAdapterCollecterGroup {
                 }
             }
         }
-
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11373,12 +11325,10 @@ Function Add-vROPSCurrency {
                                 Set-vROPSCurrency -currency $currency | Out-Null
                                 if (((Get-vROPSCurrency | Select-Object code)).code -eq $currency) {
                                     Write-Output "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency), ($($currentCurrency.code)) already set: SKIPPED"
                             }
                         }
@@ -11386,8 +11336,7 @@ Function Add-vROPSCurrency {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11424,8 +11373,7 @@ Function Enable-vROPSManagementPack {
 
     if (!$pakFile) {
         $pakFile = Get-ExternalFileName -title "Select the Management Pack file (.pak)" -fileType "pak" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $pakFile)) {
             Write-Error "Management Pack file (pak) '$pakFile' File Not Found"
             Break
@@ -11448,16 +11396,13 @@ Function Enable-vROPSManagementPack {
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
                                         Write-Output "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Uploading '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                             }
                         }
@@ -11465,8 +11410,7 @@ Function Enable-vROPSManagementPack {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11525,16 +11469,13 @@ Function Register-vROPSManagementPack {
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
                                         Write-Output "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                 }
-                            }
-                            elseif ($state -eq "disable") {
+                            } elseif ($state -eq "disable") {
                                 if (Get-vROPSSolution | Where-Object {$_.id -match $packType}) {
                                     Set-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass -pakId ((($adapterDetails.pak_id) -Split ("-"))[0]) -version $adapterDetails.version -status disable | Out-Null
                                     Do {
@@ -11542,12 +11483,10 @@ Function Register-vROPSManagementPack {
                                     } Until ( $($status.current_pak_activity.pak_id) -ne $adapterDetails.pak_id )
                                     if (!(Get-vROPSSolution | Where-Object {$_.id -match $packType})) {
                                         Write-Output "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                 }
                             }
@@ -11556,8 +11495,7 @@ Function Register-vROPSManagementPack {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11653,23 +11591,19 @@ Function Add-vROPSAdapterNsxt {
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vcfNsxDetails.fqdn}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vcfNsxDetails.fqdn}).id | Out-Null
                                             Write-Output "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                         Remove-Item .\createdAdapter.json -Force -Confirm:$false
                                         Remove-Item .\patchAdapter.json -Force -Confirm:$false 
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)), already exists: SKIPPED"
                                     }      
-                                }
-                                else {
+                                } else {
                                     Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -11677,8 +11611,7 @@ Function Add-vROPSAdapterNsxt {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11771,28 +11704,22 @@ Function Add-vROPSAdapterPing {
                                                     }
                                                 ]
                                         }'
-                                
                                         $json | Out-File .\addAdapter.json
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
-                                
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "The Ping Management Pack in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -11800,8 +11727,7 @@ Function Add-vROPSAdapterPing {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11856,8 +11782,7 @@ Function Update-vROPSAdapterSddcHealth {
                                             "monitoringInterval":  5,
                                             "id":  "'+ $($adapter.id) +'"
                                         }'
-                                    }
-                                    else {
+                                    } else {
                                         $json = '{
                                             "name":  "'+ $adapterName +'",
                                             "adapterKindKey":  "SDDCHealthAdapter",
@@ -11867,19 +11792,16 @@ Function Update-vROPSAdapterSddcHealth {
                                             "id":  "'+ $($adapter.id) +'"
                                         }'
                                     }
-                                    
                                     $json | Out-File .\updateAdapter.json
                                     if (!($adapter.resourceKey.name -eq $adapterName)) {
                                         Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                         Write-Output "Renaming Adapter ($($adapter.resourceKey.name)) to ($adapterName): SUCCESSFUL"
                                         Remove-Item .\updateAdapter.json -Force -Confirm:$false
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Renaming Adapter ($($adapter.resourceKey.name)) to ($adapterName), already performed: SKIPPED"
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate Adapters of type (SDDCHealthAdapter) in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -11887,8 +11809,7 @@ Function Update-vROPSAdapterSddcHealth {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11941,8 +11862,7 @@ Function Add-vROPSAdapterSddcHealth {
                                             "collectorId": '+ $($collector.id) +',
                                             "monitoringInterval": 5
                                         }'
-                                    }
-                                    else {
+                                    } else {
                                         $json = '{
                                             "name": "'+ $adapterName +'",
                                             "adapterKindKey": "SDDCHealthAdapter",
@@ -11951,25 +11871,21 @@ Function Add-vROPSAdapterSddcHealth {
                                             "monitoringInterval": 5
                                         }'
                                     }
-                                    
                                     $json | Out-File .\addAdapter.json
                                     if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName})) {                   
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already performed: SKIPPED"
                                     }
                                     Remove-Item .\addAdapter.json -Force -Confirm:$false
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate Remote Collectors in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                             } 
                         }
@@ -11977,8 +11893,7 @@ Function Add-vROPSAdapterSddcHealth {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12057,7 +11972,6 @@ Function Add-vROPSAdapterIdentityManager {
                                                 "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -eq $adapterName}).id +'"
                                                 }
                                         }'
-                                
                                         $adapterJson | Out-File .\addAdapter.json
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         $testAdapter = Test-vROPSAdapterConnection -json .\addAdapter.json
@@ -12075,22 +11989,18 @@ Function Add-vROPSAdapterIdentityManager {
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq "IdentityManagerAdapter"}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                         Remove-Item .\patchAdapter.json -Force -Confirm:$false
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "The Identity Manager Management Pack in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -12098,8 +12008,7 @@ Function Add-vROPSAdapterIdentityManager {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12146,12 +12055,10 @@ Function Undo-vROPSAdapter {
                                 } While (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq $adapterType})
                                 if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq $adapterType})) {
                                     Write-Output "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), does not exist: SKIPPED"
                             }   
                         }
@@ -12159,8 +12066,7 @@ Function Undo-vROPSAdapter {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12204,16 +12110,13 @@ Function Undo-vROPSCredential {
                                     Remove-vROPSCredential -credentialId (Get-vROPSCredential | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType}).Id | Out-Null
                                     if (!(Get-vROPSCredential | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType})) {
                                         Write-Output "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Credential of type ($credentialType) named ($credentialName) still assigned to an adapter: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), does not exist: SKIPPED"
                             }   
                         }
@@ -12221,8 +12124,7 @@ Function Undo-vROPSCredential {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12307,8 +12209,7 @@ Function Add-vROPSAlertPluginEmail {
                                         "value" : "'+ ($senderAddress -split("@"))[0] +'"
                                     } ]
                                     }'
-                                }
-                                else {
+                                } else {
                                     $json = '{
                                         "pluginTypeId" : "StandardEmailPlugin",
                                         "name" : "'+ $pluginName +'",
@@ -12339,13 +12240,11 @@ Function Add-vROPSAlertPluginEmail {
                                 if (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $pluginName}) {
                                     Set-vROPSAlertPluginStatus -pluginId (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $pluginName}).pluginId -status true
                                     Write-Output "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): POST_VALIDATION_FAILED"
                                 }
                                 Remove-Item .\addAlertPlugin.json -Force -Confirm:$false
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName), already exists: SKIPPED"
                             }
                         }
@@ -12353,8 +12252,7 @@ Function Add-vROPSAlertPluginEmail {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12407,52 +12305,11 @@ Function Import-vROPSNotification {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Import-vROPSNotification
-
-Function Test-vROPsAdapterStatus {
-    <#
-        .SYNOPSIS
-        Validates the integration status of a vRealize Operations adapter through adapter's ID
-        
-        .DESCRIPTION
-        The Test-vROPsAdapterStatus cmdlet validates the integration status between vRealize Operations Manager and configured adapter.
-    
-        .EXAMPLE
-        Test-vROPsAdapterStatus -resourceId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
-        This example validates the integration status between vRealize Operations Manager and configured adapter through its ID. 
-    #>
-    
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
-    )
-
-    $name = (Get-vROPSAdapter | Where-Object { $_.id -eq $resourceId }).resourceKey.name
-
-    Try {
-        $uri = "https://$vropsAppliance/suite-api/api/resources/$resourceId"
-        if ($PSEdition -eq 'Core') {
-            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
-            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
-        }
-        if ($vropsresponse.resourceHealth -eq "GREEN") {
-            Write-Output "Adapter Name : $($name), Health Status: GREEN" 
-        }
-        else { 
-            Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
-        }
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Test-vROPsAdapterStatus
 
 Function Test-vROPsAdapterStatusByType {
     <#
@@ -12481,6 +12338,7 @@ Function Test-vROPsAdapterStatusByType {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateSet("Container", "EP Ops Adapter", "Http Post", "LogInsight", "MicrosoftAzureAdapter", "AmazonAWSAdapter", "NSXTAdapter", "PingAdapter", "SDDCHealthAdapter", "APPLICATIONDISCOVERY", "VMWARE", "VmcAdapter", "IdentityManagerAdapter", "APPOSUCP", "VOAAdapter", "CASAdapter", "LogInsightAdapter", "NETWORK_INSIGHT", "vCenter Operations Adapter", "vRealizeOpsMgrAPI", "VirtualAndPhysicalSANAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
     )
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -12493,12 +12351,10 @@ Function Test-vROPsAdapterStatusByType {
                                     $adapterJson | ForEach-Object {
                                         Test-vROPSAdapterStatus -resourceId $_.id
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "'$($adapterKind)' Adapter is not configured" 
                                 }
-                            }
-                            else { 
+                            } else { 
                                 Write-Error "Unable to find '$($adapterKind)' Adapter" 
                             }
                         }                                          
@@ -12506,8 +12362,7 @@ Function Test-vROPsAdapterStatusByType {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12596,40 +12451,34 @@ Function Update-vROPSvRAAdapterCredential {
                                                         Start-vROPSAdapter -adapterId $vraAdapterId | Out-Null
                                                         Start-Sleep 5
                                                         Write-Output "Verifying vRealize Automation adapter status... $(Test-vROPsAdapterStatus -resourceId $vraAdapterId)"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
                                                         Remove-vROPSCredential -credentialId $credid
                                                         Write-Output "Removing vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"    
                                                     }
                                                     Remove-Item .\vraadapter.json -Force -Confirm:$false 
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
-                                                    break
+                                                    Break
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
-                                                break
+                                                Break
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "'$($adapterKind)' Adapter is not configured: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else { 
-                                        Write-Error "Unable to find '$($adapterKind)' Adapter: PRE_VALIDATION_FAILED" 
+                                    } else {
+                                        Write-Error "Unable to find '$($adapterKind)' Adapter: PRE_VALIDATION_FAILED"
                                     }
                                 }
                             }
-                        }                                          
+                        }
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -28651,6 +28500,44 @@ Function Remove-vROPSNotification {
     }
 }
 Export-ModuleMember -Function Remove-vROPSNotification
+
+Function Test-vROPsAdapterStatus {
+    <#
+        .SYNOPSIS
+        Validates the integration status of a vRealize Operations adapter through adapter's ID
+        
+        .DESCRIPTION
+        The Test-vROPsAdapterStatus cmdlet validates the integration status between vRealize Operations Manager and configured adapter.
+    
+        .EXAMPLE
+        Test-vROPsAdapterStatus -resourceId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
+        This example validates the integration status between vRealize Operations Manager and configured adapter through its ID. 
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
+    )
+
+    $name = (Get-vROPSAdapter | Where-Object { $_.id -eq $resourceId }).resourceKey.name
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/resources/$resourceId"
+        if ($PSEdition -eq 'Core') {
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
+        }
+        if ($vropsresponse.resourceHealth -eq "GREEN") {
+            Write-Output "Adapter Name : $($name), Health Status: GREEN" 
+        } else { 
+            Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-vROPsAdapterStatus
 
 #EndRegion  End vRealize Operations Manager Functions          ######
 #####################################################################
