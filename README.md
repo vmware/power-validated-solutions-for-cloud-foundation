@@ -102,7 +102,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 [changelog]: CHANGELOG.md
 [contributing]: CONTRIBUTING.md
-[issues]: /issues
+[issues]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues
 [vvs]: https://vmware.com/go/vvs
 [microsoft-powershell]: https://docs.microsoft.com/en-us/powershell
 [module-vmware-powercli]: https://www.powershellgallery.com/packages/VMware.PowerCLI
