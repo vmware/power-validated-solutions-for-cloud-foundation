@@ -1955,8 +1955,8 @@ Function Install-SiteRecoveryManager {
         Deploy Site Recovery Manager Virtual Appliance
 
         .DESCRIPTION
-        The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.  The cmdlet 
-        connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.  The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
@@ -1988,8 +1988,7 @@ Function Install-SiteRecoveryManager {
     Try {
         if (!$PsBoundParameters.ContainsKey("srmOvfPath")) {
             $srmOvfPath = Get-ExternalFileName -title "Select the Site Recovery Manager OVF file (.ovf)" -fileType "ovf"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $srmOvfPath)) {
                 Write-Error  "Site Recovery Manager OVA '$srmOvfPath' File Not Found"
                 Break
@@ -2003,8 +2002,7 @@ Function Install-SiteRecoveryManager {
             $srmExists = Get-VM -Name $srmHostname -ErrorAction SilentlyContinue
             if ($srmExists) {
                 Write-Warning "A virtual machine called $srmHostname already exists in vCenter Server $vcServer"
-            }
-            else {
+            } else {
                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
@@ -2029,11 +2027,9 @@ Function Install-SiteRecoveryManager {
                             }
                             Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                         }
-                    }
-                    Catch {
+                    } Catch {
                         Write-Error "Failed to get a Response from $srmFqdn"
-                    }
-                    Finally {
+                    } Finally {
                         $timer.Stop()  ## Stop the timer
                         Write-Output "$srmHostname Deployed Successfully"
                     }
@@ -2041,8 +2037,7 @@ Function Install-SiteRecoveryManager {
             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2054,8 +2049,8 @@ Function Install-vSphereReplicationManager {
         Deploy vSphere Replication Manager Virtual Appliance
 
         .DESCRIPTION
-        The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA. 
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
@@ -2085,8 +2080,7 @@ Function Install-vSphereReplicationManager {
     Try {
         if (!$PsBoundParameters.ContainsKey("vrmsOvfPath")) {
             $vrmsOvfPath = Get-ExternalFileName -title "Select the vSphere Replication Manager OVF file (.ovf)" -fileType "ovf"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $vrmsOvfPath)) {
                 Write-Error  "vSphere Replication Manager OVA '$vrmsOvfPath' File Not Found"
                 Break
@@ -2100,8 +2094,7 @@ Function Install-vSphereReplicationManager {
             $vrmsExists = Get-VM -Name $vrmsHostname -ErrorAction SilentlyContinue
             if ($vrmsExists) {
                 Write-Warning "A virtual machine called $vrmsHostname already exists in vCenter Server $vcServer"
-            }
-            else {
+            } else {
                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
@@ -2129,11 +2122,9 @@ Function Install-vSphereReplicationManager {
                         }
                         Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                         }
-                    }
-                    Catch {
+                    } Catch {
                         Write-Error "Failed to get a Response from $vrmsFqdn"
-                    }
-                    Finally {
+                    } Finally {
                         $timer.Stop()  ## Stop the timer
                         Write-Output "$vrmsHostname Deployed Successfully"
                     }       
@@ -2141,8 +2132,7 @@ Function Install-vSphereReplicationManager {
                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2169,7 +2159,7 @@ Function Connect-DRSolutionTovCenter {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,        
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
@@ -2183,8 +2173,7 @@ Function Connect-DRSolutionTovCenter {
     $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
     if ($solution -eq "SRM") {
         $extensionKey = "com.vmware.vcDr"
-    }
-    else {
+    } else {
         $extensionKey = "com.vmware.vcHms"
     }
     Try {
@@ -2197,16 +2186,14 @@ Function Connect-DRSolutionTovCenter {
         Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
 
         # Register Site Recovery Manager with vCenter
-        $response = Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcenterFQDN -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $ssoAdminUser -ssoAdminPassword $ssoAdminPassword -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey
+        Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcenterFQDN -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $ssoAdminUser -ssoAdminPassword $ssoAdminPassword -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey | Out-Null
         $validateRegistration = Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
         if ($validateRegistration.data.drConfiguration.vcName -eq $vcenterFQDN) {
             Write-output "Successfully Registered $solution instance $applianceFqdn to vCenter Server $vcenterFQDN"
-        }
-        else {
+        } else {
             Write-Output "Something went wrong"
         }
-    }              
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2234,11 +2221,9 @@ Function Install-VAMICertificate {
     )
 
     Try {
-        
         if (!$PsBoundParameters.ContainsKey("certFile")) {
             $certFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType "p12"
-        }
-        elseif ($PsBoundParameters.ContainsKey("certFile")) {
+        } elseif ($PsBoundParameters.ContainsKey("certFile")) {
             if (!(Test-Path -Path $certFile)) {
                 Write-Error  "Certificate (.p12) '$certFile' File Not Found"
             }
@@ -2253,13 +2238,11 @@ Function Install-VAMICertificate {
             $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
             $uri = "https://"+$fqdn+":5480/configure/requestHandlers/installPkcs12Certificate"
             $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-        }
-        Catch {
+        } Catch {
             #TODO - Write function to query cert Thumbprint and compare to installed cert
             #Debug-ExceptionWriter -object $_
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2286,12 +2269,11 @@ Function Get-DRSolutionSummary {
 
     Try {
         $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
-        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
-        $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getSummaryInfo"
+        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
+        $uri = "https://" + $fqdn + ":5480/configure/requestHandlers/getSummaryInfo"
         $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
         $response
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
@@ -2318,17 +2300,16 @@ Function Get-DRSolutionNetworkConfig {
 
     Try {
         if (Test-VAMIConnection -server $fqdn) {
-            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {   
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
                 $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getNetworkingInfo"
                 $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $body
                 $response.data
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
-}    
+}
 Export-ModuleMember -Function Get-DRSolutionNetworkConfig
 
 Function Set-DRSolutionNetworkAdapter {
@@ -2373,8 +2354,7 @@ Function Set-DRSolutionNetworkAdapter {
                 $response
             }
         }        
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
@@ -2414,8 +2394,7 @@ Function Set-vSRIncomingStorageTraffic {
                 $response
             }
         }        
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
@@ -2449,19 +2428,19 @@ Function Get-vSRIncomingStorageTraffic {
                 $response.data
             }
         }        
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
 Export-ModuleMember -Function Get-vSRIncomingStorageTraffic
+
 Function Register-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
-        Registers SRM & vRMS with a given vCenter Server
+        Registers Site Recovery Manager & vSphere Replication with a given vCenter Server
 
         .DESCRIPTION
-        The Register-DRSolutionTovCenter cmdlet registers SRM & vRMS with a given vCenter Server
+        The Register-DRSolutionTovCenter cmdlet registers Site Recovery Manager & vSphere Replication with a given vCenter Server
 
         .EXAMPLE
         Register-DRSolutionTovCenter -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -pscHost sfo-m01-vc01.sfo.rainpole.io -thumbprint EA:0F:24:7E:B4:4C:5E:ED:38:AE:79:A6:9E:A2:E8:8F:EE:54:D8:AF:18:6A:A2:57:DC:87:09:68:D4:76:36:DD -vcInstanceId 53cad28c-4160-4956-b7c1-c7bbc5185a39 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword VMw@re1! -siteName SFO01 -adminEmail admin@rainpole.io -hostName sfo-m01-srm01.sfo.rainpole.io
@@ -2504,9 +2483,7 @@ Function Register-DRSolutionTovCenter {
         $uri = "https://"+$applianceFqdn+":5480/configure/requestHandlers/configureAppliance"
         $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
         $response
-
-        }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2537,8 +2514,7 @@ Function Backup-VMOvfProperties {
     Try {
         if (!$PsBoundParameters.ContainsKey("fileDir")) {
             $fileDir = Get-ExternalDirectoryPath
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $fileDir)) {
                 Write-Error  "Directory '$fileDir' Not Found"
                 Break
@@ -2604,8 +2580,7 @@ Function Backup-VMOvfProperties {
             Get-VMvAppConfig -vm $vmToBackup
         }
         Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2636,8 +2611,7 @@ Function Restore-VMOvfProperties {
     Try {       
         if (!$PsBoundParameters.ContainsKey("fileDir")) {
             $fileDir = Get-ExternalDirectoryPath
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $fileDir)) {
                 Write-Error  "Directory '$fileDir' Not Found"
                 Break
@@ -2675,15 +2649,13 @@ Function Restore-VMOvfProperties {
                     foreach ($property in $vmSettings.property) {
                         New-VMOvfProperty -vm $foundVM -property $property
                     }                   
-                }
-                else {
+                } else {
                     Write-Output "Placeholder $restoredVM not found in $($vcenter.fqdn)"
                 }
             }
         }
         Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2700,8 +2672,9 @@ Function Get-VMvAppConfig {
         .EXAMPLE
         Get-VMAppConfig -vm $vm
     #>
+
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm
     )
 
     $targetFile = $fileDir + "\" + $vm.name + "-property-backup.json"
@@ -2711,13 +2684,10 @@ Function Get-VMvAppConfig {
             $vmVappConfig = $vm.ExtensionData.Config.VAppConfig | ConvertTo-Json | Out-File $targetFile
             Write-Output "OVF Properties successfully captured"
             return $vmVappConfig
-        }
-        else {
+        } else {
             Write-Output "No OVF properties were detected on $($vm.name). You may ignore this message if this is correct." -colour magenta
         }
-    }
-    Catch
-    {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2736,8 +2706,8 @@ Function New-VMOvfProperty {
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$property
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$property
     )
 
     #define spec
@@ -2780,13 +2750,13 @@ Function Set-VMOvfIPAssignment {
 
         .EXAMPLE
         Set-VMOvfIPAssignment -vm $vm -assignment $assignmentObject
+    #>
 
-    #>    
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$assignment
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$assignment
     )
-    
+
     #define spec
     $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
     $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
@@ -2820,8 +2790,8 @@ Function Set-VMOvfEnvTransport {
     #> 
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$transport
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$transport
     )
 
     #define spec
@@ -2849,12 +2819,11 @@ Function New-VMOvfProduct {
 
         .EXAMPLE
         New-VMOvfProduct -vm $vm -product $productObject
-
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$product
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()][PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$product
     )
 
     #define spec
@@ -2898,8 +2867,8 @@ Function Set-VMOvfEULA {
     #>    
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter(Mandatory=$true)] [PSObject]$eula
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$eula
     )
 
     #define spec
@@ -2931,11 +2900,10 @@ Function Get-VMOvfProperty {
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [psObject]$vm
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [psObject]$vm
     )
 
     $vappProperties = $VM.ExtensionData.Config.VAppConfig.Property
-
     $results = @()
     foreach ($vappProperty in $vappProperties | Sort-Object -Property Id) {
         $tmp = [pscustomobject] @{
@@ -2960,10 +2928,11 @@ Function Set-VMOvfProperty {
         .EXAMPLE
         Set-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
         This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xreg-wsa01a
-    #>    
+    #>
+
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [hashtable]$properties
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [hashtable]$properties
     )
 
     $vappProperties = $VM.ExtensionData.Config.VAppConfig.Property
@@ -3046,9 +3015,7 @@ Function Get-NSXLBDetails {
         Write-Output "Getting NSX-T Login Details"
         $nsxt = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domainType MANAGEMENT
         $nsxtFQDN = $nsxt.fqdn
-                
-    } 
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3083,7 +3050,7 @@ Function Add-vRSLCMNtpServer {
     $testNtp = Test-NtpServer -Server $ntpServer
     if ($testNtp -eq $false) {
         Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
-        break
+        Break
     }
 
     Try {
@@ -3099,13 +3066,11 @@ Function Add-vRSLCMNtpServer {
                                     $vrslcmProductNtpServers = Get-vRSLCMProductNtpServer
                                     if ($vrslcmProductNtpServers -match $ntpServer) {
                                         Write-Warning "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list, already performed: SKIPPED"
-                                    }
-                                    else {
+                                    } else {
                                         $addvRSLCMProductNtp = Add-vRSLCMProductNtpServer -ntpServer $ntpServer -ntpServerDesc $ntpServerDesc -ErrorAction SilentlyContinue
                                         if ($addvRSLCMProductNtp -match $ntpServer) {
                                             Write-Output "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: POST_VALIDATION_FAILED"
                                         }
                                     }
@@ -3114,22 +3079,18 @@ Function Add-vRSLCMNtpServer {
                                         $vrslcmApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig
                                         if ($vrslcmApplianceNtpConfig.ntpServers -match $ntpServer) {
                                             Write-Warning "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration, already performed: SKIPPED"
-                                        }
-                                        else {
+                                        } else {
                                             $addvRSLCMApplianceNtp = Add-vRSLCMApplianceNtpConfig -ntpServer $ntpServer -ErrorAction SilentlyContinue
                                             if ($addvRSLCMApplianceNtp.ntpServers -match $ntpServer) {
                                                 Write-Output "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: POST_VALIDATION_FAILED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3139,8 +3100,7 @@ Function Add-vRSLCMNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3162,7 +3122,7 @@ Function Set-vRSLCMDnsConfig {
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains rainpole.io
         This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
-        
+
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5 172.17.11.4 172.17.11.5" -dnsSearchDomains "rainpole.io sfo.rainpole.io lax.rainpole.io"
         This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains
@@ -3195,8 +3155,7 @@ Function Set-vRSLCMDnsConfig {
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
                                             Write-Output "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                         }
                                     }
@@ -3211,13 +3170,11 @@ Function Set-vRSLCMDnsConfig {
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
                                             Write-Output "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3227,8 +3184,7 @@ Function Set-vRSLCMDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3279,12 +3235,10 @@ Function Undo-vRSLCMNtpServer {
                                         $validateApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig | Select-Object -ExpandProperty ntpServers
                                         if ($validateApplianceNtpConfig -eq $sddcManagerNtpServers) {
                                             Write-Output "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: SKIPPED"
                                     }
                                     $sddcManagerNtpServers = $null
@@ -3308,12 +3262,10 @@ Function Undo-vRSLCMNtpServer {
                                         if ($validateProductNtpServerSuccess -eq 1) {
                                             Write-Output "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: SUCCESSFUL"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3323,8 +3275,7 @@ Function Undo-vRSLCMNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3372,26 +3323,22 @@ Function Undo-vRSLCMDnsConfig {
                             if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
                                 $vmName = $vrslcmDetails.fqdn.Split(".")[0]
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                    try {
+                                    Try {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
-                                    }
-                                    catch [System.Security.Authentication.InvalidCredentialException]{
+                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                     }                                
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                         Write-Error "Unable to undo DNS configuration on vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
-                                    }
-                                    else {
-                                        try {
+                                    } else {
+                                        Try {
                                             Set-vRSLCMDnsConfig -server $server -user $user -pass $pass -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains
-                                        } 
-                                        catch {
+                                        } Catch {
                                             Write-Error "Unable to undo DNS configuration on vRealize Suite Lifecycle Manager ($vmName) appliance: POST_VALIDATION_FAILED"
                                         }
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3400,8 +3347,7 @@ Function Undo-vRSLCMDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3441,18 +3387,16 @@ Function Set-WorkspaceOneDnsConfig {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                try {
+                                Try {
                                     $newRequest = Stop-vRSLCMProductNode -environment globalenvironment -product vidm -ErrorAction Stop
-                                }
-                                catch {
+                                } Catch {
                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                 }
                                 if ($newRequest) {
                                     Write-Output "Powering off Workspace ONE Access appliances. This may take quite a while."
                                     Start-Sleep 10
                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null
-                                }
-                                else {
+                                } else {
                                     Write-Error "Power off request of Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                 } 
                                 $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm              
@@ -3462,15 +3406,13 @@ Function Set-WorkspaceOneDnsConfig {
                                             $existingDNS = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value
                                             if ($existingDNS -eq $dnsServers) {
                                                 Write-Warning "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS Server(s) ($dnsServers) already done: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"DNS"="$dnsServers"} | Out-Null
                                             }
                                             $validateDNS = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value
                                             if ($validateDNS -eq $dnsServers) {
                                                 Write-Output "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS server(s) ($dnsServers): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring Workspace ONE Access appliance $($ProductVM.vmName) to use DNS server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                             }
                                         }
@@ -3478,20 +3420,17 @@ Function Set-WorkspaceOneDnsConfig {
                                             $existingSearchDomains = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value
                                             if ($existingSearchDomains -eq $dnsSearchDomains) {
                                                 Write-Warning "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"searchpath"="$dnsSearchDomains"} | Out-Null
                                             }
                                             $validateSearchDomains = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value
                                             if ($validateSearchDomains -eq $dnsSearchDomains) {
                                                 Write-Output "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring Workspace ONE Access appliance $($ProductVM.vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to locate a virtual machine named $($productVM.vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                 }
@@ -3500,8 +3439,7 @@ Function Set-WorkspaceOneDnsConfig {
                                     Write-Output "Powering on Workspace ONE Access appliances and bringing up services. This may take quite a while."
                                     Start-Sleep 10
                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null                                    
-                                }
-                                else {
+                                } else {
                                     Write-Error "Power on request of Workspace ONE Access appliance(s) failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3511,8 +3449,7 @@ Function Set-WorkspaceOneDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3559,26 +3496,22 @@ Function Undo-WorkspaceOneDnsConfig {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                    try {
+                                    Try {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
-                                    }
-                                    catch [System.Security.Authentication.InvalidCredentialException]{
+                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                     }                                
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                         Write-Error "Unable to undo DNS configuration on Workspace ONE Access ($vmName) appliance: PRE_VALIDATION_FAILED"
-                                    }
-                                    else {
+                                    } else {
                                         Try {
                                             Set-WorkspaceOneDnsConfig -server $server -user $user -pass $pass -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop -WarningAction SilentlyContinue
-                                        } 
-                                        Catch {
+                                        } Catch {
                                             Write-Error $_.Exception.Message
                                         }
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3587,8 +3520,7 @@ Function Undo-WorkspaceOneDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3631,10 +3563,9 @@ Function Set-vROPSDnsConfig {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                 $vropsVMs = (Get-VCFvROPs).nodes.fqdn
-                                try {
+                                Try {
                                     $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop
-                                }
-                                catch [System.Net.WebException] {
+                                } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
                                             ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3662,8 +3593,7 @@ Function Set-vROPSDnsConfig {
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
                                                 Write-Output "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                             }
                                         }
@@ -3686,13 +3616,11 @@ Function Set-vROPSDnsConfig {
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
                                                 Write-Output "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to locate a virtual machine named ($($vropsXregVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                 } 
@@ -3703,8 +3631,7 @@ Function Set-vROPSDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3755,46 +3682,38 @@ Function Undo-vROPSDnsConfig {
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                     $vcfvROPSDetails = Get-VCFvROPS
                                     if (Test-vROPSConnection -server $vcfVROPSDetails.loadBalancerFqdn) {
-                                        try {
+                                        Try {
                                             $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop 
-                                        }
-                                        catch [System.Security.Authentication.InvalidCredentialException]{
+                                        } Catch [System.Security.Authentication.InvalidCredentialException]{
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }                                
                                         if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                             Write-Error "Unable to undo DNS configuration for vRealize Operations Manager analytics cluster appliances: PRE_VALIDATION_FAILED"
-                                        }
-                                        else {
-                                            try {
+                                        } else {
+                                            Try {
                                                 Set-vROPSDnsConfig -server $server -user $user -pass $pass -environmentName $environmentName -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop -WarningAction SilentlyContinue
-                                            } 
-                                            catch {
+                                            } Catch {
                                                 Write-Error $_.Exception.Message
                                             }
                                         }                                    
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable connect to vRealize Operations Manager: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager to retrieve vRealize Operations Manager analytics cluster appliances: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to connect to vRealize Suite Lifecycle Manager ($($vrslcmDetails.fqdn.Split(".")[0])): PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                         }
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3840,10 +3759,9 @@ Function Add-vROPSNtpServer {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                try {
+                                Try {
                                     $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0]
-                                }
-                                catch [System.Net.WebException] {
+                                } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
                                             ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3877,12 +3795,10 @@ Function Add-vROPSNtpServer {
                                     $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
                                     if (!$compareArrays) {
                                         Write-Output "Configuring vRealize Operations Manager appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Unable to validate vRealize Operations Manager appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                 } 
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3892,8 +3808,7 @@ Function Add-vROPSNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3932,10 +3847,9 @@ Function Undo-vROPSNtpServer {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                try {
+                                Try {
                                     $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0] 
-                                }
-                                catch [System.Net.WebException] {
+                                } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
                                             ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3951,8 +3865,7 @@ Function Undo-vROPSNtpServer {
                                     if ($ntpServers.count -eq 1) {
                                         $ntpServersJson = $ntpServers | ConvertTo-JSON
                                         $ntpServersJson = "[$ntpServersJson]" 
-                                    }
-                                    else {
+                                    } else {
                                         $ntpServersJson = $ntpServers | ConvertTo-JSON
                                         $ntpServersJson = $ntpServersJson -replace "`r`n","" -replace " ",""
                                     }
@@ -3968,12 +3881,10 @@ Function Undo-vROPSNtpServer {
                                     $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
                                     if (!$compareArrays) {
                                         Write-Output "Configuring vRealize Operations Manager appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Unable to validate vRealize Operations Manager appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                 } 
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3983,8 +3894,7 @@ Function Undo-vROPSNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4031,10 +3941,9 @@ Function Set-vRADnsConfig {
                                     if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                                         if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                            try {
+                                            Try {
                                                 $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vra -ErrorAction Stop
-                                            }
-                                            catch [System.Net.WebException] {
+                                            } Catch [System.Net.WebException] {
                                                 $PSCmdlet.ThrowTerminatingError(
                                                     [System.Management.Automation.ErrorRecord]::new(
                                                         ([System.Management.Automation.GetValueException]"Retrieving vRealize Automation appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -4051,7 +3960,7 @@ Function Set-vRADnsConfig {
                                                     $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
                                                     [Array]$dnsServersArray = $dnsServers.Split(" ")
                                                     $alreadyConfigured = @()
-                                                    foreach ($dnsServer in $dnsServersArray) {
+                                                    Foreach ($dnsServer in $dnsServersArray) {
                                                         if ($output.ScriptOutput -Match $dnsServer) {
                                                             $alreadyConfigured += $dnsServer
                                                         }
@@ -4077,15 +3986,14 @@ Function Set-vRADnsConfig {
                                                         $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured        
                                                         if ($compareArrays){
                                                             Write-Error "Unable to validate vRealize Automation appliances using DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                                            break
-                                                        }
-                                                        else {
+                                                            Break
+                                                        } else {
                                                             $dnsServersVracliValidated = $true
                                                             $scriptCommand = "cat /etc/resolv.conf"
                                                             $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
                                                             [Array]$dnsServersArray = $dnsServers.Split(",")
                                                             $alreadyConfigured = @()
-                                                            foreach ($dnsServer in $dnsServersArray) {
+                                                            Foreach ($dnsServer in $dnsServersArray) {
                                                                 if ($output.ScriptOutput -Match $dnsServer) {
                                                                     $alreadyConfigured += $dnsServer
                                                                 }
@@ -4093,9 +4001,8 @@ Function Set-vRADnsConfig {
                                                             $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
                                                             if ($compareArrays) {
                                                                 Write-Error "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                                                break
-                                                            }
-                                                            else {
+                                                                Break
+                                                            } else {
                                                                 $dnsServersResolvConfValidated = $true
                                                                 Write-Output "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers): SUCCESSFUL"
                                                             }
@@ -4103,13 +4010,12 @@ Function Set-vRADnsConfig {
                                                     }
                                                 }
                                                 if ($dnsSearchDomains) {
-                                                    foreach ($productVM in $productVMs) {
+                                                    Foreach ($productVM in $productVMs) {
                                                         $scriptCommand = "cat /etc/resolv.conf"
                                                         $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                         if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
                                                             Write-Warning "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED" 
-                                                        }
-                                                        else {
+                                                        } else {
                                                             $scriptCommand = "cat /etc/systemd/resolved.conf"
                                                             $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                             if (($output.ScriptOutput).Contains("#Domains")) {
@@ -4123,8 +4029,7 @@ Function Set-vRADnsConfig {
                                                             if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
                                                                 $dnsSearchDomainsResolvConfValidated = $true
                                                                 Write-Output "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL" 
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 Write-Error "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                                             }
                                                         }
@@ -4136,43 +4041,42 @@ Function Set-vRADnsConfig {
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                     $scriptCommand = "/opt/scripts/deploy.sh --shutdown"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    foreach ($productVM in $productVMs) {
+                                                    Foreach ($productVM in $productVMs) {
                                                         Get-VM -Name $productVM.vmName | Restart-VMGuest | Out-Null
                                                     }
                                                     Start-Sleep -Seconds 15
-                                                    foreach ($productVM in $productVMs) {
-                                                        do {
+                                                    Foreach ($productVM in $productVMs) {
+                                                        Do {
                                                             $toolsStatus = (Get-VM -Name $productVM.vmName -ErrorAction SilentlyContinue).ExtensionData.Guest.ToolsRunningStatus
                                                             if ($toolsStatus -ne "guestToolsRunning") {
                                                                 Start-Sleep -Seconds 15
                                                             }
                                                         }
-                                                        until ($toolsStatus -eq "guestToolsRunning")
+                                                        Until ($toolsStatus -eq "guestToolsRunning")
                                                     }
-                                                    foreach ($productVM in $productVMs) {
-                                                        do {
+                                                    Foreach ($productVM in $productVMs) {
+                                                        Do {
                                                             $testvRA = Test-vRAConnection -server $productVM.hostname
                                                             if ($testvRA -eq $false) {
                                                                 Start-Sleep -Seconds 15
                                                             }
                                                         }
-                                                        until ($testvRA -eq $true)
+                                                        Until ($testvRA -eq $true)
                                                     }
                                                     $scriptCommand = "ln -s /opt/vmware/bin/vamicli /usr/sbin/vamicli | /opt/scripts/deploy.sh"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    do {
+                                                    Do {
                                                         $checkVraAuth = Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass -ErrorAction SilentlyContinue
                                                         if ($checkVraAuth -eq $false) {
                                                             Start-Sleep -Seconds 60
                                                         }
                                                     }
-                                                    until ($checkVraAuth -eq $true)
+                                                    Until ($checkVraAuth -eq $true)
                                                     $scriptCommand = "unlink /usr/sbin/vamicli"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
 
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                             } 
                                         }
@@ -4185,8 +4089,7 @@ Function Set-vRADnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4239,20 +4142,17 @@ Function Undo-vRADnsConfig {
                                         if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
                                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                                 if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
-                                                    try {
+                                                    Try {
                                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop                               
-                                                    }
-                                                    catch [System.Security.Authentication.InvalidCredentialException]{
+                                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                                         Write-Error "Unable to undo DNS configuration for vRealize Automation appliances: PRE_VALIDATION_FAILED"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Set-vRADnsConfig -server $server -user $user -pass $pass -vraUser $vraUser -vraPass $vraPass -environmentName $environmentName -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop
                                                     }                                    
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable connect to vRealize Automation appliances: PRE_VALIDATION_FAILED"
                                                 }
                                             }
@@ -4261,16 +4161,14 @@ Function Undo-vRADnsConfig {
                                 }
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                         }
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4331,10 +4229,9 @@ Function Set-vRANtpConfig {
                                     if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                                         if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                            try {
+                                            Try {
                                                 $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vra -ErrorAction Stop
-                                            }
-                                            catch [System.Net.WebException] {
+                                            } Catch [System.Net.WebException] {
                                                 $PSCmdlet.ThrowTerminatingError(
                                                     [System.Management.Automation.ErrorRecord]::new(
                                                         ([System.Management.Automation.GetValueException]"Retrieving vRealize Automation appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -4353,7 +4250,7 @@ Function Set-vRANtpConfig {
                                                     $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
                                                 }
                                                 $alreadyConfigured = @()
-                                                foreach ($ntpServer in $ntpServersArray) {
+                                                Foreach ($ntpServer in $ntpServersArray) {
                                                     if ($outputComparison -Match $ntpServer) {
                                                         $alreadyConfigured += $ntpServer
                                                     }
@@ -4363,17 +4260,15 @@ Function Set-vRANtpConfig {
                                                     if (!$compareArrays) {
                                                         Write-Warning "Configuring vRealize Automation appliances to use NTP Server(s) ($ntpServers) already done: SKIPPED"
                                                     } 
-                                                }
-                                                elseif ($compareArrays -or ($alreadyConfigured.Count -ne $outputComparison.Count) -or ($alreadyConfigured.Count -ne $ntpServersArray.Count)) {
+                                                } elseif ($compareArrays -or ($alreadyConfigured.Count -ne $outputComparison.Count) -or ($alreadyConfigured.Count -ne $ntpServersArray.Count)) {
                                                     if ($ntpServersArray.Count -gt 1){
                                                         [String]$ntpServersString = $null
-                                                        foreach ($ntpServer in $ntpServersArray) {
+                                                        Foreach ($ntpServer in $ntpServersArray) {
                                                             $ntpServersString = $ntpServersString+"'$($ntpServer)',"
                                                         }
                                                         $ntpServersString = $ntpServersString.Substring(0,$ntpServersString.Length-1)
                                                         $scriptCommand = "vracli ntp systemd --set $ntpServersString"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         $scriptCommand = "vracli ntp systemd --set $ntpServers"
                                                     }
                                                     $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
@@ -4385,7 +4280,7 @@ Function Set-vRANtpConfig {
                                                         $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
                                                     }                                                    
                                                     $alreadyConfigured = @()
-                                                    foreach ($ntpServer in $ntpServersArray) {
+                                                    Foreach ($ntpServer in $ntpServersArray) {
                                                         if ($outputComparison -Match $ntpServer) {
                                                             $alreadyConfigured += $ntpServer
                                                         }
@@ -4394,14 +4289,12 @@ Function Set-vRANtpConfig {
                                                         $compareArrays = Compare-Object -ReferenceObject $ntpServersArray -DifferenceObject $alreadyConfigured
                                                         if ($compareArrays) {
                                                             Write-Error "Unable to configure vRealize Automation appliances to use NTP Server(s) ($ntpServers): POST_VALIDATION_FAILED"
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Output "Configuring vRealize Automation appliances to use NTP Server(s) ($ntpServers): SUCCESSFUL"
                                                         }
                                                     }
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                             } 
                                         }
@@ -4414,8 +4307,7 @@ Function Set-vRANtpConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4454,21 +4346,19 @@ Function Undo-vRANtpConfig {
                 $ntpServers = (Get-VCFConfigurationNTP).ipAddress
                 [String]$ntpServersString = $null
                 if ($ntpServers.count -gt 1) {
-                    foreach ($ntpServer in $ntpServers) {
+                    Foreach ($ntpServer in $ntpServers) {
                         $ntpServersString = $ntpServersString + "$ntpServer "
                     }
                     $ntpServersString = $ntpServersString.Substring(0,$ntpServersString.Length-1)
-                }
-                else {
+                } else {
                     $ntpServersString = $ntpServers
                 }
                 if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
-                            try {
+                            Try {
                                 Set-vRANtpConfig -server $server -user $user -pass $pass -vraUser $vraUser -vraPass $vraPass -environmentName $environmentName -ntpServers $ntpServersString -ErrorAction Stop
-                            }
-                            catch {
+                            } Catch {
                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                             }
                         }
@@ -4476,8 +4366,7 @@ Function Undo-vRANtpConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4542,48 +4431,39 @@ Function Add-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
                                                         $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-  
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}
                                                                 if ($protectedCluster) {
                                                                     $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 }
                                                                 $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}
                                                                 if ($recoveryCluster) {
                                                                     $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-
                                                         }
                                                         if ($existingSiteAMappings) {
                                                             $forwardMappingExists = $null
@@ -4595,42 +4475,36 @@ Function Add-SRMMapping {
                                                         }
                                                         if (!$forwardMappingExists) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.AddFolderMapping($protectedMoRef,$recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.AddNetworkMapping($protectedMoRef,$recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($protectedMoRef,$recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $forwardMappingValidated = $null
-                                                            foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
                                                                 if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
                                                                     $forwardMappingValidated = $true
                                                                 }
                                                             }
                                                             if ($forwardMappingValidated -eq $true) {
                                                                 Write-Output "Create $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
@@ -4640,8 +4514,7 @@ Function Add-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) already exists: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
@@ -4649,32 +4522,27 @@ Function Add-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         if ($existingSiteBMappings) {
                                                             $reverseMappingExists = $null
-                                                            foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
                                                                 if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingExists = $true
                                                                 }
@@ -4682,42 +4550,36 @@ Function Add-SRMMapping {
                                                         }  
                                                         if (!$reverseMappingExists) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.AddFolderMapping($recoveryMoRef,$protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.AddNetworkMapping($recoveryMoRef,$protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($recoveryMoRef,$protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $reverseMappingValidated = $null
-                                                            foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
                                                                 if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingValidated = $true
                                                                 }
                                                             }
                                                             if ($reverseMappingValidated -eq $true) {
                                                                 Write-Output "Create $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
@@ -4727,8 +4589,7 @@ Function Add-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) already exists: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
@@ -4744,8 +4605,7 @@ Function Add-SRMMapping {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4810,52 +4670,43 @@ Function Undo-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
                                                         $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-  
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}
                                                                 if ($protectedCluster) {
                                                                     $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 }
                                                                 $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}
                                                                 if ($recoveryCluster) {
                                                                     $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-
                                                         }
                                                         if ($existingSiteAMappings) {
                                                             $forwardMappingExists = $null
-                                                            foreach ($existingSiteAMapping in $existingSiteAMappings) {
+                                                            Foreach ($existingSiteAMapping in $existingSiteAMappings) {
                                                                 if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
                                                                     $forwardMappingExists = $true
                                                                 }
@@ -4863,42 +4714,36 @@ Function Undo-SRMMapping {
                                                         }
                                                         if ($forwardMappingExists -eq $true) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.RemoveFolderMapping($protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $forwardMappingValidated = $null
-                                                            foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
                                                                 if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
                                                                     $forwardMappingValidated = $true
                                                                 }
                                                             }
                                                             if (!$forwardMappingValidated) {
                                                                 Write-Output "Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
@@ -4908,8 +4753,7 @@ Function Undo-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
@@ -4917,32 +4761,27 @@ Function Undo-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         if ($existingSiteBMappings) {
                                                             $reverseMappingExists = $null
-                                                            foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
                                                                 if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingExists = $true
                                                                 }
@@ -4950,42 +4789,36 @@ Function Undo-SRMMapping {
                                                         }  
                                                         if ($reverseMappingExists -eq $true) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.RemoveFolderMapping($recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $reverseMappingValidated = $null
-                                                            foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
                                                                 if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingValidated = $true
                                                                 }
                                                             }
                                                             if (!$reverseMappingValidated) {
                                                                 Write-Output "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
@@ -4995,8 +4828,7 @@ Function Undo-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
@@ -5012,8 +4844,7 @@ Function Undo-SRMMapping {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5065,16 +4896,15 @@ Function New-SRMSitePair {
                                                 if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
                                                         if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                            try {
+                                                            Try {
                                                                 $existingSitePair = $null
                                                                 $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
                                                                 $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                             }
                                                             if ($existingSitePair.VcHost -eq $siteBvCenterDetails.fqdn) {
                                                                 Write-Warning "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) already done: SKIPPING"
-                                                                break
+                                                                Break
                                                             }
                                                             $creds = @{
                                                                 user = $siteBvCenterDetails.ssoAdmin
@@ -5086,21 +4916,19 @@ Function New-SRMSitePair {
                                                                 thumbprints = $thumbprints
                                                                 creds = $creds
                                                             }
-                                                            try {
+                                                            Try {
                                                                 $global:DefaultSrmServers[1].ExtensionData.PairSrm_Task($connectionSpec) | Out-Null
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                            try {
+                                                            Try {
                                                                 Start-Sleep -Seconds 5
                                                                 $existingSitePair = $null
                                                                 $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
                                                                 $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
                                                                 if ($existingSitePair.VcHost -eq $siteBvCenterDetails.fqdn) {
                                                                     Write-Output "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
@@ -5110,8 +4938,7 @@ Function New-SRMSitePair {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
@@ -5127,8 +4954,7 @@ Function New-SRMSitePair {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5179,27 +5005,24 @@ Function Undo-SRMSitePair {
                                                 $global:DefaultSrmServers = $null
                                                 if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        try {
+                                                        Try {
                                                             $existingSitePair = $null
                                                             $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
                                                             $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             if (!$existingSitePair) {
                                                                 Write-Warning "Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) does not exist: SKIPPING"
-                                                                break
-                                                            }
-                                                            else {
+                                                                Break
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
-                                                        try {
+                                                        Try {
                                                             $global:DefaultSrmServers[0].ExtensionData.BreakPairing_Task($existingSitePair) | Out-Null
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                                         }
-                                                        try {
+                                                        Try {
                                                             Start-Sleep -Seconds 5
                                                             $existingSitePair = $null
                                                             $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
@@ -5214,8 +5037,7 @@ Function Undo-SRMSitePair {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             if (!$existingSitePair) {
                                                                 Write-Output "Remove Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
                                                             }
@@ -5232,8 +5054,7 @@ Function Undo-SRMSitePair {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5287,15 +5108,13 @@ Function New-vSRPortGroup {
                                                 $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN) -or ($_.Name -match "$($VDSwitchSiteA)-pg-$suffix")}
                                                 if ($existingPortGroupSiteA) {
                                                     Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteA.Name)) or VLAN ID ($siteAVLAN) already exists: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $createVDPortGroupSiteA = New-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name "$($VDSwitchSiteA)-pg-$suffix" -VlanId $siteAVLAN -ErrorAction Stop
                                                         $createVDPortGroupSiteA | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
-                                                        try {
+                                                        Try {
                                                             $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                                         }
                                                         if (!$validateVDPortGroupSiteA) {
@@ -5307,12 +5126,10 @@ Function New-vSRPortGroup {
                                                                     ""
                                                                 )
                                                             )
-                                                        }
-                                                        else {
+                                                        } else {
                                                             if ($validateVDPortGroupSiteA.VlanConfiguration.VlanId -eq $siteAVLAN) {
                                                                 Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create virtual port group ($($createVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
@@ -5323,8 +5140,7 @@ Function New-vSRPortGroup {
                                                                 )
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5332,15 +5148,13 @@ Function New-vSRPortGroup {
                                                 $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN) -or ($_.Name -match "$($VDSwitchSiteB)-pg-$suffix")}
                                                 if ($existingPortGroupSiteB) {
                                                     Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteB.Name)) or VLAN ID ($siteBVLAN) already exists: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $createVDPortgroupSiteB = New-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name "$($VDSwitchSiteB)-pg-$suffix" -VlanId $siteBVLAN -ErrorAction Stop
                                                         $createVDPortGroupSiteB | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
-                                                        try {
+                                                        Try {
                                                             $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                                         }
                                                         if (!$validateVDPortGroupSiteB) {
@@ -5352,12 +5166,10 @@ Function New-vSRPortGroup {
                                                                     ""
                                                                     )
                                                                 )
-                                                        }
-                                                        else {
+                                                        } else {
                                                             if ($validateVDPortGroupSiteB.VlanConfiguration.VlanId -eq $siteBVLAN) {
                                                                 Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
@@ -5368,8 +5180,7 @@ Function New-vSRPortGroup {
                                                                 )
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5383,8 +5194,7 @@ Function New-vSRPortGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5436,20 +5246,18 @@ Function Undo-vSRPortGroup {
                                                 $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
                                                 if (!$existingPortGroupSiteA) {
                                                     Write-Warning "A distributed virtual port group with VLAN ID ($siteAVLAN) does not exist: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $VDSwitchSiteA = Get-VDSwitch -Server $SiteAvCenterDetails.fqdn
                                                         $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -ErrorAction Stop
-                                                        foreach ($portGroup in $VDPortGroupSiteA) {
+                                                        Foreach ($portGroup in $VDPortGroupSiteA) {
                                                             if ($portGroup.VlanConfiguration.VlanId -eq $SiteAVlan) {
-                                                                try {
+                                                                Try {
                                                                     $VDPortGroupSiteAName = $portGroup.Name
                                                                     Remove-VDPortGroup -Server $SiteAvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
-                                                                    try {
+                                                                    Try {
                                                                         $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name $portGroup.Name -ErrorAction SilentlyContinue
-                                                                    }
-                                                                    catch {
+                                                                    } Catch {
                                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                     }
                                                                     if ($validateVDPortGroupSiteA) {
@@ -5461,38 +5269,33 @@ Function Undo-vSRPortGroup {
                                                                                 ""
                                                                             )
                                                                         )
-                                                                    }
-                                                                    else {
+                                                                    } else {
                                                                         Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
                                                                     }
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
                                                 $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
                                                 if (!$existingPortGroupSiteB) {
                                                     Write-Warning "A distributed virtual port group with VLAN ID ($siteBVLAN) does not exist: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $VDSwitchSiteB = Get-VDSwitch -Server $SiteBvCenterDetails.fqdn
                                                         $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -ErrorAction Stop
-                                                        foreach ($portGroup in $VDPortGroupSiteB) {
+                                                        Foreach ($portGroup in $VDPortGroupSiteB) {
                                                             if ($portGroup.VlanConfiguration.VlanId -eq $SiteBVlan) {
-                                                                try {
+                                                                Try {
                                                                     $VDPortGroupSiteBName = $portGroup.Name
                                                                     Remove-VDPortGroup -Server $SiteBvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
-                                                                    try {
+                                                                    Try {
                                                                         $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name $portGroup.Name -ErrorAction SilentlyContinue
-                                                                    }
-                                                                    catch {
+                                                                    } Catch {
                                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                     }
                                                                     if ($validateVDPortGroupSiteB) {
@@ -5504,18 +5307,15 @@ Function Undo-vSRPortGroup {
                                                                                 ""
                                                                             )
                                                                         )
-                                                                    }
-                                                                    else {
+                                                                    } else {
                                                                         Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
                                                                     }
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5529,8 +5329,7 @@ Function Undo-vSRPortGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5622,12 +5421,12 @@ Function Set-vSRNetworkConfig {
                                                     [int]$hmsACidr = $eth1SubnetSiteA.Split("/")[1]
                                                     Set-DRSolutionNetworkAdapter -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA -interfaceName eth1 -defaultGateway $eth1GatewaySiteA -cidrPrefix $hmsACidr -ipAddress $eth1IpAddressSiteA -ErrorAction Stop | Out-Null
                                                     Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Restart-VMGuest -Confirm:$False | Out-Null                                                
-                                                    do{
+                                                    Do {
                                                         Start-Sleep -Seconds 1
                                                         $vmRestart = Get-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName
                                                         $vamiStatus = Test-VAMIAuthentication -server $hmsAFqdn -user admin -pass $vSRApplianceAdminPassSiteA -ErrorAction SilentlyContinue
                                                     }
-                                                    until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
                                                     $hmsANetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
                                                     if (($hmsANetConfig.defaultGateway -ne $eth1GatewaySiteA) -or ($hmsANetConfig.prefix -ne $hmsACidr) -or ($hmsANetConfig.address -ne $eth1IpAddressSiteA) -or ($trySetHmsANetConfig.successful -eq $false)) {
                                                         $PSCmdlet.ThrowTerminatingError(
@@ -5639,21 +5438,19 @@ Function Set-vSRNetworkConfig {
                                                             )
                                                         )     
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteA\nDestination=$eth1SubnetSiteB' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn
                                                         if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteA") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteB")) {                                                
@@ -5666,8 +5463,7 @@ Function Set-vSRNetworkConfig {
                                                                 )
                                                             )
                                                         } 
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $eth1IpAddressSiteA -ErrorAction SilentlyContinue | Out-Null
@@ -5681,12 +5477,10 @@ Function Set-vSRNetworkConfig {
                                                                 ""
                                                             )
                                                         )
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Output "Configure vSphere Replication appliance ($hmsAVmName) secondary ethernet adapter: SUCCESSFUL"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Warning "vSphere Replication appliance ($hmsAVmName) has more than one ethernet adapter: SKIPPING"
                                                 }
                                                 $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
@@ -5721,12 +5515,12 @@ Function Set-vSRNetworkConfig {
                                                     [int]$hmsBCidr = $eth1SubnetSiteB.Split("/")[1]
                                                     Set-DRSolutionNetworkAdapter -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB -interfaceName eth1 -defaultGateway $eth1GatewaySiteB -cidrPrefix $hmsBCidr -ipAddress $eth1IpAddressSiteB -ErrorAction Stop | Out-Null
                                                     Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Restart-VMGuest -Confirm:$False | Out-Null
-                                                    do{
+                                                    Do {
                                                         Start-Sleep -Seconds 1
                                                         $vmRestart = Get-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName
                                                         $vamiStatus = Test-VAMIAuthentication -server $hmsBFqdn -user admin -pass $vSRApplianceAdminPassSiteB -ErrorAction SilentlyContinue
                                                     }
-                                                    until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
                                                     $hmsBNetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
                                                     if (($hmsBNetConfig.defaultGateway -ne $eth1GatewaySiteB) -or ($hmsBNetConfig.prefix -ne $hmsBCidr) -or ($hmsBNetConfig.address -ne $eth1IpAddressSiteB) -or ($trySetHmsBNetConfig.successful -eq $false)) {
                                                         $PSCmdlet.ThrowTerminatingError(
@@ -5738,21 +5532,19 @@ Function Set-vSRNetworkConfig {
                                                             )
                                                         )     
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn  
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteB\nDestination=$eth1SubnetSiteA' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
                                                         if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteB") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteA")) {
@@ -5765,8 +5557,7 @@ Function Set-vSRNetworkConfig {
                                                                 )
                                                             )
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $eth1IpAddressSiteB -ErrorAction SilentlyContinue | Out-Null
@@ -5780,12 +5571,10 @@ Function Set-vSRNetworkConfig {
                                                                 ""
                                                             )
                                                         )
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Output "Configure vSphere Replication appliance ($hmsBVmName) secondary ethernet adapter: SUCCESSFUL"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Warning "vSphere Replication appliance ($hmsBVmName) has more than one ethernet adapter: SKIPPING"
                                                 }
                                             }
@@ -5798,8 +5587,7 @@ Function Set-vSRNetworkConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5860,13 +5648,12 @@ Function Undo-vSRNetworkConfig {
                                                             ""
                                                         )
                                                     )                                                
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $hmsAVmName = $hmsAFqdn.Split(".")[0]
                                                         $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
                                                         if ($numEthAdaptersA -gt 1) {
-                                                            try {
+                                                            Try {
                                                                 $managementIpA = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
                                                                 Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $managementIpA -ErrorAction SilentlyContinue | Out-Null
                                                                 $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
@@ -5880,8 +5667,7 @@ Function Undo-vSRNetworkConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             if ($VDPortGroupSiteA.Count -gt 1) {
@@ -5890,16 +5676,15 @@ Function Undo-vSRNetworkConfig {
                                                             $hmsAVmPowerState = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName).PowerState
                                                             if ($hmsAVmPowerState -eq "PoweredOn") {
                                                                 Stop-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                do {
+                                                                Do {
                                                                     Start-Sleep -Seconds 1
                                                                     $hmsAVmState = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName
                                                                 }
-                                                                until ($hmsAVmState.PowerState -eq "PoweredOff")
+                                                                Until ($hmsAVmState.PowerState -eq "PoweredOff")
                                                             }
-                                                            try {
+                                                            Try {
                                                                 Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA.Name} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $validateRemovedEth1SiteA = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA}
@@ -5912,22 +5697,18 @@ Function Undo-vSRNetworkConfig {
                                                                         ""
                                                                     )
                                                                 )       
-                                                            }
-                                                            else {
-                                                                try {
+                                                            } else {
+                                                                Try {
                                                                     Start-VM -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                             Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsAVmName): SUCCESSFUL"
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "vSphere Replication appliance ($hmsAVmName) only has one ethernet adapter: SKIPPING"
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5942,13 +5723,12 @@ Function Undo-vSRNetworkConfig {
                                                             ""
                                                         )
                                                     )                                                
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $hmsBVmName = $hmsBFqdn.Split(".")[0]
                                                         $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
                                                         if ($numEthAdaptersB -gt 1) {
-                                                            try {
+                                                            Try {
                                                                 $managementIpB = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
                                                                 Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $managementIpB -ErrorAction SilentlyContinue | Out-Null
                                                                 $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
@@ -5962,8 +5742,7 @@ Function Undo-vSRNetworkConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             if ($VDPortGroupSiteB.Count -gt 1) {
@@ -5972,16 +5751,15 @@ Function Undo-vSRNetworkConfig {
                                                             $hmsBVmPowerState = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName).PowerState
                                                             if ($hmsBVmPowerState -eq "PoweredOn") {
                                                                 Stop-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                do {
+                                                                Do {
                                                                     Start-Sleep -Seconds 1
                                                                     $hmsBVmState = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName
                                                                 }
-                                                                until ($hmsBVmState.PowerState -eq "PoweredOff")
+                                                                Until ($hmsBVmState.PowerState -eq "PoweredOff")
                                                             }
-                                                            try {
+                                                            Try {
                                                                 Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $validateRemovedEth1SiteB = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB}
@@ -5994,22 +5772,18 @@ Function Undo-vSRNetworkConfig {
                                                                         ""
                                                                     )
                                                                 )       
-                                                            }
-                                                            else {
-                                                                try {
+                                                            } else {
+                                                                Try {
                                                                     Start-VM -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                             Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsBVmName): SUCCESSFUL"
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "vSphere Replication appliance ($hmsBVmName) only has one ethernet adapter: SKIPPING"
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -6023,8 +5797,7 @@ Function Undo-vSRNetworkConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6084,14 +5857,13 @@ Function New-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if (!$existingvSrVmkernel) {
@@ -6100,8 +5872,7 @@ Function New-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
+                                } else {
                                     if ($vmHostsToConfigure.Count -ne $siteAIpAddresses.Count) {
                                         $PSCmdlet.ThrowTerminatingError(
                                             [System.Management.Automation.ErrorRecord]::new(
@@ -6111,13 +5882,11 @@ Function New-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
-                                        for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                            try {
+                                    } else {
+                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            Try {
                                                 New-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteAIpAddresses[$i] -SubnetMask $siteANetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
-                                            }
-                                            catch {
+                                            } Catch {
                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                             }
                                         }
@@ -6132,8 +5901,7 @@ Function New-vSRVMkernelPort {
                                                     ""
                                                 )
                                             )
-                                        }
-                                        else {
+                                        } else {
                                             Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                         }
                                     }
@@ -6160,14 +5928,13 @@ Function New-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if (!$existingvSrVmkernel) {
@@ -6176,8 +5943,7 @@ Function New-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
+                                } else {
                                     if ($vmHostsToConfigure.Count -ne $siteBIpAddresses.Count) {
                                         $PSCmdlet.ThrowTerminatingError(
                                             [System.Management.Automation.ErrorRecord]::new(
@@ -6187,13 +5953,11 @@ Function New-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
-                                        for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                            try {
+                                    } else {
+                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            Try {
                                                 New-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteBIpAddresses[$i] -SubnetMask $siteBNetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
-                                            }
-                                            catch {
+                                            } Catch {
                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                             }
                                         }
@@ -6208,8 +5972,7 @@ Function New-vSRVMkernelPort {
                                                     ""
                                                 )
                                             )
-                                        }
-                                        else {
+                                        } else {
                                             Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                         }
                                     }
@@ -6220,8 +5983,7 @@ Function New-vSRVMkernelPort {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6276,8 +6038,7 @@ Function Undo-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
@@ -6292,13 +6053,11 @@ Function Undo-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteAVLAN): SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteA -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6313,8 +6072,7 @@ Function Undo-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                     }
                                 }
@@ -6339,14 +6097,13 @@ Function Undo-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6355,13 +6112,11 @@ Function Undo-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteBVLAN): SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteB -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6376,8 +6131,7 @@ Function Undo-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                     }
                                 }
@@ -6387,8 +6141,7 @@ Function Undo-vSRVMkernelPort {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6457,14 +6210,13 @@ Function New-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6473,33 +6225,31 @@ Function New-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $skipAdd = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                 if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
                                                     $skipAdd = $true
                                                     $skipCountSiteA++
                                                 }
                                             }
                                             if (!$skipAdd) {
-                                                try {
+                                                Try {
                                                     $newStaticRouteArgs = $null
                                                     $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
                                                     $newStaticRouteArgs.gateway = $siteAGateway
                                                     $newStaticRouteArgs.network = $siteBSubnet
                                                     $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                                 $staticRouteValidated = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                     if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
                                                         $staticRouteValidated = $true
                                                     }
@@ -6513,16 +6263,14 @@ Function New-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
                                         }
-                                        catch {
+                                        Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6548,14 +6296,13 @@ Function New-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6564,32 +6311,30 @@ Function New-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $skipAdd = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                 if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                     $skipAdd = $true
                                                 }
                                             }
                                             if (!$skipAdd) {
-                                                try {
+                                                Try {
                                                     $newStaticRouteArgs = $null
                                                     $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
                                                     $newStaticRouteArgs.gateway = $siteBGateway
                                                     $newStaticRouteArgs.network = $siteASubnet
                                                     $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                                 $staticRouteValidated = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                     if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                         $staticRouteValidated = $true
                                                     }
@@ -6603,16 +6348,13 @@ Function New-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         } 
                                     }
@@ -6623,8 +6365,7 @@ Function New-vSREsxiStaticRoute {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6693,14 +6434,13 @@ Function Undo-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6709,10 +6449,9 @@ Function Undo-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $existingRouteToRemove = $null
@@ -6722,14 +6461,13 @@ Function Undo-vSREsxiStaticRoute {
                                                 }
                                             }
                                             if ($existingRouteToRemove) {
-                                                try {
+                                                Try {
                                                     $removeStaticRouteArgs = $null
                                                     $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
                                                     $removeStaticRouteArgs.gateway = $siteAGateway
                                                     $removeStaticRouteArgs.network = $siteBSubnet
                                                     $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
@@ -6748,16 +6486,13 @@ Function Undo-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Remove static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6783,14 +6518,13 @@ Function Undo-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6799,32 +6533,30 @@ Function Undo-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $existingRouteToRemove = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                 if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                     $existingRouteToRemove = $true
                                                 }
                                             }
                                             if ($existingRouteToRemove) {
-                                                try {
+                                                Try {
                                                     $removeStaticRouteArgs = $null
                                                     $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
                                                     $removeStaticRouteArgs.gateway = $siteBGateway
                                                     $removeStaticRouteArgs.network = $siteASubnet
                                                     $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                                 $staticRouteStillExists = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                     if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                         $staticRouteStillExists = $true
                                                     }
@@ -6838,16 +6570,13 @@ Function Undo-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Remove static route vSphere Replication traffic from ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         } 
                                     }
@@ -6858,8 +6587,7 @@ Function Undo-vSREsxiStaticRoute {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6920,16 +6648,14 @@ Function Set-SRMLicenseConfig {
                                                         $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                         if ($licenseExistsA) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) has already been installed on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerA.AddLicense($srmSiteAKey,$null) | Out-Null
                                                                 $licenseManagerA.UpdateViewData()
                                                                 $validateLicenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                                 if ($validateLicenseExistsA) {
                                                                     Write-Output "Add license key for Site Recovery Manager ($srmSiteAKey) to vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been added to vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -6939,8 +6665,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -6952,16 +6677,14 @@ Function Set-SRMLicenseConfig {
                                                         $existingSrmALicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                         if ($existingSrmALicenseKey -eq $srmSiteAKey) {
                                                             Write-Warning "License key ($srmSiteAKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerA.UpdateAssignedLicense($srmAUuid,$srmSiteAKey,$null) | Out-Null
                                                                 $licenseAssignmentManagerA.UpdateViewData() | Out-Null
                                                                 $validateSrmLicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                                 if ($validateSrmLicenseKey -eq $srmSiteAKey) {
                                                                     Write-Output "Configure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -6971,8 +6694,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
@@ -6984,16 +6706,14 @@ Function Set-SRMLicenseConfig {
                                                         $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                         if ($licenseExistsB) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) has already been installed on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerB.AddLicense($srmSiteBKey,$null) | Out-Null
                                                                 $licenseManagerB.UpdateViewData()
                                                                 $validateLicenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                                 if ($validateLicenseExistsB) {
                                                                     Write-Output "Add license key for Site Recovery Manager ($srmSiteBKey) to vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been added to vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7003,8 +6723,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -7016,16 +6735,14 @@ Function Set-SRMLicenseConfig {
                                                         $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                         if ($existingSrmBLicenseKey -eq $srmSiteBKey) {
                                                             Write-Warning "License key ($srmSiteBKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerB.UpdateAssignedLicense($srmBUuid,$srmSiteBKey,$null) | Out-Null
                                                                 $licenseAssignmentManagerB.UpdateViewData() | Out-Null
                                                                 $validateSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                                 if ($validateSrmBLicenseKey -eq $srmSiteBKey) {
                                                                     Write-Output "Configure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7035,8 +6752,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
@@ -7052,8 +6768,7 @@ Function Set-SRMLicenseConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7119,16 +6834,14 @@ Function Undo-SRMLicenseConfig {
                                                         $srmALicenseKeyAlreadyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                         if (!$srmALicenseKeyAlreadyRemoved -or $srmALicenseKeyAlreadyRemoved -eq "00000-00000-00000-00000-00000") {
                                                             Write-Warning "License key ($srmSiteAKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerA.RemoveAssignedLicense($srmAUuid) | Out-Null
                                                                 $licenseAssignmentManagerA.UpdateViewData() | Out-Null
                                                                 $validateSrmALicenseKeyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                                 if (!$validateSrmALicenseKeyRemoved) {
                                                                     Write-Output "Unconfigure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been unconfigured from Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7138,24 +6851,21 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                         if (!$licenseExistsA) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) does not exist on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerA.RemoveLicense($srmSiteAKey) | Out-Null
                                                                 $licenseManagerA.UpdateViewData()
                                                                 $validateLicenseRemovedA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                                 if (!$validateLicenseRemovedA) {
                                                                     Write-Output "Remove license key for Site Recovery Manager ($srmSiteAKey) from vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been removed from vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7165,8 +6875,7 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -7183,16 +6892,14 @@ Function Undo-SRMLicenseConfig {
                                                         $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                         if (!$existingSrmBLicenseKey -or $existingSrmBLicenseKey -eq "00000-00000-00000-00000-00000") {
                                                             Write-Warning "License key ($srmSiteBKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerB.RemoveAssignedLicense($srmBUuid) | Out-Null
                                                                 $licenseAssignmentManagerB.UpdateViewData() | Out-Null
                                                                 $validateSrmBLicenseKeyRemoved = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                                 if (!$validateSrmBLicenseKeyRemoved) {
                                                                     Write-Output "Unconfigure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7202,24 +6909,21 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                         if (!$licenseExistsB) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) does not exist on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerB.RemoveLicense($srmSiteBKey) | Out-Null
                                                                 $licenseManagerB.UpdateViewData() | Out-Null
                                                                 $validateLicenseBRemoved = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                                 if (!$validateLicenseBRemoved) {
                                                                     Write-Output "Remove license key for Site Recovery Manager ($srmSiteBKey) from vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been removed from vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7229,8 +6933,7 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -7246,8 +6949,7 @@ Function Undo-SRMLicenseConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
