@@ -22086,7 +22086,7 @@ Function Get-NsxtEdgeNode {
         The Get-NsxtEdgeNode cmdlet returns the details of an NSX Edge node
 
         .EXAMPLE
-        Get-NsxtEdgeNode -transportNodeId sfo-w01-nsx01.sfo.rainpole.io
+        Get-NsxtEdgeNode -transportNodeId 7740f2da-83b5-40de-bc4c-665ea779bbd0
         This example returns the details of an NSX Edge node
     #>
 
