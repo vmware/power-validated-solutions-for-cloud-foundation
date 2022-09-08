@@ -26357,7 +26357,7 @@ Function New-vRAvROPSIntegrationItem {
         - Creates vRealize Operations Manager integration in vRealize Automation
 
         .EXAMPLE
-        New-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re123!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re123!" -vropsIntegrationUser  "admin" -vropsIntegrationPass "VMw@re123!" -vropsIntegrationName "vRealize Operations Manager"
+        New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "vRealize Operations Manager"
         This example creates vRealize Operations Manager integration with name "vRealize Operations Manager" in vRealize Automation
     #>
 
