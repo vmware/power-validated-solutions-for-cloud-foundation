@@ -8,27 +8,27 @@
     Generate Password Policy Report and configure Password Policies 
 
     .DESCRIPTION
-    The passwordpolicymanager.ps1 provides a single script to generate a Password Policy Report for audit purposes and to 
+    The passwordPolicyManager.ps1 provides a single script to generate a Password Policy Report for audit purposes and to 
 	configure password policies based on a standard common policies configuration.   
 
 	.EXAMPLE
-	passwordpolicymanager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.json" -commonPolicyFile ".\standardConfigure.json" -publishJSON
+	passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.json" -commonPolicyFile ".\standardConfigure.json" -publishJSON
 	Generates a Password Policy Report to a JSON file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes and highlights differences between the policies collected against a common policy file based on the -commonPolicyFile parameter.
 
     .EXAMPLE
-    passwordpolicymanager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -publishHTML
+    passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -publishHTML
     Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes.
 	
 	.EXAMPLE
-    passwordpolicymanager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -commonPolicyFile ".\standardConfigure.json" -publishHTML
+    passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -commonPolicyFile ".\standardConfigure.json" -publishHTML
     Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes and highlights differences between the policies collected against a common policy file based on the -commonPolicyFile parameter.
 
 	.EXAMPLE
-	passwordpolicymanager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -commonPolicyFile ".\standardConfigure.json" -configurePasswordPolicy
+	passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -commonPolicyFile ".\standardConfigure.json" -applyPasswordPolicy
     Configures password policies as defined by the common policy file based on the -commonPolicyFile parameter for all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes for a given Workload Domain.
 
 	.EXAMPLE
-    passwordpolicymanager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-w01 -ssoFqdn sfo-m01-vc01.sfo.rainpole.io -ssoUser administrator@vsphere.local -ssoPass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaAdminPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -publishHTML
+    passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-w01 -ssoFqdn sfo-m01-vc01.sfo.rainpole.io -ssoUser administrator@vsphere.local -ssoPass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaAdminPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -publishHTML
     Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, NSX Manager, NSX Edge and Workspace ONE Access nodes and a vCenter Single-Sign On external to the provided Workload Domain. 
 #>
 Param (
@@ -47,7 +47,7 @@ Param (
 	[Parameter (mandatory = $false)] [Switch]$publishHTML = $false,
 	[Parameter (mandatory = $false)] [Switch]$publishJSON = $false,
 	[Parameter (mandatory = $false)] [Switch]$driftOnly = $false,
-	[Parameter (mandatory = $false)] [Switch]$configurePasswordPolicy = $false
+	[Parameter (mandatory = $false)] [Switch]$applyPasswordPolicy = $false
 )
 
 ################ Perform Prerequisite Check ####################
@@ -351,6 +351,7 @@ Function parseProductTypeSSOConfiguration{
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$productConfiguration,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues
 	)
+
 	$SSOConfigTypeValues =  New-Object -TypeName psobject
 	$SSOConfigTypeValues | Add-Member -notepropertyname "passwdExpInDays" -notepropertyvalue "Default" 
 	$SSOConfigTypeValues | Add-Member -notepropertyname "passwdHistoryRestriction" -notepropertyvalue "Default"
@@ -389,6 +390,7 @@ Function parseProductTypeNSXMgrConfiguration {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$productConfiguration,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues
 	)
+
 	$NSXMgrConfigTypeValues =  New-Object -TypeName psobject
 	$NSXMgrConfigTypeValues | Add-Member -notepropertyname "passwdMinimumLength" -notepropertyvalue "Default" 
 	$NSXMgrConfigTypeValues | Add-Member -notepropertyname "apiPasswdMaxFailAttempts" -notepropertyvalue "Default"
@@ -430,6 +432,7 @@ Function parseProductTypeNSXEdgeConfiguration {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$productConfiguration,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues
 	)
+
 	$NSXEdgeConfigTypeValues =  New-Object -TypeName psobject
 	$NSXEdgeConfigTypeValues | Add-Member -notepropertyname "passwdMinimumLength" -notepropertyvalue "Default" 
 	$NSXEdgeConfigTypeValues | Add-Member -notepropertyname "cliPasswdMaxFailAttempts" -notepropertyvalue "Default"
@@ -463,6 +466,7 @@ Function parseProductTypeWSAConfiguration {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$productConfiguration,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues
 	)
+
 	$WSAConfigTypeValues =  New-Object -TypeName psobject
 	$WSAConfigTypeValues | Add-Member -notepropertyname "passwdExpInDays" -notepropertyvalue "Default" 
 	$WSAConfigTypeValues | Add-Member -notepropertyname "passwdHistoryRestriction" -notepropertyvalue "Default"
@@ -506,6 +510,7 @@ Function checkRange() {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$maxRange,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$required
 	)
+
 	if (($value -eq "Null") -and ($required -eq $true)) {
 		Write-LogMessage -Type ERROR -Message "$name variable has not been configured, please double check the standard configuration json file"  -Colour Red
 		return $false
@@ -543,7 +548,7 @@ Function importStandardConfigurations {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues,
-        [Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
+		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
 	)
 	
 	#checking for file exists:
@@ -694,11 +699,11 @@ Function importStandardConfigurations {
 #############################################################################
 ####  Get-EnvironmentPasswordPolicyDetail will retrieve password policy #####
 ####  of each components under a workload domain                        #####
-Function GetEsxiPasswordPolicy {
+Function getEsxiPasswordPolicy {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
 	)
@@ -737,11 +742,11 @@ Function GetEsxiPasswordPolicy {
 	return $passwordPolicyNodes
 }
 
-Function GetVCServerPasswordPolicy {
+Function getVCServerPasswordPolicy {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
 	)
 	
@@ -763,14 +768,14 @@ Function GetVCServerPasswordPolicy {
 	return $passwordPolicyNodes
 }
 
-Function GetSingleSignOnPasswordPolicy {
+Function getSingleSignOnPasswordPolicy {
 	<#
         Retrieves Single Sign On servers' Password Policies
     #>
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
 	)
 	
 	#construct Environment Object
@@ -828,15 +833,15 @@ Function GetSingleSignOnPasswordPolicy {
     }
 }
 
-Function GetNsxtManagerPasswordPolicy {
+Function getNsxtManagerPasswordPolicy {
 	<#
-        Retrieves NSX Manager Password Policies
-    #>
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
-    )
+		Retrieves NSX Manager Password Policies
+		#>
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+	)
 
 	$passwordPolicyNodes = New-Object System.Collections.Generic.List[System.Object]
 	$nsxtConfigTypeValues =  New-Object -TypeName psobject
@@ -894,32 +899,15 @@ Function GetNsxtManagerPasswordPolicy {
 	}
 }
 
-Function GetNsxtEdgeNode {
-	<#
-        Retrieving NSX Edge Node details from Transport Node ID
-    #>
-	Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportNodeID
-    )
-    Try {
-        $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeID"
-        $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
-        $response
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-
-Function GetNsxtEdgeNodePasswordPolicy {
+Function getNsxtEdgeNodePasswordPolicy {
 	<#
         Retrieve NSX Edge Node servers' Password Policy
     #>
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
-    )
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+	)
 
 	$passwordPolicyNodes = New-Object System.Collections.Generic.List[System.Object]
 	$count = 0
@@ -945,7 +933,7 @@ Function GetNsxtEdgeNodePasswordPolicy {
 						$nsxtConfigTypeValues.cliPasswdMaxFailAttempts = $response.cli_max_auth_failures
 						$nsxtConfigTypeValues.cliPasswdMaxFailIntervalInSec = $response.cli_failed_auth_lockout_period  
 
-						$nsxtEdgeNodeAdds = GetNsxtEdgeNode -transportNodeID $nsxtEdgeNode.transport_node_id
+						$nsxtEdgeNodeAdds = Get-NsxtEdgeNode -transportNodeID $nsxtEdgeNode.transport_node_id
 						$nodeConfigValue = New-Object -TypeName psobject
 						$nodeConfigValue | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNodeAdds.node_deployment_info.node_settings.hostname
 						$nodeConfigValue | Add-Member -notepropertyname "productType" -notepropertyvalue "NSXEdge"
@@ -978,21 +966,21 @@ Function GetNsxtEdgeNodePasswordPolicy {
 	}
 }
 
-Function GetWSAPasswordPolicyAll {
+Function getWSAPasswordPolicyAll {
 	<#
-        .SYNOPSIS
-        Retrieve Workspace ONE Access servers' Password Policy
+		.SYNOPSIS
+		Retrieve Workspace ONE Access servers' Password Policy
 
-        .DESCRIPTION
-        The Get-WSAPasswordPolicyAll cmdlet returns an custom object contains the current configured password policy for Workpace One Access server. 
+		.DESCRIPTION
+		The Get-WSAPasswordPolicyAll cmdlet returns an custom object contains the current configured password policy for Workpace One Access server. 
 		- Validates that network connectivity is possible to Workspace ONE Access
-        - Retrieve Workspace ONE Access Password Policy	
-    #>
+		- Retrieve Workspace ONE Access Password Policy	
+	#>
 	Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
-    )
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+	)
 	
 	$passwordPolicyNodes = New-Object System.Collections.Generic.List[System.Object]
 
@@ -1040,11 +1028,12 @@ Function GetWSAPasswordPolicyAll {
     }
 }
 
-Function GetEnvironmentPasswordPolicyDetail {
+Function getEnvironmentPasswordPolicyDetail {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
-        [Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
+		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
 	)
+
 	if ($ppmVariables.isEnvDetailSet -eq $false) {
 		Write-LogMessage -type INFO -Message "Retrieving Environment Details...(this might take a while depends on the number of ESXi hosts)" -Colour Yellow
 		
@@ -1055,7 +1044,7 @@ Function GetEnvironmentPasswordPolicyDetail {
 		$ppmVariables.esxiCluster = $clusterID
 		foreach ($cid in $ppmVariables.esxiCluster.clusters.id) {
 			$cluster = Get-VCFCluster -id $cid
-			$results = GetEsxiPasswordPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName -cluster $cluster.name
+			$results = getEsxiPasswordPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName -cluster $cluster.name
 			foreach ($result in $results) {
 				$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 				$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
@@ -1066,14 +1055,14 @@ Function GetEnvironmentPasswordPolicyDetail {
 		
 		##Retrieve VC password policy details 
 		Write-LogMessage -type INFO -Message "Retrieving VC server instance..."
-		$result = GetVCServerPasswordPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
+		$result = getVCServerPasswordPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
 		$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 		$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 		$ppmEnvironmentalDetails.Add($result)
 		Write-LogMessage -type INFO -Message "Retrieving VC server instance...complete"
 		
 		##Retrieve SSO password policy details
-		$result = GetSingleSignOnPasswordPolicy -server $ppmVariables.ssoServerFqdn -user $ppmVariables.ssoServerUser -pass $ppmVariables.ssoServerPass
+		$result = getSingleSignOnPasswordPolicy -server $ppmVariables.ssoServerFqdn -user $ppmVariables.ssoServerUser -pass $ppmVariables.ssoServerPass
 		$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 		$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 		$ppmEnvironmentalDetails.Add($result)
@@ -1081,13 +1070,13 @@ Function GetEnvironmentPasswordPolicyDetail {
 		##Retrieve NSX-T Manager password policy details
 		$nsxtManagerDetails = Get-NsxtServerDetail -fqdn $ppmVariables.sddcManagerFqdn -username $ppmVariables.sddcManagerUser -password $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName -listNodes
 		foreach ($nsxtManagerNode in $nsxtManagerDetails.nodes) {
-			$result = GetNsxtManagerPasswordPolicy  -server $nsxtManagerNode.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass
+			$result = getNsxtManagerPasswordPolicy  -server $nsxtManagerNode.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass
 			$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 			$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 			$ppmEnvironmentalDetails.Add($result)
 		}		
 		##Retrieve NSX-T Edge password policy details
-		$results = GetNsxtEdgeNodePasswordPolicy -server $nsxtManagerDetails.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass
+		$results = getNsxtEdgeNodePasswordPolicy -server $nsxtManagerDetails.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass
 		foreach ($result in $results) {
 			$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 			$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
@@ -1096,7 +1085,7 @@ Function GetEnvironmentPasswordPolicyDetail {
 		##Retrieve WSA Password policy details
 		if ($ppmVariables.wsaFqdn -and $ppmVariables.wsaAdminUser -and $ppmVariables.wsaAdminPass) {
 			Write-LogMessage -type INFO -Message "Retrieving Workspace ONE Access server password policy..."
-			$result = GetWSAPasswordPolicyAll -server $ppmVariables.wsaFqdn -user $ppmVariables.wsaAdminUser -pass $ppmVariables.wsaAdminPass
+			$result = getWSAPasswordPolicyAll -server $ppmVariables.wsaFqdn -user $ppmVariables.wsaAdminUser -pass $ppmVariables.wsaAdminPass
 			$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 			$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 			$ppmEnvironmentalDetails.Add($result)
@@ -1113,15 +1102,15 @@ Function GetEnvironmentPasswordPolicyDetail {
 ################################################################################
 ####   Print current environment password policies settings as html file	####
 ################################################################################
-Function ExportReportHTML {
+Function exportReportHTML {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues,
-        [Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
+		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
 		[Parameter (mandatory = $false)] [Switch]$doComparison = $false
 	) 
 		#retrieving environmental details
-	GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+	getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 	$count = 0
 		#addressing comparison reports
 	if ($doComparison -eq $true) {
@@ -1193,14 +1182,15 @@ Function ExportReportHTML {
 ################################################################################
 ####   Print current environment password policies settings as JSON file	####
 ################################################################################
-Function ExportReportJSON {
+Function exportReportJSON {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues,
-        [Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
+		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
 		[Parameter (mandatory = $false)] [Switch]$doComparison = $false,
 		[Parameter (mandatory = $false)] [Switch]$onlyDrift = $false
 	)
+
 	$count = 0
 	#addressing comparison reports
 	if ($doComparison -eq $true) {
@@ -1250,12 +1240,13 @@ Function ExportReportJSON {
 ####   configure environment password policies settings from the 			####
 ####   standard configuration file 											####
 ################################################################################
-Function SetEnvironmentPasswordPolicy {
+Function setEnvironmentPasswordPolicy {
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues,
-        [Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
+		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
 	)
+
 	$count = 0
 	foreach($eachNode in $ppmEnvironmentalDetails){
 		$eachNode.productAttributes.driftAlarm = "Green"
@@ -1411,42 +1402,42 @@ Function SetEnvironmentPasswordPolicy {
 
 # MAIN FUNCTION
 Try {
-	if ((($publishHTML -or $publishJSON) -and $configurePasswordPolicy) -or ($publishHTML -and $publishJSON)) {
-		Write-LogMessage -Type ERROR -Message "Error multiple options triggered.  Please request only one option -publishJSON, -publishHTML or -configurePasswordPolicy" -Colour Red
+	if ((($publishHTML -or $publishJSON) -and $applyPasswordPolicy) -or ($publishHTML -and $publishJSON)) {
+		Write-LogMessage -Type ERROR -Message "Error multiple options triggered.  Please request only one option -publishJSON, -publishHTML or -applyPasswordPolicy" -Colour Red
 		Exit
 	}
 	elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		ExportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
 	}
 	elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly -eq $false) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		ExportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -doComparison
+		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -doComparison
 		Exit
 	}
 	elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $false) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		ExportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -doComparison
+		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -doComparison
 		Exit
 	}
 	elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $true) {
-		GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		ExportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
 	}
 	elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $true) {
-		GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		ExportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
 	}
-	elseif ($configurePasswordPolicy) {
+	elseif ($applyPasswordPolicy) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		GetEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		SetEnvironmentPasswordPolicy -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+		setEnvironmentPasswordPolicy -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
 	}
 	
