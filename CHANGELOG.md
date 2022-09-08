@@ -1,8 +1,9 @@
 # Release History
 
 ## Unreleased
-- Adds region blocks for easier code navigation.
-- Added a the vRealize Automation Cloud to vSphere integration role for Cloud Assembly.
+- Added region blocks for easier code navigation.
+- Added the vRealize Automation Cloud to vSphere integration role for Cloud Assembly.
+- Added the vRealize Suite Lifecycle Manager to vSphere integration role.
 - Adds `Test-vROPsAdapterStatus` and `Test-vROPsAdapterStatusByType` cmdlets to test the status vRealize Operations adapters.
 - Enhanced the `Request-CSPToken` cmdlet to request a token from VMware Cloud.
 - Renamed to `Get-CSPPoxyAppliance` cmdlet to `Get-CloudProxy` and added:
