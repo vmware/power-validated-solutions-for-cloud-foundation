@@ -13926,23 +13926,19 @@ Function Add-vCenterGlobalPermission {
                                     if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
                                             Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain)"
-                                        }
-                                        else {
+                                        } else {
                                             if ($type -eq "group") {
                                                 if (!$localDomain) {
                                                     $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                                                }
-                                                else {
+                                                } else {
                                                     $principal = $domain.ToUpper() + "\" + $principal
                                                     $objectCheck = (Get-VIAccount -Group -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
                                                 }
-                                            }
-                                            elseif ($type -eq "user") {
+                                            } elseif ($type -eq "user") {
                                                 if (!$localDomain){
                                                     $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                     $principal = $domain.ToUpper() + "\" + $principal
-                                                }
-                                                else {
+                                                } else {
                                                     $principal = $domain.ToUpper() + "\" + $principal
                                                     $objectCheck = (Get-VIAccount -User -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
                                                 }
@@ -13953,16 +13949,13 @@ Function Add-vCenterGlobalPermission {
                                                 $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal.Split("\")[-1]})
                                                 if ($roleAssigned | Where-Object {$_.Role -eq $role}) {
                                                     Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 if ($localDomain) {
                                                     Write-Error "Unable to find $type ($principal) in Local Domain, create and retry: PRE_VALIDATION_FAILED"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                 }
                                             }
@@ -13970,8 +13963,7 @@ Function Add-vCenterGlobalPermission {
                                     }
                                     Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
@@ -13981,8 +13973,7 @@ Function Add-vCenterGlobalPermission {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14031,18 +14022,15 @@ Function Undo-vCenterGlobalPermission {
                             if (Get-GlobalPermission | Where-Object {$_.Principal -match $principal}) {
                                 if ($PsBoundParameters.ContainsKey("localDomain")) {
                                     Remove-GlobalPermission -principal ($domain.ToUpper()+"\"+$principal) -type $type | Out-Null
-                                }
-                                else {
+                                } else {
                                     Remove-GlobalPermission -principal $principal -type $type | Out-Null
                                 }
                                 if (!(Get-GlobalPermission | Where-Object {$_.Principal -match $principal})) {
                                     Write-Output "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal), already removed: SKIPPED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
@@ -14052,8 +14040,7 @@ Function Undo-vCenterGlobalPermission {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14113,47 +14100,38 @@ Function Set-vCenterPermission {
                                                             $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"})
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 Write-Error "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName): POST_VALIDATION_FAILED"
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName), already assigned: SKIPPED"
                                                         }
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName), check folderName and folderType: PRE_VALIDATION_FAILED"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to find $($folderType.ToLower()) folder ($folderName) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VAILIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 if ($folderName -or $folderType) {
                                                 Write-Error "Only one of -folderName or -folderType parameters provided: PRE_VALIDATATION_FAILED"
-                                            }
-                                                else {
+                                                } else {
                                                     if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"}))  {
                                                         if (!($objectCheck.Role -eq $role)) {
                                                             New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"}) | Out-Null
                                                             $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"})
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 Write-Error "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal): POST_VALIDATION_FAILED"
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal), already assigned: SKIPPED"
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find ($principal) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VAILIDATION_FAILED"
                                         }
                                     }
@@ -14161,14 +14139,12 @@ Function Set-vCenterPermission {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-	}
-    Catch {
+	} Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14234,19 +14210,15 @@ Function Add-SsoPermission {
                                                             $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                             if (Get-SsoGroup -Group $targetGroup -Name $principal) {
                                                                 Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
+                                                            } else {  Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
-                                                            else {  Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
-                                                            }
-                                                        }
-                                                        else { 
+                                                        } else { 
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                         }
-                                                    }
-                                                    else { 
+                                                    } else { 
                                                         Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                     }
-                                                }
-                                                elseif ($type -eq "user") {
+                                                } elseif ($type -eq "user") {
                                                     $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                     if ($adObjectCheck) {
                                                         if (!(Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal})) {
@@ -14257,39 +14229,32 @@ Function Add-SsoPermission {
                                                             }
                                                             else { Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                         }
-                                                    }
-                                                    else { 
+                                                    } else { 
                                                         Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                     }
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                         }
                                         Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
                                     }
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
             }
-        }
-        elseif ($source -eq "local") {
+        } elseif ($source -eq "local") {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
@@ -14303,36 +14268,29 @@ Function Add-SsoPermission {
                                                 $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail) {
                                                     Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning SSO On Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain).already exists: SKIPPED"
                                             }
-                                        }
-                                        elseif ($type -eq "user") {
+                                        } elseif ($type -eq "user") {
                                             if (!(Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail | Where-Object {$_.Name -eq $principal})) {
                                                 $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                 $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail| Where-Object {$_.Name -eq $principal}) {
                                                     Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
@@ -14342,8 +14300,7 @@ Function Add-SsoPermission {
                 }   
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14399,48 +14356,41 @@ Function Undo-SsoPermission {
                                                     $ldapGroup | Remove-GroupFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                     if (!(Get-SsoGroup -Group $targetGroup -Name $principal)) {
                                                         Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                     }
-                                                    else {  Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
-                                                    }
-                                                }
-                                                else { 
+                                                } else { 
                                                     Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                                 }
-                                            }
-                                            elseif ($type -eq "user") {
+                                            } elseif ($type -eq "user") {
                                                 if (Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal}) {
                                                     $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                     $ldapUser | Remove-UserFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                     if (!(Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal})) {
                                                         Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                     }
-                                                    else { Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
-                                                    }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
                                 }
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
             }
-        }
-        elseif ($source -eq "local") {
+        } elseif ($source -eq "local") {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
@@ -14454,36 +14404,29 @@ Function Undo-SsoPermission {
                                                 $ldapGroup | Remove-GroupFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail)) {
                                                     Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Removing SSO On Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                             }
-                                        }
-                                        elseif ($type -eq "user") {
+                                        } elseif ($type -eq "user") {
                                             if (Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail | Where-Object {$_.Name -eq $principal}) {
                                                 $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                 $ldapUser | Remove-UserFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (!(Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail| Where-Object {$_.Name -eq $principal})) {
                                                     Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
@@ -14493,8 +14436,7 @@ Function Undo-SsoPermission {
                 }   
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14536,12 +14478,10 @@ Function Add-SsoUser {
                                 New-SsoPersonUser -UserName $ssoUser -Password $ssoPass -Server $ssoConnectionDetail | Out-Null
                                 if (Get-SsoPersonUser -Domain vsphere.local -Name $ssoUser -Server $ssoConnectionDetail) {
                                     Write-Output "Adding New Single Sign-On User to vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding New Single Sign-On User to vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding New Single Sign-On User to vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser), already exists: SKIPPED"
                             }
                             Disconnect-SsoAdminServer $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
@@ -14550,9 +14490,7 @@ Function Add-SsoUser {
                 }                             
             }
         }
-
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14587,8 +14525,7 @@ Function Add-vSphereRole {
     Try {
         if (!$PsBoundParameters.ContainsKey("template")) {
             $template = Get-ExternalFileName -title "Select the vSphere role template (.role)" -fileType "role" -location "C:\Program Files\WindowsPowerShell\Modules\PowerValidatedSolutions\vSphereRoles"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $template)) {
                 Write-Error  "vSphere Role Template '$template' File Not Found"
                 Break
@@ -14610,12 +14547,10 @@ Function Add-vSphereRole {
                                         }
                                     }
                                     Write-Output "Creating a new role in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Creating a new role in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating a new role in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName), already exists: SKIPPED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -14624,8 +14559,7 @@ Function Add-vSphereRole {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14665,12 +14599,10 @@ Function Undo-vSphereRole {
                                 Remove-VIRole -Role $roleName -Server $vcfVcenterDetails.fqdn -Force -Confirm:$false | Out-Null
                                 if (!(Get-VIRole -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $roleName })) {
                                     Write-Output "Removing a role from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing a role from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing a role from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName), already exists: SKIPPED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -14679,8 +14611,7 @@ Function Undo-vSphereRole {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14725,13 +14656,11 @@ Function Add-VMFolder {
                                 $datacenter = (Get-Datacenter -Cluster $cluster -Server $vcfVcenterDetails.fqdn).Name
                                 if (Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore) {
                                     Write-Warning "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName), already exists: SKIPPED"
-                                }
-                                else {
+                                } else {
                                     (Get-View -Server $vcfVcenterDetails.fqdn (Get-View -Server $vcfVcenterDetails.fqdn -viewtype datacenter -filter @{"name" = [String]$datacenter }).vmfolder).CreateFolder($folderName) | Out-Null
                                     if ((Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)) {
                                         Write-Output  "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName): POST_VALIDATION_FAILED"
                                     }
                                 }
@@ -14739,14 +14668,12 @@ Function Add-VMFolder {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14790,13 +14717,11 @@ Function Undo-VMFolder {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (!(Get-Folder -Name $folderName -Type $folderType -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                     Write-Warning "Removing Folder Type ($folderType) from vCenter Server ($($vcfVcenterDetails.fqdn)) with name ($folderName), folder does not exist: SKIPPED"
-                                }
-                                else {
+                                } else {
                                     Get-Folder -Name $folderName -Type $folderType -Server $vcfVcenterDetails.fqdn | Remove-Folder -Confirm:$false -ErrorAction Ignore
                                     if (!(Get-Folder -Name $folderName -Type $folderType -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                         Write-Output  "Removing Folder Type ($folderType) from vCenter Server ($($vcfVcenterDetails.fqdn)) with name ($folderName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Folder Type ($folderType) from vCenter Server ($($vcfVcenterDetails.fqdn)) with name ($folderName): POST_VALIDATION_FAILED"
                                     }
                                 }
@@ -14804,14 +14729,12 @@ Function Undo-VMFolder {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14855,33 +14778,26 @@ Function Add-ResourcePool {
                             New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcenter.fqdn | Out-Null
                             if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
                                 Write-Output "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Error "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
                             }
-                        }
-                        else {
+                        } else {
                             Write-Warning "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
                         }
                         Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
                 }
-            }
-            else {
+            } else {
                 Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address"
         } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14925,33 +14841,26 @@ Function Undo-ResourcePool {
                             Remove-ResourcePool -ResourcePool $resourcePoolName -Server $vcenter.fqdn -Confirm:$false | Out-Null
                             if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
                                 Write-Output "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Error "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
                             }
-                        }
-                        else {
+                        } else {
                             Write-Warning "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), does not exist: SKIPPED"
                         }
                         Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
                 }
-            }
-            else {
+            } else {
                 Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14998,26 +14907,22 @@ Function Add-AntiAffinityRule {
                                     New-DrsRule -Cluster $cluster -Name $ruleName -VM $vms -KeepTogether $false -Enabled $true | Out-Null
                                     if ((Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})) {
                                         Write-Output "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED" 
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15061,26 +14966,22 @@ Function Undo-AntiAffinityRule {
                                     Remove-DrsRule -Rule (Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName}) -Confirm:$false | Out-Null
                                     if (!(Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})) {
                                         Write-Output "Removing Anti-Affinity Rule from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Anti-Affinity Rule from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Anti-Affinity Rule from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already removed: SKIPPED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15127,12 +15028,10 @@ Function Add-ClusterGroup {
                                     New-DrsClusterGroup -Cluster $cluster -VM $vms -Name $drsGroupName | Out-Null
                                     if (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName}) {
                                         Write-Output "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), already exists: SKIPPED"
                                     
                                 }
@@ -15140,14 +15039,12 @@ Function Add-ClusterGroup {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15192,31 +15089,26 @@ Function Undo-ClusterGroup {
                                         Remove-DrsClusterGroup -DrsClusterGroup $drsGroupName -Server $($vcfVcenterDetails.fqdn) -Confirm:$false | Out-Null
                                         if (!(Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName})) {
                                             Write-Output "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), already removed: SKIPPED"
                                         
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to remove vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), in use by VM to VM Group: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15265,34 +15157,28 @@ Function Add-VmStartupRule {
                                             Start-Sleep 5
                                             if (Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName) {
                                                 Write-Output "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "vSphere DRS Group (VM Group to start after dependency) in vCenter Server ($($vcfVcenterDetails.fqdnn)) named ($dependOnVmGroup), does not exist: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "vSphere DRS Group (VM Group to start first) in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vmGroup), does not exist: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15337,26 +15223,22 @@ Function Undo-VmStartupRule {
                                     Start-Sleep 3
                                     if (!(Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName)) {
                                         Write-Output "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15402,28 +15284,23 @@ Function Move-VMtoFolder {
                                 if (Get-VM -Name $vm -ErrorAction SilentlyContinue) {
                                     Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null
                                     Write-Output "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Relocating Virtual Machines in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Write-Error "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) folder ($folder), Folder not found: PRE_VALIDATION_FAILED"
                         }
                         Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn)): PRE_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15475,18 +15352,15 @@ Function Import-vRSLCMLockerCertificate {
                             if (!(Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
                                 if ($PsBoundParameters.ContainsKey("certificatePassphrase")) {
                                     Add-vRSLCMLockerCertificate -vrslcmFQDN $vcfVrslcmDetails.fqdn -certificateAlias $certificateAlias -certificatePassphrase $certificatePassphrase -certChainPath $certChainPath | Out-Null
-                                }
-                                else {
+                                } else {
                                     Add-vRSLCMLockerCertificate -vrslcmFQDN $vcfVrslcmDetails.fqdn -certificateAlias $certificateAlias -certChainPath $certChainPath | Out-Null
                                 }
                                 if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
                                     Write-Output "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), already exist: SKIPPED"
                             }
                         }
@@ -15494,8 +15368,7 @@ Function Import-vRSLCMLockerCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15537,12 +15410,10 @@ Function Undo-vRSLCMLockerCertificate {
                                 Remove-vRSLCMLockerCertificate -vmid (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias}).vmid | Out-Null
                                 if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
                                     Write-Error "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
-                                }
-                                else {
+                                } else {
                                     Write-Output "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), does not exist: SKIPPED"
                             }
                         }
@@ -15550,8 +15421,7 @@ Function Undo-vRSLCMLockerCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15594,18 +15464,15 @@ Function New-vRSLCMLockerPassword {
                             if (!(Get-vRSLCMLockerPassword -alias $alias)) {
                                 if ($PsBoundParameters.ContainsKey("description")) {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -description $description -userName $userName
-                                }
-                                else {
+                                } else {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
                                 }
                                 if ((Get-vRSLCMLockerPassword -alias $alias)) {
                                     Write-Output "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                             }
                         }
@@ -15613,8 +15480,7 @@ Function New-vRSLCMLockerPassword {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15655,12 +15521,10 @@ Function Undo-vRSLCMLockerPassword {
                                 Remove-vRSLCMLockerPassword -vmid (Get-vRSLCMLockerPassword -alias $alias).vmid | Out-Null
                                 if ((Get-vRSLCMLockerPassword -alias $alias)) {
                                     Write-Error "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
-                                }
-                                else {
+                                } else {
                                     Write-Output "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
                             }
                         }
@@ -15668,8 +15532,7 @@ Function Undo-vRSLCMLockerPassword {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15715,20 +15578,16 @@ Function New-vRSLCMLockerLicense {
                                     if ($status -match "COMPLETED") {
                                         if ((Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license})) {
                                             Write-Output "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "$status"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with license ($license), already exists: SKIPPED"
                             }
                         }
@@ -15736,8 +15595,7 @@ Function New-vRSLCMLockerLicense {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15778,12 +15636,10 @@ Function Undo-vRSLCMLockerLicense {
                                 Remove-vRSLCMLockerLicense -vmid (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias}).vmid | Out-Null
                                 if (Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license}) {
                                     Write-Error "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
-                                }
-                                else {
+                                } else {
                                     Write-Output "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
                             }
                         }
@@ -15791,8 +15647,7 @@ Function Undo-vRSLCMLockerLicense {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15834,12 +15689,10 @@ Function New-vRSLCMDatacenter {
                                 Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location | Out-Null
                                 if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
                                     Write-Output "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
                                 }
-                            }  
-                            else {
+                            }   else {
                                 Write-Warning "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
                             }
                         }
@@ -15847,8 +15700,7 @@ Function New-vRSLCMDatacenter {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15894,20 +15746,16 @@ Function New-vRSLCMDatacenterVcenter {
                                         Start-Sleep 5
                                         if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
                                             Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Password alias in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($userLockerAlias): PRE_VALIDATION_FAILED"
                                 }
-                            }  
-                            else {
+                            } else {
                                 Write-Error "Unable to find Datacenter named ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -15915,8 +15763,7 @@ Function New-vRSLCMDatacenterVcenter {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -15958,12 +15805,10 @@ Function Undo-vRSLCMDatacenter {
                                 Start-Sleep 2
                                 if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
                                     Write-Output "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
                                 }
-                            }  
-                            else {
+                            }   else {
                                 Write-Warning "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
                             }
                         }
@@ -15971,8 +15816,7 @@ Function Undo-vRSLCMDatacenter {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16016,19 +15860,16 @@ Function Add-VmGroup {
                             $vmNames = $vmList.split(",")
                             foreach ($vm in $vmNames) { Set-DrsClusterGroup -VM $vm -Server $vcenter.fqdn -DrsClusterGroup (Get-DrsClusterGroup | Where-Object {$_.Name -eq $name} -WarningAction SilentlyContinue -ErrorAction Ignore) -Add | Out-Null }
                             Write-Output "Adding Virtual Machines ($vmList) to VM/Host Group in vCenter Server ($($vcenter.fqdn)) named ($name): SUCCESSFUL"
-                        }
-                        else {
+                        } else {
                             Write-Error "Adding Virtual Machines ($vmList) to VM/Host Group in vCenter Server ($($vcenter.fqdn)) named ($name), does not exist or not a VM Group: POST_VALIDATION_FAILED"
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn)): PRE_VALIDATION_FAILED"
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16095,8 +15936,7 @@ Function Add-WorkspaceOneDirectoryGroup {
                                     'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
                                     'selected'    = $true
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Group $group is not available in Active Directory Domain"
                             }
                         }
@@ -16122,18 +15962,15 @@ Function Add-WorkspaceOneDirectoryGroup {
                         Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
                         Remove-Item .\adGroups.json -Force -Confirm:$false
                         Write-Output "Adding Active Directory Groups in Workspace ONE Access ($server): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Active Directory Domain ($domain) does not exist, check details and try again: PRE_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Domain User ($bindUser) Authentication Failed: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16182,7 +16019,6 @@ Function Undo-WorkspaceOneDirectoryGroup {
                             $allGroups.Add($newGroup)
                         }
                         $allGroups.ToArray() | Out-Null
-
                         $mappedGroupObject = @()
                         foreach ($group in $allGroups) {
                             $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user $bindUser -pass $bindPass -principal $group
@@ -16199,8 +16035,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
                                     'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
                                     'selected'    = $true
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Group $group is not available in Active Directory Domain"
                             }
                         }
@@ -16219,24 +16054,20 @@ Function Undo-WorkspaceOneDirectoryGroup {
                             'excludeNestedGroupMembers' = $false
                         }
                         $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10 
-
                         $adGroupJson | Out-File -Encoding UTF8 -FilePath .\adGroups.json
                         Set-WSADirectoryGroup -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId -json $adGroupJson | Out-Null
                         Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
                         Remove-Item .\adGroups.json -Force -Confirm:$false
                         Write-Output "Removing Active Directory Groups in Workspace ONE Access ($server): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Active Directory Domain ($domain) does not exist, check details and try again: PRE_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Domain User ($bindUser) Authentication Failed: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16278,20 +16109,16 @@ Function Add-WorkspaceOneDirectoryConnector {
                                         Add-WSAConnector -wsaNode $wsaNode -domain $domain -bindUserPass $bindUserPass | Out-Null
                                         if (Get-WSADirectory -directoryId $directoryId -connector | Where-Object {$_.host -eq $wsaNode}) {
                                             Write-Output "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find node in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Active Directory domain in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($domain): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -16299,8 +16126,7 @@ Function Add-WorkspaceOneDirectoryConnector {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16355,8 +16181,7 @@ Function Update-SddcDeployedFlavor {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
