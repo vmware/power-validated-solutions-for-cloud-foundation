@@ -12519,8 +12519,7 @@ Function Export-vRAJsonSpec {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -12538,8 +12537,7 @@ Function Export-vRAJsonSpec {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vra_license"].Value) {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vra_license"].Value
-                            }
-                            else {
+                            } else {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vraLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
@@ -12614,13 +12612,11 @@ Function Export-vRAJsonSpec {
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
-
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
                                                     'type'			= "vra-va"
                                                     'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                                 }
-
                                                 $clusterObject = @()
                                                 $clusterObject += [pscustomobject]@{
                                                 'clusterVips'	= $clusterVipsObject
@@ -12633,21 +12629,18 @@ Function Export-vRAJsonSpec {
                                                     'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
                                                     'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_ip"].Value
                                                 }
-
                                                 $vraSecondary1Properties = @()
                                                 $vraSecondary1Properties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_fqdn"].Value
                                                     'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
                                                     'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_ip"].Value
                                                 }
-
                                                 $vraSecondary2Properties = @()
                                                 $vraSecondary2Properties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_fqdn"].Value
                                                     'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
                                                     'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_ip"].Value
                                                 }
-
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
                                                     'type'			= "vrava-primary"
@@ -12676,7 +12669,6 @@ Function Export-vRAJsonSpec {
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
                                                     'nodes'			= $nodesObject	
                                                 }
-
                                                 if (!($xintEnvironment)) { 
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
@@ -12684,8 +12676,7 @@ Function Export-vRAJsonSpec {
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
                                                         'products'              = $productsObject     
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
                                                         'environmentId'         = $xintEnvironment.environmentId
@@ -12694,28 +12685,22 @@ Function Export-vRAJsonSpec {
                                                         'products'              = $productsObject     
                                                     }
                                                 }
-
                                                 $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vraDeploymentSpec.json" 
                                                 
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Automation: SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                             }
                         }
@@ -12724,8 +12709,7 @@ Function Export-vRAJsonSpec {
             }
         }
         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12758,8 +12742,7 @@ Function New-vRADeployment {
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
         $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $workbook)) {
             Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
             Break
@@ -12781,36 +12764,29 @@ Function New-vRADeployment {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
-                                            }
-                                            else {
+                                            } else {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json
                                             }
                                             if ($newRequest) {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Rquest for vRealize Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy vRealize Automation failed, check the vRealize Suite Lifecycle Manager UI"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "License in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "vRealize Automation in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
@@ -12818,8 +12794,7 @@ Function New-vRADeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12854,7 +12829,6 @@ Function Update-vRAOrganizationDisplayName {
     )
 
     Try {
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
@@ -12865,12 +12839,10 @@ Function Update-vRAOrganizationDisplayName {
                                 Set-vRAOrganizationDisplayName -orgId $orgId -displayName $displayName | Out-Null
                                 if ((Get-vRAOrganizationDisplayName -orgId $orgId).displayname -eq $displayName) {
                                     Write-Output "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)), already defined: SKIPPED"
                             }
                         }
@@ -12878,8 +12850,7 @@ Function Update-vRAOrganizationDisplayName {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12941,17 +12912,14 @@ Function New-vRACloudAccount {
                                         Add-vRACloudAccount -type vsphere -json $vcenterCloudAccount | Out-Null
                                         if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
                                             Write-Output "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to connect to vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $($vcfVcenterDetails.fqdn) -Confirm:$false -WarningAction SilentlyContinue
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                 }
                                 if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
@@ -12967,16 +12935,13 @@ Function New-vRACloudAccount {
                                     Add-vRACloudAccount -type nsx-t -json $nsxtCloudAccount | Out-Null
                                     if (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}) {
                                         Write-Output "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -12984,8 +12949,7 @@ Function New-vRACloudAccount {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13032,28 +12996,23 @@ Function Undo-vRACloudAccount {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
                                         Write-Output "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), does not exist: SKIPPED"
                                 }
                                 if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)})) {
                                         Write-Output "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     } 
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13061,8 +13020,7 @@ Function Undo-vRACloudAccount {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13127,8 +13085,7 @@ Function Update-vRACloudAccountZone {
                                             Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
                                             Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
                                             Write-Output "Updating Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Resource Pool in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool): PRE_VALIDATION_FAILED"
                                         } 
                                     } 
@@ -13137,12 +13094,10 @@ Function Update-vRACloudAccountZone {
                                         Update-VRACloudZone -id $cloudZoneDetails.id -placementPolicy $placementPolicy | Out-Null
                                         Write-Output "Updating placement policy to $placementPolicy in Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -13150,8 +13105,7 @@ Function Update-vRACloudAccountZone {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13321,28 +13275,22 @@ Function Add-vROvCenterServer {
                                         if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) { 
                                             Do {
                                                 $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
-                                            } 
-                                            Until ($workflowStatus -ne "running")
+                                            }  Until ($workflowStatus -ne "running")
                                             if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) { 
                                                 Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find the workflow named ($workflowName) to embedded vRealize Orcherator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), already exists: SKIPPED"
                                 }                                
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13350,8 +13298,7 @@ Function Add-vROvCenterServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13419,28 +13366,22 @@ Function Remove-vROvCenterServer {
                                         if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) { 
                                             Do {
                                                 $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
-                                            } 
-                                            Until ($workflowStatus -ne "running")
+                                            } Until ($workflowStatus -ne "running")
                                             if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) { 
                                                 Write-Output "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find the workflow named ($workflowName) in embedded vRealize Orcherator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), does not exist: SKIPPED"
                                 }                                
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13448,8 +13389,7 @@ Function Remove-vROvCenterServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13485,8 +13425,7 @@ Function Add-vROTrustedCertificate {
 
     if (!$PsBoundParameters.ContainsKey("certFile")) {
         $certFile = Get-ExternalFileName -title "Select the trusted certificate file (.cer)" -fileType "cer" -location "default"
-    }
-    elseif ($PsBoundParameters.ContainsKey("certFile")) {
+    } elseif ($PsBoundParameters.ContainsKey("certFile")) {
         if (!(Test-Path -Path $certFile)) {
             Write-Error  "Selecting the trusted certificate file ($certFile), file not found: PRE_VALIDATION_FAILED"
             Break
@@ -13523,16 +13462,13 @@ Function Add-vROTrustedCertificate {
                                 if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -ne "failed" }) {
                                     Do {
                                         $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
-                                    } 
-                                    Until ($workflowStatus -ne "running")
+                                    }  Until ($workflowStatus -ne "running")
                                     if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -eq "completed" }) { 
                                         Write-Output "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)), check certificate format: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
                                 }
                             }                             
@@ -13541,8 +13477,7 @@ Function Add-vROTrustedCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13587,8 +13522,7 @@ Function Add-vRANotification {
                             New-vRANotification -name $smtpServer -serverName $smtpServer -emailAddress $emailAddress -sender $sender -trustCert true -connection $connection -authentication false | Out-Null
                             if (Get-vRANotification | Where-Object {$_.name -eq $smtpServer}) {
                                 Write-Output "Configuring Notification settings in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Output "Configuring Notification settings in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): POST_VALIDATION_FAILED"
                             }
                         }
@@ -13596,8 +13530,7 @@ Function Add-vRANotification {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13649,16 +13582,13 @@ Function Add-vRAUser {
                                     New-vRAUser -userId $userId -orgId $orgId -orgRole $orgRole -serviceRole $serviceRole -serviceDefinitionId $serviceDefinitionId | Out-Null
                                     if (Get-vRAUserRoles -userId $userId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoles.name -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId}) {
                                         Write-Output "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation, already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check user synchronization or email: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13666,8 +13596,7 @@ Function Add-vRAUser {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13708,12 +13637,10 @@ Function Undo-vRAUser {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
                             if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null}) {
-
                                 if ($objectCheck = Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email }) {
                                     if ($orgRole = ($objectCheck.organizationRoles.name)) {
                                         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole $orgRole
                                     }
-
                                     if ($serviceRoles = ($objectCheck.serviceRoles.serviceRoles.name)) {
                                         $services = (Get-vRAServices -orgId $orgId)
                                         Foreach ($serviceRole in $serviceRoles) {
@@ -13721,35 +13648,27 @@ Function Undo-vRAUser {
                                             Remove-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
                                         }
                                     }
-
                                     if ($orgRole -eq $null) {
                                         $orgRole = "none"
                                     }
-
                                     if ($serviceRoles -eq $null) {
                                         $serviceRole = "none"
-                                    }
-                                    else {
+                                    } else {
                                         $serviceRole = $serviceRoles -join ', '
                                     }
-
                                     if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.organizationRoles.name -eq $null -and $_.serviceRoles.serviceRoles.name -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
                                         Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check email variable: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            elseif (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
+                            } elseif (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
                                 if ($objectCheck = Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email }) {
                                     if ($orgRole = ($objectCheck.organizationRoles.name)) {
                                         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole $orgRole
                                     }
-
                                     if ($serviceRoles = ($objectCheck.serviceRoles.serviceRoles.name)) {
                                         $services = (Get-vRAServices -orgId $orgId)
                                         Foreach ($serviceRole in $serviceRoles) {
@@ -13757,30 +13676,23 @@ Function Undo-vRAUser {
                                             Remove-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
                                         }
                                     }
-
                                     if ($orgRole -eq $null) {
                                         $orgRole = "none"
                                     }
-
                                     if ($serviceRoles -eq $null) {
                                         $serviceRole = "none"
-                                    }
-                                    else {
+                                    } else {
                                         $serviceRole = $serviceRoles -join ', '
                                     }
-
                                     if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.organizationRoles.name -eq $null -and $_.serviceRoles.serviceRoles.name -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
                                         Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check email variable: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing user email ($email) from organization role and service roles(s) in vRealize Automation, no roles assigned: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13788,8 +13700,7 @@ Function Undo-vRAUser {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13925,16 +13836,13 @@ Function Undo-vRAGroup {
                                     Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
                                     if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceRoleNames -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null})) {
                                         Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing group ($displayName) from vRealize Automation:: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing group ($displayName) from vRealize Automation:, does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13942,8 +13850,7 @@ Function Undo-vRAGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
