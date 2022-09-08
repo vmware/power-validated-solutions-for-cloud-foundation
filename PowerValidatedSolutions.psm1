@@ -38,15 +38,13 @@ if ($PSEdition -eq 'Desktop') {
     }
 }
 
-Function Resolve-PSModule {
+Function Confirm-PSModule {
     <#
         .SYNOPSIS
-        Check for a PowerShell module presence, if not there try to import/install it.
+        Checks the status of a PowerShell module
 
         .DESCRIPTION
-        This function is not exported. The idea is to use the return searchResult from the caller function to establish
-        if we can proceed to the next step where the module will be required (developed to check on Posh-SSH).
-        Logic:
+        Checks the status of the PowerShell module passed. Logic:
         - Check if module is imported into the current session
         - If module is not imported, check if available on disk and try to import
         - If module is not imported & not available on disk, try PSGallery then install and import
@@ -55,8 +53,8 @@ Function Resolve-PSModule {
         Informing user only if the module needs importing/installing. If the module is already present nothing will be displayed.
 
         .EXAMPLE
-        $poshSSH = Resolve-PSModule -moduleName "Posh-SSH"
-        This example will check if the current PS module session has Posh-SSH installed, if not will try to install it
+        Confirm-PSModule -moduleName 'VMware.vSphere.SsoAdmin'
+        This example will check if the current PowerShell session has VMware.vSphere.SsoAdmin installed, if not will try to install it
     #>
 
     Param (
@@ -66,43 +64,41 @@ Function Resolve-PSModule {
     # Check if module is imported into the current session
     if (Get-Module -Name $moduleName) {
         $searchResult = "ALREADY_IMPORTED"
-    }
-    else {
+    } else {
         # If module is not imported, check if available on disk and try to import
         if (Get-Module -ListAvailable | Where-Object { $_.Name -eq $moduleName }) {
             Try {
                 "`n Module $moduleName not loaded, importing now please wait..."
                 Import-Module $moduleName
-                Write-Output "Module $moduleName imported successfully."
+                Write-Output " Module $moduleName imported successfully."
                 $searchResult = "IMPORTED"
             }
             Catch {
                 $searchResult = "IMPORT_FAILED"
             }
-        }
-        else {
+        } else {
             # If module is not imported & not available on disk, try PSGallery then install and import
             if (Find-Module -Name $moduleName | Where-Object { $_.Name -eq $moduleName }) {
                 Try {
-                    Write-Output "Module $moduleName was missing, installing now please wait..."
+                    Write-Output "`n Module $moduleName was missing, installing now please wait..."
                     Install-Module -Name $moduleName -Force -Scope CurrentUser
-                    Write-Output "Importing module $moduleName, please wait..."
+                    Write-Output " Importing module $moduleName, please wait..."
                     Import-Module $moduleName
-                    Write-Output "Module $moduleName installed and imported"
+                    Write-Output " Module $moduleName installed and imported"
                     $searchResult = "INSTALLED_IMPORTED"
                 }
                 Catch {
-                    $searchResult = "INSTALLIMPORT_FAILED"
+                    $searchResult = "INSTALL_IMPORT_FAILED"
                 }
-            }
-            else {
+            } else {
                 # If module is not imported, not available and not in online gallery then abort
-                $searchResult = "NOTAVAILABLE"
+                $searchResult = "NOT_AVAILABLE"
             }
         }
     }
     Return $searchResult
 }
+Export-ModuleMember -Function Confirm-PSModule
 
 #######################################################################################################################
 #Region             I D E N T I T Y  A N D  A C C E S S  M A N A G E M E N T  F U N C T I O N S             ###########
@@ -147,8 +143,7 @@ Function Add-IdentitySource {
 
     if (!$PsBoundParameters.ContainsKey("certificate") -and ($protocol -eq "ldaps")) {
         $certificate = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer" -location "default"
-    }
-    elseif ($protocol -eq "ldaps") {
+    } elseif ($protocol -eq "ldaps") {
         if (!(Test-Path -Path $certificate)) {
             Write-Error  "Certificate (cer) for Root Certificate Authority '$certificate' File Not Found"
             Break
@@ -159,8 +154,7 @@ Function Add-IdentitySource {
     $bindUser = $domainBindUser + '@' + ($domain.Split("."))[0].ToLower()
     if ($protocol -eq "ldaps") {
         $primaryUrl = 'ldaps://' + $dcMachineName + '.' + $domain + ':636'
-    }
-    elseif ($protocol -eq "ldap") {
+    } elseif ($protocol -eq "ldap") {
         $primaryUrl = 'ldap://' + $dcMachineName + '.' + $domain + ':389'
     }
 
@@ -174,8 +168,7 @@ Function Add-IdentitySource {
                                 if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
                                     if ($protocol -eq "ldaps") {
                                         Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass -Certificate $certificate
-                                    }
-                                    else {
+                                    } else {
                                         Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
                                     }
                                     if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
@@ -187,18 +180,15 @@ Function Add-IdentitySource {
                                                 Write-Output "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): SUCCESSFUL"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), already exists: SKIPPED"
                             }
                         }
@@ -206,8 +196,7 @@ Function Add-IdentitySource {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -247,13 +236,11 @@ Function Undo-IdentitySource {
                                 Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain } | Remove-IdentitySource | Out-Null
                                 if (!(Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain })) {
                                     Write-Output "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
                                 }                                
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), does not exist: SKIPPED"
                             }
                         }
@@ -261,8 +248,7 @@ Function Undo-IdentitySource {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -322,40 +308,33 @@ Function Add-SddcManagerRole {
                                             $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
                                             if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
                                                 Write-Warning "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal), already assigned: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 New-VCFGroup -group $principal -domain $domain -role $role | Out-Null
                                                 $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($domain.ToUpper() + "\" + $principal) }
                                                 if ($vcfCheck.name -eq $($domain.ToUpper() + "\" + $principal)) {
                                                     Write-Output "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): POST_VALIDATION_FAILED"
                                                 }
                                             }
-                                        }
-                                        elseif ($type -eq "user") {
+                                        } elseif ($type -eq "user") {
                                             $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
                                             if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
                                                 Write-Warning "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal), already assigned: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 New-VCFUser -user ($principal + "@" + $domain.ToUpper()) -role $role | Out-Null
                                                 $vcfCheck = Get-VCFUser | Where-Object { $_.name -eq $($principal + "@" + $domain.ToUpper()) }
                                                 if ($vcfCheck.name -eq $($principal + "@" + $domain.ToUpper())) {
                                                     Write-Output "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning the role ($role) in SDDC Manager ($server) to Active Directory $type ($principal): POST_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find $type ($principal) in the Active Directory Domain: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                 }
                             }
@@ -363,12 +342,10 @@ Function Add-SddcManagerRole {
                     }
                 }
             }
-        }
-        else {
+        } else {
             Write-Error  "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -405,22 +382,163 @@ Function Undo-SddcManagerRole {
                     Remove-VCFUser -id (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}).id
                     if (!(Get-VCFUser -type $type | Where-Object {$_.name -match $principal})) { 
                         Write-Output "Removing $type from SDDC Manager ($server) named ($principal): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Removing $type from SDDC Manager ($server) named ($principal): POST_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Warning "Removing $type from SDDC Manager ($server) named ($principal), not assigned: SKIPPED"
                 }                                 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Undo-SddcManagerRole
+
+Function Get-EsxiPasswordPolicy {
+	<#
+        .SYNOPSIS
+        Retrieves ESXi Host Password Policies
+
+        .DESCRIPTION
+        The Get-EsxiPasswordPolicy cmdlet retrieves a list of ESXi hosts displaying the currently
+        configured password policy nested within a vSphere cluster  
+		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Retrieve all ESXi hosts password policies
+
+        .EXAMPLE
+        Get-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl0l
+        This example retrieves all ESXi hosts password policies within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+	)
+	
+	# Create the ESXi Host object
+	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
+									if ($esxiHosts) {
+										Foreach ($esxiHost in $esxiHosts) {
+											# retreving ESXi password policy string
+											$passwordPolicy = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+											# retreving ESXi password Expiration Period
+											$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+											if ($passwordPolicy -and $passwordExpire) {
+												# parsing ESXi password policy string
+												$nodePasswdPolicy = New-Object -TypeName psobject
+												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordMaxDays" -notepropertyvalue $passwordExpire.Value
+												$nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordPolicy.Value
+												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+												Remove-Variable -Name nodePasswdPolicy
+											} else {
+												Write-Error "Unable to retrieve password policy from ESXi host '$esxiHost.Name'"
+											}
+										}
+										return $esxiPasswdPolicy
+									} else {
+										Write-Warning "No ESXi hosts found within $cluster cluster."
+									}
+								} else {
+                                    Write-Error "Unable to locate Cluster $cluster in $vcfVcenterDetails.fqdn vCenter Server: PRE_VALIDATION_FAILED"
+								}
+							}
+						}
+					}
+				} else {
+                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Get-EsxiPasswordPolicy
+
+Function Get-VCServerPasswordPolicy {
+	<#
+        .SYNOPSIS
+        Retrieves a vCenter servers' Password Policies
+
+        .DESCRIPTION
+        The Get-VCServerPasswordPolicy cmdlet returns the currently configured password expiration period
+		and the email for warning notification settings for the vCenter Server root account
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
+
+        .EXAMPLE
+        Get-VCServerPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
+								$pwdExpirySettings = Get-VCPasswordExpiry
+								if ($pwdExpirySettings){
+									foreach ($configurationString in $pwdExpirySettings.PSObject.Properties) {
+										if ($configurationString.name -eq "email") {
+											$passwdNotifyEmail = $configurationString.value
+										}
+										if ($configurationString.name -eq "max_days_between_password_change") {
+											$passwdExpInDays = $configurationString.value
+										}
+									}
+									$vcPasswdPolicy = New-Object -TypeName psobject
+									$vcPasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $vcfVcenterDetails.fqdn
+									$vcPasswdPolicy | Add-Member -notepropertyname "email" -notepropertyvalue $passwdNotifyEmail
+									$vcPasswdPolicy | Add-Member -notepropertyname "max_days_between_password_change" -notepropertyvalue $passwdExpInDays
+									return $vcPasswdPolicy
+								} else {
+									Write-Error "Unable to retrieve password policy for vCenter server '$server'"
+								}
+							}
+						}
+					}
+				} else {
+                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch{
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Get-VCServerPasswordPolicy
 
 Function Set-vCenterPasswordExpiration {
     <#
@@ -465,31 +583,99 @@ Function Set-vCenterPasswordExpiration {
                             $pwdExpirySettings = Get-VCPasswordExpiry
                             if ($passwordExpires) {
                                 Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
-                            }
-                            else {
+                            } else {
                                 Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
                             }
                             $pwdExpirySettings = Get-VCPasswordExpiry
                             if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
                                 Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to (Never Expire): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to ($($pwdExpirySettings.max_days_between_password_change) days) and Email Notification to ($($pwdExpirySettings.email)): SUCCESSFUL"
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-	}
-    Catch {
+	} Catch {
         Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Set-vCenterPasswordExpiration
+
+Function Set-EsxiPasswordExpirationPeriod {
+	<#
+		.SYNOPSIS
+        Set ESXi password expiration period in days
+
+        .DESCRIPTION
+		The Set-EsxiPasswordExpirationPeriod cmdlet configures the password expiration period policies on ESXi. 
+		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configured all ESXi hosts in he provided cluster
+
+        EXAMPLE
+        Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ExpirationInDays,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+	)
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object { $_.Name -eq $cluster }) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost
+									Foreach ($esxiHost in $esxiHosts) {
+										$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+										if ($passwordExpire) {
+											Set-AdvancedSetting -AdvancedSetting $passwordExpire -Value $ExpirationInDays -Confirm:$false | Out-Null
+											$checkSetting = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+                                            if ($checkSetting -match $ExpirationInDays) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+										} else {
+											Write-Error "Error applying Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+										}
+									}
+									if ($detail -eq "false") {
+                                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+								} else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($vcfVcenterDetails.fqdn), check details and retry: PRE_VALIDATION_FAILED"
+                                }
+							}
+						}
+					}
+				}
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Set-EsxiPasswordExpirationPeriod
 
 Function Set-EsxiPasswordPolicy {
     <#
@@ -538,8 +724,7 @@ Function Set-EsxiPasswordPolicy {
                                                 if ($detail -eq "true") {
                                                     Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
                                             }
                                         }
@@ -548,22 +733,19 @@ Function Set-EsxiPasswordPolicy {
                                     if ($detail -eq "false") {
                                         Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), check details and retry: PRE_VALIDATION_FOUND"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }    
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -602,8 +784,7 @@ Function Install-WorkspaceOne {
     Try {
         if (!$PsBoundParameters.ContainsKey("wsaOvaPath")) {
             $wsaOvaPath = Get-ExternalFileName -title "Select the Workspace ONE Access OVA file (.ova)" -fileType "ova" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $wsaOvaPath)) {
                 Write-Error  "Workspace ONE Access OVA '$wsaOvaPath' File Not Found"
                 Break
@@ -617,8 +798,7 @@ Function Install-WorkspaceOne {
                             $wsaHostname = $wsaFqdn.Split(".")[0]
                             if (Get-VM -Name $wsaHostname -ErrorAction Ignore) {
                                 Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname), already exists: SKIPPED"
-                            }
-                            else {
+                            } else {
                                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).clusters.id) }).Name
@@ -643,11 +823,9 @@ Function Install-WorkspaceOne {
                                                 }
                                                 Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                                             }
-                                        }
-                                        Catch {
+                                        } Catch {
                                             Write-Error "Failed to get a Response from Workspace ONE Access Instance ($wsaFqdn): POST_VALIDATION_FAILURE"
-                                        }
-                                        Finally {
+                                        } Finally {
                                             $timer.Stop()  ## Stop the timer
                                         }
                                         $Timeout = 900  ## seconds
@@ -664,8 +842,7 @@ Function Install-WorkspaceOne {
                                                         Write-Output "Deploying Workspace ONE Access Instance ($wsaFqdn) using ($wsaOvaPath): SUCCESSFUL"
                                                         break
                                                     }
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Write-Output "Waiting for ($wsaFqdn) to fully boot up. Checking every $CheckEvery seconds"
                                                 }
                                                 Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
@@ -673,19 +850,15 @@ Function Install-WorkspaceOne {
                                             if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
                                                     Write-Error "Workspace ONE Access Instance ($wsaFqdn) failed to initialize properly. Please delete the VM from vCenter Server ($($vcfVcenterDetails.fqdn)) and retry: POST_VAIDATION_FAILED"
                                             }
-                                        }
-                                        Catch {
+                                        } Catch {
                                             Debug-ExceptionWriter -object $_
-                                        }
-                                        Finally {
+                                        } Finally {
                                             $timer.Stop()  ## Stop the timer
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Deployment of Workspace ONE Access Instance ($wsaFqdn): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error  "Application Virtual Networks have not been configured in SDDC Manager ($server), unable to find REGION_A details. Deploy and try again: PRE_VALIDATION_FAILED"
                                 }
                             }
@@ -695,8 +868,7 @@ Function Install-WorkspaceOne {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -743,12 +915,10 @@ Function Undo-WorkspaceOne {
                                 Remove-VM $wsaHostname -DeletePermanently -Confirm:$false | Out-null
                                 if (!(Get-VM -Name $wsaHostname -ErrorAction Ignore)) {
                                     Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($wsaHostname), already removed: SKIPPED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -757,8 +927,7 @@ Function Undo-WorkspaceOne {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -817,13 +986,11 @@ Function Initialize-WorkspaceOne {
                 $uri = $baseUri + "/cfg/setup/activateConnector"
                 Invoke-RestMethod $uri -Method 'POST' -Headers $headers -WebSession $webSession  | Out-Null
                 Write-Output "Initial Configuration of Workspace ONE Access Instance ($wsaFqdn): SUCCESSFUL"
-            }
-            else {
+            } else {
                 Write-Warning "Initial Configuration of Workspace ONE Access Instance ($wsaFqdn), already performed: SKIPPED"
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -870,12 +1037,11 @@ Function Set-WorkspaceOneNtpConfig {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (!$ntpServer) {
                                 $ntpServer = (Get-VCFConfigurationNTP).ipAddress
-                            }
-                            else {
+                            } else {
                                 $testNtp = Test-NtpServer -Server $ntpServer
                                 if ($testNtp -eq $false) {
                                     Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
-                                    break
+                                    Break
                                 }
                                 $existingNtpServer = (Get-VCFConfigurationNTP).ipAddress
                                 $ntpServer = $existingNtpServer + "," + $ntpServer
@@ -888,20 +1054,17 @@ Function Set-WorkspaceOneNtpConfig {
                                             if (Test-WSAConnection -server $wsaVm.hostname) {
                                                 if ((Get-VM -Name $wsaVm.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                                     Set-WorkspaceOneApplianceNtpConfig -vmName $wsaVm.vmName -rootPass $rootPass -ntpServer $ntpServer
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to locate a virtual machine named ($($wsaVm.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to connect to vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn) to gather Workspace ONE Access appliance inventory: PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
-                            }
-                            else {
+                            } else {
                                 if (!$wsaFqdn) {
                                     Write-Error "The FQDN parameter (-wsaFqdn) is required for a standalone Workspace ONE Access instance: PRE_VALIDATION_FAILED"
                                 }
@@ -909,8 +1072,7 @@ Function Set-WorkspaceOneNtpConfig {
                                 if (Test-WSAConnection -server $wsaFqdn) {
                                     if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                         Set-WorkspaceOneApplianceNtpConfig -vmName $vmName -rootPass $rootPass -ntpServer $ntpServer
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error  "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -921,8 +1083,7 @@ Function Set-WorkspaceOneNtpConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -959,37 +1120,30 @@ Function Install-WorkspaceOneCertificate {
     )
 
     Try {
-
         if (!$PsBoundParameters.ContainsKey("rootCa")) {
             $rootCa = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer" -location "default"
-        }
-        elseif ($PsBoundParameters.ContainsKey("rootCa")) {
+        } elseif ($PsBoundParameters.ContainsKey("rootCa")) {
             if (!(Test-Path -Path $rootCa)) {
                 Write-Error  "Certificate (.cer) for Root Certificate Authority ($rootCa) File Not Found"
                 Break
             }
         }
-
         if (!$PsBoundParameters.ContainsKey("wsaCertKey")) {
             $wsaCertKey = Get-ExternalFileName -title "Select the Workspace ONE Access Certificate Key (.key)" -fileType "key" -locaion "default"
-        }
-        elseif ($PsBoundParameters.ContainsKey("wsaCertKey")) {
+        } elseif ($PsBoundParameters.ContainsKey("wsaCertKey")) {
             if (!(Test-Path -Path $wsaCertKey)) {
                 Write-Error  "Certificate Key (.key) for Workspace ONE Access ($wsaCertKey) File Not Found"
                 Break
             }
         }
-
         if (!$PsBoundParameters.ContainsKey("wsaCert")) {
             $wsaCert = Get-ExternalFileName -title "Select the Workspace ONE Access Certificate File (.cer)" -fileType "cer" -location "default"
-        }
-        elseif ($PsBoundParameters.ContainsKey("wsaCert")) {
+        } elseif ($PsBoundParameters.ContainsKey("wsaCert")) {
             if (!(Test-Path -Path $wsaCert)) {
                 Write-Error  "Certificate (.cer) for Workspace ONE Access ($wsaCert) File Not Found"
                 Break
             }
         }
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
@@ -1010,8 +1164,7 @@ Function Install-WorkspaceOneCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1055,18 +1208,15 @@ Function Set-WorkspaceOneSmtpConfig {
                     }
                     if (Get-WSASmtpConfiguration | Where-Object {$_.host -eq $smtpFqdn}) {
                         Write-Output "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn): POST_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Warning "Configuring SMTP Server for Workspace ONE Access Instance ($server) with SMTP Server ($smtpFqdn), already exists: SKIPPED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1105,8 +1255,7 @@ Function Add-WorkspaceOneDirectory {
 
     if (!$PsBoundParameters.ContainsKey("certificate") -and ($protocol -eq "ldaps")) {
         $certificate = Get-ExternalFileName -title "Select the Root CA Certificate File (.pem)" -fileType "pem" -location "default"
-    }
-    elseif ($protocol -eq "ldaps") {
+    } elseif ($protocol -eq "ldaps") {
         if (!(Test-Path -Path $certificate)) {
             Write-Error  "Certificate (cer) for Root Certificate Authority ($certificate') File Not Found"
             Break
@@ -1121,8 +1270,7 @@ Function Add-WorkspaceOneDirectory {
                     if (!(Get-WSADirectory | Where-Object { ($_.name -eq $domain) })) {
                         if ($protocol -eq "ldaps") {
                             $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn -certificate $certificate
-                        }
-                        else{
+                        } else{
                             $directory = Add-WSALdapDirectory -domainName $domain -baseDn $baseDnUser -bindDn $bindUserDn
                         }
                         $connector = Get-WSAConnector | Where-Object {$_.host -eq $server}
@@ -1144,8 +1292,7 @@ Function Add-WorkspaceOneDirectory {
                                     'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
                                     'selected'    = $true
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Group $group is not available in Active Directory Domain: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -1169,18 +1316,15 @@ Function Add-WorkspaceOneDirectory {
                         Set-WSASyncSetting -directoryId $directory.directoryConfigId | Out-Null
                         Start-WSADirectorySync -directoryId $directory.directoryConfigId | Out-Null
                         Write-Output "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Warning "Creating Active Directory ($($protocol.ToUpper())) Directory in Workspace ONE Access Instance ($server) named ($domain), already exists: SKIPPED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Authenticating as Active Directory Domain User ($(($bindUserDn.Split(",")[0]).Split("=")[1])): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1236,21 +1380,18 @@ Function Set-WorkspaceOneNsxtIntegration {
                                             Add-WSAClient -clientId $clientId -sharedSecret $sharedSecret | Out-Null
                                             if (Get-WSAClient | Where-Object { $_.clientId -eq $clientId }) {
                                                 Write-Output "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId):  SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId):  POST_VALIDATION_FAILED"
                                                 Break
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Creating Service Client in Workspace ONE Access Instance ($wsaFqdn) named ($clientId), already exists: SKIPPED"
                                         }
                                         if (Get-NsxtVidm) {
                                             $clientIdSecret = (Get-WSAClient -clientId $clientId).secret
                                             Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $clientIdSecret -nsxHostname $vcfNsxDetails.fqdn | Out-Null
                                             Write-Output "Updating integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $sharedSecret -nsxHostname $vcfNsxDetails.fqdn | Out-Null
                                             Write-Output "Creating integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
                                         }
@@ -1259,14 +1400,12 @@ Function Set-WorkspaceOneNsxtIntegration {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1322,12 +1461,10 @@ Function Undo-WorkspaceOneNsxtIntegration {
                                             Set-NsxtVidm -wsaHostname $wsaFqdn -thumbprint $wsaThumbprint -clientId $clientId -sharedSecret $clientIdSecret -nsxHostname $vcfNsxDetails.fqdn -disable | Out-Null
                                             if ((Get-NsxtVidm).vidm_enable -match "False") {
                                                 Write-Output "Disabling integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Disabling integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn): POST_VALIDATION_FAILEDg"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Disabling integration between NSX Manager ($($vcfNsxDetails.fqdn)) and Workspace ONE Acccess Instance ($wsaFqdn), already disabled: SKIPPED"
                                         }
                                     }
@@ -1335,14 +1472,12 @@ Function Undo-WorkspaceOneNsxtIntegration {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1390,29 +1525,24 @@ Function Add-NsxtVidmRole {
                                         Invoke-Expression "Set-NsxtRole -principal $principal -type remote_$type -role $role -identitySource VIDM | Out-Null"
                                         if (Get-NsxtUser | Where-Object { $_.name -eq $principal }) {
                                             Write-Output "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain), already exists: SKIPPED"
                                     }    
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find $type ($principal) in Workspace ONE Access for NSX-T Data Center, check $type synchronization: PRE_VALIDATION_FAILED"
                                 }
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1442,6 +1572,7 @@ Function Undo-NsxtVidmRole {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal
     )
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -1453,25 +1584,21 @@ Function Undo-NsxtVidmRole {
                                     Remove-NsxtRole -id (Get-NsxtUser | Where-Object { $_.name -eq $principal }).id
                                     if (!(Get-NsxtUser | Where-Object { $_.name -eq $principal })) {
                                         Write-Output "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain), already removed: SKIPPED"
                                 }
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1510,14 +1637,12 @@ Function Add-WorkspaceOneRole {
                 $roleId = Get-WSARoleId -role $role
                 if (!$roleId) {
                     Write-Error "Unable to find role id ($roleId) for role ($role) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
-                }
-                else {
+                } else {
                     $groupDetails = Get-WSAActiveDirectoryGroupDetail -group $group
                     $groupId = $groupDetails.Resources.id
                     if (!$groupId) {
                         Write-Error "Unable to find the group ($group) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
-                    }
-                    else {
+                    } else {
                         $associations = Get-WSARoleAssociation -roleId $roleId
                         $assign = $true
                         if ($associations.groups) {
@@ -1536,11 +1661,9 @@ Function Add-WorkspaceOneRole {
                             $response = Add-WSARoleAssociation -roleId $roleId -groupId $groupId
                             if ($response.operations.code -eq "200") {
                                 Write-Output "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server): SUCCESSFUL"
-                            }
-                            elseif ($response.operations.code -eq "409") {
+                            } elseif ($response.operations.code -eq "409") {
                                 Write-Warning "$($response.operations.reason)"
-                            }
-                            else {
+                            } else {
                                 Write-Error "$($response.operations.reason)"
                             }
                         }
@@ -1548,8 +1671,7 @@ Function Add-WorkspaceOneRole {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1603,8 +1725,7 @@ Function Get-NsxtManagerAuthenticationPolicy {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1687,14 +1808,12 @@ Function Set-NsxtManagerAuthenticationPolicy {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1746,8 +1865,7 @@ Function Get-NsxtEdgeNodeAuthenticationPolicy {
                 }
             }
         }   
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1814,14 +1932,12 @@ Function Set-NsxtEdgeNodeAuthenticationPolicy {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1839,8 +1955,8 @@ Function Install-SiteRecoveryManager {
         Deploy Site Recovery Manager Virtual Appliance
 
         .DESCRIPTION
-        The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.  The cmdlet 
-        connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.  The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
@@ -1872,8 +1988,7 @@ Function Install-SiteRecoveryManager {
     Try {
         if (!$PsBoundParameters.ContainsKey("srmOvfPath")) {
             $srmOvfPath = Get-ExternalFileName -title "Select the Site Recovery Manager OVF file (.ovf)" -fileType "ovf"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $srmOvfPath)) {
                 Write-Error  "Site Recovery Manager OVA '$srmOvfPath' File Not Found"
                 Break
@@ -1887,8 +2002,7 @@ Function Install-SiteRecoveryManager {
             $srmExists = Get-VM -Name $srmHostname -ErrorAction SilentlyContinue
             if ($srmExists) {
                 Write-Warning "A virtual machine called $srmHostname already exists in vCenter Server $vcServer"
-            }
-            else {
+            } else {
                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
@@ -1913,11 +2027,9 @@ Function Install-SiteRecoveryManager {
                             }
                             Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                         }
-                    }
-                    Catch {
+                    } Catch {
                         Write-Error "Failed to get a Response from $srmFqdn"
-                    }
-                    Finally {
+                    } Finally {
                         $timer.Stop()  ## Stop the timer
                         Write-Output "$srmHostname Deployed Successfully"
                     }
@@ -1925,8 +2037,7 @@ Function Install-SiteRecoveryManager {
             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -1938,8 +2049,8 @@ Function Install-vSphereReplicationManager {
         Deploy vSphere Replication Manager Virtual Appliance
 
         .DESCRIPTION
-        The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA. 
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
         vCenter Server details from its inventory and then:
         - Gathers vSphere configuration from vCenter Server
         - Gathers DNS and NTP configuration from SDDC Manager
@@ -1969,8 +2080,7 @@ Function Install-vSphereReplicationManager {
     Try {
         if (!$PsBoundParameters.ContainsKey("vrmsOvfPath")) {
             $vrmsOvfPath = Get-ExternalFileName -title "Select the vSphere Replication Manager OVF file (.ovf)" -fileType "ovf"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $vrmsOvfPath)) {
                 Write-Error  "vSphere Replication Manager OVA '$vrmsOvfPath' File Not Found"
                 Break
@@ -1984,8 +2094,7 @@ Function Install-vSphereReplicationManager {
             $vrmsExists = Get-VM -Name $vrmsHostname -ErrorAction SilentlyContinue
             if ($vrmsExists) {
                 Write-Warning "A virtual machine called $vrmsHostname already exists in vCenter Server $vcServer"
-            }
-            else {
+            } else {
                 $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
                 $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
@@ -2013,11 +2122,9 @@ Function Install-vSphereReplicationManager {
                         }
                         Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                         }
-                    }
-                    Catch {
+                    } Catch {
                         Write-Error "Failed to get a Response from $vrmsFqdn"
-                    }
-                    Finally {
+                    } Finally {
                         $timer.Stop()  ## Stop the timer
                         Write-Output "$vrmsHostname Deployed Successfully"
                     }       
@@ -2025,8 +2132,7 @@ Function Install-vSphereReplicationManager {
                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2053,7 +2159,7 @@ Function Connect-DRSolutionTovCenter {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,        
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
@@ -2067,8 +2173,7 @@ Function Connect-DRSolutionTovCenter {
     $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
     if ($solution -eq "SRM") {
         $extensionKey = "com.vmware.vcDr"
-    }
-    else {
+    } else {
         $extensionKey = "com.vmware.vcHms"
     }
     Try {
@@ -2081,16 +2186,14 @@ Function Connect-DRSolutionTovCenter {
         Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
 
         # Register Site Recovery Manager with vCenter
-        $response = Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcenterFQDN -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $ssoAdminUser -ssoAdminPassword $ssoAdminPassword -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey
+        Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcenterFQDN -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $ssoAdminUser -ssoAdminPassword $ssoAdminPassword -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey | Out-Null
         $validateRegistration = Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
         if ($validateRegistration.data.drConfiguration.vcName -eq $vcenterFQDN) {
             Write-output "Successfully Registered $solution instance $applianceFqdn to vCenter Server $vcenterFQDN"
-        }
-        else {
+        } else {
             Write-Output "Something went wrong"
         }
-    }              
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2118,11 +2221,9 @@ Function Install-VAMICertificate {
     )
 
     Try {
-        
         if (!$PsBoundParameters.ContainsKey("certFile")) {
             $certFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType "p12"
-        }
-        elseif ($PsBoundParameters.ContainsKey("certFile")) {
+        } elseif ($PsBoundParameters.ContainsKey("certFile")) {
             if (!(Test-Path -Path $certFile)) {
                 Write-Error  "Certificate (.p12) '$certFile' File Not Found"
             }
@@ -2137,13 +2238,11 @@ Function Install-VAMICertificate {
             $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
             $uri = "https://"+$fqdn+":5480/configure/requestHandlers/installPkcs12Certificate"
             $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-        }
-        Catch {
+        } Catch {
             #TODO - Write function to query cert Thumbprint and compare to installed cert
             #Debug-ExceptionWriter -object $_
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2170,12 +2269,11 @@ Function Get-DRSolutionSummary {
 
     Try {
         $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
-        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
-        $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getSummaryInfo"
+        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
+        $uri = "https://" + $fqdn + ":5480/configure/requestHandlers/getSummaryInfo"
         $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
         $response
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
@@ -2202,17 +2300,16 @@ Function Get-DRSolutionNetworkConfig {
 
     Try {
         if (Test-VAMIConnection -server $fqdn) {
-            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {   
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
                 $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getNetworkingInfo"
                 $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $body
                 $response.data
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
-}    
+}
 Export-ModuleMember -Function Get-DRSolutionNetworkConfig
 
 Function Set-DRSolutionNetworkAdapter {
@@ -2257,8 +2354,7 @@ Function Set-DRSolutionNetworkAdapter {
                 $response
             }
         }        
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
@@ -2298,8 +2394,7 @@ Function Set-vSRIncomingStorageTraffic {
                 $response
             }
         }        
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
@@ -2333,19 +2428,19 @@ Function Get-vSRIncomingStorageTraffic {
                 $response.data
             }
         }        
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }    
 Export-ModuleMember -Function Get-vSRIncomingStorageTraffic
+
 Function Register-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
-        Registers SRM & vRMS with a given vCenter Server
+        Registers Site Recovery Manager & vSphere Replication with a given vCenter Server
 
         .DESCRIPTION
-        The Register-DRSolutionTovCenter cmdlet registers SRM & vRMS with a given vCenter Server
+        The Register-DRSolutionTovCenter cmdlet registers Site Recovery Manager & vSphere Replication with a given vCenter Server
 
         .EXAMPLE
         Register-DRSolutionTovCenter -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -pscHost sfo-m01-vc01.sfo.rainpole.io -thumbprint EA:0F:24:7E:B4:4C:5E:ED:38:AE:79:A6:9E:A2:E8:8F:EE:54:D8:AF:18:6A:A2:57:DC:87:09:68:D4:76:36:DD -vcInstanceId 53cad28c-4160-4956-b7c1-c7bbc5185a39 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword VMw@re1! -siteName SFO01 -adminEmail admin@rainpole.io -hostName sfo-m01-srm01.sfo.rainpole.io
@@ -2388,9 +2483,7 @@ Function Register-DRSolutionTovCenter {
         $uri = "https://"+$applianceFqdn+":5480/configure/requestHandlers/configureAppliance"
         $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
         $response
-
-        }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2421,8 +2514,7 @@ Function Backup-VMOvfProperties {
     Try {
         if (!$PsBoundParameters.ContainsKey("fileDir")) {
             $fileDir = Get-ExternalDirectoryPath
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $fileDir)) {
                 Write-Error  "Directory '$fileDir' Not Found"
                 Break
@@ -2488,8 +2580,7 @@ Function Backup-VMOvfProperties {
             Get-VMvAppConfig -vm $vmToBackup
         }
         Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2520,8 +2611,7 @@ Function Restore-VMOvfProperties {
     Try {       
         if (!$PsBoundParameters.ContainsKey("fileDir")) {
             $fileDir = Get-ExternalDirectoryPath
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $fileDir)) {
                 Write-Error  "Directory '$fileDir' Not Found"
                 Break
@@ -2559,15 +2649,13 @@ Function Restore-VMOvfProperties {
                     foreach ($property in $vmSettings.property) {
                         New-VMOvfProperty -vm $foundVM -property $property
                     }                   
-                }
-                else {
+                } else {
                     Write-Output "Placeholder $restoredVM not found in $($vcenter.fqdn)"
                 }
             }
         }
         Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2584,8 +2672,9 @@ Function Get-VMvAppConfig {
         .EXAMPLE
         Get-VMAppConfig -vm $vm
     #>
+
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm
     )
 
     $targetFile = $fileDir + "\" + $vm.name + "-property-backup.json"
@@ -2595,13 +2684,10 @@ Function Get-VMvAppConfig {
             $vmVappConfig = $vm.ExtensionData.Config.VAppConfig | ConvertTo-Json | Out-File $targetFile
             Write-Output "OVF Properties successfully captured"
             return $vmVappConfig
-        }
-        else {
+        } else {
             Write-Output "No OVF properties were detected on $($vm.name). You may ignore this message if this is correct." -colour magenta
         }
-    }
-    Catch
-    {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2620,8 +2706,8 @@ Function New-VMOvfProperty {
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$property
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$property
     )
 
     #define spec
@@ -2664,13 +2750,13 @@ Function Set-VMOvfIPAssignment {
 
         .EXAMPLE
         Set-VMOvfIPAssignment -vm $vm -assignment $assignmentObject
+    #>
 
-    #>    
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$assignment
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$assignment
     )
-    
+
     #define spec
     $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
     $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
@@ -2704,8 +2790,8 @@ Function Set-VMOvfEnvTransport {
     #> 
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$transport
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$transport
     )
 
     #define spec
@@ -2733,12 +2819,11 @@ Function New-VMOvfProduct {
 
         .EXAMPLE
         New-VMOvfProduct -vm $vm -product $productObject
-
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [PSObject]$product
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()][PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$product
     )
 
     #define spec
@@ -2782,8 +2867,8 @@ Function Set-VMOvfEULA {
     #>    
 
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter(Mandatory=$true)] [PSObject]$eula
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$eula
     )
 
     #define spec
@@ -2815,11 +2900,10 @@ Function Get-VMOvfProperty {
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [psObject]$vm
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [psObject]$vm
     )
 
     $vappProperties = $VM.ExtensionData.Config.VAppConfig.Property
-
     $results = @()
     foreach ($vappProperty in $vappProperties | Sort-Object -Property Id) {
         $tmp = [pscustomobject] @{
@@ -2844,10 +2928,11 @@ Function Set-VMOvfProperty {
         .EXAMPLE
         Set-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
         This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xreg-wsa01a
-    #>    
+    #>
+
     Param (
-        [Parameter (Mandatory=$true)] [PSObject]$vm,
-        [Parameter (Mandatory=$true)] [hashtable]$properties
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [hashtable]$properties
     )
 
     $vappProperties = $VM.ExtensionData.Config.VAppConfig.Property
@@ -2930,9 +3015,7 @@ Function Get-NSXLBDetails {
         Write-Output "Getting NSX-T Login Details"
         $nsxt = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domainType MANAGEMENT
         $nsxtFQDN = $nsxt.fqdn
-                
-    } 
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -2967,7 +3050,7 @@ Function Add-vRSLCMNtpServer {
     $testNtp = Test-NtpServer -Server $ntpServer
     if ($testNtp -eq $false) {
         Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
-        break
+        Break
     }
 
     Try {
@@ -2983,13 +3066,11 @@ Function Add-vRSLCMNtpServer {
                                     $vrslcmProductNtpServers = Get-vRSLCMProductNtpServer
                                     if ($vrslcmProductNtpServers -match $ntpServer) {
                                         Write-Warning "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list, already performed: SKIPPED"
-                                    }
-                                    else {
+                                    } else {
                                         $addvRSLCMProductNtp = Add-vRSLCMProductNtpServer -ntpServer $ntpServer -ntpServerDesc $ntpServerDesc -ErrorAction SilentlyContinue
                                         if ($addvRSLCMProductNtp -match $ntpServer) {
                                             Write-Output "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: POST_VALIDATION_FAILED"
                                         }
                                     }
@@ -2998,22 +3079,18 @@ Function Add-vRSLCMNtpServer {
                                         $vrslcmApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig
                                         if ($vrslcmApplianceNtpConfig.ntpServers -match $ntpServer) {
                                             Write-Warning "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration, already performed: SKIPPED"
-                                        }
-                                        else {
+                                        } else {
                                             $addvRSLCMApplianceNtp = Add-vRSLCMApplianceNtpConfig -ntpServer $ntpServer -ErrorAction SilentlyContinue
                                             if ($addvRSLCMApplianceNtp.ntpServers -match $ntpServer) {
                                                 Write-Output "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: POST_VALIDATION_FAILED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3023,8 +3100,7 @@ Function Add-vRSLCMNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3046,7 +3122,7 @@ Function Set-vRSLCMDnsConfig {
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains rainpole.io
         This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
-        
+
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5 172.17.11.4 172.17.11.5" -dnsSearchDomains "rainpole.io sfo.rainpole.io lax.rainpole.io"
         This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains
@@ -3079,8 +3155,7 @@ Function Set-vRSLCMDnsConfig {
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
                                             Write-Output "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                         }
                                     }
@@ -3095,13 +3170,11 @@ Function Set-vRSLCMDnsConfig {
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
                                             Write-Output "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3111,8 +3184,7 @@ Function Set-vRSLCMDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3163,12 +3235,10 @@ Function Undo-vRSLCMNtpServer {
                                         $validateApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig | Select-Object -ExpandProperty ntpServers
                                         if ($validateApplianceNtpConfig -eq $sddcManagerNtpServers) {
                                             Write-Output "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: SKIPPED"
                                     }
                                     $sddcManagerNtpServers = $null
@@ -3192,12 +3262,10 @@ Function Undo-vRSLCMNtpServer {
                                         if ($validateProductNtpServerSuccess -eq 1) {
                                             Write-Output "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: SUCCESSFUL"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3207,8 +3275,7 @@ Function Undo-vRSLCMNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3256,26 +3323,22 @@ Function Undo-vRSLCMDnsConfig {
                             if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
                                 $vmName = $vrslcmDetails.fqdn.Split(".")[0]
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                    try {
+                                    Try {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
-                                    }
-                                    catch [System.Security.Authentication.InvalidCredentialException]{
+                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                     }                                
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                         Write-Error "Unable to undo DNS configuration on vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
-                                    }
-                                    else {
-                                        try {
+                                    } else {
+                                        Try {
                                             Set-vRSLCMDnsConfig -server $server -user $user -pass $pass -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains
-                                        } 
-                                        catch {
+                                        } Catch {
                                             Write-Error "Unable to undo DNS configuration on vRealize Suite Lifecycle Manager ($vmName) appliance: POST_VALIDATION_FAILED"
                                         }
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3284,8 +3347,7 @@ Function Undo-vRSLCMDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3325,18 +3387,16 @@ Function Set-WorkspaceOneDnsConfig {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                try {
+                                Try {
                                     $newRequest = Stop-vRSLCMProductNode -environment globalenvironment -product vidm -ErrorAction Stop
-                                }
-                                catch {
+                                } Catch {
                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                 }
                                 if ($newRequest) {
                                     Write-Output "Powering off Workspace ONE Access appliances. This may take quite a while."
                                     Start-Sleep 10
                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null
-                                }
-                                else {
+                                } else {
                                     Write-Error "Power off request of Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                 } 
                                 $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm              
@@ -3346,15 +3406,13 @@ Function Set-WorkspaceOneDnsConfig {
                                             $existingDNS = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value
                                             if ($existingDNS -eq $dnsServers) {
                                                 Write-Warning "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS Server(s) ($dnsServers) already done: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"DNS"="$dnsServers"} | Out-Null
                                             }
                                             $validateDNS = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value
                                             if ($validateDNS -eq $dnsServers) {
                                                 Write-Output "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS server(s) ($dnsServers): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring Workspace ONE Access appliance $($ProductVM.vmName) to use DNS server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                             }
                                         }
@@ -3362,20 +3420,17 @@ Function Set-WorkspaceOneDnsConfig {
                                             $existingSearchDomains = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value
                                             if ($existingSearchDomains -eq $dnsSearchDomains) {
                                                 Write-Warning "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"searchpath"="$dnsSearchDomains"} | Out-Null
                                             }
                                             $validateSearchDomains = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value
                                             if ($validateSearchDomains -eq $dnsSearchDomains) {
                                                 Write-Output "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring Workspace ONE Access appliance $($ProductVM.vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to locate a virtual machine named $($productVM.vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                 }
@@ -3384,8 +3439,7 @@ Function Set-WorkspaceOneDnsConfig {
                                     Write-Output "Powering on Workspace ONE Access appliances and bringing up services. This may take quite a while."
                                     Start-Sleep 10
                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null                                    
-                                }
-                                else {
+                                } else {
                                     Write-Error "Power on request of Workspace ONE Access appliance(s) failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3395,8 +3449,7 @@ Function Set-WorkspaceOneDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3443,26 +3496,22 @@ Function Undo-WorkspaceOneDnsConfig {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                    try {
+                                    Try {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
-                                    }
-                                    catch [System.Security.Authentication.InvalidCredentialException]{
+                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                     }                                
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                         Write-Error "Unable to undo DNS configuration on Workspace ONE Access ($vmName) appliance: PRE_VALIDATION_FAILED"
-                                    }
-                                    else {
+                                    } else {
                                         Try {
                                             Set-WorkspaceOneDnsConfig -server $server -user $user -pass $pass -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop -WarningAction SilentlyContinue
-                                        } 
-                                        Catch {
+                                        } Catch {
                                             Write-Error $_.Exception.Message
                                         }
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3471,8 +3520,7 @@ Function Undo-WorkspaceOneDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3515,10 +3563,9 @@ Function Set-vROPSDnsConfig {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                 $vropsVMs = (Get-VCFvROPs).nodes.fqdn
-                                try {
+                                Try {
                                     $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop
-                                }
-                                catch [System.Net.WebException] {
+                                } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
                                             ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3546,8 +3593,7 @@ Function Set-vROPSDnsConfig {
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
                                                 Write-Output "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                             }
                                         }
@@ -3570,13 +3616,11 @@ Function Set-vROPSDnsConfig {
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
                                                 Write-Output "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to locate a virtual machine named ($($vropsXregVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                 } 
@@ -3587,8 +3631,7 @@ Function Set-vROPSDnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3639,46 +3682,38 @@ Function Undo-vROPSDnsConfig {
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                     $vcfvROPSDetails = Get-VCFvROPS
                                     if (Test-vROPSConnection -server $vcfVROPSDetails.loadBalancerFqdn) {
-                                        try {
+                                        Try {
                                             $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop 
-                                        }
-                                        catch [System.Security.Authentication.InvalidCredentialException]{
+                                        } Catch [System.Security.Authentication.InvalidCredentialException]{
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }                                
                                         if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                             Write-Error "Unable to undo DNS configuration for vRealize Operations Manager analytics cluster appliances: PRE_VALIDATION_FAILED"
-                                        }
-                                        else {
-                                            try {
+                                        } else {
+                                            Try {
                                                 Set-vROPSDnsConfig -server $server -user $user -pass $pass -environmentName $environmentName -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop -WarningAction SilentlyContinue
-                                            } 
-                                            catch {
+                                            } Catch {
                                                 Write-Error $_.Exception.Message
                                             }
                                         }                                    
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable connect to vRealize Operations Manager: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager to retrieve vRealize Operations Manager analytics cluster appliances: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to connect to vRealize Suite Lifecycle Manager ($($vrslcmDetails.fqdn.Split(".")[0])): PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                         }
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3724,10 +3759,9 @@ Function Add-vROPSNtpServer {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                try {
+                                Try {
                                     $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0]
-                                }
-                                catch [System.Net.WebException] {
+                                } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
                                             ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3761,12 +3795,10 @@ Function Add-vROPSNtpServer {
                                     $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
                                     if (!$compareArrays) {
                                         Write-Output "Configuring vRealize Operations Manager appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Unable to validate vRealize Operations Manager appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                 } 
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3776,8 +3808,7 @@ Function Add-vROPSNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3816,10 +3847,9 @@ Function Undo-vROPSNtpServer {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                try {
+                                Try {
                                     $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0] 
-                                }
-                                catch [System.Net.WebException] {
+                                } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
                                             ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3835,8 +3865,7 @@ Function Undo-vROPSNtpServer {
                                     if ($ntpServers.count -eq 1) {
                                         $ntpServersJson = $ntpServers | ConvertTo-JSON
                                         $ntpServersJson = "[$ntpServersJson]" 
-                                    }
-                                    else {
+                                    } else {
                                         $ntpServersJson = $ntpServers | ConvertTo-JSON
                                         $ntpServersJson = $ntpServersJson -replace "`r`n","" -replace " ",""
                                     }
@@ -3852,12 +3881,10 @@ Function Undo-vROPSNtpServer {
                                     $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
                                     if (!$compareArrays) {
                                         Write-Output "Configuring vRealize Operations Manager appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Unable to validate vRealize Operations Manager appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                 } 
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -3867,8 +3894,7 @@ Function Undo-vROPSNtpServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -3915,10 +3941,9 @@ Function Set-vRADnsConfig {
                                     if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                                         if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                            try {
+                                            Try {
                                                 $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vra -ErrorAction Stop
-                                            }
-                                            catch [System.Net.WebException] {
+                                            } Catch [System.Net.WebException] {
                                                 $PSCmdlet.ThrowTerminatingError(
                                                     [System.Management.Automation.ErrorRecord]::new(
                                                         ([System.Management.Automation.GetValueException]"Retrieving vRealize Automation appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -3935,7 +3960,7 @@ Function Set-vRADnsConfig {
                                                     $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
                                                     [Array]$dnsServersArray = $dnsServers.Split(" ")
                                                     $alreadyConfigured = @()
-                                                    foreach ($dnsServer in $dnsServersArray) {
+                                                    Foreach ($dnsServer in $dnsServersArray) {
                                                         if ($output.ScriptOutput -Match $dnsServer) {
                                                             $alreadyConfigured += $dnsServer
                                                         }
@@ -3961,15 +3986,14 @@ Function Set-vRADnsConfig {
                                                         $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured        
                                                         if ($compareArrays){
                                                             Write-Error "Unable to validate vRealize Automation appliances using DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                                            break
-                                                        }
-                                                        else {
+                                                            Break
+                                                        } else {
                                                             $dnsServersVracliValidated = $true
                                                             $scriptCommand = "cat /etc/resolv.conf"
                                                             $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
                                                             [Array]$dnsServersArray = $dnsServers.Split(",")
                                                             $alreadyConfigured = @()
-                                                            foreach ($dnsServer in $dnsServersArray) {
+                                                            Foreach ($dnsServer in $dnsServersArray) {
                                                                 if ($output.ScriptOutput -Match $dnsServer) {
                                                                     $alreadyConfigured += $dnsServer
                                                                 }
@@ -3977,9 +4001,8 @@ Function Set-vRADnsConfig {
                                                             $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
                                                             if ($compareArrays) {
                                                                 Write-Error "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                                                break
-                                                            }
-                                                            else {
+                                                                Break
+                                                            } else {
                                                                 $dnsServersResolvConfValidated = $true
                                                                 Write-Output "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers): SUCCESSFUL"
                                                             }
@@ -3987,13 +4010,12 @@ Function Set-vRADnsConfig {
                                                     }
                                                 }
                                                 if ($dnsSearchDomains) {
-                                                    foreach ($productVM in $productVMs) {
+                                                    Foreach ($productVM in $productVMs) {
                                                         $scriptCommand = "cat /etc/resolv.conf"
                                                         $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                         if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
                                                             Write-Warning "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED" 
-                                                        }
-                                                        else {
+                                                        } else {
                                                             $scriptCommand = "cat /etc/systemd/resolved.conf"
                                                             $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                             if (($output.ScriptOutput).Contains("#Domains")) {
@@ -4007,8 +4029,7 @@ Function Set-vRADnsConfig {
                                                             if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
                                                                 $dnsSearchDomainsResolvConfValidated = $true
                                                                 Write-Output "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL" 
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 Write-Error "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                                             }
                                                         }
@@ -4020,43 +4041,42 @@ Function Set-vRADnsConfig {
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                     $scriptCommand = "/opt/scripts/deploy.sh --shutdown"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    foreach ($productVM in $productVMs) {
+                                                    Foreach ($productVM in $productVMs) {
                                                         Get-VM -Name $productVM.vmName | Restart-VMGuest | Out-Null
                                                     }
                                                     Start-Sleep -Seconds 15
-                                                    foreach ($productVM in $productVMs) {
-                                                        do {
+                                                    Foreach ($productVM in $productVMs) {
+                                                        Do {
                                                             $toolsStatus = (Get-VM -Name $productVM.vmName -ErrorAction SilentlyContinue).ExtensionData.Guest.ToolsRunningStatus
                                                             if ($toolsStatus -ne "guestToolsRunning") {
                                                                 Start-Sleep -Seconds 15
                                                             }
                                                         }
-                                                        until ($toolsStatus -eq "guestToolsRunning")
+                                                        Until ($toolsStatus -eq "guestToolsRunning")
                                                     }
-                                                    foreach ($productVM in $productVMs) {
-                                                        do {
+                                                    Foreach ($productVM in $productVMs) {
+                                                        Do {
                                                             $testvRA = Test-vRAConnection -server $productVM.hostname
                                                             if ($testvRA -eq $false) {
                                                                 Start-Sleep -Seconds 15
                                                             }
                                                         }
-                                                        until ($testvRA -eq $true)
+                                                        Until ($testvRA -eq $true)
                                                     }
                                                     $scriptCommand = "ln -s /opt/vmware/bin/vamicli /usr/sbin/vamicli | /opt/scripts/deploy.sh"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    do {
+                                                    Do {
                                                         $checkVraAuth = Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass -ErrorAction SilentlyContinue
                                                         if ($checkVraAuth -eq $false) {
                                                             Start-Sleep -Seconds 60
                                                         }
                                                     }
-                                                    until ($checkVraAuth -eq $true)
+                                                    Until ($checkVraAuth -eq $true)
                                                     $scriptCommand = "unlink /usr/sbin/vamicli"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
 
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                             } 
                                         }
@@ -4069,8 +4089,7 @@ Function Set-vRADnsConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4123,20 +4142,17 @@ Function Undo-vRADnsConfig {
                                         if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
                                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                                 if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
-                                                    try {
+                                                    Try {
                                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop                               
-                                                    }
-                                                    catch [System.Security.Authentication.InvalidCredentialException]{
+                                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                                         Write-Error "Unable to undo DNS configuration for vRealize Automation appliances: PRE_VALIDATION_FAILED"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Set-vRADnsConfig -server $server -user $user -pass $pass -vraUser $vraUser -vraPass $vraPass -environmentName $environmentName -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop
                                                     }                                    
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable connect to vRealize Automation appliances: PRE_VALIDATION_FAILED"
                                                 }
                                             }
@@ -4145,16 +4161,14 @@ Function Undo-vRADnsConfig {
                                 }
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to locate a virtual machine named ($sddcManagerVmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                         }
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4215,10 +4229,9 @@ Function Set-vRANtpConfig {
                                     if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                                         if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                            try {
+                                            Try {
                                                 $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vra -ErrorAction Stop
-                                            }
-                                            catch [System.Net.WebException] {
+                                            } Catch [System.Net.WebException] {
                                                 $PSCmdlet.ThrowTerminatingError(
                                                     [System.Management.Automation.ErrorRecord]::new(
                                                         ([System.Management.Automation.GetValueException]"Retrieving vRealize Automation appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
@@ -4237,7 +4250,7 @@ Function Set-vRANtpConfig {
                                                     $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
                                                 }
                                                 $alreadyConfigured = @()
-                                                foreach ($ntpServer in $ntpServersArray) {
+                                                Foreach ($ntpServer in $ntpServersArray) {
                                                     if ($outputComparison -Match $ntpServer) {
                                                         $alreadyConfigured += $ntpServer
                                                     }
@@ -4247,17 +4260,15 @@ Function Set-vRANtpConfig {
                                                     if (!$compareArrays) {
                                                         Write-Warning "Configuring vRealize Automation appliances to use NTP Server(s) ($ntpServers) already done: SKIPPED"
                                                     } 
-                                                }
-                                                elseif ($compareArrays -or ($alreadyConfigured.Count -ne $outputComparison.Count) -or ($alreadyConfigured.Count -ne $ntpServersArray.Count)) {
+                                                } elseif ($compareArrays -or ($alreadyConfigured.Count -ne $outputComparison.Count) -or ($alreadyConfigured.Count -ne $ntpServersArray.Count)) {
                                                     if ($ntpServersArray.Count -gt 1){
                                                         [String]$ntpServersString = $null
-                                                        foreach ($ntpServer in $ntpServersArray) {
+                                                        Foreach ($ntpServer in $ntpServersArray) {
                                                             $ntpServersString = $ntpServersString+"'$($ntpServer)',"
                                                         }
                                                         $ntpServersString = $ntpServersString.Substring(0,$ntpServersString.Length-1)
                                                         $scriptCommand = "vracli ntp systemd --set $ntpServersString"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         $scriptCommand = "vracli ntp systemd --set $ntpServers"
                                                     }
                                                     $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
@@ -4269,7 +4280,7 @@ Function Set-vRANtpConfig {
                                                         $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
                                                     }                                                    
                                                     $alreadyConfigured = @()
-                                                    foreach ($ntpServer in $ntpServersArray) {
+                                                    Foreach ($ntpServer in $ntpServersArray) {
                                                         if ($outputComparison -Match $ntpServer) {
                                                             $alreadyConfigured += $ntpServer
                                                         }
@@ -4278,14 +4289,12 @@ Function Set-vRANtpConfig {
                                                         $compareArrays = Compare-Object -ReferenceObject $ntpServersArray -DifferenceObject $alreadyConfigured
                                                         if ($compareArrays) {
                                                             Write-Error "Unable to configure vRealize Automation appliances to use NTP Server(s) ($ntpServers): POST_VALIDATION_FAILED"
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Output "Configuring vRealize Automation appliances to use NTP Server(s) ($ntpServers): SUCCESSFUL"
                                                         }
                                                     }
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                             } 
                                         }
@@ -4298,8 +4307,7 @@ Function Set-vRANtpConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4338,21 +4346,19 @@ Function Undo-vRANtpConfig {
                 $ntpServers = (Get-VCFConfigurationNTP).ipAddress
                 [String]$ntpServersString = $null
                 if ($ntpServers.count -gt 1) {
-                    foreach ($ntpServer in $ntpServers) {
+                    Foreach ($ntpServer in $ntpServers) {
                         $ntpServersString = $ntpServersString + "$ntpServer "
                     }
                     $ntpServersString = $ntpServersString.Substring(0,$ntpServersString.Length-1)
-                }
-                else {
+                } else {
                     $ntpServersString = $ntpServers
                 }
                 if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
-                            try {
+                            Try {
                                 Set-vRANtpConfig -server $server -user $user -pass $pass -vraUser $vraUser -vraPass $vraPass -environmentName $environmentName -ntpServers $ntpServersString -ErrorAction Stop
-                            }
-                            catch {
+                            } Catch {
                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                             }
                         }
@@ -4360,8 +4366,7 @@ Function Undo-vRANtpConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4426,48 +4431,39 @@ Function Add-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
                                                         $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-  
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}
                                                                 if ($protectedCluster) {
                                                                     $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 }
                                                                 $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}
                                                                 if ($recoveryCluster) {
                                                                     $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-
                                                         }
                                                         if ($existingSiteAMappings) {
                                                             $forwardMappingExists = $null
@@ -4479,42 +4475,36 @@ Function Add-SRMMapping {
                                                         }
                                                         if (!$forwardMappingExists) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.AddFolderMapping($protectedMoRef,$recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.AddNetworkMapping($protectedMoRef,$recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($protectedMoRef,$recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $forwardMappingValidated = $null
-                                                            foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
                                                                 if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
                                                                     $forwardMappingValidated = $true
                                                                 }
                                                             }
                                                             if ($forwardMappingValidated -eq $true) {
                                                                 Write-Output "Create $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
@@ -4524,8 +4514,7 @@ Function Add-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) already exists: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
@@ -4533,32 +4522,27 @@ Function Add-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         if ($existingSiteBMappings) {
                                                             $reverseMappingExists = $null
-                                                            foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
                                                                 if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingExists = $true
                                                                 }
@@ -4566,42 +4550,36 @@ Function Add-SRMMapping {
                                                         }  
                                                         if (!$reverseMappingExists) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.AddFolderMapping($recoveryMoRef,$protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.AddNetworkMapping($recoveryMoRef,$protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.AddResourcePoolMapping($recoveryMoRef,$protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $reverseMappingValidated = $null
-                                                            foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
                                                                 if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingValidated = $true
                                                                 }
                                                             }
                                                             if ($reverseMappingValidated -eq $true) {
                                                                 Write-Output "Create $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
@@ -4611,8 +4589,7 @@ Function Add-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) already exists: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
@@ -4628,8 +4605,7 @@ Function Add-SRMMapping {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4694,52 +4670,43 @@ Function Undo-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
                                                         $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-  
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}
                                                                 if ($protectedCluster) {
                                                                     $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 }
                                                                 $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}
                                                                 if ($recoveryCluster) {
                                                                     $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-
                                                         }
                                                         if ($existingSiteAMappings) {
                                                             $forwardMappingExists = $null
-                                                            foreach ($existingSiteAMapping in $existingSiteAMappings) {
+                                                            Foreach ($existingSiteAMapping in $existingSiteAMappings) {
                                                                 if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
                                                                     $forwardMappingExists = $true
                                                                 }
@@ -4747,42 +4714,36 @@ Function Undo-SRMMapping {
                                                         }
                                                         if ($forwardMappingExists -eq $true) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.RemoveFolderMapping($protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteASrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($protectedMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $forwardMappingValidated = $null
-                                                            foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
                                                                 if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
                                                                     $forwardMappingValidated = $true
                                                                 }
                                                             }
                                                             if (!$forwardMappingValidated) {
                                                                 Write-Output "Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
@@ -4792,8 +4753,7 @@ Function Undo-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
@@ -4801,32 +4761,27 @@ Function Undo-SRMMapping {
                                                     if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
-                                                            try {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Network") {
-                                                            try {
+                                                        } elseif ($type -eq "Network") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                        }
-                                                        elseif ($type -eq "Resource") {
-                                                            try {
+                                                        } elseif ($type -eq "Resource") {
+                                                            Try {
                                                                 $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         if ($existingSiteBMappings) {
                                                             $reverseMappingExists = $null
-                                                            foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
                                                                 if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingExists = $true
                                                                 }
@@ -4834,42 +4789,36 @@ Function Undo-SRMMapping {
                                                         }  
                                                         if ($reverseMappingExists -eq $true) {
                                                             if ($type -eq "Folder") {
-                                                                try {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.RemoveFolderMapping($recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
-                                                            }
-                                                            elseif ($type -eq "Network") {
-                                                                try {
+                                                            } elseif ($type -eq "Network") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            }
-                                                            elseif ($type -eq "Resource") {
-                                                                try {
+                                                            } elseif ($type -eq "Resource") {
+                                                                Try {
                                                                     $SiteBSrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($recoveryMoRef)
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                                 $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
                                                             $reverseMappingValidated = $null
-                                                            foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
                                                                 if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
                                                                     $reverseMappingValidated = $true
                                                                 }
                                                             }
                                                             if (!$reverseMappingValidated) {
                                                                 Write-Output "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
@@ -4879,8 +4828,7 @@ Function Undo-SRMMapping {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPING"
                                                         }
                                                         Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
@@ -4896,8 +4844,7 @@ Function Undo-SRMMapping {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -4949,16 +4896,15 @@ Function New-SRMSitePair {
                                                 if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
                                                         if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                            try {
+                                                            Try {
                                                                 $existingSitePair = $null
                                                                 $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
                                                                 $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                             }
                                                             if ($existingSitePair.VcHost -eq $siteBvCenterDetails.fqdn) {
                                                                 Write-Warning "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) already done: SKIPPING"
-                                                                break
+                                                                Break
                                                             }
                                                             $creds = @{
                                                                 user = $siteBvCenterDetails.ssoAdmin
@@ -4970,21 +4916,19 @@ Function New-SRMSitePair {
                                                                 thumbprints = $thumbprints
                                                                 creds = $creds
                                                             }
-                                                            try {
+                                                            Try {
                                                                 $global:DefaultSrmServers[1].ExtensionData.PairSrm_Task($connectionSpec) | Out-Null
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
-                                                            try {
+                                                            Try {
                                                                 Start-Sleep -Seconds 5
                                                                 $existingSitePair = $null
                                                                 $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
                                                                 $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
                                                                 if ($existingSitePair.VcHost -eq $siteBvCenterDetails.fqdn) {
                                                                     Write-Output "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
@@ -4994,8 +4938,7 @@ Function New-SRMSitePair {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
@@ -5011,8 +4954,7 @@ Function New-SRMSitePair {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5063,27 +5005,24 @@ Function Undo-SRMSitePair {
                                                 $global:DefaultSrmServers = $null
                                                 if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
                                                     if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        try {
+                                                        Try {
                                                             $existingSitePair = $null
                                                             $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
                                                             $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             if (!$existingSitePair) {
                                                                 Write-Warning "Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) does not exist: SKIPPING"
-                                                                break
-                                                            }
-                                                            else {
+                                                                Break
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
-                                                        try {
+                                                        Try {
                                                             $global:DefaultSrmServers[0].ExtensionData.BreakPairing_Task($existingSitePair) | Out-Null
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                                         }
-                                                        try {
+                                                        Try {
                                                             Start-Sleep -Seconds 5
                                                             $existingSitePair = $null
                                                             $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
@@ -5098,8 +5037,7 @@ Function Undo-SRMSitePair {
                                                                     )
                                                                 )
                                                             }
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             if (!$existingSitePair) {
                                                                 Write-Output "Remove Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
                                                             }
@@ -5116,8 +5054,7 @@ Function Undo-SRMSitePair {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5171,15 +5108,13 @@ Function New-vSRPortGroup {
                                                 $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN) -or ($_.Name -match "$($VDSwitchSiteA)-pg-$suffix")}
                                                 if ($existingPortGroupSiteA) {
                                                     Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteA.Name)) or VLAN ID ($siteAVLAN) already exists: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $createVDPortGroupSiteA = New-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name "$($VDSwitchSiteA)-pg-$suffix" -VlanId $siteAVLAN -ErrorAction Stop
                                                         $createVDPortGroupSiteA | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
-                                                        try {
+                                                        Try {
                                                             $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                                         }
                                                         if (!$validateVDPortGroupSiteA) {
@@ -5191,12 +5126,10 @@ Function New-vSRPortGroup {
                                                                     ""
                                                                 )
                                                             )
-                                                        }
-                                                        else {
+                                                        } else {
                                                             if ($validateVDPortGroupSiteA.VlanConfiguration.VlanId -eq $siteAVLAN) {
                                                                 Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create virtual port group ($($createVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
@@ -5207,8 +5140,7 @@ Function New-vSRPortGroup {
                                                                 )
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5216,15 +5148,13 @@ Function New-vSRPortGroup {
                                                 $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN) -or ($_.Name -match "$($VDSwitchSiteB)-pg-$suffix")}
                                                 if ($existingPortGroupSiteB) {
                                                     Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteB.Name)) or VLAN ID ($siteBVLAN) already exists: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $createVDPortgroupSiteB = New-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name "$($VDSwitchSiteB)-pg-$suffix" -VlanId $siteBVLAN -ErrorAction Stop
                                                         $createVDPortGroupSiteB | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
-                                                        try {
+                                                        Try {
                                                             $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
-                                                        }
-                                                        catch {
+                                                        } Catch {
                                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                                         }
                                                         if (!$validateVDPortGroupSiteB) {
@@ -5236,12 +5166,10 @@ Function New-vSRPortGroup {
                                                                     ""
                                                                     )
                                                                 )
-                                                        }
-                                                        else {
+                                                        } else {
                                                             if ($validateVDPortGroupSiteB.VlanConfiguration.VlanId -eq $siteBVLAN) {
                                                                 Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
@@ -5252,8 +5180,7 @@ Function New-vSRPortGroup {
                                                                 )
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5267,8 +5194,7 @@ Function New-vSRPortGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5320,20 +5246,18 @@ Function Undo-vSRPortGroup {
                                                 $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
                                                 if (!$existingPortGroupSiteA) {
                                                     Write-Warning "A distributed virtual port group with VLAN ID ($siteAVLAN) does not exist: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $VDSwitchSiteA = Get-VDSwitch -Server $SiteAvCenterDetails.fqdn
                                                         $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -ErrorAction Stop
-                                                        foreach ($portGroup in $VDPortGroupSiteA) {
+                                                        Foreach ($portGroup in $VDPortGroupSiteA) {
                                                             if ($portGroup.VlanConfiguration.VlanId -eq $SiteAVlan) {
-                                                                try {
+                                                                Try {
                                                                     $VDPortGroupSiteAName = $portGroup.Name
                                                                     Remove-VDPortGroup -Server $SiteAvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
-                                                                    try {
+                                                                    Try {
                                                                         $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name $portGroup.Name -ErrorAction SilentlyContinue
-                                                                    }
-                                                                    catch {
+                                                                    } Catch {
                                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                     }
                                                                     if ($validateVDPortGroupSiteA) {
@@ -5345,38 +5269,33 @@ Function Undo-vSRPortGroup {
                                                                                 ""
                                                                             )
                                                                         )
-                                                                    }
-                                                                    else {
+                                                                    } else {
                                                                         Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
                                                                     }
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
                                                 $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
                                                 if (!$existingPortGroupSiteB) {
                                                     Write-Warning "A distributed virtual port group with VLAN ID ($siteBVLAN) does not exist: SKIPPING"
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $VDSwitchSiteB = Get-VDSwitch -Server $SiteBvCenterDetails.fqdn
                                                         $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -ErrorAction Stop
-                                                        foreach ($portGroup in $VDPortGroupSiteB) {
+                                                        Foreach ($portGroup in $VDPortGroupSiteB) {
                                                             if ($portGroup.VlanConfiguration.VlanId -eq $SiteBVlan) {
-                                                                try {
+                                                                Try {
                                                                     $VDPortGroupSiteBName = $portGroup.Name
                                                                     Remove-VDPortGroup -Server $SiteBvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
-                                                                    try {
+                                                                    Try {
                                                                         $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name $portGroup.Name -ErrorAction SilentlyContinue
-                                                                    }
-                                                                    catch {
+                                                                    } Catch {
                                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                     }
                                                                     if ($validateVDPortGroupSiteB) {
@@ -5388,18 +5307,15 @@ Function Undo-vSRPortGroup {
                                                                                 ""
                                                                             )
                                                                         )
-                                                                    }
-                                                                    else {
+                                                                    } else {
                                                                         Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
                                                                     }
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5413,8 +5329,7 @@ Function Undo-vSRPortGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5506,12 +5421,12 @@ Function Set-vSRNetworkConfig {
                                                     [int]$hmsACidr = $eth1SubnetSiteA.Split("/")[1]
                                                     Set-DRSolutionNetworkAdapter -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA -interfaceName eth1 -defaultGateway $eth1GatewaySiteA -cidrPrefix $hmsACidr -ipAddress $eth1IpAddressSiteA -ErrorAction Stop | Out-Null
                                                     Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Restart-VMGuest -Confirm:$False | Out-Null                                                
-                                                    do{
+                                                    Do {
                                                         Start-Sleep -Seconds 1
                                                         $vmRestart = Get-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName
                                                         $vamiStatus = Test-VAMIAuthentication -server $hmsAFqdn -user admin -pass $vSRApplianceAdminPassSiteA -ErrorAction SilentlyContinue
                                                     }
-                                                    until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
                                                     $hmsANetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
                                                     if (($hmsANetConfig.defaultGateway -ne $eth1GatewaySiteA) -or ($hmsANetConfig.prefix -ne $hmsACidr) -or ($hmsANetConfig.address -ne $eth1IpAddressSiteA) -or ($trySetHmsANetConfig.successful -eq $false)) {
                                                         $PSCmdlet.ThrowTerminatingError(
@@ -5523,21 +5438,19 @@ Function Set-vSRNetworkConfig {
                                                             )
                                                         )     
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteA\nDestination=$eth1SubnetSiteB' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn
                                                         if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteA") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteB")) {                                                
@@ -5550,8 +5463,7 @@ Function Set-vSRNetworkConfig {
                                                                 )
                                                             )
                                                         } 
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $eth1IpAddressSiteA -ErrorAction SilentlyContinue | Out-Null
@@ -5565,12 +5477,10 @@ Function Set-vSRNetworkConfig {
                                                                 ""
                                                             )
                                                         )
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Output "Configure vSphere Replication appliance ($hmsAVmName) secondary ethernet adapter: SUCCESSFUL"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Warning "vSphere Replication appliance ($hmsAVmName) has more than one ethernet adapter: SKIPPING"
                                                 }
                                                 $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
@@ -5605,12 +5515,12 @@ Function Set-vSRNetworkConfig {
                                                     [int]$hmsBCidr = $eth1SubnetSiteB.Split("/")[1]
                                                     Set-DRSolutionNetworkAdapter -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB -interfaceName eth1 -defaultGateway $eth1GatewaySiteB -cidrPrefix $hmsBCidr -ipAddress $eth1IpAddressSiteB -ErrorAction Stop | Out-Null
                                                     Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Restart-VMGuest -Confirm:$False | Out-Null
-                                                    do{
+                                                    Do {
                                                         Start-Sleep -Seconds 1
                                                         $vmRestart = Get-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName
                                                         $vamiStatus = Test-VAMIAuthentication -server $hmsBFqdn -user admin -pass $vSRApplianceAdminPassSiteB -ErrorAction SilentlyContinue
                                                     }
-                                                    until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
                                                     $hmsBNetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
                                                     if (($hmsBNetConfig.defaultGateway -ne $eth1GatewaySiteB) -or ($hmsBNetConfig.prefix -ne $hmsBCidr) -or ($hmsBNetConfig.address -ne $eth1IpAddressSiteB) -or ($trySetHmsBNetConfig.successful -eq $false)) {
                                                         $PSCmdlet.ThrowTerminatingError(
@@ -5622,21 +5532,19 @@ Function Set-vSRNetworkConfig {
                                                             )
                                                         )     
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn  
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteB\nDestination=$eth1SubnetSiteA' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
-                                                    try {
+                                                    Try {
                                                         $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
                                                         $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
                                                         if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteB") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteA")) {
@@ -5649,8 +5557,7 @@ Function Set-vSRNetworkConfig {
                                                                 )
                                                             )
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $eth1IpAddressSiteB -ErrorAction SilentlyContinue | Out-Null
@@ -5664,12 +5571,10 @@ Function Set-vSRNetworkConfig {
                                                                 ""
                                                             )
                                                         )
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Output "Configure vSphere Replication appliance ($hmsBVmName) secondary ethernet adapter: SUCCESSFUL"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Warning "vSphere Replication appliance ($hmsBVmName) has more than one ethernet adapter: SKIPPING"
                                                 }
                                             }
@@ -5682,8 +5587,7 @@ Function Set-vSRNetworkConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5744,13 +5648,12 @@ Function Undo-vSRNetworkConfig {
                                                             ""
                                                         )
                                                     )                                                
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $hmsAVmName = $hmsAFqdn.Split(".")[0]
                                                         $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
                                                         if ($numEthAdaptersA -gt 1) {
-                                                            try {
+                                                            Try {
                                                                 $managementIpA = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
                                                                 Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $managementIpA -ErrorAction SilentlyContinue | Out-Null
                                                                 $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
@@ -5764,8 +5667,7 @@ Function Undo-vSRNetworkConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             if ($VDPortGroupSiteA.Count -gt 1) {
@@ -5774,16 +5676,15 @@ Function Undo-vSRNetworkConfig {
                                                             $hmsAVmPowerState = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName).PowerState
                                                             if ($hmsAVmPowerState -eq "PoweredOn") {
                                                                 Stop-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                do {
+                                                                Do {
                                                                     Start-Sleep -Seconds 1
                                                                     $hmsAVmState = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName
                                                                 }
-                                                                until ($hmsAVmState.PowerState -eq "PoweredOff")
+                                                                Until ($hmsAVmState.PowerState -eq "PoweredOff")
                                                             }
-                                                            try {
+                                                            Try {
                                                                 Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA.Name} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $validateRemovedEth1SiteA = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA}
@@ -5796,22 +5697,18 @@ Function Undo-vSRNetworkConfig {
                                                                         ""
                                                                     )
                                                                 )       
-                                                            }
-                                                            else {
-                                                                try {
+                                                            } else {
+                                                                Try {
                                                                     Start-VM -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                             Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsAVmName): SUCCESSFUL"
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "vSphere Replication appliance ($hmsAVmName) only has one ethernet adapter: SKIPPING"
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5826,13 +5723,12 @@ Function Undo-vSRNetworkConfig {
                                                             ""
                                                         )
                                                     )                                                
-                                                }
-                                                else {
-                                                    try {
+                                                } else {
+                                                    Try {
                                                         $hmsBVmName = $hmsBFqdn.Split(".")[0]
                                                         $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
                                                         if ($numEthAdaptersB -gt 1) {
-                                                            try {
+                                                            Try {
                                                                 $managementIpB = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
                                                                 Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $managementIpB -ErrorAction SilentlyContinue | Out-Null
                                                                 $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
@@ -5846,8 +5742,7 @@ Function Undo-vSRNetworkConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             if ($VDPortGroupSiteB.Count -gt 1) {
@@ -5856,16 +5751,15 @@ Function Undo-vSRNetworkConfig {
                                                             $hmsBVmPowerState = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName).PowerState
                                                             if ($hmsBVmPowerState -eq "PoweredOn") {
                                                                 Stop-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                do {
+                                                                Do {
                                                                     Start-Sleep -Seconds 1
                                                                     $hmsBVmState = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName
                                                                 }
-                                                                until ($hmsBVmState.PowerState -eq "PoweredOff")
+                                                                Until ($hmsBVmState.PowerState -eq "PoweredOff")
                                                             }
-                                                            try {
+                                                            Try {
                                                                 Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                             $validateRemovedEth1SiteB = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB}
@@ -5878,22 +5772,18 @@ Function Undo-vSRNetworkConfig {
                                                                         ""
                                                                     )
                                                                 )       
-                                                            }
-                                                            else {
-                                                                try {
+                                                            } else {
+                                                                Try {
                                                                     Start-VM -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                }
-                                                                catch {
+                                                                } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
                                                             }
                                                             Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsBVmName): SUCCESSFUL"
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "vSphere Replication appliance ($hmsBVmName) only has one ethernet adapter: SKIPPING"
                                                         }
-                                                    }
-                                                    catch {
+                                                    } Catch {
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                 }
@@ -5907,8 +5797,7 @@ Function Undo-vSRNetworkConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -5968,14 +5857,13 @@ Function New-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if (!$existingvSrVmkernel) {
@@ -5984,8 +5872,7 @@ Function New-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
+                                } else {
                                     if ($vmHostsToConfigure.Count -ne $siteAIpAddresses.Count) {
                                         $PSCmdlet.ThrowTerminatingError(
                                             [System.Management.Automation.ErrorRecord]::new(
@@ -5995,13 +5882,11 @@ Function New-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
-                                        for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                            try {
+                                    } else {
+                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            Try {
                                                 New-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteAIpAddresses[$i] -SubnetMask $siteANetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
-                                            }
-                                            catch {
+                                            } Catch {
                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                             }
                                         }
@@ -6016,8 +5901,7 @@ Function New-vSRVMkernelPort {
                                                     ""
                                                 )
                                             )
-                                        }
-                                        else {
+                                        } else {
                                             Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                         }
                                     }
@@ -6044,14 +5928,13 @@ Function New-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if (!$existingvSrVmkernel) {
@@ -6060,8 +5943,7 @@ Function New-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
+                                } else {
                                     if ($vmHostsToConfigure.Count -ne $siteBIpAddresses.Count) {
                                         $PSCmdlet.ThrowTerminatingError(
                                             [System.Management.Automation.ErrorRecord]::new(
@@ -6071,13 +5953,11 @@ Function New-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
-                                        for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                            try {
+                                    } else {
+                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            Try {
                                                 New-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteBIpAddresses[$i] -SubnetMask $siteBNetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
-                                            }
-                                            catch {
+                                            } Catch {
                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                             }
                                         }
@@ -6092,8 +5972,7 @@ Function New-vSRVMkernelPort {
                                                     ""
                                                 )
                                             )
-                                        }
-                                        else {
+                                        } else {
                                             Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                         }
                                     }
@@ -6104,8 +5983,7 @@ Function New-vSRVMkernelPort {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6160,8 +6038,7 @@ Function Undo-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
@@ -6176,13 +6053,11 @@ Function Undo-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteAVLAN): SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteA -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6197,8 +6072,7 @@ Function Undo-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                     }
                                 }
@@ -6223,14 +6097,13 @@ Function Undo-vSRVMkernelPort {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6239,13 +6112,11 @@ Function Undo-vSRVMkernelPort {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteBVLAN): SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteB -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6260,8 +6131,7 @@ Function Undo-vSRVMkernelPort {
                                                 ""
                                             )
                                         )
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
                                     }
                                 }
@@ -6271,8 +6141,7 @@ Function Undo-vSRVMkernelPort {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6341,14 +6210,13 @@ Function New-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6357,33 +6225,31 @@ Function New-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $skipAdd = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                 if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
                                                     $skipAdd = $true
                                                     $skipCountSiteA++
                                                 }
                                             }
                                             if (!$skipAdd) {
-                                                try {
+                                                Try {
                                                     $newStaticRouteArgs = $null
                                                     $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
                                                     $newStaticRouteArgs.gateway = $siteAGateway
                                                     $newStaticRouteArgs.network = $siteBSubnet
                                                     $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                                 $staticRouteValidated = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                     if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
                                                         $staticRouteValidated = $true
                                                     }
@@ -6397,16 +6263,14 @@ Function New-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
                                         }
-                                        catch {
+                                        Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6432,14 +6296,13 @@ Function New-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6448,32 +6311,30 @@ Function New-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $skipAdd = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                 if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                     $skipAdd = $true
                                                 }
                                             }
                                             if (!$skipAdd) {
-                                                try {
+                                                Try {
                                                     $newStaticRouteArgs = $null
                                                     $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
                                                     $newStaticRouteArgs.gateway = $siteBGateway
                                                     $newStaticRouteArgs.network = $siteASubnet
                                                     $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                                 $staticRouteValidated = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                     if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                         $staticRouteValidated = $true
                                                     }
@@ -6487,16 +6348,13 @@ Function New-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         } 
                                     }
@@ -6507,8 +6365,7 @@ Function New-vSREsxiStaticRoute {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6577,14 +6434,13 @@ Function Undo-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteA.Count -gt 1) {
                                     $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6593,10 +6449,9 @@ Function Undo-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $existingRouteToRemove = $null
@@ -6606,14 +6461,13 @@ Function Undo-vSREsxiStaticRoute {
                                                 }
                                             }
                                             if ($existingRouteToRemove) {
-                                                try {
+                                                Try {
                                                     $removeStaticRouteArgs = $null
                                                     $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
                                                     $removeStaticRouteArgs.gateway = $siteAGateway
                                                     $removeStaticRouteArgs.network = $siteBSubnet
                                                     $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
@@ -6632,16 +6486,13 @@ Function Undo-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Remove static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }
                                     }
@@ -6667,14 +6518,13 @@ Function Undo-vSREsxiStaticRoute {
                                         ""
                                     )
                                 )                                                
-                            }
-                            else {
+                            } else {
                                 if ($existingPortGroupSiteB.Count -gt 1) {
                                     $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
                                 }
                                 $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
                                 $vmHostsToConfigure = @()
-                                foreach ($siteBVMhost in $siteBVMhosts) {
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
                                     $existingvSrVmkernel = $null
                                     $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
                                     if ($existingvSrVmkernel) {
@@ -6683,32 +6533,30 @@ Function Undo-vSREsxiStaticRoute {
                                 }
                                 if ($vmHostsToConfigure.Count -eq 0) {
                                     Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                }
-                                else {
-                                    for ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        try {
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
                                             $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
                                             $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                             $existingRouteToRemove = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                 if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                     $existingRouteToRemove = $true
                                                 }
                                             }
                                             if ($existingRouteToRemove) {
-                                                try {
+                                                Try {
                                                     $removeStaticRouteArgs = $null
                                                     $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
                                                     $removeStaticRouteArgs.gateway = $siteBGateway
                                                     $removeStaticRouteArgs.network = $siteASubnet
                                                     $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
-                                                }
-                                                catch {
+                                                } Catch {
                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                 }
                                                 $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
                                                 $staticRouteStillExists = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
                                                     if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
                                                         $staticRouteStillExists = $true
                                                     }
@@ -6722,16 +6570,13 @@ Function Undo-vSREsxiStaticRoute {
                                                             ""
                                                         )
                                                     )
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Remove static route vSphere Replication traffic from ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
                                             }
-                                        }
-                                        catch {
+                                        } Catch {
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         } 
                                     }
@@ -6742,8 +6587,7 @@ Function Undo-vSREsxiStaticRoute {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -6804,16 +6648,14 @@ Function Set-SRMLicenseConfig {
                                                         $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                         if ($licenseExistsA) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) has already been installed on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerA.AddLicense($srmSiteAKey,$null) | Out-Null
                                                                 $licenseManagerA.UpdateViewData()
                                                                 $validateLicenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                                 if ($validateLicenseExistsA) {
                                                                     Write-Output "Add license key for Site Recovery Manager ($srmSiteAKey) to vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been added to vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -6823,8 +6665,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -6836,16 +6677,14 @@ Function Set-SRMLicenseConfig {
                                                         $existingSrmALicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                         if ($existingSrmALicenseKey -eq $srmSiteAKey) {
                                                             Write-Warning "License key ($srmSiteAKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerA.UpdateAssignedLicense($srmAUuid,$srmSiteAKey,$null) | Out-Null
                                                                 $licenseAssignmentManagerA.UpdateViewData() | Out-Null
                                                                 $validateSrmLicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                                 if ($validateSrmLicenseKey -eq $srmSiteAKey) {
                                                                     Write-Output "Configure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -6855,8 +6694,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
@@ -6868,16 +6706,14 @@ Function Set-SRMLicenseConfig {
                                                         $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                         if ($licenseExistsB) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) has already been installed on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerB.AddLicense($srmSiteBKey,$null) | Out-Null
                                                                 $licenseManagerB.UpdateViewData()
                                                                 $validateLicenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                                 if ($validateLicenseExistsB) {
                                                                     Write-Output "Add license key for Site Recovery Manager ($srmSiteBKey) to vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been added to vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -6887,8 +6723,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -6900,16 +6735,14 @@ Function Set-SRMLicenseConfig {
                                                         $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                         if ($existingSrmBLicenseKey -eq $srmSiteBKey) {
                                                             Write-Warning "License key ($srmSiteBKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerB.UpdateAssignedLicense($srmBUuid,$srmSiteBKey,$null) | Out-Null
                                                                 $licenseAssignmentManagerB.UpdateViewData() | Out-Null
                                                                 $validateSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                                 if ($validateSrmBLicenseKey -eq $srmSiteBKey) {
                                                                     Write-Output "Configure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -6919,8 +6752,7 @@ Function Set-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
@@ -6936,8 +6768,7 @@ Function Set-SRMLicenseConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7003,16 +6834,14 @@ Function Undo-SRMLicenseConfig {
                                                         $srmALicenseKeyAlreadyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                         if (!$srmALicenseKeyAlreadyRemoved -or $srmALicenseKeyAlreadyRemoved -eq "00000-00000-00000-00000-00000") {
                                                             Write-Warning "License key ($srmSiteAKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerA.RemoveAssignedLicense($srmAUuid) | Out-Null
                                                                 $licenseAssignmentManagerA.UpdateViewData() | Out-Null
                                                                 $validateSrmALicenseKeyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
                                                                 if (!$validateSrmALicenseKeyRemoved) {
                                                                     Write-Output "Unconfigure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been unconfigured from Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7022,24 +6851,21 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                         if (!$licenseExistsA) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) does not exist on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerA.RemoveLicense($srmSiteAKey) | Out-Null
                                                                 $licenseManagerA.UpdateViewData()
                                                                 $validateLicenseRemovedA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
                                                                 if (!$validateLicenseRemovedA) {
                                                                     Write-Output "Remove license key for Site Recovery Manager ($srmSiteAKey) from vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been removed from vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7049,8 +6875,7 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -7067,16 +6892,14 @@ Function Undo-SRMLicenseConfig {
                                                         $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                         if (!$existingSrmBLicenseKey -or $existingSrmBLicenseKey -eq "00000-00000-00000-00000-00000") {
                                                             Write-Warning "License key ($srmSiteBKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseAssignmentManagerB.RemoveAssignedLicense($srmBUuid) | Out-Null
                                                                 $licenseAssignmentManagerB.UpdateViewData() | Out-Null
                                                                 $validateSrmBLicenseKeyRemoved = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
                                                                 if (!$validateSrmBLicenseKeyRemoved) {
                                                                     Write-Output "Unconfigure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7086,24 +6909,21 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         }
                                                         $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                         if (!$licenseExistsB) {
                                                             Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) does not exist on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        }
-                                                        else {
-                                                            try {
+                                                        } else {
+                                                            Try {
                                                                 $licenseManagerB.RemoveLicense($srmSiteBKey) | Out-Null
                                                                 $licenseManagerB.UpdateViewData() | Out-Null
                                                                 $validateLicenseBRemoved = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
                                                                 if (!$validateLicenseBRemoved) {
                                                                     Write-Output "Remove license key for Site Recovery Manager ($srmSiteBKey) from vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                }
-                                                                else {
+                                                                } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                             ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been removed from vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
@@ -7113,8 +6933,7 @@ Function Undo-SRMLicenseConfig {
                                                                         )
                                                                     )
                                                                 }
-                                                            }
-                                                            catch {
+                                                            } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             } 
                                                         }
@@ -7130,8 +6949,7 @@ Function Undo-SRMLicenseConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7189,24 +7007,20 @@ Function Add-NetworkSegment {
                                             Write-Error "NSX Transport Zone $transportZone does not match the defined segment Type $segmentType in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                             Break
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find NSX Transport Zone ($transportZone) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         Break
                                     }
                                     New-NsxtSegment -name $segmentName -connectedGateway $connectedGateway -cidr $cidr -transportZone $transportZone -gatewayType $gatewayType -segmentType $segmentType | Out-Null
                                     if (Get-NsxtSegment -name $segmentName) {
                                         Write-Output "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find NSX $gatewayType Gateway $connectedGateway in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating $segmentType-backed NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName), already exists: SKIPPED"
                             }
                         }
@@ -7214,8 +7028,7 @@ Function Add-NetworkSegment {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7256,12 +7069,10 @@ Function Undo-NetworkSegment {
                                 Remove-NsxtSegment -name $segmentName | Out-Null
                                 if (!(Get-NsxtSegment -name $segmentName)) {
                                     Write-Output "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing NSX segment in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($segmentName), does not exist: SKIPPED"
                             }
                         }
@@ -7269,8 +7080,7 @@ Function Undo-NetworkSegment {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7321,16 +7131,13 @@ Function Add-PrefixList {
                                         Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $ingressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
                                         Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName | Add-NsxtPrefix -subnetCidr $egressSubnetCidr -GE $GE -LE $LE -action $action | Out-Null
                                         Write-Output "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7338,8 +7145,7 @@ Function Add-PrefixList {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7382,16 +7188,13 @@ Function Undo-PrefixList {
                                     Remove-NsxtPrefixList -name $prefixListName -tier0Gateway $tier0Gateway | Out-Null
                                     if (!(Get-NsxtTier0Gateway -name $tier0Gateway | Get-NsxtPrefixList -name $prefixListName -ErrorAction SilentlyContinue)) {
                                         Write-Output "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing NSX IP Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName), does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7399,8 +7202,7 @@ Function Undo-PrefixList {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7450,20 +7252,16 @@ Function Add-RouteMap {
                                                 Get-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway | Set-NsxtRouteRedistributionPolicy -routeMap $routeMapName | Out-Null
                                             }
                                             Write-Output "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find NSX Prefix List in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($prefixListName): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7471,8 +7269,7 @@ Function Add-RouteMap {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7515,16 +7312,13 @@ Function Undo-RouteMap {
                                     Remove-NsxtRouteMap -name $routeMapName -tier0Gateway $tier0Gateway | Out-Null
                                     if (!(Get-NsxtRouteMap -tier0Gateway $tier0Gateway -name $routeMapName -ErrorAction SilentlyContinue)) {
                                         Write-Output "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing NSX Route Map in NSX Manager ($($vcfNsxtDetails.fqdn)) named ($routeMapName), does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find NSX Tier0 Gateway ($tier0Gateway) in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -7532,8 +7326,7 @@ Function Undo-RouteMap {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7584,30 +7377,25 @@ Function Set-DatastoreTag {
                                         Get-Datastore -Name $Datastore -Server $vcfVcenterDetails.fqdn | New-TagAssignment -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                         if ((Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
                                             Write-Output "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7651,26 +7439,22 @@ Function Undo-DatastoreTag {
                                     Remove-TagCategory -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {                                            
                                         Write-Output "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"                                        
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vSphere Tag ($tagName) and Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7714,30 +7498,25 @@ Function Add-StoragePolicy {
                                         New-SpbmStoragePolicy -Name $policyName -AnyOfRuleSets (New-SpbmRuleSet -AllOfRules (New-SpbmRule -AnyOfTags $tagName -Server $vcfVcenterDetails.fqdn)) -Server $vcfVcenterDetails.fqdn | Out-Null
                                         if (Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
                                             Write-Output "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find vSphere Tag ($tagName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), already exists: SKIPPED"                                    
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7779,26 +7558,22 @@ Function Undo-StoragePolicy {
                                     Remove-SpbmStoragePolicy -StoragePolicy $policyName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-SpbmStoragePolicy -Name $policyName -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                         Write-Output "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), does not exist: SKIPPED"                                    
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7869,36 +7644,30 @@ Function Add-ContentLibrary {
                                             }
 
                                             New-ContentLibrary @contentLibraryInput -Server $vcfVcenterDetails.fqdn | Out-Null
-                                        }
-                                        elseif ($published) {
+                                        } elseif ($published) {
                                             New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcfVcenterDetails.fqdn | Out-Null
                                         }
                                         if (Get-ContentLibrary -Name $contentLibraryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
                                             Write-Output "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Datastore named ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating Content Library in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName), already exists: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -7940,26 +7709,22 @@ Function Undo-ContentLibrary {
                                     Remove-ContentLibrary -ContentLibrary $contentLibraryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-ContentLibrary -Name $contentLibraryName -ErrorAction Ignore)) {
                                         Write-Output "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Content Library from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($contentLibraryName), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8063,18 +7828,14 @@ Function Enable-SupervisorCluster {
                                 if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
                                     if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
                                         [bool]$inputParameterValidation = $true
-                                        
                                         #Check SkipValidation parameter
                                         if (($SkipValidation.isPreset)) {
-                                            
                                             # Validate if vCenter uses 'local'
                                             if ($vcfVcenterDetails.fqdn) {
                                                 if (($vcfVcenterDetails.fqdn.split(".")[$_.count-1] -eq "local") -and ($masterDnsSearchDomain.split(".")[$_.count-1] -ne "local")) {
                                                     Write-Warning "'local' domain detected in ($(vcfVcenterDetails.fqdn)), make sure you have provided masterDnsSearchDomain ($masterDnsSearchDomain) to match"
                                                 }
                                             }
-                                        
-
                                             # Validate management network inputs
                                             # Valid Starting IP Address is an actual IPv4 address
                                             if ($managementNetworkStartIpAddress) {
@@ -8083,16 +7844,13 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
                                             # Valid Subnet Mask
                                             if ($managementNetworkSubnetMask) {
                                                 if (!(Test-IPaddressArray -IPaddressArray $managementNetworkSubnetMask)) {
                                                     Write-Error "Management Network Subnet Mask ($managementNetworkSubnetMask) validation failed: PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-
                                             }
-
                                             # Validate Gateway IP Address is an actual IPv4 address and exists in the same subnet as the management starting address
                                             if ($managementNetworkGateway) {
                                                 Try {
@@ -8101,102 +7859,84 @@ Function Enable-SupervisorCluster {
                                                         $checkManagementNetworkGatewayInSubnet = $null
                                                         Try {
                                                             $checkManagementNetworkGatewayInSubnet = Test-IpAddress -IpAddress $managementNetworkGateway -Subnet "$managementNetworkStartIpAddress/$managementNetworkCidr"
-                                                        } catch {}
-
+                                                        } Catch {}
                                                         if ($checkManagementNetworkGatewayInSubnet.Validated -eq $false) {
                                                             Write-Error "Cannot validate the gateway IP address for the Management Network ($managementNetworkGateway) is from the same subnet as the Management Network Starting IP Address ($managementNetworkStartIpAddress/$managementNetworkCidr): PRE_VLALIDATION_FAILED"
                                                             $inputParameterValidation = $false
                                                         }
                                                     }
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Write-Error "Invalid IP address ($managementNetworkGateway) : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
                                             # Validate Management Virtual Network (dvPortGroup) exists
                                             if ($ManagementVirtualNetwork) {
                                                 Try {
                                                     $checkManagementVirtualNetwork = Get-VirtualNetwork -Name $ManagementVirtualNetwork -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
                                                     Write-Error "Invalid Management Virtual Network ($ManagementVirtualNetwork): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 } 
                                             }
-
                                             # Validate Ephemeral Storage Policy exists
                                             if ($ephemeralStoragePolicy){
                                                 $checkEphemeralStoragePolicy = $null
                                                 Try {
                                                     $checkEphemeralStoragePolicy = Get-SpbmStoragePolicy -Name $EphemeralStoragePolicy -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkEphemeralStoragePolicy -or !$ephemeralStoragePolicy) {
                                                     Write-Error "Invalid Ephemeral Storage Policy ($EphemeralStoragePolicy): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
                                             # Validate Image Storage Policy exists
                                             if ($imageStoragePolicy) {
                                                 $checkImageStoragePolicy = $null
                                                 Try {
                                                     $checkImageStoragePolicy = Get-SpbmStoragePolicy -Name $ImageStoragePolicy -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkImageStoragePolicy -or !$imageStoragePolicy) {
                                                     Write-Error "Invalid Image Storage Policy ($ImageStoragePolicy): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate Master Storage Policy exists
+                                            # Validate Master Storage Policy exists
                                             if ($masterStoragePolicy) {
                                                 $checkMasterStoragePolicy = $null
                                                 Try {
                                                     $checkMasterStoragePolicy = Get-SpbmStoragePolicy -Name $MasterStoragePolicy -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                }Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkMasterStoragePolicy -or !$masterStoragePolicy) {
                                                     Write-Error "Invalid Master Storage Policy ($MasterStoragePolicy): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate NSX Edge Cluster exists and lookup ID. TBD chech status of the Edge Cluster and TNs
+                                            # Validate NSX Edge Cluster exists and lookup ID. TBD chech status of the Edge Cluster and TNs
                                             if ($nsxEdgeCluster) {
                                                 $nsxEdgeClusterId = $null
                                                 $checkNsxEdgeCluster = $null
                                                 Try {
                                                     $checkNsxEdgeCluster = Get-NsxEdgeCluster -Name $nsxEdgeCluster -ErrorAction SilentlyContinue
                                                     $nsxEdgeClusterId = $checkNsxEdgeCluster.Id
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$nsxEdgeClusterId -or !$nsxEdgeCluster) {
                                                     Write-Error "Invalid NSX Edge Cluster ($NsxEdgeCluster): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-                                            #Validate control plane NTP servers exist and are functional
+                                            # Validate control plane NTP servers exist and are functional
                                             if ($masterNtpServers) {
                                                 Foreach ($masterNtpServer in $masterNtpServers) {
                                                     $checkNtpServer = $null
@@ -8204,12 +7944,10 @@ Function Enable-SupervisorCluster {
                                                     if (!($checkNtpServer)) {
                                                         Write-Error "Invalid master NTP server ($masterNtpServer) : PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
-                                                        
                                                     }
                                                 }
                                             }
-
-                                            #Validate control plane DNS servers exist and are functional
+                                            # Validate control plane DNS servers exist and are functional
                                             if ($masterDnsServers) {
                                                 $checkDnsServers = $null
                                                 $checkDnsServers = Test-DnsServers $masterDnsServers
@@ -8218,8 +7956,7 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-                                            #Validate worker DNS servers exist and are functional
+                                            # Validate worker DNS servers exist and are functional
                                             if ($workerDnsServers) {
                                                 $checkDnsServers = $null
                                                 $checkDnsServers = Test-DnsServers $workerDnsServers
@@ -8228,15 +7965,13 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate ContentLibrary exists
+                                            # Validate ContentLibrary exists
                                             #Full validation (checking type, subscription, etc.) is TBD
                                             if ($contentLibrary) {
                                                 $checkContentLibrary = $null
                                                 Try {
                                                     $checkContentLibrary = Get-SubscribedLibrary -Name $contentLibrary -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Debug-ExceptionWriter -object $_
                                                 }
                                                 if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
@@ -8244,14 +7979,12 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 } 
                                             }
-                                            
-                                            #Validate Distributed Virtual Switch exists
+                                            # Validate Distributed Virtual Switch exists
                                             if ($distributedSwitch) {
                                                 $checkDistributedSwitch = $null
                                                 Try {
                                                     $checkDistributedSwitch = Get-VDSwitch -Name $distributedSwitch -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     Debug-ExceptionWriter -object $_
                                                 }
                                                 if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
@@ -8259,7 +7992,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 } 
                                             } 
-
                                             # Validates Pod subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($podCIDRs) {
                                                 $checkPodCidr = $null
@@ -8269,7 +8001,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
                                             # Validates Service subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($serviceCIDR) {
                                                 $checkServiceCidr = $null
@@ -8279,8 +8010,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-                                            
                                             # Validates Ingress subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($externalIngressCIDRs) {
                                                 $checkIngressCidr = $null
@@ -8290,8 +8019,6 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-                                            
-
                                             # Validates Egress subnet inputs are formatted correctly and sized to meet minimum requirements
                                             if ($externalEgressCIDRs) {
                                                 $checkEgressCidr = $null
@@ -8301,32 +8028,24 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-                                            #Validate control plane Kubernetes API endpoint is valid and in DNS
+                                            # Validate control plane Kubernetes API endpoint is valid and in DNS
                                             # TBD as this is not mandatory parameter
                                             if ($masterDnsName) {
-                                                
                                                 foreach ($dnsName in $masterDnsName) {
                                                     $checkDnsName = $null
-                                                
                                                     Try {
                                                         $checkDnsName = Resolve-DnsName -Name $DnsName -Type A -QuickTimeout -ErrorAction Stop
-                                                    }
-                                                    Catch [System.ComponentModel.Win32Exception] {
+                                                    } Catch [System.ComponentModel.Win32Exception] {
                                                         Write-Error "Invalid control plane DNS name ($DnsName): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
                                                     }
-                                                
-                                                    
                                                     if ($checkDnsName) {
                                                         $checkMasterIpAddress = $null
                                                         Try {
                                                             $checkMasterIpAddress = Test-IpAddress -IpAddress $checkDnsName.Answers[0].Address.IPAddressToString -Subnet $externalIngressCIDRs
-                                                        }
-                                                        Catch {
+                                                        } Catch {
                                                             #Do nothing
                                                         }
-
                                                         if ($checkMasterIpAddress.Validated -eq $false) {
                                                             Write-Error -Message "Cannot validate the IP address for $DnsName ($DnsNameIpAddress) is from the external ingress CIDR ($externalIngressCIDRs). : PRE_VALIDATION_FAILED"
                                                             $inputParameterValidation = $false
@@ -8334,60 +8053,45 @@ Function Enable-SupervisorCluster {
                                                     }
                                                 }
                                             }
-
-                                            #Validate master DNS search domain is formatted correctly and exists in DNS
+                                            # Validate master DNS search domain is formatted correctly and exists in DNS
                                             if ($masterDnsSearchDomain) {
                                                 $checkMasterDnsSearchDomain = $null
-                                                
                                                 Try {
                                                     $checkMasterDnsSearchDomain = Resolve-DnsName -Name $masterDnsSearchDomain -Type A -QuickTimeout -ErrorAction Stop
-                                                }
-                                                Catch [System.ComponentModel.Win32Exception] {
+                                                } Catch [System.ComponentModel.Win32Exception] {
                                                     Write-Error "Invalid control plane DNS search domain ($masterDnsSearchDomain): PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-                                                    
-                                                
                                             }
-                                        
-                                            #Validate vSphere license is in place
-                                            
+                                            # Validate vSphere license is in place
                                             Try {
                                                 $checkLicense = Get-WMLicenseStatus -server $server -domain $domain -ErrorAction SilentlyContinue
-
                                                 if ($checkLicense.namespaces_licensed -eq $false) {
                                                     Write-Error -Message "The vSphere license applied to cluster $cluster does not support Workload Management or is expired. Please resolve this and try again : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
-                                                }
-                                                elseif ($checklicense.namespaces_supported -eq $false) {
+                                                } elseif ($checklicense.namespaces_supported -eq $false) {
                                                     Write-Error -Message "The cluster $cluster does not support Workload Management. Please resolve this and try again. : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-                                            }
-                                            Catch {
+                                            } Catch {
                                                 Debug-ExceptionWriter -object $_
                                             }
-
-                                            #Validate the cluster is present
+                                            # Validate the cluster is present
                                             if ($cluster) {
                                                 $checkCluster = $null
                                                 Try {
                                                     $checkCluster = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
-
                                                 if (!$checkCluster -or ($checkCluster.Name -ne $cluster)) {
                                                     Write-Error "Invalid vSphere cluster $cluster. : PRE_VALIDATION_FAILED"
                                                     $inputParameterValidation = $false
                                                 }
-
                                                 $checkWmCluster = $null
                                                 Try {
                                                     $checkWmCluster = Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue
-                                                }
-                                                Catch {
+                                                } Catch {
                                                     #Do nothing
                                                 }
                                                 if ($checkWmCluster) {
@@ -8395,19 +8099,14 @@ Function Enable-SupervisorCluster {
                                                     $inputParameterValidation = $false
                                                 }
                                             }
-
-
-
                                             # If any of the prevalidation failed
                                             if ($inputParameterValidation) {
                                                 Write-Output "Pre-validation : SUCESSFULL" 
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
                                                 Break
                                             }
                                         }
-
                                         # TBD MasterDnsServerIpAddress          = $masterDnsServers
                                         if ($inputParameterValidation) {
                                             $internalWMClusterInput = @{
@@ -8435,13 +8134,10 @@ Function Enable-SupervisorCluster {
                                                 MasterDnsServerIpAddress          = $masterDnsServers
                                                 MasterDnsSearchDomain             = $masterDnsSearchDomain
                                             }
-                                        
                                         }
-                                        
                                         if ($ValidateOnly.isPresent) {
                                             Write-Output "Validation completed : SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Enable-WMCluster @internalWMClusterInput -RunAsync -ConfigurationTimeoutSeconds $ConfigurationTimeoutSeconds | Out-Null
                                             Write-Output  "Submitted Creation of Supervisor Cluster $cluster in vCenter Server $($vcfVcenterDetails.fqdn). This may take a while to complete. Operation will timeout after ($ConfigurationTimeoutSeconds) seconds"
                                             $startSleep = 300
@@ -8504,18 +8200,15 @@ Function Undo-SupervisorCluster {
                                         if (Get-WMCluster -cluster $cluster -ErrorAction Ignore) {
                                             if (!$PsBoundParameters.ContainsKey("RunAsync")) {
                                                 Disable-WMCluster -WMCluster $cluster -RunAsync -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
-                                            }
-                                            else {
+                                            } else {
                                                 Disable-WMCluster -WMCluster $cluster -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                             }
                                             if (!(Get-WMCluster -cluster $cluster -ErrorAction Ignore)) {
                                                 Write-Output "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Removing Supervisor Cluster ($cluster) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                         }
                                     }
@@ -8524,14 +8217,12 @@ Function Undo-SupervisorCluster {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8582,14 +8273,12 @@ Function New-SupervisorClusterCSR {
                                     if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         if ($PsBoundParameters.ContainsKey("keySize")) {
                                             Request-WMClusterCSR -cluster $cluster -commonName $commonName -organization $organization -organizationalUnit $organizationalUnit -country $country -stateOrProvince $stateOrProvince -locality $locality -adminEmailAddress $adminEmailAddress -keySize $keySize -filePath $filePath | Out-Null
-                                        }
-                                        else {
+                                        } else {
                                             Request-WMClusterCSR -cluster $cluster -commonName $commonName -organization $organization -organizationalUnit $organizationalUnit -country $country -stateOrProvince $stateOrProvince -locality $locality -adminEmailAddress $adminEmailAddress -filePath $filePath | Out-Null
                                         }
                                         if (Test-Path -Path $filePath) {
                                             Write-Output "Creating Certificate Signing Request (.csr) file for ($commonName) to file ($filePath): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating Certificate Signing Request (.csr) file for ($commonName) to file ($filePath): POST_VALIDATION_FAILED"
                                         }
                                     }
@@ -8598,14 +8287,12 @@ Function New-SupervisorClusterCSR {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8626,6 +8313,7 @@ Function Request-SignedCertificate {
         Request-SignedCertificate -mscaComputerName dc-rpl01.rainpole.io -mscaName rainpole-DC-RPL01-CA -domainUsername "administrator@rainpole.io" -domainPassword "VMw@re1!" -certificateTemplate VMware -certificateRequestFile "c:\temp\SupervisorCluster.csr" -CertificateFile "c:\temp\SupervisorCluster.cer" 
         This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer" 
     #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mscaComputerName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mscaName,
@@ -8670,22 +8358,18 @@ Function Request-SignedCertificate {
                 Start-Sleep 5
                 if ($resultExecution -match "(Issued)") {
                     Write-Output "Issued certificate ($certificateFile): SUCCESSFUL"
-                }
-                else {
+                } else {
                     Write-Error "Certificate issuing to file ($certificateFile) failed with ($resultExecution): FAILED"
-                    break
+                    Break
                 }
-            }
-            else {
+            } else {
                 Write-Output "Pre-validate Only: SUCCESSFUL"
             }
-        }
-        else {
+        } else {
             Write-Error "At least one Pre-Validation check failed: PRE_VALIDATION_FAILED"
-            break
+            Break
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8719,8 +8403,7 @@ Function Install-SupervisorClusterCertificate {
 
     if (!$PsBoundParameters.ContainsKey("filePath")) {
         $filePath = Get-ExternalFileName -title "Select the Supervisor Cluster Certificate File (.cer)" -fileType "cer" -location "default"
-    }
-    elseif ($PsBoundParameters.ContainsKey("filePath")) {
+    } elseif ($PsBoundParameters.ContainsKey("filePath")) {
         if (!(Test-Path -Path $filePath)) {
             Write-Error "Certificate (cer) file for the Supervisor Cluster '$filePath' File Not Found"
             Break
@@ -8738,22 +8421,19 @@ Function Install-SupervisorClusterCertificate {
                                 $response = Install-WMClusterCertificate -cluster $cluster -filePath $filePath
                                 if ($response -match "successfully applied") {
                                     Write-Output "Installing Signed Certificate ($filePath) to Supervisor Cluster ($cluster): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Installing Signed Certificate ($filePath) to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8775,6 +8455,7 @@ Function Add-SupervisorClusterLicense {
         Add-SupervisorClusterLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 -LicenseKey "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
         This example adds a license to the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
     #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -8796,11 +8477,10 @@ Function Add-SupervisorClusterLicense {
                                     $licenseExists = $null
                                     Try {
                                         $licenseExists = Get-VCFLicenseKey -key $licenseKey -ErrorAction SilentlyContinue
-                                    }
-                                    Catch {
+                                    } Catch {
                                         # Do nothing
                                     }
-                                    If (!($licenseExists)) {
+                                    if (!($licenseExists)) {
                                         New-VCFLicenseKey -key $licenseKey -productType WCP -description "WCP license"
                                         Start-Sleep 10
                                         if (Get-VCFLicenseKey -key $licenseKey) {
@@ -8815,43 +8495,63 @@ Function Add-SupervisorClusterLicense {
                                                 Do {
                                                     $taskStatus = (Get-VCFTask -id $response.id).status
                                                     Start-Sleep 10
-                                                } while ($taskStatus -eq "In Progress")
+                                                } While ($taskStatus -eq "In Progress")
                                                 if ($taskStatus -eq "Successful") {
-                                                    Write-Output "Assign license key ($licenseKey) to Supervisior cluster ($cluster) : SUCCESSFUL"
-                                                }
-                                                else {
-                                                    Write-Error "Assign license key ($licenseKey) to Supervisior cluster ($cluster) : FAILED"
-                                                    break
+                                                    Write-Output "Assign license key ($licenseKey) to Supervisior cluster ($cluster): SUCCESSFUL"
+                                                } else {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
+                                                            'Add-SupervisorClusterLicense',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
                                                 } 
-                                            }
-                                            Catch {
+                                            } Catch {
                                                 Debug-ExceptionWriter -object $_
                                             }
-                                        }
-                                        else {
-                                            Write-Error "Adding license key ($licenseKey) in SDDC manager ($sddcManager): POST_VALIDATION_FAILED"
-                                            break
+                                        } else {
+                                            $PSCmdlet.ThrowTerminatingError(
+                                                [System.Management.Automation.ErrorRecord]::new(
+                                                    ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
+                                                    'Add-SupervisorClusterLicense',
+                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                    ""
+                                                )
+                                            )
                                         }
                                     } else {
-                                        Write-Warning "Adding license key ($licenseKey) in SDDC manager ($sddcManager), already exists: SKIPPED"
+                                        Write-Warning "License key ($licenseKey) already exists in SDDC manager ($sddcManager) inventory: SKIPPED"
                                     }
                                     
                                 }
                                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                        }
-                        else {
-                            Write-Error "Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                        } else {
+                            $PSCmdlet.ThrowTerminatingError(
+                                [System.Management.Automation.ErrorRecord]::new(
+                                    ([System.Management.Automation.ItemNotFoundException]"Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
+                                    'Add-SupervisorClusterLicense',
+                                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                    ""
+                                )
+                            )
                         }
                     }
-                }
-                else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                } else {
+                    $PSCmdlet.ThrowTerminatingError(
+                        [System.Management.Automation.ErrorRecord]::new(
+                            ([System.Management.Automation.ItemNotFoundException]"Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
+                            'Add-SupervisorClusterLicense',
+                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                            ""
+                        )
+                    )
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8885,7 +8585,6 @@ Function Add-Namespace {
     )
 
     Try {
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
@@ -8899,34 +8598,28 @@ Function Add-Namespace {
                                             if (Get-WMNamespace -Name $namespace -ErrorAction SilentlyContinue) {
                                                 New-WMNamespaceStoragePolicy -Namespace $namespace -StoragePolicy $storagePolicy | Out-Null
                                                 Write-Output "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error  "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating Namespace ($namespace) in Supervisor Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -8968,26 +8661,22 @@ Function Undo-Namespace {
                                     Remove-WMNamespace -Namespace $namespace -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     if (!(Get-WMNamespace -Name $namespace -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                         Write-Output "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Namespace ($namespace) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9043,38 +8732,31 @@ Function Add-NamespacePermission {
                                                 New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
                                                 if (Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal) {
                                                     Write-Output "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assigning Role ($role) to $type ($principal) in Namespace ($namespace), already assigned: SKIPPED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Active Directory $type ($principal) not found in the Active Directory Domain: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 }
                                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to find Workload Domain named ($sddcDomain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9118,30 +8800,25 @@ Function Undo-NamespacePermission {
                                         Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal | Remove-WMNamespacePermission -Confirm:$false | Out-Null
                                         if (!(Get-WMNamespacePermission -Namespace $namespace -PrincipalName $principal)) {
                                             Write-Output "Removing access for principal ($principal) from Namespace ($namespace): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing access for principal ($principal) from Namespace ($namespace): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing access for principal ($principal) from Namespace ($namespace), does not exist: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($sddcDomain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9190,16 +8867,13 @@ Function Enable-Registry {
                                                 } Until ($configStatus -eq "RUNNING")
                                                 if (Get-WMRegistry -cluster $cluster -ErrorAction SilentlyContinue) {
                                                     Write-Output "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to find vSphere Storage Policy ($storagePolicy) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Enabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
                                         }
                                     }
@@ -9208,14 +8882,12 @@ Function Enable-Registry {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9262,12 +8934,10 @@ Function Undo-Registry {
                                             } Until (!($configStatus))
                                             if (!(Get-WMRegistry -cluster $cluster -ErrorAction Ignore)) {
                                                 Write-Output "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Disabling Embedded Harbour Registry in vCenter Server ($($vcfVcenterDetails.fqdn)) for Cluster ($cluster), already performed: SKIPPED"
                                         }
                                     }
@@ -9276,14 +8946,12 @@ Function Undo-Registry {
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9329,16 +8997,13 @@ Function Add-NamespaceVmClass {
                                                 Add-VMClass -namespace $namespace -vmClass $vmClass | Out-Null
                                                 if (Get-VMClass -namespace $namespace | Where-Object {$_ -eq $vmClass}) {
                                                     Write-Output "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace), already exists: SKIPPED"
                                             }                      
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -9349,8 +9014,7 @@ Function Add-NamespaceVmClass {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Response
     }
 }
@@ -9384,8 +9048,7 @@ Function Add-TanzuKubernetesCluster {
 
     if (!$PsBoundParameters.ContainsKey("yaml")) {
         $yaml = Get-ExternalFileName -title "Select the YAML File (.yaml)" -fileType "yaml" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $yaml)) {
             Write-Error  "YAML File '$yaml' File Not Found"
             Break
@@ -9407,14 +9070,12 @@ Function Add-TanzuKubernetesCluster {
                             Disconnect-WMCluster | Out-Null
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9460,16 +9121,13 @@ Function Undo-TanzuKubernetesCluster {
                                         Remove-TanzuKubernetesCluster -cluster $tkc -namespace $namespace | Out-Null
                                         if (!(Get-TanzuKubernetesCluster -name $namespace -tkc $tkc -ErrorAction Ignore | Out-Null )) {
                                             Write-Output "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc), does not exist: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Workload Management is not enabled on Cluster ($server) in vCenter Server ($($vcfVcenterDetails.fqdn))"
                                 }
                             }
@@ -9477,14 +9135,12 @@ Function Undo-TanzuKubernetesCluster {
                             Disconnect-WMCluster | Out-Null
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9527,11 +9183,9 @@ Function Export-vRLIJsonSpec {
     )
 
     Try {
-
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -9549,8 +9203,7 @@ Function Export-vRLIJsonSpec {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrli_license"].Value) {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrli_license"].Value
-                            }
-                            else {
+                            } else {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vrliLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
@@ -9563,7 +9216,6 @@ Function Export-vRLIJsonSpec {
                                             $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                         }
                                         $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value}
-
                                         $infrastructurePropertiesObject = @()
                                         $infrastructurePropertiesObject += [pscustomobject]@{
                                             'dataCenterVmid'		= $datacenterName.dataCenterVmid
@@ -9592,12 +9244,11 @@ Function Export-vRLIJsonSpec {
                                             'isDhcp'				= "false"
                                             'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                         }
-                                        
                                         $infrastructureObject = @()
                                         $infrastructureObject += [pscustomobject]@{
                                             'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
                                         }
-                                        
+
                                         ### Generate the Properties Details
                                         $productPropertiesObject = @()
                                         $productPropertiesObject += [pscustomobject]@{
@@ -9616,20 +9267,18 @@ Function Export-vRLIJsonSpec {
                                             'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
                                             'timeSyncMode'					= "ntp"
                                         }
-                                        
+
                                         #### Generate vRealize Log Insight Cluster Details
                                         $clusterVipProperties = @()
                                         $clusterVipProperties += [pscustomobject]@{
                                             'hostName'	= $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
                                             'ip'		= $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
                                         }
-                                        
                                         $clusterVipsObject = @()
                                         $clusterVipsObject += [pscustomobject]@{
                                             'type'			= "vrli-cluster-1"
                                             'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                         }
-                                        
                                         $clusterObject = @()
                                         $clusterObject += [pscustomobject]@{
                                         'clusterVips'	= $clusterVipsObject
@@ -9643,21 +9292,18 @@ Function Export-vRLIJsonSpec {
                                             'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
                                             'folderName'    = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
                                         }
-                                        
                                         $worker1Properties = @()
                                         $worker1Properties += [pscustomobject]@{
                                             'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
                                             'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
                                             'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
                                         }
-                                        
                                         $worker2Properties = @()
                                         $worker2Properties += [pscustomobject]@{
                                             'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
                                             'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
                                             'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
                                         }
-                                        
                                         $nodesObject = @()
                                         $nodesobject += [pscustomobject]@{
                                             'type'			= "vrli-master"
@@ -9671,7 +9317,7 @@ Function Export-vRLIJsonSpec {
                                             'type'			= "vrli-worker"
                                             'properties'	= ($worker2Properties | Select-Object -Skip 0)
                                         }
-                                        
+
                                         #### Generate the vRealize Log Insight Properties Section
                                         if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0"}
                                         if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
@@ -9686,28 +9332,22 @@ Function Export-vRLIJsonSpec {
                                             'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
                                             'nodes'			= $nodesObject	
                                         }
-                                        
                                         $vrliDeploymentObject = @()
                                         $vrliDeploymentObject += [pscustomobject]@{
                                             'environmentName'                   = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
                                             'infrastructure'                    = ($infrastructureObject  | Select-Object -Skip 0)
                                             'products'                          = $productsObject     
                                         }
-                                        
                                         $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vrliDeploymentSpec.json" 
-                                        
                                         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
                                         Write-Output "Creation of Deployment JSON Specification file for vRealize Log Insight: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Admin Password with alias ($($pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value)) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Certificate with alias ($($pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value)) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find License key ($licenseKey) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -9715,8 +9355,7 @@ Function Export-vRLIJsonSpec {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9754,8 +9393,7 @@ Function New-vRLIDeployment {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error "Planning and Preparation Workbook (.xlsx) ($workbook), File Not Found"
                 Break
@@ -9779,28 +9417,22 @@ Function New-vRLIDeployment {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Request for vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "License with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Certificate with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Environment with name ($($jsonSpec.environmentName)) already exists in vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)) with a status of ($($environmentExists.environmentStatus)): SKIPPED"
                             }
                         }
@@ -9808,8 +9440,7 @@ Function New-vRLIDeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9855,20 +9486,16 @@ Function Undo-vRLIDeployment {
                                         Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                         if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName})) {
                                             Write-Output "Removal of vRealize Log Insight from vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removal of vRealize Log Insight from vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Output "Removal request of vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removel request of vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Environment with name ($environmentName) in vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)), already removed: SKIPPED"
                             }
                         }
@@ -9876,8 +9503,7 @@ Function Undo-vRLIDeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9924,16 +9550,13 @@ Function Add-vRLISmtpConfiguration {
                                     Set-vRLISmtpConfiguration -smtpServer $smtpServer -port $port -sender $sender -username $smtpUser -password $smtpPass | Out-Null
                                     if (Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer}) {
                                         Write-Output "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to communicate with SMTP Server ($smtpServer), check details: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -9941,8 +9564,7 @@ Function Add-vRLISmtpConfiguration {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -9987,16 +9609,13 @@ Function Add-vRLIAuthenticationWSA {
                                     Set-vRLIAuthenticationWSA -hostname $wsaFqdn -port 443 -redirectUrl $vcfVrliDetails.fqdn -username $wsaUser -password $wsaPass
                                     if ((Get-vRLIAuthenticationWSA).enabled -eq $true) {
                                         Write-Output "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to communicate with Workspace ONE Access Instance ($wsaFqdn), check details: POST_VALIDATION_FAILED"
                             }
                         }
@@ -10004,8 +9623,7 @@ Function Add-vRLIAuthenticationWSA {
                 }
             }
         } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10053,15 +9671,14 @@ Function Install-vRLIPhotonAgent {
                                             $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                             if ($output.ScriptOutput.Contains("/lib/systemd/system/liagentd.service; enabled")) {
                                                 Write-Warning "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName), already exists: SKIPPED"
-                                            }
-                                            else {
+                                            } else {
                                                 Invoke-VMScript -VM $vmName -ScriptText "rm /tmp/liagent.rpm && rm /tmp/installAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                 $installAgent = @(
                                                     "curl -k -o /tmp/liagent.rpm https://$($vcfVrliDetails.fqdn)/api/v1/agent/packages/types/rpm; rpm -Uvh /tmp/liagent.rpm",
                                                     "systemctl enable liagentd",
                                                     "systemctl status liagentd"
                                                 )
-                                                foreach ($line in $installAgent) {
+                                                Foreach ($line in $installAgent) {
                                                     Invoke-VMScript -VM $vmName -ScriptText "echo ""$line"">>/tmp/installAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                 }
                                                 $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/installAgent.sh && /tmp/installAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
@@ -10074,23 +9691,20 @@ Function Install-vRLIPhotonAgent {
                                                         "systemctl restart liagentd",
                                                         "systemctl status liagentd"
                                                     )
-                                                    foreach ($line in $configureAgent) {
+                                                    Foreach ($line in $configureAgent) {
                                                         Invoke-VMScript -VM $vmName -ScriptText "echo ""$line"">>/tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                     }
                                                     $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/configureAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                                     if ($output.ScriptOutput.Contains("active (running)")) {
                                                         Write-Output "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): SUCCESSFUL"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Enabling vRealize Log Insight Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Virtual Machine ($vmName), not Found in vCenter Server ($($vcfVcenterDetails.fqdn)) Inventory, check details and try again: PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10101,8 +9715,7 @@ Function Install-vRLIPhotonAgent {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10151,16 +9764,13 @@ Function Undo-vRLIPhotonAgent {
                                             $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                             if ($output.ScriptOutput.Contains("liagentd.service could not be found")) {
                                                 Write-Output "Removing vRealize Log Insight Agent from ($vmName): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Removing vRealize Log Insight Agent from ($vmName): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Removing vRealize Log Insight Agent from ($vmName), already performed: SKIPPED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Virtual Machine ($vmName), not Found in vCenter Server ($($vcfVcenterDetails.fqdn)) Inventory, check details and try again: PRE_VALIDATION_FAILED"
                                     }
                                 }
@@ -10170,8 +9780,7 @@ Function Undo-vRLIPhotonAgent {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10218,12 +9827,10 @@ Function Add-vRLIAgentGroup {
                                 New-vRLIAgentGroup -agentGroupType $agentGroupType -criteria $criteria -agentGroupName $agentGroupName | Out-Null
                                 if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName}) {
                                     Write-Output "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), already exists: SKIPPED"
                             }
                         }
@@ -10231,8 +9838,7 @@ Function Add-vRLIAgentGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10283,16 +9889,13 @@ Function Register-vRLIWorkloadDomain {
                                     } Until ($configStatus -ne "IN_PROGRESS")
                                     if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
                                         Write-Output "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10300,8 +9903,7 @@ Function Register-vRLIWorkloadDomain {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10348,16 +9950,13 @@ Function Set-vRLISyslogEdgeCluster {
                                         Set-NsxtSyslogExporter -transport -id $nodeId -exporterName $exportName -logLevel INFO -port 514 -protocol TCP -server $vcfVrliDetails.fqdn | Out-Null
                                         if (Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName}) {
                                             Write-Output "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Configuring Syslog Server ($($vcfVrliDetails.fqdn)) on Edge Node ($nodeId), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Configuring Syslog Exporter ($exportName) on Edge Node ($nodeId), already exists: SKIPPED"
                                 }
                             }
@@ -10366,8 +9965,7 @@ Function Set-vRLISyslogEdgeCluster {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10412,12 +10010,10 @@ Function Undo-vRLISyslogEdgeCluster {
                                     Remove-NsxtSyslogExporter -transport -id $nodeId -exporterName $exportName | Out-Null
                                     if (!(Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName})) {
                                         Write-Output "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId), already removed: SKIPPED"
                                 }
                             }
@@ -10426,8 +10022,7 @@ Function Undo-vRLISyslogEdgeCluster {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10480,8 +10075,7 @@ Function Add-vRLILogArchive {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10527,16 +10121,13 @@ Function Add-vRLIAuthenticationGroup {
                                     Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
                                     if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
                                         Write-Output "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Workspace ONE Integration on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10544,8 +10135,7 @@ Function Add-vRLIAuthenticationGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10596,8 +10186,7 @@ Function Add-vRLIAlertDatacenter {
                         if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                             if (!($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
                                 Break
-                            }
-                            else {
+                            } else {
                                 if (!(Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn)) { Break }
                                 if (!(Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass)) { Break }
                             }
@@ -10612,7 +10201,7 @@ Function Add-vRLIAlertDatacenter {
                                                 $templateAlerts = $templateAlerts -replace '!!datacenterName!!',$datacenterName
                                                 $templateAlerts = $templateAlerts -replace '!!email!!',$email
                                                 [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
-                                                foreach ($alert in $allAlerts) {
+                                                Foreach ($alert in $allAlerts) {
                                                     $json = $alert | ConvertTo-Json
                                                     if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                                                         $entityObjectId =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $datacenterName | Where-Object {$_.identifierType.name -eq "VMEntityObjectID"}).value
@@ -10629,8 +10218,7 @@ Function Add-vRLIAlertDatacenter {
                                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                                 Write-Output "Adding Datacenter Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Dataceter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10640,12 +10228,10 @@ Function Add-vRLIAlertDatacenter {
                     }                       
                 }
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to find template Alert JSON ($alertTemplate): PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10696,8 +10282,7 @@ Function Add-vRLIAlertVirtualMachine {
                         if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                             if (!($vcfVropsDetails = Get-vROPSServerDetail -fqdn $server -username $user -password $pass)) {
                                 Break
-                            }
-                            else {
+                            } else {
                                 if (!(Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn)) { Break }
                                 if (!(Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass)) { Break }
                             }
@@ -10712,7 +10297,7 @@ Function Add-vRLIAlertVirtualMachine {
                                                 $templateAlerts = $templateAlerts -replace '!!vmName!!',$vmName
                                                 $templateAlerts = $templateAlerts -replace '!!email!!',$email
                                                 [Array]$allAlerts = $templateAlerts | ConvertFrom-Json
-                                                foreach ($alert in $allAlerts) {
+                                                Foreach ($alert in $allAlerts) {
                                                     $json = $alert | ConvertTo-Json
                                                     if ($PsBoundParameters.ContainsKey("vropsIntegration")) {
                                                         $VMEntityInstanceUUID =(Get-vROPSResourceDetail -adapter $adapter -resource $resource -objectname $vmName | Where-Object {$_.identifierType.name -eq "VMEntityInstanceUUID"}).value
@@ -10732,8 +10317,7 @@ Function Add-vRLIAlertVirtualMachine {
                                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                                 Write-Output "Adding Virtual Machine Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Virtual Machine ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10743,12 +10327,10 @@ Function Add-vRLIAlertVirtualMachine {
                     }                         
                 }
             }
-        }
-        else {
+        } else {
             Write-Error "Unable to find template Alert JSON ($alertTemplate): PRE_VALIDATION_FAILED"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10790,8 +10372,7 @@ Function Undo-vRLIAlert {
                                     Remove-vRLIAlert -alertId $alert.id | Out-Null
                                 }
                                 Write-Output "Removing Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with name ($name): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for name ($name), none exist: SKIPPED"
                             }
                         }
@@ -10799,8 +10380,7 @@ Function Undo-vRLIAlert {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10842,7 +10422,6 @@ Function Add-NsxtNodeProfileSyslogExporter {
         if (!($PsBoundParameters.ContainsKey("id"))) {
             $id = "00000000-0000-0000-0000-000000000001" # Default: (All NSX Nodes)
         }
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
@@ -10856,16 +10435,13 @@ Function Add-NsxtNodeProfileSyslogExporter {
                                                 Set-NsxtNodeProfileSyslogExporter -id $id -server $vcfVrliDetails.fqdn -port 514 -protocol "TCP" -logLevel "INFO" | Out-Null
                                                     if ((Get-NsxtNodeProfile -id $id).syslog.exporters | Where-Object {$_.server -eq $vcfVrliDetails.fqdn -and $_.port -eq 514 -and $_.protocol -eq "TCP" -and $_.max_log_level -eq "INFO"}) {
                                                         Write-Output "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($($profileExists.display_name)) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                                     }     
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($($profileExists.display_name)) in NSX Manager ($($vcfNsxDetails.fqdn)), already exist: SKIPPED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "The NSX node profile ($id) does not exist in NSX Manager ($($vcfNsxDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
@@ -10876,8 +10452,7 @@ Function Add-NsxtNodeProfileSyslogExporter {
                 }
             }
         } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10917,7 +10492,6 @@ Function Undo-NsxtNodeProfileSyslogExporter {
         if (!($PsBoundParameters.ContainsKey("id"))) {
             $id = "00000000-0000-0000-0000-000000000001"
         }
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
@@ -10928,16 +10502,13 @@ Function Undo-NsxtNodeProfileSyslogExporter {
                                     Remove-NsxtNodeProfileSyslogExporter -id $id | Out-Null
                                     if (Get-NsxtNodeProfile -id $id | Where-Object {$null -eq $_.syslog}) {
                                         Write-Output "Removing all syslog exporters from the NSX node profile ($($profileExists.display_name)) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing all syslog exporters from the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }     
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing all syslog exporters from the NSX node profile ($($profileExists.display_name)) in NSX Manager ($($vcfNsxDetails.fqdn)), already removed: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "The NSX node profile ($id) does not exist in NSX Manager ($($vcfNsxDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -10945,8 +10516,7 @@ Function Undo-NsxtNodeProfileSyslogExporter {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10992,8 +10562,7 @@ Function Export-vROPsJsonSpec {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -11011,8 +10580,7 @@ Function Export-vROPsJsonSpec {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrops_license"].Value) {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrops_license"].Value
-                            }
-                            else {
+                            } else {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vropsLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
@@ -11029,8 +10597,8 @@ Function Export-vROPsJsonSpec {
                                             if ($datacenterName) {
                                                 $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
+                                                
                                                 # $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
-
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
                                                     'dataCenterVmid'		= $datacenterName.dataCenterVmid
@@ -11059,7 +10627,6 @@ Function Export-vROPsJsonSpec {
                                                     'isDhcp'				= "false"
                                                     'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                                 }
-
                                                 $infrastructureObject = @()
                                                 $infrastructureObject += [pscustomobject]@{
                                                     'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
@@ -11087,13 +10654,11 @@ Function Export-vROPsJsonSpec {
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
                                                 }
-
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
                                                     'type'			= "vrops-cluster"
                                                     'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                                 }
-
                                                 $clusterObject = @()
                                                 $clusterObject += [pscustomobject]@{
                                                 'clusterVips'	= $clusterVipsObject
@@ -11109,8 +10674,7 @@ Function Export-vROPsJsonSpec {
                                                 $masterProperties | Add-Member -notepropertyname 'searchpath' -notepropertyvalue $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
                                                 if ($null -eq $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value) {
                                                     $masterProperties | Add-Member -notepropertyname 'dns' -notepropertyvalue $pnpWorkbook.Workbook.Names["region_dns1_ip"].Value
-                                                }
-                                                else {
+                                                } else {
                                                     $masterProperties | Add-Member -notepropertyname 'dns' -notepropertyvalue ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                                                 }
                                                 $masterProperties | Add-Member -notepropertyname 'netmask' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
@@ -11132,21 +10696,18 @@ Function Export-vROPsJsonSpec {
                                                 if ($vcfVersion -eq "4.4.0") {
                                                     $masterProperties | Add-Member -notepropertyname 'extendedStorage' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
                                                 }
-
                                                 $replicaProperties = @()
                                                 $replicaProperties += [pscustomobject]@{
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
                                                     'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
                                                 }
-
                                                 $dataProperties = @()
                                                 $dataProperties += [pscustomobject]@{
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
                                                     'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
                                                 }
-
                                                 $remoteCollector1Properties = @()
                                                 $remoteCollector1Properties += [pscustomobject]@{
                                                     'vmName'	    = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
@@ -11169,7 +10730,6 @@ Function Export-vROPsJsonSpec {
                                                     'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
                                                     'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                                                 }
-
                                                 $remoteCollector2Properties = @()
                                                 $remoteCollector2Properties += [pscustomobject]@{
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
@@ -11192,7 +10752,6 @@ Function Export-vROPsJsonSpec {
                                                     'vcPassword'    = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
                                                     'ntp'           = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                                                 }
-
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
                                                     'type'			= "master"
@@ -11229,7 +10788,6 @@ Function Export-vROPsJsonSpec {
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
                                                     'nodes'			= $nodesObject	
                                                 }
-
                                                 if (!($xintEnvironment)) { 
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
@@ -11237,8 +10795,7 @@ Function Export-vROPsJsonSpec {
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
                                                         'products'              = $productsObject     
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
                                                         'environmentId'         = $xintEnvironment.environmentId
@@ -11250,24 +10807,19 @@ Function Export-vROPsJsonSpec {
 
                                                 $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vropsDeploymentSpec.json" 
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Operations Manager: SUCCESSFUL"                            
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist: PRE_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -11276,8 +10828,7 @@ Function Export-vROPsJsonSpec {
             }
         }
         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11312,8 +10863,7 @@ Function New-vROPSDeployment {
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
         $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $workbook)) {
             Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
             Break
@@ -11335,36 +10885,29 @@ Function New-vROPSDeployment {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-                                            }
-                                            else {
+                                            } else {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
                                             }
                                             if ($newRequest) {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Rquest for vRealize Operations Manager Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy vRealize Operations Manager failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "License in vRealize Suite Lifecycle Manager ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "vRealize Operations Manager in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
@@ -11372,8 +10915,7 @@ Function New-vROPSDeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11422,24 +10964,19 @@ Function Import-vROPSUserGroup {
                                             Add-vROPSUserGroup -sourceId (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}).id -userGroup ($groupName + '@' + $domain) -role $role | Out-Null
                                             if (Get-vROPSUserGroup -name ($groupName + '@' + $domain)) {
                                                 Write-Output "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to locate Role in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to locate User Group in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($groupName): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to locate Authentication Source in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)), already performed: SKIPPED"
                             }
                         }
@@ -11447,8 +10984,7 @@ Function Import-vROPSUserGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11498,23 +11034,19 @@ Function Register-vROPSWorkloadDomain {
                             } Until ($configStatus -ne "IN_PROGRESS")
                             if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
                                 Write-Output "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Error "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): POST_VALIDATION_FAILED"
                             }
-                        }
-                        else {
+                        } else {
                             Write-Warning "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain), already enabled: SKIPPED"
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11560,12 +11092,10 @@ Function Add-vROPSGroupRemoteCollectors {
                                 Add-vROPSCollectorGroup -name $collectorGroupName -collectorIds $collectorIds
                                 if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
                                     Write-Output "Creating Remote Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Creating Remote Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating Remote Collector Group in ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), already exists: SKIPPED"
                             }
                         }
@@ -11573,8 +11103,7 @@ Function Add-vROPSGroupRemoteCollectors {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11655,14 +11184,12 @@ Function Update-vROPSAdapterVcenter {
                                     if (!($($adapter.collectorGroupId) -eq $collectorGroupId)) {
                                         Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                         Write-Output "Assiging vCenter Adapter ($($adapter.resourceKey.name)) to Remote Collector Group ($collectorGroupName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Assiging vCenter Adapter ($($adapter.resourceKey.name)) to Remote Collector Group ($collectorGroupName), already assigned: SKIPPED"
                                     }
                                     Remove-Item .\updateAdapter.json -Force -Confirm:$false
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -11670,8 +11197,7 @@ Function Update-vROPSAdapterVcenter {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11708,7 +11234,7 @@ Function Update-vROPSAdapterCollecterGroup {
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -adaptertype "IdentityManagerAdapter" -adaptername "vRSLCM_VCF_Workspace ONE Access Adapter"
         This example updates Identity Manager Adapter with name "vRSLCM_VCF_Workspace ONE Access Adapter" to use the default Remote Collector Group named "Default collector group"
-        #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11718,6 +11244,7 @@ Function Update-vROPSAdapterCollecterGroup {
         [Parameter (Mandatory = $true)] [ValidateSet("VMWARE","LogInsightAdapter","IdentityManagerAdapter","NSXTAdapter","PingAdapter","CASAdapter")] [String]$adapterType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$adapterName
     )
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -11729,10 +11256,9 @@ Function Update-vROPSAdapterCollecterGroup {
                                 if ($adapterName) {
                                     if ($adapters | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                         $adapters = $adapters | Where-Object {$_.resourceKey.name -eq $adapterName}
-                                    }
-                                    else {
-                                       Write-Error "Adapter with name $adapterName not found"
-                                        break
+                                    } else {
+                                        Write-Error "Adapter with name $adapterName not found"
+                                        Break
                                     }
                                 }
                                 Foreach ($adapter in $adapters) {
@@ -11745,13 +11271,11 @@ Function Update-vROPSAdapterCollecterGroup {
                                                 Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                                 Write-Output "Assiging Collector Group ($collectorGroupName) to instance - ($($adapter.resourceKey.name)) : SUCCESSFUL"
                                                 Remove-Item .\updateAdapter.json -Force -Confirm:$false
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assiging Collector Group ($collectorGroupName) to instance - ($($adapter.resourceKey.name)) : already assigned: SKIPPED"
                                             }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -11759,9 +11283,7 @@ Function Update-vROPSAdapterCollecterGroup {
                 }
             }
         }
-
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11803,12 +11325,10 @@ Function Add-vROPSCurrency {
                                 Set-vROPSCurrency -currency $currency | Out-Null
                                 if (((Get-vROPSCurrency | Select-Object code)).code -eq $currency) {
                                     Write-Output "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency), ($($currentCurrency.code)) already set: SKIPPED"
                             }
                         }
@@ -11816,8 +11336,7 @@ Function Add-vROPSCurrency {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11854,8 +11373,7 @@ Function Enable-vROPSManagementPack {
 
     if (!$pakFile) {
         $pakFile = Get-ExternalFileName -title "Select the Management Pack file (.pak)" -fileType "pak" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $pakFile)) {
             Write-Error "Management Pack file (pak) '$pakFile' File Not Found"
             Break
@@ -11878,16 +11396,13 @@ Function Enable-vROPSManagementPack {
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
                                         Write-Output "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Uploading '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                             }
                         }
@@ -11895,8 +11410,7 @@ Function Enable-vROPSManagementPack {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -11955,16 +11469,13 @@ Function Register-vROPSManagementPack {
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
                                         Write-Output "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                 }
-                            }
-                            elseif ($state -eq "disable") {
+                            } elseif ($state -eq "disable") {
                                 if (Get-vROPSSolution | Where-Object {$_.id -match $packType}) {
                                     Set-vROPSManagementPack -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass -pakId ((($adapterDetails.pak_id) -Split ("-"))[0]) -version $adapterDetails.version -status disable | Out-Null
                                     Do {
@@ -11972,12 +11483,10 @@ Function Register-vROPSManagementPack {
                                     } Until ( $($status.current_pak_activity.pak_id) -ne $adapterDetails.pak_id )
                                     if (!(Get-vROPSSolution | Where-Object {$_.id -match $packType})) {
                                         Write-Output "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                 }
                             }
@@ -11986,8 +11495,7 @@ Function Register-vROPSManagementPack {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12083,23 +11591,19 @@ Function Add-vROPSAdapterNsxt {
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vcfNsxDetails.fqdn}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vcfNsxDetails.fqdn}).id | Out-Null
                                             Write-Output "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                         Remove-Item .\createdAdapter.json -Force -Confirm:$false
                                         Remove-Item .\patchAdapter.json -Force -Confirm:$false 
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)), already exists: SKIPPED"
                                     }      
-                                }
-                                else {
+                                } else {
                                     Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -12107,8 +11611,7 @@ Function Add-vROPSAdapterNsxt {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12201,28 +11704,22 @@ Function Add-vROPSAdapterPing {
                                                     }
                                                 ]
                                         }'
-                                
                                         $json | Out-File .\addAdapter.json
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
-                                
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "The Ping Management Pack in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -12230,8 +11727,7 @@ Function Add-vROPSAdapterPing {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12286,8 +11782,7 @@ Function Update-vROPSAdapterSddcHealth {
                                             "monitoringInterval":  5,
                                             "id":  "'+ $($adapter.id) +'"
                                         }'
-                                    }
-                                    else {
+                                    } else {
                                         $json = '{
                                             "name":  "'+ $adapterName +'",
                                             "adapterKindKey":  "SDDCHealthAdapter",
@@ -12297,19 +11792,16 @@ Function Update-vROPSAdapterSddcHealth {
                                             "id":  "'+ $($adapter.id) +'"
                                         }'
                                     }
-                                    
                                     $json | Out-File .\updateAdapter.json
                                     if (!($adapter.resourceKey.name -eq $adapterName)) {
                                         Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                         Write-Output "Renaming Adapter ($($adapter.resourceKey.name)) to ($adapterName): SUCCESSFUL"
                                         Remove-Item .\updateAdapter.json -Force -Confirm:$false
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Renaming Adapter ($($adapter.resourceKey.name)) to ($adapterName), already performed: SKIPPED"
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate Adapters of type (SDDCHealthAdapter) in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -12317,8 +11809,7 @@ Function Update-vROPSAdapterSddcHealth {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12371,8 +11862,7 @@ Function Add-vROPSAdapterSddcHealth {
                                             "collectorId": '+ $($collector.id) +',
                                             "monitoringInterval": 5
                                         }'
-                                    }
-                                    else {
+                                    } else {
                                         $json = '{
                                             "name": "'+ $adapterName +'",
                                             "adapterKindKey": "SDDCHealthAdapter",
@@ -12381,25 +11871,21 @@ Function Add-vROPSAdapterSddcHealth {
                                             "monitoringInterval": 5
                                         }'
                                     }
-                                    
                                     $json | Out-File .\addAdapter.json
                                     if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName})) {                   
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already performed: SKIPPED"
                                     }
                                     Remove-Item .\addAdapter.json -Force -Confirm:$false
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to locate Remote Collectors in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                             } 
                         }
@@ -12407,8 +11893,7 @@ Function Add-vROPSAdapterSddcHealth {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12487,7 +11972,6 @@ Function Add-vROPSAdapterIdentityManager {
                                                 "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -eq $adapterName}).id +'"
                                                 }
                                         }'
-                                
                                         $adapterJson | Out-File .\addAdapter.json
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         $testAdapter = Test-vROPSAdapterConnection -json .\addAdapter.json
@@ -12505,22 +11989,18 @@ Function Add-vROPSAdapterIdentityManager {
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq "IdentityManagerAdapter"}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
                                             Write-Output "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                         Remove-Item .\patchAdapter.json -Force -Confirm:$false
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "The Identity Manager Management Pack in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -12528,8 +12008,7 @@ Function Add-vROPSAdapterIdentityManager {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12576,12 +12055,10 @@ Function Undo-vROPSAdapter {
                                 } While (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq $adapterType})
                                 if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq $adapterType})) {
                                     Write-Output "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), does not exist: SKIPPED"
                             }   
                         }
@@ -12589,8 +12066,7 @@ Function Undo-vROPSAdapter {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12620,7 +12096,7 @@ Function Undo-vROPSCredential {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialName,
-        [Parameter (Mandatory = $true)] [ValidateSet("IdentityManagerAdapter","NSXTAdapter")] [String]$credentialType
+        [Parameter (Mandatory = $true)] [ValidateSet("IdentityManagerAdapter","NSXTAdapter","CASAdapter")] [String]$credentialType
     )
 
     Try {
@@ -12634,16 +12110,13 @@ Function Undo-vROPSCredential {
                                     Remove-vROPSCredential -credentialId (Get-vROPSCredential | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType}).Id | Out-Null
                                     if (!(Get-vROPSCredential | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType})) {
                                         Write-Output "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Credential of type ($credentialType) named ($credentialName) still assigned to an adapter: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), does not exist: SKIPPED"
                             }   
                         }
@@ -12651,8 +12124,7 @@ Function Undo-vROPSCredential {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12737,8 +12209,7 @@ Function Add-vROPSAlertPluginEmail {
                                         "value" : "'+ ($senderAddress -split("@"))[0] +'"
                                     } ]
                                     }'
-                                }
-                                else {
+                                } else {
                                     $json = '{
                                         "pluginTypeId" : "StandardEmailPlugin",
                                         "name" : "'+ $pluginName +'",
@@ -12769,13 +12240,11 @@ Function Add-vROPSAlertPluginEmail {
                                 if (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $pluginName}) {
                                     Set-vROPSAlertPluginStatus -pluginId (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $pluginName}).pluginId -status true
                                     Write-Output "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): POST_VALIDATION_FAILED"
                                 }
                                 Remove-Item .\addAlertPlugin.json -Force -Confirm:$false
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName), already exists: SKIPPED"
                             }
                         }
@@ -12783,8 +12252,7 @@ Function Add-vROPSAlertPluginEmail {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -12837,52 +12305,11 @@ Function Import-vROPSNotification {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Import-vROPSNotification
-
-Function Test-vROPsAdapterStatus {
-    <#
-        .SYNOPSIS
-        Validates the integration status of a vRealize Operations adapter through adapter's ID
-        
-        .DESCRIPTION
-        The Test-vROPsAdapterStatus cmdlet validates the integration status between vRealize Operations Manager and configured adapter.
-    
-        .EXAMPLE
-        Test-vROPsAdapterStatus -resourceId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
-        This example validates the integration status between vRealize Operations Manager and configured adapter through its ID. 
-    #>
-    
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
-    )
-
-    $name = (Get-vROPSAdapter | Where-Object { $_.id -eq $resourceId }).resourceKey.name
-
-    Try {
-        $uri = "https://$vropsAppliance/suite-api/api/resources/$resourceId"
-        if ($PSEdition -eq 'Core') {
-            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
-            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
-        }
-        if ($vropsresponse.resourceHealth -eq "GREEN") {
-            Write-Output "Adapter Name : $($name), Health Status: GREEN" 
-        }
-        else { 
-            Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
-        }
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Test-vROPsAdapterStatus
 
 Function Test-vROPsAdapterStatusByType {
     <#
@@ -12911,6 +12338,7 @@ Function Test-vROPsAdapterStatusByType {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateSet("Container", "EP Ops Adapter", "Http Post", "LogInsight", "MicrosoftAzureAdapter", "AmazonAWSAdapter", "NSXTAdapter", "PingAdapter", "SDDCHealthAdapter", "APPLICATIONDISCOVERY", "VMWARE", "VmcAdapter", "IdentityManagerAdapter", "APPOSUCP", "VOAAdapter", "CASAdapter", "LogInsightAdapter", "NETWORK_INSIGHT", "vCenter Operations Adapter", "vRealizeOpsMgrAPI", "VirtualAndPhysicalSANAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
     )
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -12923,12 +12351,10 @@ Function Test-vROPsAdapterStatusByType {
                                     $adapterJson | ForEach-Object {
                                         Test-vROPSAdapterStatus -resourceId $_.id
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "'$($adapterKind)' Adapter is not configured" 
                                 }
-                            }
-                            else { 
+                            } else { 
                                 Write-Error "Unable to find '$($adapterKind)' Adapter" 
                             }
                         }                                          
@@ -12936,12 +12362,127 @@ Function Test-vROPsAdapterStatusByType {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Test-vROPsAdapterStatusByType
+
+Function Update-vROPSvRAAdapterCredential {
+    <#
+		.SYNOPSIS
+        Update the credential of vRealize Automation adapter in vRealize Operations Manager
+
+        .DESCRIPTION
+        The Update-vROPSvRAAdapterCredential cmdlet update the credential of vRealize Automation adapter in vRealize Operations Manager. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Operations Manager has been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Validates that network connectivity is possible to vRealize Automation
+        - Validates that the vRealize Automation adapter exists and configured in vRealize Operations Manager
+        - Validates that the credential name of vRealize Automation adapter does not already exist in vRealize Operations Manager
+        - Validates that the given credential is valid and updates vRealize Automation adapter in vRealize Operations Manager 
+        - Verifies the vRealize Automation adapter status in vRealize Operations Manager after updating the credential
+
+        .EXAMPLE
+        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "vRealize Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! -adapterKind CASAdapter
+        This example update the credential of vRealize Automation adapter with name "vRealize Automation Credentials" in vRealize Operations Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_displayname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credential_password,
+        [Parameter (Mandatory = $true)] [ValidateSet("CASAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {   
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {  
+                                    if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {
+                                        if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {
+                                            if (!(Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) {
+                                                $credentialJson = ' {
+                                                                        "name" : "'+ $credential_displayname + '",
+                                                                        "adapterKindKey" : "'+ $adapterKind + '",
+                                                                        "credentialKindKey" : "CMPCREDENTIALS",                                                                    
+                                                                            "fields" : [ {
+                                                                                "name" : "USERNAME",
+                                                                                "value" : "'+ $credential_username + '"
+                                                                                }, {
+                                                                                "name" : "PASSWORD",
+                                                                                "value" : "'+ $credential_password + '"
+                                                                            } ]
+                                                                        }'
+                                                $credentialJson | Out-File .\addCredential.json
+                                                Add-vROPSCredential -json .\addCredential.json | Out-Null
+                                                Remove-Item .\addCredential.json -Force -Confirm:$false
+                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) { 
+                                                    Write-Output "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                    $vraAdapterObj = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind } 
+                                                    $vraAdapterId = $vraAdapterObj.id
+                                                    $adapterName = $vraAdapterObj.resourceKey.name
+                                                    $credid = (Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname }).id
+                                                    $vraAdapterObj.credentialInstanceId = $credid
+                                                    $vraAdapterObj.PSObject.Properties.Remove('links')
+                                                    $vraAdapterObj.PSObject.Properties.Remove('lastHeartbeat')
+                                                    $vraAdapterObj.PSObject.Properties.Remove('messageFromAdapterInstance')
+                                                    $vraAdapterObj.PSObject.Properties.Remove('lastCollected')
+                                                    $vraAdapterObj.PSObject.Properties.Remove('numberOfMetricsCollected')
+                                                    $vraAdapterObj.PSObject.Properties.Remove('numberOfResourcesCollected')
+                                                    $certificates = New-Object System.Collections.ArrayList
+                                                    $vraAdapterObj | Add-Member -NotePropertyName adapter-certificates -NotePropertyValue ([Array]$certificates)
+                                                    $vraAdapterObj | ConvertTo-Json -Depth 4 | Out-File .\vraadapter.json
+                                                    $testresponse = Test-vROPSAdapterConnection -json .\vraadapter.json -patch
+                                                    if ($testresponse.Count) { 
+                                                        Write-Output "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                        Set-vROPSAdapter -json .\vraadapter.json | Out-Null
+                                                        Write-Output "Updating vRealize Automation adapter named ($adapterName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                        Start-vROPSAdapter -adapterId $vraAdapterId | Out-Null
+                                                        Start-Sleep 5
+                                                        Write-Output "Verifying vRealize Automation adapter status... $(Test-vROPsAdapterStatus -resourceId $vraAdapterId)"
+                                                    } else {
+                                                        Write-Error "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
+                                                        Remove-vROPSCredential -credentialId $credid
+                                                        Write-Output "Removing vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"    
+                                                    }
+                                                    Remove-Item .\vraadapter.json -Force -Confirm:$false 
+                                                } else {
+                                                    Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
+                                                    Break
+                                                }
+                                            } else {
+                                                Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
+                                                Break
+                                            }
+                                        } else {
+                                            Write-Error "'$($adapterKind)' Adapter is not configured: PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to find '$($adapterKind)' Adapter: PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-vROPSvRAAdapterCredential
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -12978,8 +12519,7 @@ Function Export-vRAJsonSpec {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -12997,8 +12537,7 @@ Function Export-vRAJsonSpec {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vra_license"].Value) {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vra_license"].Value
-                            }
-                            else {
+                            } else {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vraLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
@@ -13073,13 +12612,11 @@ Function Export-vRAJsonSpec {
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
-
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
                                                     'type'			= "vra-va"
                                                     'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                                 }
-
                                                 $clusterObject = @()
                                                 $clusterObject += [pscustomobject]@{
                                                 'clusterVips'	= $clusterVipsObject
@@ -13092,21 +12629,18 @@ Function Export-vRAJsonSpec {
                                                     'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
                                                     'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_ip"].Value
                                                 }
-
                                                 $vraSecondary1Properties = @()
                                                 $vraSecondary1Properties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_fqdn"].Value
                                                     'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
                                                     'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_ip"].Value
                                                 }
-
                                                 $vraSecondary2Properties = @()
                                                 $vraSecondary2Properties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_fqdn"].Value
                                                     'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
                                                     'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_ip"].Value
                                                 }
-
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
                                                     'type'			= "vrava-primary"
@@ -13135,7 +12669,6 @@ Function Export-vRAJsonSpec {
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
                                                     'nodes'			= $nodesObject	
                                                 }
-
                                                 if (!($xintEnvironment)) { 
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
@@ -13143,8 +12676,7 @@ Function Export-vRAJsonSpec {
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
                                                         'products'              = $productsObject     
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
                                                         'environmentId'         = $xintEnvironment.environmentId
@@ -13153,28 +12685,22 @@ Function Export-vRAJsonSpec {
                                                         'products'              = $productsObject     
                                                     }
                                                 }
-
                                                 $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vraDeploymentSpec.json" 
                                                 
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Automation: SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                             }
                         }
@@ -13183,8 +12709,7 @@ Function Export-vRAJsonSpec {
             }
         }
         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13217,8 +12742,7 @@ Function New-vRADeployment {
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
         $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $workbook)) {
             Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
             Break
@@ -13240,36 +12764,29 @@ Function New-vRADeployment {
                                         if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
-                                            }
-                                            else {
+                                            } else {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json
                                             }
                                             if ($newRequest) {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Rquest for vRealize Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy vRealize Automation failed, check the vRealize Suite Lifecycle Manager UI"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "License in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "vRealize Automation in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
@@ -13277,8 +12794,7 @@ Function New-vRADeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13313,7 +12829,6 @@ Function Update-vRAOrganizationDisplayName {
     )
 
     Try {
-
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
@@ -13324,12 +12839,10 @@ Function Update-vRAOrganizationDisplayName {
                                 Set-vRAOrganizationDisplayName -orgId $orgId -displayName $displayName | Out-Null
                                 if ((Get-vRAOrganizationDisplayName -orgId $orgId).displayname -eq $displayName) {
                                     Write-Output "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)), already defined: SKIPPED"
                             }
                         }
@@ -13337,8 +12850,7 @@ Function Update-vRAOrganizationDisplayName {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13400,17 +12912,14 @@ Function New-vRACloudAccount {
                                         Add-vRACloudAccount -type vsphere -json $vcenterCloudAccount | Out-Null
                                         if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
                                             Write-Output "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to connect to vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $($vcfVcenterDetails.fqdn) -Confirm:$false -WarningAction SilentlyContinue
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                 }
                                 if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
@@ -13426,16 +12935,13 @@ Function New-vRACloudAccount {
                                     Add-vRACloudAccount -type nsx-t -json $nsxtCloudAccount | Out-Null
                                     if (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}) {
                                         Write-Output "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13443,8 +12949,7 @@ Function New-vRACloudAccount {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13491,28 +12996,23 @@ Function Undo-vRACloudAccount {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
                                         Write-Output "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), does not exist: SKIPPED"
                                 }
                                 if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)})) {
                                         Write-Output "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     } 
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13520,8 +13020,7 @@ Function Undo-vRACloudAccount {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13544,10 +13043,15 @@ Function Update-vRACloudAccountZone {
         - Adds the tag to the Resource Pool Compute Resource
         - Adds the folder to the Cloud Account Zone as a target
         - Adds a dynamic filter to use the defined tags
+        - Updates the placement policy
 
         .EXAMPLE
         Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -tagKey enabled -tagValue true -folder "sfo-w01-fd-workload" -resourcePool "sfo-w01-cl01-rp-workload"
         This example updates the Cloud Zone for the Workload Domain with a default folder and adds tags to the resource pool for dynamic provisioning in vRealize Automation
+        
+        .EXAMPLE
+        Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -placementPolicy ADVANCED
+        This example updates the placement policy for the Cloud Zone to ADVANCED in vRealize Automation
     #>
 
     Param (
@@ -13557,10 +13061,11 @@ Function Update-vRACloudAccountZone {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagKey,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagValue,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folder,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourcePool
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagKey,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagValue,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$folder,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$resourcePool,
+        [Parameter (Mandatory = $false)] [ValidateSet("ADVANCED", "DEFAULT", "SPREAD", "BINPACK")][ValidateNotNullOrEmpty()] [String]$placementPolicy
     )
 
     Try {
@@ -13571,24 +13076,28 @@ Function Update-vRACloudAccountZone {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             $vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                             if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                                if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
-                                    $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                                    if (Get-vRAResourceCompute | Where-Object {$_.name -eq ($cluster + " / " + $resourcePool)}) {
-                                        $cloudZoneDetails = Get-vRACloudZone | Where-Object {$_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}).id }
-                                        Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object {$_.name -eq ($cluster + " / " + $resourcePool)}).id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                        Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
-                                        Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                        Write-Output "Updating Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
+                                if (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }) {
+                                    if ($PsBoundParameters.ContainsKey("resourcePool")) { 
+                                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                        if (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }) {
+                                            $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
+                                            Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }).id -tagKey $tagKey -tagValue $tagValue | Out-Null
+                                            Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
+                                            Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
+                                            Write-Output "Updating Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Unable to find Resource Pool in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool): PRE_VALIDATION_FAILED"
+                                        } 
+                                    } 
+                                    if ($PsBoundParameters.ContainsKey("placementPolicy")) { 
+                                        $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
+                                        Update-VRACloudZone -id $cloudZoneDetails.id -placementPolicy $placementPolicy | Out-Null
+                                        Write-Output "Updating placement policy to $placementPolicy in Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     }
-                                    else {
-                                        Write-Error "Unable to find Resource Pool in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool) : PRE_VALIDATION_FAILED"
-                                    }
+                                } else {
+                                    Write-Error "Unable to find vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                                 }
-                                else {
-                                    Write-Error "Unable to find vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)) : PRE_VALIDATION_FAILED"
-                                }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }   
                         }
@@ -13596,8 +13105,7 @@ Function Update-vRACloudAccountZone {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13767,28 +13275,22 @@ Function Add-vROvCenterServer {
                                         if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) { 
                                             Do {
                                                 $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
-                                            } 
-                                            Until ($workflowStatus -ne "running")
+                                            }  Until ($workflowStatus -ne "running")
                                             if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) { 
                                                 Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find the workflow named ($workflowName) to embedded vRealize Orcherator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), already exists: SKIPPED"
                                 }                                
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13796,8 +13298,7 @@ Function Add-vROvCenterServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13865,28 +13366,22 @@ Function Remove-vROvCenterServer {
                                         if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) { 
                                             Do {
                                                 $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
-                                            } 
-                                            Until ($workflowStatus -ne "running")
+                                            } Until ($workflowStatus -ne "running")
                                             if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) { 
                                                 Write-Output "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find the workflow named ($workflowName) in embedded vRealize Orcherator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), does not exist: SKIPPED"
                                 }                                
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -13894,8 +13389,7 @@ Function Remove-vROvCenterServer {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -13931,8 +13425,7 @@ Function Add-vROTrustedCertificate {
 
     if (!$PsBoundParameters.ContainsKey("certFile")) {
         $certFile = Get-ExternalFileName -title "Select the trusted certificate file (.cer)" -fileType "cer" -location "default"
-    }
-    elseif ($PsBoundParameters.ContainsKey("certFile")) {
+    } elseif ($PsBoundParameters.ContainsKey("certFile")) {
         if (!(Test-Path -Path $certFile)) {
             Write-Error  "Selecting the trusted certificate file ($certFile), file not found: PRE_VALIDATION_FAILED"
             Break
@@ -13969,16 +13462,13 @@ Function Add-vROTrustedCertificate {
                                 if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -ne "failed" }) {
                                     Do {
                                         $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
-                                    } 
-                                    Until ($workflowStatus -ne "running")
+                                    }  Until ($workflowStatus -ne "running")
                                     if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -eq "completed" }) { 
                                         Write-Output "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)), check certificate format: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
                                 }
                             }                             
@@ -13987,8 +13477,7 @@ Function Add-vROTrustedCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14033,8 +13522,7 @@ Function Add-vRANotification {
                             New-vRANotification -name $smtpServer -serverName $smtpServer -emailAddress $emailAddress -sender $sender -trustCert true -connection $connection -authentication false | Out-Null
                             if (Get-vRANotification | Where-Object {$_.name -eq $smtpServer}) {
                                 Write-Output "Configuring Notification settings in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): SUCCESSFUL"
-                            }
-                            else {
+                            } else {
                                 Write-Output "Configuring Notification settings in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): POST_VALIDATION_FAILED"
                             }
                         }
@@ -14042,8 +13530,7 @@ Function Add-vRANotification {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14095,16 +13582,13 @@ Function Add-vRAUser {
                                     New-vRAUser -userId $userId -orgId $orgId -orgRole $orgRole -serviceRole $serviceRole -serviceDefinitionId $serviceDefinitionId | Out-Null
                                     if (Get-vRAUserRoles -userId $userId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoles.name -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId}) {
                                         Write-Output "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation, already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check user synchronization or email: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -14112,8 +13596,7 @@ Function Add-vRAUser {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14154,12 +13637,10 @@ Function Undo-vRAUser {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
                             if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null}) {
-
                                 if ($objectCheck = Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email }) {
                                     if ($orgRole = ($objectCheck.organizationRoles.name)) {
                                         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole $orgRole
                                     }
-
                                     if ($serviceRoles = ($objectCheck.serviceRoles.serviceRoles.name)) {
                                         $services = (Get-vRAServices -orgId $orgId)
                                         Foreach ($serviceRole in $serviceRoles) {
@@ -14167,35 +13648,27 @@ Function Undo-vRAUser {
                                             Remove-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
                                         }
                                     }
-
                                     if ($orgRole -eq $null) {
                                         $orgRole = "none"
                                     }
-
                                     if ($serviceRoles -eq $null) {
                                         $serviceRole = "none"
-                                    }
-                                    else {
+                                    } else {
                                         $serviceRole = $serviceRoles -join ', '
                                     }
-
                                     if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.organizationRoles.name -eq $null -and $_.serviceRoles.serviceRoles.name -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
                                         Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check email variable: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            elseif (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
+                            } elseif (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
                                 if ($objectCheck = Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email }) {
                                     if ($orgRole = ($objectCheck.organizationRoles.name)) {
                                         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole $orgRole
                                     }
-
                                     if ($serviceRoles = ($objectCheck.serviceRoles.serviceRoles.name)) {
                                         $services = (Get-vRAServices -orgId $orgId)
                                         Foreach ($serviceRole in $serviceRoles) {
@@ -14203,30 +13676,23 @@ Function Undo-vRAUser {
                                             Remove-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
                                         }
                                     }
-
                                     if ($orgRole -eq $null) {
                                         $orgRole = "none"
                                     }
-
                                     if ($serviceRoles -eq $null) {
                                         $serviceRole = "none"
-                                    }
-                                    else {
+                                    } else {
                                         $serviceRole = $serviceRoles -join ', '
                                     }
-
                                     if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.organizationRoles.name -eq $null -and $_.serviceRoles.serviceRoles.name -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
                                         Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check email variable: PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing user email ($email) from organization role and service roles(s) in vRealize Automation, no roles assigned: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -14234,8 +13700,7 @@ Function Undo-vRAUser {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14371,16 +13836,13 @@ Function Undo-vRAGroup {
                                     Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
                                     if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceRoleNames -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null})) {
                                         Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing group ($displayName) from vRealize Automation:: POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing group ($displayName) from vRealize Automation:, does not exist: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -14388,8 +13850,7 @@ Function Undo-vRAGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14465,23 +13926,19 @@ Function Add-vCenterGlobalPermission {
                                     if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
                                             Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain)"
-                                        }
-                                        else {
+                                        } else {
                                             if ($type -eq "group") {
                                                 if (!$localDomain) {
                                                     $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                                                }
-                                                else {
+                                                } else {
                                                     $principal = $domain.ToUpper() + "\" + $principal
                                                     $objectCheck = (Get-VIAccount -Group -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
                                                 }
-                                            }
-                                            elseif ($type -eq "user") {
+                                            } elseif ($type -eq "user") {
                                                 if (!$localDomain){
                                                     $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                     $principal = $domain.ToUpper() + "\" + $principal
-                                                }
-                                                else {
+                                                } else {
                                                     $principal = $domain.ToUpper() + "\" + $principal
                                                     $objectCheck = (Get-VIAccount -User -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
                                                 }
@@ -14492,16 +13949,13 @@ Function Add-vCenterGlobalPermission {
                                                 $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal.Split("\")[-1]})
                                                 if ($roleAssigned | Where-Object {$_.Role -eq $role}) {
                                                     Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 if ($localDomain) {
                                                     Write-Error "Unable to find $type ($principal) in Local Domain, create and retry: PRE_VALIDATION_FAILED"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                 }
                                             }
@@ -14509,8 +13963,7 @@ Function Add-vCenterGlobalPermission {
                                     }
                                     Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
@@ -14520,8 +13973,7 @@ Function Add-vCenterGlobalPermission {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14570,18 +14022,15 @@ Function Undo-vCenterGlobalPermission {
                             if (Get-GlobalPermission | Where-Object {$_.Principal -match $principal}) {
                                 if ($PsBoundParameters.ContainsKey("localDomain")) {
                                     Remove-GlobalPermission -principal ($domain.ToUpper()+"\"+$principal) -type $type | Out-Null
-                                }
-                                else {
+                                } else {
                                     Remove-GlobalPermission -principal $principal -type $type | Out-Null
                                 }
                                 if (!(Get-GlobalPermission | Where-Object {$_.Principal -match $principal})) {
                                     Write-Output "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal), already removed: SKIPPED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
@@ -14591,8 +14040,7 @@ Function Undo-vCenterGlobalPermission {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14652,47 +14100,38 @@ Function Set-vCenterPermission {
                                                             $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder -Name $folderName -Type $folderType | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"})
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 Write-Error "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName): POST_VALIDATION_FAILED"
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName), already assigned: SKIPPED"
                                                         }
-                                                    }
-                                                    else {
+                                                    } else {
                                                         Write-Error "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal) on $($folderType.ToLower()) folder ($folderName), check folderName and folderType: PRE_VALIDATION_FAILED"
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to find $($folderType.ToLower()) folder ($folderName) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VAILIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 if ($folderName -or $folderType) {
                                                 Write-Error "Only one of -folderName or -folderType parameters provided: PRE_VALIDATATION_FAILED"
-                                            }
-                                                else {
+                                                } else {
                                                     if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"}))  {
                                                         if (!($objectCheck.Role -eq $role)) {
                                                             New-VIPermission -Server $vcfVcenterDetails.fqdn -Role $role -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"}) | Out-Null
                                                             $objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"})
                                                             if ($objectCheck.Role -eq $role) {
                                                                 Write-Output "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal): SUCCESSFUL"
-                                                            }
-                                                            else {
+                                                            } else {
                                                                 Write-Error "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal): POST_VALIDATION_FAILED"
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "Assigning role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to ($principal), already assigned: SKIPPED"
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find ($principal) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VAILIDATION_FAILED"
                                         }
                                     }
@@ -14700,14 +14139,12 @@ Function Set-vCenterPermission {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-	}
-    Catch {
+	} Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14773,19 +14210,15 @@ Function Add-SsoPermission {
                                                             $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                             if (Get-SsoGroup -Group $targetGroup -Name $principal) {
                                                                 Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
+                                                            } else {  Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
-                                                            else {  Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
-                                                            }
-                                                        }
-                                                        else { 
+                                                        } else { 
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                         }
-                                                    }
-                                                    else { 
+                                                    } else { 
                                                         Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                     }
-                                                }
-                                                elseif ($type -eq "user") {
+                                                } elseif ($type -eq "user") {
                                                     $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                     if ($adObjectCheck) {
                                                         if (!(Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal})) {
@@ -14796,39 +14229,32 @@ Function Add-SsoPermission {
                                                             }
                                                             else { Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
-                                                        }
-                                                        else {
+                                                        } else {
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                         }
-                                                    }
-                                                    else { 
+                                                    } else { 
                                                         Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                     }
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                         }
                                         Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
                                     }
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
             }
-        }
-        elseif ($source -eq "local") {
+        } elseif ($source -eq "local") {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
@@ -14842,36 +14268,29 @@ Function Add-SsoPermission {
                                                 $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail) {
                                                     Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning SSO On Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain).already exists: SKIPPED"
                                             }
-                                        }
-                                        elseif ($type -eq "user") {
+                                        } elseif ($type -eq "user") {
                                             if (!(Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail | Where-Object {$_.Name -eq $principal})) {
                                                 $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                 $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail| Where-Object {$_.Name -eq $principal}) {
                                                     Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
@@ -14881,8 +14300,7 @@ Function Add-SsoPermission {
                 }   
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14938,48 +14356,41 @@ Function Undo-SsoPermission {
                                                     $ldapGroup | Remove-GroupFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                     if (!(Get-SsoGroup -Group $targetGroup -Name $principal)) {
                                                         Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                     }
-                                                    else {  Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
-                                                    }
-                                                }
-                                                else { 
+                                                } else { 
                                                     Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                                 }
-                                            }
-                                            elseif ($type -eq "user") {
+                                            } elseif ($type -eq "user") {
                                                 if (Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal}) {
                                                     $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                     $ldapUser | Remove-UserFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                     if (!(Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal})) {
                                                         Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                     }
-                                                    else { Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
-                                                    }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                 }
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
                                 }
                             }
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                     }
                 }
             }
-        }
-        elseif ($source -eq "local") {
+        } elseif ($source -eq "local") {
             if (Test-VCFConnection -server $server) {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
@@ -14993,36 +14404,29 @@ Function Undo-SsoPermission {
                                                 $ldapGroup | Remove-GroupFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail)) {
                                                     Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Removing SSO On Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                             }
-                                        }
-                                        elseif ($type -eq "user") {
+                                        } elseif ($type -eq "user") {
                                             if (Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail | Where-Object {$_.Name -eq $principal}) {
                                                 $ldapUser = Get-SsoPersonUser -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                 $ldapUser | Remove-UserFromSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                 if (!(Get-SsoPersonUser -Group $targetGroup -Server $ssoConnectionDetail| Where-Object {$_.Name -eq $principal})) {
                                                     Write-Output "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find SSO Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ssoGroup): PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn
@@ -15032,8 +14436,7 @@ Function Undo-SsoPermission {
                 }   
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15075,12 +14478,10 @@ Function Add-SsoUser {
                                 New-SsoPersonUser -UserName $ssoUser -Password $ssoPass -Server $ssoConnectionDetail | Out-Null
                                 if (Get-SsoPersonUser -Domain vsphere.local -Name $ssoUser -Server $ssoConnectionDetail) {
                                     Write-Output "Adding New Single Sign-On User to vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding New Single Sign-On User to vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding New Single Sign-On User to vCenter Server ($($vcfVcenterDetails.vmName)) named ($ssoUser), already exists: SKIPPED"
                             }
                             Disconnect-SsoAdminServer $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
@@ -15089,9 +14490,7 @@ Function Add-SsoUser {
                 }                             
             }
         }
-
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15126,8 +14525,7 @@ Function Add-vSphereRole {
     Try {
         if (!$PsBoundParameters.ContainsKey("template")) {
             $template = Get-ExternalFileName -title "Select the vSphere role template (.role)" -fileType "role" -location "C:\Program Files\WindowsPowerShell\Modules\PowerValidatedSolutions\vSphereRoles"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $template)) {
                 Write-Error  "vSphere Role Template '$template' File Not Found"
                 Break
@@ -15149,12 +14547,10 @@ Function Add-vSphereRole {
                                         }
                                     }
                                     Write-Output "Creating a new role in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Creating a new role in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Creating a new role in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName), already exists: SKIPPED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -15163,8 +14559,7 @@ Function Add-vSphereRole {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15204,12 +14599,10 @@ Function Undo-vSphereRole {
                                 Remove-VIRole -Role $roleName -Server $vcfVcenterDetails.fqdn -Force -Confirm:$false | Out-Null
                                 if (!(Get-VIRole -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $roleName })) {
                                     Write-Output "Removing a role from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing a role from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing a role from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($roleName), already exists: SKIPPED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -15218,8 +14611,7 @@ Function Undo-vSphereRole {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15264,13 +14656,11 @@ Function Add-VMFolder {
                                 $datacenter = (Get-Datacenter -Cluster $cluster -Server $vcfVcenterDetails.fqdn).Name
                                 if (Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore) {
                                     Write-Warning "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName), already exists: SKIPPED"
-                                }
-                                else {
+                                } else {
                                     (Get-View -Server $vcfVcenterDetails.fqdn (Get-View -Server $vcfVcenterDetails.fqdn -viewtype datacenter -filter @{"name" = [String]$datacenter }).vmfolder).CreateFolder($folderName) | Out-Null
                                     if ((Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)) {
                                         Write-Output  "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding VM and Template Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName): POST_VALIDATION_FAILED"
                                     }
                                 }
@@ -15278,14 +14668,12 @@ Function Add-VMFolder {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15329,13 +14717,11 @@ Function Undo-VMFolder {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (!(Get-Folder -Name $folderName -Type $folderType -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                     Write-Warning "Removing Folder Type ($folderType) from vCenter Server ($($vcfVcenterDetails.fqdn)) with name ($folderName), folder does not exist: SKIPPED"
-                                }
-                                else {
+                                } else {
                                     Get-Folder -Name $folderName -Type $folderType -Server $vcfVcenterDetails.fqdn | Remove-Folder -Confirm:$false -ErrorAction Ignore
                                     if (!(Get-Folder -Name $folderName -Type $folderType -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)) {
                                         Write-Output  "Removing Folder Type ($folderType) from vCenter Server ($($vcfVcenterDetails.fqdn)) with name ($folderName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Folder Type ($folderType) from vCenter Server ($($vcfVcenterDetails.fqdn)) with name ($folderName): POST_VALIDATION_FAILED"
                                     }
                                 }
@@ -15343,14 +14729,12 @@ Function Undo-VMFolder {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15382,45 +14766,33 @@ Function Add-ResourcePool {
     )
 
     Try {
-        if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-            Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
-            if ($accessToken) {  
-                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-                if ($vcenter) {
-                    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-                    if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                        if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
-                            New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcenter.fqdn | Out-Null
-                            if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
-                                Write-Output "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
-                            }
-                            else {
-                                Write-Error "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
+                                    New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcenter.fqdn | Out-Null
+                                    if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
+                                        Write-Output "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
+                                }
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
-                        else {
-                            Write-Warning "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
-                        }
-                        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
-                    else {
-                        Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
-                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
-                else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
-                }
-            }
-            else {
-                Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
         }
-        else {
-            Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address"
-        } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15452,45 +14824,33 @@ Function Undo-ResourcePool {
     )
 
     Try {
-        if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-            Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
-            if ($accessToken) {   
-                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-                if ($vcenter) {
-                    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-                    if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                        if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
-                            Remove-ResourcePool -ResourcePool $resourcePoolName -Server $vcenter.fqdn -Confirm:$false | Out-Null
-                            if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
-                                Write-Output "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
-                            }
-                            else {
-                                Write-Error "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                #$cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
+                                    Remove-ResourcePool -ResourcePool $resourcePoolName -Server $vcenter.fqdn -Confirm:$false | Out-Null
+                                    if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
+                                        Write-Output "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), does not exist: SKIPPED"
+                                }
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
-                        else {
-                            Write-Warning "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), does not exist: SKIPPED"
-                        }
-                        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
-                    else {
-                        Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
-                    }
-                }
-                else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
-            else {
-                Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
-            }
         }
-        else {
-            Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address"
-        }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15537,26 +14897,22 @@ Function Add-AntiAffinityRule {
                                     New-DrsRule -Cluster $cluster -Name $ruleName -VM $vms -KeepTogether $false -Enabled $true | Out-Null
                                     if ((Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})) {
                                         Write-Output "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED" 
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15600,26 +14956,22 @@ Function Undo-AntiAffinityRule {
                                     Remove-DrsRule -Rule (Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName}) -Confirm:$false | Out-Null
                                     if (!(Get-Cluster -Name $cluster | Get-DrsRule | Where-Object {$_.Name -eq $ruleName})) {
                                         Write-Output "Removing Anti-Affinity Rule from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing Anti-Affinity Rule from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing Anti-Affinity Rule from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already removed: SKIPPED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15666,12 +15018,10 @@ Function Add-ClusterGroup {
                                     New-DrsClusterGroup -Cluster $cluster -VM $vms -Name $drsGroupName | Out-Null
                                     if (Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName}) {
                                         Write-Output "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), already exists: SKIPPED"
                                     
                                 }
@@ -15679,14 +15029,12 @@ Function Add-ClusterGroup {
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15731,31 +15079,26 @@ Function Undo-ClusterGroup {
                                         Remove-DrsClusterGroup -DrsClusterGroup $drsGroupName -Server $($vcfVcenterDetails.fqdn) -Confirm:$false | Out-Null
                                         if (!(Get-Cluster -Name $cluster | Get-DrsClusterGroup | Where-Object {$_.Name -eq $drsGroupName})) {
                                             Write-Output "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), already removed: SKIPPED"
                                         
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to remove vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), in use by VM to VM Group: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15804,34 +15147,28 @@ Function Add-VmStartupRule {
                                             Start-Sleep 5
                                             if (Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName) {
                                                 Write-Output "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Warning "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "vSphere DRS Group (VM Group to start after dependency) in vCenter Server ($($vcfVcenterDetails.fqdnn)) named ($dependOnVmGroup), does not exist: PRE_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "vSphere DRS Group (VM Group to start first) in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vmGroup), does not exist: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15876,26 +15213,22 @@ Function Undo-VmStartupRule {
                                     Start-Sleep 3
                                     if (!(Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName)) {
                                         Write-Output "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15941,28 +15274,23 @@ Function Move-VMtoFolder {
                                 if (Get-VM -Name $vm -ErrorAction SilentlyContinue) {
                                     Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null
                                     Write-Output "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Relocating Virtual Machines in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Write-Error "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) folder ($folder), Folder not found: PRE_VALIDATION_FAILED"
                         }
                         Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn)): PRE_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16014,18 +15342,15 @@ Function Import-vRSLCMLockerCertificate {
                             if (!(Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
                                 if ($PsBoundParameters.ContainsKey("certificatePassphrase")) {
                                     Add-vRSLCMLockerCertificate -vrslcmFQDN $vcfVrslcmDetails.fqdn -certificateAlias $certificateAlias -certificatePassphrase $certificatePassphrase -certChainPath $certChainPath | Out-Null
-                                }
-                                else {
+                                } else {
                                     Add-vRSLCMLockerCertificate -vrslcmFQDN $vcfVrslcmDetails.fqdn -certificateAlias $certificateAlias -certChainPath $certChainPath | Out-Null
                                 }
                                 if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
                                     Write-Output "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), already exist: SKIPPED"
                             }
                         }
@@ -16033,8 +15358,7 @@ Function Import-vRSLCMLockerCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16076,12 +15400,10 @@ Function Undo-vRSLCMLockerCertificate {
                                 Remove-vRSLCMLockerCertificate -vmid (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias}).vmid | Out-Null
                                 if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
                                     Write-Error "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
-                                }
-                                else {
+                                } else {
                                     Write-Output "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), does not exist: SKIPPED"
                             }
                         }
@@ -16089,8 +15411,7 @@ Function Undo-vRSLCMLockerCertificate {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16133,18 +15454,15 @@ Function New-vRSLCMLockerPassword {
                             if (!(Get-vRSLCMLockerPassword -alias $alias)) {
                                 if ($PsBoundParameters.ContainsKey("description")) {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -description $description -userName $userName
-                                }
-                                else {
+                                } else {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
                                 }
                                 if ((Get-vRSLCMLockerPassword -alias $alias)) {
                                     Write-Output "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                             }
                         }
@@ -16152,8 +15470,7 @@ Function New-vRSLCMLockerPassword {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16194,12 +15511,10 @@ Function Undo-vRSLCMLockerPassword {
                                 Remove-vRSLCMLockerPassword -vmid (Get-vRSLCMLockerPassword -alias $alias).vmid | Out-Null
                                 if ((Get-vRSLCMLockerPassword -alias $alias)) {
                                     Write-Error "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
-                                }
-                                else {
+                                } else {
                                     Write-Output "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
                             }
                         }
@@ -16207,8 +15522,7 @@ Function Undo-vRSLCMLockerPassword {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16254,20 +15568,16 @@ Function New-vRSLCMLockerLicense {
                                     if ($status -match "COMPLETED") {
                                         if ((Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license})) {
                                             Write-Output "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "$status"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with license ($license), already exists: SKIPPED"
                             }
                         }
@@ -16275,8 +15585,7 @@ Function New-vRSLCMLockerLicense {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16317,12 +15626,10 @@ Function Undo-vRSLCMLockerLicense {
                                 Remove-vRSLCMLockerLicense -vmid (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias}).vmid | Out-Null
                                 if (Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license}) {
                                     Write-Error "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
-                                }
-                                else {
+                                } else {
                                     Write-Output "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
                             }
                         }
@@ -16330,8 +15637,7 @@ Function Undo-vRSLCMLockerLicense {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16373,12 +15679,10 @@ Function New-vRSLCMDatacenter {
                                 Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location | Out-Null
                                 if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
                                     Write-Output "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
                                 }
-                            }  
-                            else {
+                            }   else {
                                 Write-Warning "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
                             }
                         }
@@ -16386,8 +15690,7 @@ Function New-vRSLCMDatacenter {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16433,20 +15736,16 @@ Function New-vRSLCMDatacenterVcenter {
                                         Start-Sleep 5
                                         if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
                                             Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find Password alias in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($userLockerAlias): PRE_VALIDATION_FAILED"
                                 }
-                            }  
-                            else {
+                            } else {
                                 Write-Error "Unable to find Datacenter named ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -16454,8 +15753,7 @@ Function New-vRSLCMDatacenterVcenter {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16497,12 +15795,10 @@ Function Undo-vRSLCMDatacenter {
                                 Start-Sleep 2
                                 if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
                                     Write-Output "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
                                 }
-                            }  
-                            else {
+                            }   else {
                                 Write-Warning "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
                             }
                         }
@@ -16510,8 +15806,7 @@ Function Undo-vRSLCMDatacenter {
                 }                         
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -16555,19 +15850,16 @@ Function Add-VmGroup {
                             $vmNames = $vmList.split(",")
                             foreach ($vm in $vmNames) { Set-DrsClusterGroup -VM $vm -Server $vcenter.fqdn -DrsClusterGroup (Get-DrsClusterGroup | Where-Object {$_.Name -eq $name} -WarningAction SilentlyContinue -ErrorAction Ignore) -Add | Out-Null }
                             Write-Output "Adding Virtual Machines ($vmList) to VM/Host Group in vCenter Server ($($vcenter.fqdn)) named ($name): SUCCESSFUL"
-                        }
-                        else {
+                        } else {
                             Write-Error "Adding Virtual Machines ($vmList) to VM/Host Group in vCenter Server ($($vcenter.fqdn)) named ($name), does not exist or not a VM Group: POST_VALIDATION_FAILED"
                         }
-                    }
-                    else {
+                    } else {
                         Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn)): PRE_VALIDATION_FAILED"
                     }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16634,8 +15926,7 @@ Function Add-WorkspaceOneDirectoryGroup {
                                     'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
                                     'selected'    = $true
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Group $group is not available in Active Directory Domain"
                             }
                         }
@@ -16661,18 +15952,15 @@ Function Add-WorkspaceOneDirectoryGroup {
                         Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
                         Remove-Item .\adGroups.json -Force -Confirm:$false
                         Write-Output "Adding Active Directory Groups in Workspace ONE Access ($server): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Active Directory Domain ($domain) does not exist, check details and try again: PRE_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Domain User ($bindUser) Authentication Failed: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16721,7 +16009,6 @@ Function Undo-WorkspaceOneDirectoryGroup {
                             $allGroups.Add($newGroup)
                         }
                         $allGroups.ToArray() | Out-Null
-
                         $mappedGroupObject = @()
                         foreach ($group in $allGroups) {
                             $adGroupDetails = Get-ADPrincipalGuid -domain $domain -user $bindUser -pass $bindPass -principal $group
@@ -16738,8 +16025,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
                                     'mappedGroup' = ($groupsObject | Select-Object -Skip 0)
                                     'selected'    = $true
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Group $group is not available in Active Directory Domain"
                             }
                         }
@@ -16758,24 +16044,20 @@ Function Undo-WorkspaceOneDirectoryGroup {
                             'excludeNestedGroupMembers' = $false
                         }
                         $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10 
-
                         $adGroupJson | Out-File -Encoding UTF8 -FilePath .\adGroups.json
                         Set-WSADirectoryGroup -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId -json $adGroupJson | Out-Null
                         Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
                         Remove-Item .\adGroups.json -Force -Confirm:$false
                         Write-Output "Removing Active Directory Groups in Workspace ONE Access ($server): SUCCESSFUL"
-                    }
-                    else {
+                    } else {
                         Write-Error "Active Directory Domain ($domain) does not exist, check details and try again: PRE_VALIDATION_FAILED"
                     }
-                }
-                else {
+                } else {
                     Write-Error "Domain User ($bindUser) Authentication Failed: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16817,20 +16099,16 @@ Function Add-WorkspaceOneDirectoryConnector {
                                         Add-WSAConnector -wsaNode $wsaNode -domain $domain -bindUserPass $bindUserPass | Out-Null
                                         if (Get-WSADirectory -directoryId $directoryId -connector | Where-Object {$_.host -eq $wsaNode}) {
                                             Write-Output "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Adding Connector to Directory ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode), already exists: SKIPPED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Unable to find node in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($wsaNode): PRE_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find Active Directory domain in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn)) named ($domain): PRE_VALIDATION_FAILED"
                             }
                         }
@@ -16838,8 +16116,7 @@ Function Add-WorkspaceOneDirectoryConnector {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -16894,8 +16171,7 @@ Function Update-SddcDeployedFlavor {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -25986,6 +25262,69 @@ Function Get-vRACloudZone {
 }
 Export-ModuleMember -Function Get-vRACloudZone
 
+Function Get-vRAAPIVersion {
+    <#
+        .SYNOPSIS
+        Retrieve the vRealize Automation version information
+        
+        .DESCRIPTION
+        The Get-vRAAPIVersion cmdlet returns the latest version of the API
+
+        .EXAMPLE
+        Get-vRAAPIVersion 
+    #>
+    Try {
+        $uri = "https://$vraAppliance/iaas/api/about"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
+        $response.latestApiVersion         
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRAAPIVersion
+
+Function Get-vRAIntegrationDetail {
+    <#
+        .SYNOPSIS
+        Get an integration detail of an item from vRealize Automation
+
+        .DESCRIPTION
+        The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from vRealize Automation
+
+        .EXAMPLE
+        Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
+        This example returns the ids of the vCenter Server instances managed by the vRealize Operations Manager
+
+        Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "vRealize Operations Manager" -getIntegrationID
+        This example returns the integration id of vRealize Operations Manager which is integrated with the vRealize Automation
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationName,
+        [switch]$getVCID,
+        [switch]$getIntegrationID
+    )
+    Try {
+        $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
+        $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"        
+        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
+        if ($getVCID) {
+            ($response.content | Where-Object integrationType -Match $integrationType).customProperties.vcIds
+        }
+        if ($getIntegrationID) {
+            if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
+                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match $integrationName).id        
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRAIntegrationDetail
+
 Function Update-vRACloudZone {
     <#
         .SYNOPSIS
@@ -26001,24 +25340,46 @@ Function Update-vRACloudZone {
         .EXAMPLE
         Update-vRACloudZone -id <cloud_zone_id> -tagKey enabled -tagValue true
         This example adds tags that should be used to dynamically obtain resources for a Cloud Zone in vRealize Automation by id
+
+        .EXAMPLE
+        Update-vRACloudZone -id <cloud_zone_id> placementPolicy ADVANCED
+        This example updates the placement policy for Cloud Zones to ADVANCED in vRealize Automation by id
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
         [Parameter (ParameterSetName = "folder", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$folder,
-        [Parameter (ParameterSetName = "tag", Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagKey,
-        [Parameter (ParameterSetName = "tag", Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tagValue
+        [Parameter (ParameterSetName = "tag", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagKey,
+        [Parameter (ParameterSetName = "tag", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tagValue,
+        [Parameter (ParameterSetName = "placementPolicy", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$placementPolicy
+   
     )
-
     Try {
         $cloudZoneDetails = Get-VRACloudZone -id $id
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("folder")) {
             $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder +'" }'
         }
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("tagKey") -and $PsBoundParameters.ContainsKey("tagValue")) {
-            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "tagsToMatch": [ { "key": "' + $tagKey +'", "value": "' + $tagValue +'" } ] }'
+            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "tagsToMatch": [ { "key": "' + $tagKey + '", "value": "' + $tagValue + '" } ] }'
         }
-
+        if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("placementPolicy")) {
+            if ($placementPolicy -eq "ADVANCED") {
+                if (((Get-vRAIntegrationDetail -integrationType vrops -getVCID).split(',')).contains(((Get-vRACloudAccount -type vsphere).customProperties.vcUuid))) {
+                    $cloudZoneDetails.placementPolicy = $placementPolicy
+                    $cloudZoneDetails.customProperties | Add-Member -Type NoteProperty  -Name "__ignoreAdvancedPolicyFailure" -Value "true" -Force
+                    $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
+                }
+                else {
+                    Write-Error "vRealize Operations Manager is not integrated with vRealize Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
+                    break
+                }
+            }
+            else {   
+                $cloudZoneDetails.placementPolicy = $placementPolicy
+                $cloudZoneDetails.customProperties.PSObject.Properties.Remove('__ignoreAdvancedPolicyFailure')
+                $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
+            }
+        }
         $uri = "https://$vraAppliance/iaas/api/zones/$id"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $json
         $response
@@ -28862,6 +28223,44 @@ Function Remove-vROPSNotification {
 }
 Export-ModuleMember -Function Remove-vROPSNotification
 
+Function Test-vROPsAdapterStatus {
+    <#
+        .SYNOPSIS
+        Validates the integration status of a vRealize Operations adapter through adapter's ID
+        
+        .DESCRIPTION
+        The Test-vROPsAdapterStatus cmdlet validates the integration status between vRealize Operations Manager and configured adapter.
+    
+        .EXAMPLE
+        Test-vROPsAdapterStatus -resourceId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
+        This example validates the integration status between vRealize Operations Manager and configured adapter through its ID. 
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
+    )
+
+    $name = (Get-vROPSAdapter | Where-Object { $_.id -eq $resourceId }).resourceKey.name
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/resources/$resourceId"
+        if ($PSEdition -eq 'Core') {
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
+        }
+        if ($vropsresponse.resourceHealth -eq "GREEN") {
+            Write-Output "Adapter Name : $($name), Health Status: GREEN" 
+        } else { 
+            Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-vROPsAdapterStatus
+
 #EndRegion  End vRealize Operations Manager Functions          ######
 #####################################################################
 
@@ -29611,7 +29010,7 @@ Function Request-CSPToken {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy
     )
@@ -29653,44 +29052,131 @@ Function Request-CSPToken {
 }
 Export-ModuleMember -Function Request-CSPToken
 
-Function Get-CSPPoxyAppliance {
+Function Get-CloudProxy {
+    <#
+        .SYNOPSIS
+        Request Cloud Proxies from VMware Cloud Service
+
+        .DESCRIPTION
+        The Get-CloudProxy cmdlet connects to the VMware Cloud Service and either downloads the OVA or
+        supplies the OVA link.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -type 'Cloud Proxy' -download -path <string>
+        This example shows how to download the Cloud Proxy OVA to the path provided.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -type 'Cloud Extensibility Proxy' -download -path <string>
+        This example shows how to download the Cloud Extensibility Proxy OVA to the path provided.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -type 'Cloud Proxy' -ovaUrl
+        This example shows how to obtain the URL to the Cloud Proxy OVA.
+    #>
+
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$path
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
+        [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [Switch]$download,
+        [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [String]$path,
+        [Parameter (Mandatory = $false, ParameterSetName = 'ovaUrl')] [ValidateNotNullOrEmpty()] [Switch]$ovaUrl
     )
 
     Try {
-
-        $uri = "https://api.mgmt.cloud.vmware.com/iaas/api/data-collectors"
-        $response = Invoke-RestMethod -Method POST -Uri $Uri -Headers $cspHeaders
-        
-        $cloudProxyUrl = $response.ovaLink
-        if ($PsBoundParameters.ContainsKey("path")) {
-            $cloudProxyOva = $path + "\" + ($response.ovaLink -Split (".com/"))[1]
-        }
-        else {
-            $cloudProxyOva = $PSScriptRoot + "\" + ($response.ovaLink -Split (".com/"))[1]
+        if ($environment -eq "staging") {
+            $baseUrl = "https://api.staging.symphony-dev.com"
+        } elseif ($environment -eq "production") {
+            $baseUrl = "https://api.mgmt.cloud.vmware.com"
         }
 
-        if (!(Test-Path $cloudProxyOva)) {
-            Write-Output "Starting to Download the Cloud Service Proxy OVA to '$cloudProxyOva'"
-            (New-Object System.Net.WebClient).DownloadFile($cloudProxyUrl, $cloudProxyOva)
-            if (Test-Path $cloudProxyOva) {
-                Write-Output "Downloaded the Cloud Service Proxy OVA to '$cloudProxyOva' Successfully"
-            }
-            else {
-                Write-Error "Cloud Service Proxy OVA Download Failed, please try again"
-            }
+        if ($type -eq "Cloud Proxy") {
+            $apiUrl = "/api/artifact-provider?artifact=data-collector"
+            $uri = $baseUrl + $apiUrl
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
+            $ovaName = ($response.providerUrl -Split (".com/"))[1]
+        } elseif ($type -eq "Cloud Extensibility Proxy") {
+            $apiUrl = "/api/artifact-provider?artifact=cexp-data-collector"
+            $uri = $baseUrl + $apiUrl
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
+            $ovaName = ($response.providerUrl -Split (".com/staging/"))[1]
         }
-        else {
-            Write-Warning "Cloud Service Proxy OVA '$cloudProxyOva' Already Downloaded"
+
+        if ($PsBoundParameters.ContainsKey("download")) {
+            if ($PsBoundParameters.ContainsKey("path")) {
+                $downloadPath = $path + "\" + $ovaName
+            } else {
+                $downloadPath = $PSScriptRoot + "\" + $ovaName
+            }
+            if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux" -or ($PSVersionTable.OS).Split(' ')[0] -eq "Darwin" ) {
+                $downloadPath = ($downloadPath).split('\') -join '/' | Split-Path -NoQualifier
+            }
+
+            if (!(Test-Path $downloadPath)) {
+                Write-Output "Started to Download the Cloud Assembly Cloud Proxy OVA to '$downloadPath'"
+                (New-Object System.Net.WebClient).DownloadFile($($response.providerUrl), $downloadPath)
+                if (Test-Path $downloadPath) {
+                    Write-Output "Downloading the Cloud Assembly Cloud Proxy OVA to '$downloadPath': SUCCESSFUL"
+                } else {
+                    Write-Error "Downloading the Cloud Assembly Cloud Proxy OVA to '$downloadPath': POST_VALIDATION_FAILED"
+                }
+            } else {
+                Write-Warning "Downloading the Cloud Assembly Cloud Proxy OVA to '$downloadPath', already downloaded: SKIPPED"
+            }
+        } elseif ($PsBoundParameters.ContainsKey("ovaUrl")) {
+            $response.providerUrl
         }
-        
     }
     Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-CSPPoxyAppliance
+Export-ModuleMember -Function Get-CloudProxy
+
+Function Get-CloudProxyOtk {
+    <#
+        .SYNOPSIS
+        Request One Time Key (OTK) for Cloud Proxies from VMware Cloud Service
+
+        .DESCRIPTION
+        The Get-CloudProxyOtk cmdlet connects to the VMware Cloud Service and requests a One Time Key (OTK) which is
+        used during the deployment of the OVA.
+
+        .EXAMPLE
+        Get-CloudProxyOtk -environment production -type 'Cloud Proxy'
+        This example shows how to get the One Time Key (OTK) for the Cloud Proxy.
+
+        .EXAMPLE
+        Get-CloudProxyOtk -environment production -type 'Cloud Extensibility Proxy'
+        This example shows how to get the One Time Key (OTK) for the Cloud Extensibility Proxy.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type
+    )
+
+    Try {
+        if ($environment -eq "staging") {
+            $baseUrl = "https://api.staging.symphony-dev.com"
+        } elseif ($environment -eq "production") {
+            $baseUrl = "https://api.mgmt.cloud.vmware.com"
+        }
+        $apiUrl = "/api/otk-v3"
+        $uri = $baseUrl + $apiUrl
+
+        if ($type -eq "Cloud Proxy") {
+            $body = '{"url":"https://api.staging.symphony-dev.com","service":"cloud_assembly"}'
+        } elseif ($type -eq "Cloud Extensibility Proxy") {
+            $body = '{"url":"https://api.staging.symphony-dev.com","service":"cloud_assembly_extensibility"}'
+        }
+        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $cspHeader -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-CloudProxyOtk
 
 Function Get-vROVersion {
     <#
@@ -29698,7 +29184,7 @@ Function Get-vROVersion {
         Retrieve the vRealize Orchestrator version details
         
         .DESCRIPTION
-        The Get-vROVersion cmdlest retrieves the vRealize Orchestrator version information. It supports the following:
+        The Get-vROVersion cmdlet retrieves the vRealize Orchestrator version information. It supports the following:
         (Requires an access token before a connection can be made)
         - Standalone vRealize Orchestrator
         - Embedded vRealize Orchestrator with vRealize Automation
@@ -30472,98 +29958,6 @@ Function cidrMaskLookup {
     Return $returnValue
 }
 
-Function checkVCFToken {
-    if (!$accessToken) {
-        Write-Error "API Access Token Required. Request an Access Token by running Request-VCFToken"
-        Break
-    }
-    else {
-        $expiryDetails = Get-JWTDetail $accessToken
-        if ($expiryDetails.timeToExpiry.Hours -eq 0 -and $expiryDetails.timeToExpiry.Minutes -lt 2) {
-       	    Write-Output "API Access Token Expired. Requesting a new access token with current refresh token"
-            $headers = @{"Accept" = "application/json" }
-            $uri = "https://$sddcManager/v1/tokens/access-token/refresh"
-            $response = Invoke-RestMethod -Method PATCH -Uri $uri -Headers $headers -body $refreshToken
-            $Global:accessToken = $response
-        }
-    }
-} Export-ModuleMember -Function checkVCFToken
-
-Function Get-JWTDetail {
-    [cmdletbinding()]
-
-    Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [string]$token
-    )
-
-    <#
-        .SYNOPSIS
-        Decode a JWT Access Token and convert to a PowerShell Object.
-        JWT Access Token updated to include the JWT Signature (sig), JWT Token Expiry (expiryDateTime) and JWT Token time to expiry (timeToExpiry).
-        Written by Darren Robinson
-        https://blog.darrenjrobinson.com
-        https://blog.darrenjrobinson.com/jwtdetails-powershell-module-for-decoding-jwt-access-tokens-with-readable-token-expiry-time/
-        .DESCRIPTION
-        Decode a JWT Access Token and convert to a PowerShell Object.
-        JWT Access Token updated to include the JWT Signature (sig), JWT Token Expiry (expiryDateTime) and JWT Token time to expiry (timeToExpiry).
-        .PARAMETER token
-        The JWT Access Token to decode and udpate with expiry time and time to expiry
-        .INPUTS
-        Token from Pipeline
-        .OUTPUTS
-        PowerShell Object
-        .SYNTAX
-        Get-JWTDetail (accesstoken)
-        .EXAMPLE
-        PS> Get-JWTDetail ('eyJ0eXAiOi........XmN4GnWQAw7OwMA')
-    #>
-
-
-    if (!$token.Contains(".") -or !$token.StartsWith("eyJ")) { Write-Error "Invalid token" -ErrorAction Stop }
-
-    # Token
-    Foreach ($i in 0..1) {
-        $data = $token.Split('.')[$i].Replace('-', '+').Replace('_', '/')
-        Switch ($data.Length % 4) {
-            0 { break }
-            2 { $data += '==' }
-            3 { $data += '=' }
-        }
-    }
-
-    $decodedToken = [System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String($data)) | ConvertFrom-Json
-    Write-Verbose "JWT Token:"
-    Write-Verbose $decodedToken
-
-    # Signature
-    Foreach ($i in 0..2) {
-        $sig = $token.Split('.')[$i].Replace('-', '+').Replace('_', '/')
-        Switch ($sig.Length % 4) {
-            0 { break }
-            2 { $sig += '==' }
-            3 { $sig += '=' }
-        }
-    }
-    Write-Verbose "JWT Signature:"
-    Write-Verbose $sig
-    $decodedToken | Add-Member -Type NoteProperty -Name "sig" -Value $sig
-
-    # Convert Expiry time to PowerShell DateTime
-    $orig = (Get-Date -Year 1970 -Month 1 -Day 1 -hour 0 -Minute 0 -Second 0 -Millisecond 0)
-    $timeZone = Get-TimeZone
-    $utcTime = $orig.AddSeconds($decodedToken.exp)
-    $hoursOffset = $timeZone.GetUtcOffset($(Get-Date)).hours #Daylight saving needs to be calculated
-    $localTime = $utcTime.AddHours($hoursOffset)     # Return local time,
-    $decodedToken | Add-Member -Type NoteProperty -Name "expiryDateTime" -Value $localTime
-
-    # Time to Expiry
-    $timeToExpiry = ($localTime - (get-date))
-    $decodedToken | Add-Member -Type NoteProperty -Name "timeToExpiry" -Value $timeToExpiry
-
-    Return $decodedToken
-} Export-ModuleMember -Function Get-JWTDetail
-
 Function createHeader {
     $Global:headers = @{"Accept" = "application/json" }
     $Global:headers.Add("Authorization", "Bearer $accessToken")
@@ -30649,7 +30043,7 @@ Export-ModuleMember -Function Request-VAMISessionId
 #####################################################################
 
 #####################################################################
-#Region     Start of Test  Functions                           ######
+#Region     Start of Test Functions                            ######
 
 Function Test-VCFConnection {
     Param (
@@ -31547,7 +30941,7 @@ Function Test-NtpServer {
 Export-ModuleMember -Function Test-NtpServer
 
 
-#EndRegion  End  of Test  Functions                            ######
+#EndRegion  End of Test Functions                              ######
 #####################################################################
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
