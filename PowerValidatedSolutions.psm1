@@ -26199,7 +26199,7 @@ Function Add-vRAIntegrationItem {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
@@ -26235,7 +26235,7 @@ Function Test-vRAIntegrationItem {
     #>
     
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
@@ -26304,7 +26304,7 @@ Function Remove-vRAIntegrationItem {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)]  [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationId
     )
     
