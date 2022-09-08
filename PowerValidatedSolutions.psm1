@@ -14766,37 +14766,32 @@ Function Add-ResourcePool {
     )
 
     Try {
-        if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-            Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
-            if ($accessToken) {  
-                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-                if ($vcenter) {
-                    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-                    if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                        if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
-                            New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcenter.fqdn | Out-Null
-                            if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
-                                Write-Output "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
-                            } else {
-                                Write-Error "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
+                                    New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcenter.fqdn | Out-Null
+                                    if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
+                                        Write-Output "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
+                                }
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
-                        } else {
-                            Write-Warning "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
                         }
-                        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    } else {
-                        Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                     }
                 } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
-            } else {
-                Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
-        } else {
-            Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address"
-        } 
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -14829,36 +14824,31 @@ Function Undo-ResourcePool {
     )
 
     Try {
-        if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-            Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
-            if ($accessToken) {   
-                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue
-                if ($vcenter) {
-                    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-                    if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                        $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                        if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
-                            Remove-ResourcePool -ResourcePool $resourcePoolName -Server $vcenter.fqdn -Confirm:$false | Out-Null
-                            if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
-                                Write-Output "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
-                            } else {
-                                Write-Error "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                #$cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
+                                    Remove-ResourcePool -ResourcePool $resourcePoolName -Server $vcenter.fqdn -Confirm:$false | Out-Null
+                                    if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
+                                        Write-Output "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), does not exist: SKIPPED"
+                                }
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
-                        } else {
-                            Write-Warning "Removing Resource Pool from vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), does not exist: SKIPPED"
                         }
-                        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    } else {
-                        Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn))"
                     }
                 } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server)"
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
-            } else {
-                Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
             }
-        } else {
-            Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
