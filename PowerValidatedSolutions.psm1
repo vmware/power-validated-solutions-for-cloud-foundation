@@ -12324,11 +12324,11 @@ Function Test-vROPsAdapterStatusByType {
         - Validates the integration status between vRealize Operations Manager and configured adapter     
 
         .EXAMPLE
-        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re123!" -adapterKind NSXTAdapter
+        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind NSXTAdapter
         This example validates the integration status between vRealize Operations Manager and NSXT adapter.
 
         .EXAMPLE
-        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re123!" -adapterKind CASAdapter
+        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind CASAdapter
         This example validates the integration status between vRealize Operations Manager and vRealize Automation adapter.
     #>
 
@@ -13934,7 +13934,7 @@ Function Undo-vRAvROPsIntegrationItem {
         - Deletes vRealize Operations Manager integration from vRealize Automation
 
         .EXAMPLE
-        Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re123!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re123!" -vropsIntegrationName "vRealize Operations Manager"
+        Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re1!" -vropsIntegrationName "vRealize Operations Manager"
         This example deletes vRealize Operations Manager in vRealize Automation
     #>
 
@@ -22525,7 +22525,7 @@ Function Set-NsxtApplianceUserPassword {
         The Set-NsxtApplianceUserPassword cmdlet updates the password for an NSX appliance user.
 
         .EXAMPLE
-        Set-NsxtApplianceUserPassword -userId 0 -password VMware123!VMware123!
+        Set-NsxtApplianceUserPassword -userId 0 -password VMw@re1!VMw@re1!
         This example updates the password for the userId 0 (root).
     #>
 
@@ -26194,7 +26194,7 @@ Function Add-vRAIntegrationItem {
         The Add-vRAIntegrationItem cmdlet adds external systems to vRealize Automation
 
         .EXAMPLE
-        Add-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMware123!"
+        Add-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
         This example creates vRealize Operations Manager integration with name "vRealize Operations Manager" in vRealize Automation
     #>
 
@@ -26230,7 +26230,7 @@ Function Test-vRAIntegrationItem {
         The Test-vRAIntegrationItem cmdlet validates the given credential and certificate of an intergarion item
 
         .EXAMPLE
-        Test-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMware123!"   
+        Test-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"   
         This example validates vRealize Operations Manager integration in vRealize Automation
     #>
     
