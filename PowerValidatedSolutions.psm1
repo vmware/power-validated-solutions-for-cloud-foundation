@@ -12324,11 +12324,11 @@ Function Test-vROPsAdapterStatusByType {
         - Validates the integration status between vRealize Operations Manager and configured adapter     
 
         .EXAMPLE
-        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re123!" -adapterKind NSXTAdapter
+        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind NSXTAdapter
         This example validates the integration status between vRealize Operations Manager and NSXT adapter.
 
         .EXAMPLE
-        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re123!" -adapterKind CASAdapter
+        Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind CASAdapter
         This example validates the integration status between vRealize Operations Manager and vRealize Automation adapter.
     #>
 
@@ -13856,6 +13856,127 @@ Function Undo-vRAGroup {
 }
 Export-ModuleMember -Function Undo-vRAGroup
 
+Function New-vRAvROPSIntegrationItem {
+    <#
+        .SYNOPSIS
+        Creates new vRealize Operations Manager integration in vRealize Automation
+
+        .DESCRIPTION
+        The New-vRAvROPSIntegrationItem cmdlet creates an integration in vRealize Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Creates vRealize Operations Manager integration in vRealize Automation
+
+        .EXAMPLE
+        New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "vRealize Operations Manager"
+        This example creates vRealize Operations Manager integration with name "vRealize Operations Manager" in vRealize Automation
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vropsIntegrationUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vropsIntegrationPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vropsIntegrationName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
+                        if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
+                            if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                                    if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                                        $response = Add-vRAIntegrationItem -integrationType "vrops" -integrationName $vropsIntegrationName -integrationUser $vropsIntegrationUser -integrationPassword $vropsIntegrationPass #| Out-Null                               
+                                        if ($response.status -eq "FINISHED") {
+                                            if (Get-vRAIntegrationDetail -integrationType "vrops"  -integrationName $vropsIntegrationName -getIntegrationID) {
+                                                Write-Output "Creating vRealize Operations Manager integration with name '$vropsIntegrationName' in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Creating vRealize Operations Manager integration with name '$vropsIntegrationName' in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED" 
+                                            }
+                                        } else {
+                                            Write-Error "Creating vRealize Operations Manager integration with name '$vropsIntegrationName' in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) failed with '$($response.message)': FAILED"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vRAvROPSIntegrationItem
+
+Function Undo-vRAvROPsIntegrationItem {
+    <#
+        .SYNOPSIS
+        Deletes vRealize Operations Manager from vRealize Automation
+
+        .DESCRIPTION
+        The Undo-vRAvROPsIntegrationItem cmdlet deletes vRealize Operations Manager integration from vRealize Automation.The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to  vRealize Automation
+        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Deletes vRealize Operations Manager integration from vRealize Automation
+
+        .EXAMPLE
+        Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re1!" -vropsIntegrationName "vRealize Operations Manager"
+        This example deletes vRealize Operations Manager in vRealize Automation
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass, 
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vropsIntegrationName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
+                        if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
+                            if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                                    if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                                        if ($null -eq (Get-vRAIntegrationDetail -integrationType "vrops"  -integrationName $vropsIntegrationName -getIntegrationID ) ) {
+                                            Write-Warning "vRealize Operations Manager Integration with name '$vropsIntegrationName' not found...: SKIPPED" 
+                                            break
+                                        }
+                                        Remove-vRAIntegrationItem -integrationType vrops -integrationId (Get-vRAIntegrationDetail -integrationType vrops -integrationName $vropsIntegrationName -getIntegrationID) | Out-Null
+                                    }
+                                    if ($null -eq (Get-vRAIntegrationDetail -integrationType "vrops"  -integrationName $vropsIntegrationName -getIntegrationID) ) {
+                                        Write-Output "Removing vRealize Operations Manager Integration with name '$vropsIntegrationName' from vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRAvROPsIntegrationItem
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -22404,7 +22525,7 @@ Function Set-NsxtApplianceUserPassword {
         The Set-NsxtApplianceUserPassword cmdlet updates the password for an NSX appliance user.
 
         .EXAMPLE
-        Set-NsxtApplianceUserPassword -userId 0 -password VMware123!VMware123!
+        Set-NsxtApplianceUserPassword -userId 0 -password VMw@re1!VMw@re1!
         This example updates the password for the userId 0 (root).
     #>
 
@@ -25315,7 +25436,7 @@ Function Get-vRAIntegrationDetail {
         }
         if ($getIntegrationID) {
             if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
-                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match $integrationName).id        
+                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match "\b$integrationName\b").id        
             }
         }
     }
@@ -26063,6 +26184,150 @@ Function Remove-vRAUserServiceRole {
 
 }
 Export-ModuleMember -Function Remove-vRAUserServiceRole
+
+Function Add-vRAIntegrationItem {
+    <#
+        .SYNOPSIS
+        Add external systems to vRealize Automation
+
+        .DESCRIPTION
+        The Add-vRAIntegrationItem cmdlet adds external systems to vRealize Automation
+
+        .EXAMPLE
+        Add-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
+        This example creates vRealize Operations Manager integration with name "vRealize Operations Manager" in vRealize Automation
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
+    )
+    
+    Try {
+        $json = Test-vRAIntegrationItem -integrationType $integrationType -integrationName $integrationName -integrationUser $integrationUser -integrationPassword $integrationPassword 
+        $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
+        $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"
+        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $json
+        Start-Sleep 5
+        $id = $response.selfLink
+        $uri = "https://$vraAppliance$id"
+        (Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders)
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+
+}
+Export-ModuleMember -Function Add-vRAIntegrationItem
+
+Function Test-vRAIntegrationItem {
+    <#
+        .SYNOPSIS
+        Test an Integration Item in vRealize Automation
+
+        .DESCRIPTION
+        The Test-vRAIntegrationItem cmdlet validates the given credential and certificate of an intergarion item
+
+        .EXAMPLE
+        Test-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"   
+        This example validates vRealize Operations Manager integration in vRealize Automation
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
+    )
+    
+    if ($PsBoundParameters.ContainsKey("integrationType")) {
+        if ($integrationType -eq "vrops") { $vropsuri = "https://$vropsAppliance/suite-api" } 
+        $jsonObj = [PSCustomObject]@{
+            integrationType       = $integrationType
+            name                  = $integrationName
+            privateKeyId          = $integrationUser
+            privateKey            = $integrationPassword
+            integrationProperties = @{hostName = $vropsuri }
+        }
+        $json = $jsonObj | ConvertTo-Json -Depth 2
+        Try { 
+            $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
+            $uri = "https://$vraAppliance/iaas/api/integrations?validateOnly&$vraapiVersion"        
+            $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $json
+            Start-Sleep 5
+            $id = $response.selfLink
+            $uri = "https://$vraAppliance$id"   
+            $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
+            if (($response.status -eq "FAILED") -and ($response.message -eq "unable to find valid certification")) {        
+                $certid = $response.resources 
+                $uri = "https://$vraAppliance$certid" + "?$vraapiVersion" 
+                $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
+                $certificatevalue = $response.certificate 
+                Write-Host (($response.certificateErrorDetail) + ($response.properties | Out-String ))
+                $certinput = Read-Host "Do you want to accept the above certificate (yes/no)"
+                if (($certinput -eq "yes") -or ($certinput -eq "y")) {
+                    $jsonObj.integrationProperties += @{certificate = $certificatevalue }
+                    $json = $jsonObj | ConvertTo-Json -Depth 2 
+                    return  $json    
+                } else {
+                    Write-Output "Exiting..." 
+                    Break 
+                }               
+            } elseif ($response.status -eq "FINISHED") { 
+                Write-Host "Certificate is already present in the system..."  
+                $json = $jsonObj | ConvertTo-Json -Depth 2 
+                return  $json     
+            } else {
+                Write-Error "Error "$response.message
+                Break        
+            }
+        } Catch {
+            Write-Error $_.Exception.Message
+            Break  
+        }
+    }
+}
+Export-ModuleMember -Function Test-vRAIntegrationItem
+
+Function Remove-vRAIntegrationItem {
+    <#
+        .SYNOPSIS
+        Remove an Integration Item from vRealize Automation
+
+        .DESCRIPTION
+        The Remove-vRAIntegrationItem cmdlet removes the given Integration Item from vRealize Automation
+
+        .EXAMPLE
+        Remove-vRAIntegrationItem -integrationType vrops -integrationId "instacenID" 
+        This example removes vRealize Operations Manager integration from vRealize Automation
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationId
+    )
+    
+    Try {
+        $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
+        $uri = "https://$vraAppliance/iaas/api/integrations/$integrationId" + "?$vraapiVersion"     
+        $response = Invoke-RestMethod -Method Delete -Uri $uri -Headers $vraHeaders
+        Start-Sleep 5
+        $id = $response.selfLink
+        $uri = "https://$vraAppliance$id"
+        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
+        if ( $response.status -eq "FAILED") {
+            Write-Host "Error "$response.message
+            Break        
+        }
+        if ( $response.status -eq "FINISHED") {
+            $response.message
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRAIntegrationItem
 
 #EndRegion  End vRealize Automation Functions                  ######
 #####################################################################
