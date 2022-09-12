@@ -92,7 +92,7 @@ $requireModuleList = @(
     [pscustomobject]@{ Module='PowerValidatedSolutions';Version='1.8.0' }
 	[pscustomobject]@{ Module='PowerVCF';Version='2.2.0' }
 )
-# Check if required modules have been imported
+# Check if required modules have been imported.
 $errorModule = $false
 
 Write-Output "Checking Required Modules"
@@ -1149,27 +1149,27 @@ Function exportReportHTML {
 	} else {
 		$htmlOutput = $htmlOutput + "</p></H4><br><p>Legend: drift data format <font color=#DC143C><i>Current Environment Value</i></font>[<i>standard Password Policy value</i>]</p>"
 	}
-	# Prepare ESXi servers section"
+	# Prepare ESXi servers section
 	$htmlOutput = $htmlOutput + '<H3>ESXi servers Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "ESXi" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdMaxFailAttempts,passwdMinimumLengthFor1CharClass,passwdMinimumLengthFor2CharClass,passwdMinimumLengthFor3CharClass,passwdMinimumLengthFor4CharClass,passwdMinimumCharLengthForPhrase | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	# Prepare vCenter Servers section"
+	# Prepare vCenter Servers section
 	$htmlOutput = $htmlOutput + '<H3>vCenter Server Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "VC" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdNotifyEmail | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	# Prepare SSO section"
+	# Prepare SSO section
 	$htmlOutput = $htmlOutput + '<H3>Single Sign On Password Policy</H3><p><font color=#6495ED>SSO FQDN: ' + $ppmVariables.ssoServerFqdn + '</font></p><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "SSO" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	# Prepare NSX Manager servers section"
+	# Prepare NSX Manager servers section
 	$htmlOutput = $htmlOutput + '<H3>NSX Manager Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "NSXMgr" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,apiPasswdMaxFailAttempts,apiPasswdMaxFailIntervalInSec,apiPasswdUnlockIntervalInSec,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	# Prepare NSX Edge servers section"
+	# Prepare NSX Edge servers section
 	$htmlOutput = $htmlOutput + '<H3>NSX Edge Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "NSXEdge" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	# Prepare Workspace ONE Access servers section"
+	# Prepare Workspace ONE Access servers section
 	if($ppmVariables.skipWSA -eq $false){
 		$htmlOutput = $htmlOutput + '<H3>Workspace ONE Access Password Policy</H3><p><font color=#6495ED>WSA FQDN: ' + $ppmVariables.wsaFqdn + '</font></p><table class="myTable">'
 		$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "WSA" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
