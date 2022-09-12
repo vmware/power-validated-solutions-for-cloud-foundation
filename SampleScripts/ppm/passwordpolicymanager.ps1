@@ -65,7 +65,7 @@ Function checkingRequireModules {
 				return $false
 			} else {
 				Write-Output "$moduleName does not meet the minimum version required: $moduleVersion"
-				Write-Output "Use the command 'Update-Module -Name $moduleName to update module to the latest version from PS Gallery"
+				Write-Output "Use the command 'Update-Module -Name $moduleName' to update module to the latest version from PS Gallery"
 				return $false
 			}
 		} else {
@@ -73,7 +73,7 @@ Function checkingRequireModules {
 			Write-Output "Importing $moduleName version $moduleVersion  ..."
 			Import-Module $moduleName
 			if (-Not (Get-module | Where-Object { $_.Name -eq $moduleName -And [version]$_.Version -ge [version]$moduleVersion })) {
-				Write-Output "Error importing $moduleName"
+				Write-Output "Error: importing $moduleName"
 				Write-Output "Use the command 'Import-Module $moduleName' to manually import the module"
 				return $false
 			} else {
@@ -157,6 +157,7 @@ Try {
 				Write-LogMessage -Type INFO -Message "Testing Completed Successfully" -Colour Yellow
 			} else {
 				Write-LogMessage -Type ERROR -Message "Workload Domain $sddcDomain not found, please check your details and try again" -Colour Red
+				Exit
 			}
 		}
 	} else {
@@ -819,13 +820,16 @@ Function getSingleSignOnPasswordPolicy {
 				} else {
 					Write-LogMessage -Type INFO -Message "Disconnecting from server '$server'" 
 					Disconnect-SsoAdminServer -Server $mySSOConnection | Out-Null
-					Write-LogMessage -Type INFO -Error "Unable to retrieve password policy."  -ErrorAction Stop
+					Write-LogMessage -Type ERROR -Message "Unable to retrieve password policy." -Colour Red
+					Exit
 				}
 			} else {
-				Write-LogMessage -Type INFO -Error "Not connected to server $server, due to an incorrect user name or password. Verify your credentials and try again" -ErrorAction Stop
+				Write-LogMessage -Type ERROR -Message "Not connected to server $server, due to an incorrect user name or password. Verify your credentials and try again" -Colour Red
+				Exit
 			}
 		} else {
-			Write-LogMessage -Type INFO -Error "Testing a connection to server $server failed, please check your details and try again" -ErrorAction Stop
+			Write-LogMessage -Type ERROR -Message "Testing a connection to server $server failed, please check your details and try again" -Colour Red
+			Exit
 		}
 	}
     Catch {
@@ -879,16 +883,19 @@ Function getNsxtManagerPasswordPolicy {
 				} else {
 					if ($ErrorLog -match '"error_code":404') {
 						$count += 1
-						Write-LogMessage -Type WARNING -Message "Unable to submit request. Retry again in 20 secs (Try $count/3)"
+						Write-LogMessage -Type WARNING -Message "Unable to submit request. Retry again in 20 secs (Try $count/3)" -Colour Yellow
 						Start-Sleep -s 20
 					} else {
-						Write-LogMessage -Type INFO -Error "Failed to obtain access token from NSX Manager '$server',  please verify your credentials and try again"  -ErrorAction Stop
+						Write-LogMessage -Type ERROR -Message "Failed to obtain access token from NSX Manager '$server',  please verify your credentials and try again" -Colour Red
+						Exit
 					}
 				}
 			}
-			Write-LogMessage -Type INFO -Error "Testing a connection to server $server failed, please check your details and try again" -ErrorAction Stop
+			Write-LogMessage -Type ERROR -Message "Testing a connection to server $server failed, please check your details and try again" -Colour Red
+			Exit
 		} else {
-			Write-LogMessage -Type INFO -Error "Testing a connection to server $server failed, please check your details and try again" -ErrorAction Stop
+			Write-LogMessage -Type ERROR -Message "Testing a connection to server $server failed, please check your details and try again" -Colour Red
+			Exit
 		}
     }
     Catch {
@@ -946,16 +953,19 @@ Function getNsxtEdgeNodePasswordPolicy {
 				} else {
 					if ($ErrorLog -match '"error_code":404') {
 						$count += 1
-						Write-LogMessage -Type WARNING -Message "Unable to submit request. Retry again in 20 secs (Try $count/3)"
+						Write-LogMessage -Type WARNING -Message "Unable to submit request. Retry again in 20 secs (Try $count/3)" -Colour Yellow
 						Start-Sleep -s 20
 					} else {
-						Write-LogMessage -Type INFO -Error "Failed to obtain access token from NSX Edge '$server',  please verify your credentials and try again"  -ErrorAction Stop
+						Write-LogMessage -Type ERROR -Message "Failed to obtain access token from NSX Edge '$server',  please verify your credentials and try again" -Colour Red
+						Exit
 					}
 				}
 			}
-			Write-LogMessage -Type Error -Message "Failed to obtain access token from NSX Edge '$server',  please verify your credentials and try again" -ErrorAction Stop
+			Write-LogMessage -Type ERROR -Message "Failed to obtain access token from NSX Edge '$server',  please verify your credentials and try again" -Colour Red
+			Exit
 		} else {
-				Write-LogMessage -Type Error -Message "Testing a connection to NSX Edge $server failed, please check your details and try again" -ErrorAction Stop
+				Write-LogMessage -Type ERROR -Message "Testing a connection to NSX Edge $server failed, please check your details and try again" -Colour Red
+				Exit
 		}
     }
     Catch {
@@ -1017,10 +1027,10 @@ Function getWSAPasswordPolicyAll {
 				$passwordPolicyNodes.Add($nodeConfigValue)
 				return $passwordPolicyNodes
 			} else {
-				Write-LogMessage -Type Error -Message "Failed to obtain access token from Workspace ONE Access server '$server',  please verify your credentials and try again"
+				Write-LogMessage -Type ERROR -Message "Failed to obtain access token from Workspace ONE Access server '$server',  please verify your credentials and try again" -Colour Red
 			}
 		} else {
-				Write-LogMessage -Type Error -Message "Testing a connection to Workspace ONE Access server $server failed, please check your details and try again"
+				Write-LogMessage -Type ERROR -Message "Testing a connection to Workspace ONE Access server $server failed, please check your details and try again" -Colour Red
 		}
     }
     Catch {
@@ -1053,21 +1063,21 @@ Function getEnvironmentPasswordPolicyDetail {
 		}
 		Write-LogMessage -type INFO -Message "Retrieving ESXi Hosts password policies..complete"
 		
-		##Retrieve VC password policy details 
-		Write-LogMessage -type INFO -Message "Retrieving VC server instance..."
+		# Retrieve VC password policy details 
+		Write-LogMessage -type INFO -Message "Retrieving vCenter Server instance..."
 		$result = getVCServerPasswordPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
 		$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 		$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 		$ppmEnvironmentalDetails.Add($result)
-		Write-LogMessage -type INFO -Message "Retrieving VC server instance...complete"
+		Write-LogMessage -type INFO -Message "Retrieving vCenter Server instance...complete"
 		
-		##Retrieve SSO password policy details
+		# Retrieve SSO password policy details
 		$result = getSingleSignOnPasswordPolicy -server $ppmVariables.ssoServerFqdn -user $ppmVariables.ssoServerUser -pass $ppmVariables.ssoServerPass
 		$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 		$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 		$ppmEnvironmentalDetails.Add($result)
 		
-		##Retrieve NSX-T Manager password policy details
+		# Retrieve NSX-T Manager password policy details
 		$nsxtManagerDetails = Get-NsxtServerDetail -fqdn $ppmVariables.sddcManagerFqdn -username $ppmVariables.sddcManagerUser -password $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName -listNodes
 		foreach ($nsxtManagerNode in $nsxtManagerDetails.nodes) {
 			$result = getNsxtManagerPasswordPolicy  -server $nsxtManagerNode.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass
@@ -1075,14 +1085,14 @@ Function getEnvironmentPasswordPolicyDetail {
 			$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 			$ppmEnvironmentalDetails.Add($result)
 		}		
-		##Retrieve NSX-T Edge password policy details
+		# Retrieve NSX-T Edge password policy details
 		$results = getNsxtEdgeNodePasswordPolicy -server $nsxtManagerDetails.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass
 		foreach ($result in $results) {
 			$result.productAttributes | Add-Member -notepropertyname "driftAlarm" -notepropertyvalue ""
 			$result.productAttributes | Add-Member -notepropertyname "driftMessage" -notepropertyvalue ""
 			$ppmEnvironmentalDetails.Add($result)
 		}
-		##Retrieve WSA Password policy details
+		# Retrieve WSA Password policy details
 		if ($ppmVariables.wsaFqdn -and $ppmVariables.wsaAdminUser -and $ppmVariables.wsaAdminPass) {
 			Write-LogMessage -type INFO -Message "Retrieving Workspace ONE Access server password policy..."
 			$result = getWSAPasswordPolicyAll -server $ppmVariables.wsaFqdn -user $ppmVariables.wsaAdminUser -pass $ppmVariables.wsaAdminPass
@@ -1091,7 +1101,7 @@ Function getEnvironmentPasswordPolicyDetail {
 			$ppmEnvironmentalDetails.Add($result)
 			Write-LogMessage -type INFO -Message "Retrieving Workspace ONE Access server password policy...complete"
 		} else {
-			Write-LogMessage -Type WARNING -Message "Workspace ONE Access Skipped.  Login details are not provided."  
+			Write-LogMessage -Type WARNING -Message "Workspace ONE Access Skipped.  Login details are not provided." -Colour Yellow
 		}
 
 		$ppmVariables.isEnvDetailSet = $true
@@ -1107,13 +1117,13 @@ Function exportReportHTML {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
-		[Parameter (mandatory = $false)] [Switch]$doComparison = $false
+		[Parameter (mandatory = $false)] [Switch]$docCompare = $false
 	) 
 		#retrieving environmental details
 	getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 	$count = 0
 		#addressing comparison reports
-	if ($doComparison -eq $true) {
+	if ($docCompare -eq $true) {
 		foreach ($eachNode in $ppmEnvironmentalDetails) {
 			foreach ($eachAttribute in $eachNode.productAttributes.PSObject.Properties){
 				foreach ($product in $ppmStandardConfigValues) {
@@ -1134,35 +1144,35 @@ Function exportReportHTML {
 	}
 	#prepare html header
 	$htmlOutput = "<html><title>Password Policy Report</title><style type=" + '"text/css"' + ">.myTable { border-collapse:collapse; }.myTable td, .myTable th {text-align:center;padding:5px;border:1px solid #000;}</style><head><H1>Password Policy Report for the Workload domain <font color=#6495ED>$($ppmVariables.sddcDomainName)</font> </H1></head><body><br><H4><p>-Report Ran on <font color=#6495ED>" + (Get-Date).tostring("dd-MM-yyyy-hh-mm-ss") + "</font> for the Workload domain <font color=#6495ED>$($ppmVariables.sddcDomainName)</font>"
-	if ($doComparison -eq $false) {
+	if ($docCompare -eq $false) {
 		$htmlOutput = $htmlOutput + "</p></H4><br><H4><p><font color=#FFA500>-Common Password Policy file path was not provided.  Drift data not available </font></p></H4>"
 	} else {
 		$htmlOutput = $htmlOutput + "</p></H4><br><p>Legend: drift data format <font color=#DC143C><i>Current Environment Value</i></font>[<i>standard Password Policy value</i>]</p>"
 	}
 	#prepare ESXi servers section"
 	$htmlOutput = $htmlOutput + '<H3>ESXi servers Password Policy</h3><table class="myTable">'
-	$tmpHtmlOutput = $ppmEnvironmentalDetails | where-Object { $_.productType -match "ESXi" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdMaxFailAttempts,passwdMinimumLengthFor1CharClass,passwdMinimumLengthFor2CharClass,passwdMinimumLengthFor3CharClass,passwdMinimumLengthFor4CharClass,passwdMinimumCharLengthForPhrase | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
+	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "ESXi" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdMaxFailAttempts,passwdMinimumLengthFor1CharClass,passwdMinimumLengthFor2CharClass,passwdMinimumLengthFor3CharClass,passwdMinimumLengthFor4CharClass,passwdMinimumCharLengthForPhrase | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
 	#prepare vCenter Servers section"
 	$htmlOutput = $htmlOutput + '<H3>vCenter Server Password Policy</h3><table class="myTable">'
-	$tmpHtmlOutput = $ppmEnvironmentalDetails | where-Object { $_.productType -match "VC" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdNotifyEmail | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
+	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "VC" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdNotifyEmail | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
 	#prepare SSO section"
 	$htmlOutput = $htmlOutput + '<H3>Single Sign On Password Policy</H3><p><font color=#6495ED>SSO FQDN: ' + $ppmVariables.ssoServerFqdn + '</font></p><table class="myTable">'
-	$tmpHtmlOutput = $ppmEnvironmentalDetails | where-Object { $_.productType -match "SSO" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
+	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "SSO" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
 	#prepare NSX Manager servers section"
 	$htmlOutput = $htmlOutput + '<H3>NSX Manager Password Policy</h3><table class="myTable">'
-	$tmpHtmlOutput = $ppmEnvironmentalDetails | where-Object { $_.productType -match "NSXMgr" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,apiPasswdMaxFailAttempts,apiPasswdMaxFailIntervalInSec,apiPasswdUnlockIntervalInSec,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
+	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "NSXMgr" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,apiPasswdMaxFailAttempts,apiPasswdMaxFailIntervalInSec,apiPasswdUnlockIntervalInSec,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
 	#prepare NSX Edge servers section"
 	$htmlOutput = $htmlOutput + '<H3>NSX Edge Password Policy</h3><table class="myTable">'
-	$tmpHtmlOutput = $ppmEnvironmentalDetails | where-Object { $_.productType -match "NSXEdge" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
+	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "NSXEdge" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
 	#prepare Workspace ONE Access servers section"
 	if($ppmVariables.skipWSA -eq $false){
 		$htmlOutput = $htmlOutput + '<H3>Workspace ONE Access Password Policy</H3><p><font color=#6495ED>WSA FQDN: ' + $ppmVariables.wsaFqdn + '</font></p><table class="myTable">'
-		$tmpHtmlOutput = $ppmEnvironmentalDetails | where-Object { $_.productType -match "WSA" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
+		$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "WSA" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
 		$htmlOutput += $tmpHtmlOutput
 	}
 	else{
@@ -1187,14 +1197,14 @@ Function exportReportJSON {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [psobject]$ppmVariables,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmStandardConfigValues,
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
-		[Parameter (mandatory = $false)] [Switch]$doComparison = $false,
+		[Parameter (mandatory = $false)] [Switch]$docCompare = $false,
 		[Parameter (mandatory = $false)] [Switch]$onlyDrift = $false
 	)
 
 	$count = 0
 	#addressing comparison reports
-	if ($doComparison -eq $true) {
-		foreach($eachNode in $ppmEnvironmentalDetails){
+	if ($docCompare -eq $true) {
+		foreach ($eachNode in $ppmEnvironmentalDetails){
 			$eachNode.productAttributes.driftAlarm = "Green"
 			$eachNode.productAttributes.driftMessage = ""
 			foreach ($eachAttribute in $eachNode.productAttributes.PSObject.Properties) {
@@ -1205,8 +1215,7 @@ Function exportReportJSON {
 								$eachNode.productAttributes.driftAlarm = "Red"
 								if ($eachNode.productAttributes.driftMessage -eq "") {
 									$eachNode.productAttributes.driftMessage = $eachAttribute.Name + "("+ $product.productAttributes.$($eachAttribute.Name) + ")"
-								}
-								else {
+								} else {
 									$eachNode.productAttributes.driftMessage = $eachNode.productAttributes.driftMessage + ", " + $eachAttribute.Name + "("+ $product.productAttributes.$($eachAttribute.Name) + ")"
 								}
 								$count += 1
@@ -1248,7 +1257,7 @@ Function setEnvironmentPasswordPolicy {
 	)
 
 	$count = 0
-	foreach($eachNode in $ppmEnvironmentalDetails){
+	foreach ($eachNode in $ppmEnvironmentalDetails){
 		$eachNode.productAttributes.driftAlarm = "Green"
 		$eachNode.productAttributes.driftMessage = ""
 		foreach ($eachAttribute in $eachNode.productAttributes.PSObject.Properties) {
@@ -1277,7 +1286,7 @@ Function setEnvironmentPasswordPolicy {
 
 	#start setting Password Policy based on driftAlarm
 	#VC
-	if ($ppmEnvironmentalDetails | where { ($_.productType -match "VC") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "VC") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "VC" }
 		$passwordTtlInDays = $products.productAttributes.passwdExpInDays
 		$emailNotification = $products.productAttributes.passwdNotifyEmail
@@ -1287,7 +1296,7 @@ Function setEnvironmentPasswordPolicy {
 	}
 	
 	#SSO
-	if ($ppmEnvironmentalDetails | where { ($_.productType -match "SSO") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "SSO") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript {$_.productType -eq "SSO"}
 		$passHistory = $products.productAttributes.passwdHistoryRestriction
 		$minCharacterLength = $products.productAttributes.passwdMinimumLength
@@ -1324,7 +1333,7 @@ Function setEnvironmentPasswordPolicy {
 	}
 	
 	#ESXi
-	if ($ppmEnvironmentalDetails | where { ($_.productType -match "ESXi") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "ESXi") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "ESXi" }
 		$passwdExpInDays = $products.productAttributes.passwdExpInDays
 		$numAttempts = $products.productAttributes.passwdMaxFailAttempts
@@ -1352,13 +1361,13 @@ Function setEnvironmentPasswordPolicy {
 	$cliPasswdMaxFailAttempts = $products.productAttributes.cliPasswdMaxFailAttempts
 	$cliPasswdMaxFailIntervalInSec = $products.productAttributes.cliPasswdMaxFailIntervalInSec
 	$minCharacterLength = $products.productAttributes.passwdMinimumLength
-	if ($ppmEnvironmentalDetails | where { ($_.productType -match "NSXMgr") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
-		Write-LogMessage -type INFO -Message "NSX Manager: : Setting the password policy."
+	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "NSXMgr") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+		Write-LogMessage -type INFO -Message "NSX Manager: Setting the password policy."
 		Set-NsxtManagerAuthenticationPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName -apiLockoutPeriod $apiPasswdUnlockIntervalInSec -apiResetPeriod $apiPasswdMaxFailIntervalInSec -apiMaxAttempt $apiPasswdMaxFailAttempts -cliLockoutPeriod $cliPasswdMaxFailIntervalInSec -cliMaxAttempt $cliPasswdMaxFailAttempts -minPasswdLength $minCharacterLength | Out-Null
 		Start-Sleep -s 15
 		Write-LogMessage -type INFO -Message "NSX Manager: Completed setting the password policy."
 	}
-	if ($ppmEnvironmentalDetails | where { ($_.productType -match "NSXEdge") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "NSXEdge") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		Write-LogMessage -type INFO -Message "NSX Edge: Setting the password policy."
 		Start-Sleep -s 15
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "NSXEdge" }
@@ -1405,43 +1414,36 @@ Try {
 	if ((($publishHTML -or $publishJSON) -and $applyPasswordPolicy) -or ($publishHTML -and $publishJSON)) {
 		Write-LogMessage -Type ERROR -Message "Error multiple options triggered.  Please request only one option -publishJSON, -publishHTML or -applyPasswordPolicy" -Colour Red
 		Exit
-	}
-	elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly) {
+	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
-	}
-	elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly -eq $false) {
+	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly -eq $false) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -doComparison
 		Exit
-	}
-	elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $false) {
+	} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $false) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -doComparison
 		Exit
-	}
-	elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $true) {
+	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $true) {
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
-	}
-	elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $true) {
+	} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $true) {
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
-	}
-	elseif ($applyPasswordPolicy) {
+	} elseif ($applyPasswordPolicy) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		setEnvironmentPasswordPolicy -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		Exit
 	}
 	
-}
-Catch {
+} Catch {
 	Debug-ExceptionWriter -object $_
 }
