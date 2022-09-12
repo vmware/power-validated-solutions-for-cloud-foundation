@@ -1235,7 +1235,7 @@ Function exportReportJSON {
 			}
 		}
 		if ($onlyDrift -eq $true) {
-			$ppmEnvironmentalDetails | where { $_.productAttributes.driftAlarm -match "Red" } | ConvertTo-Json -depth 100 | Out-File $ppmVariables.outputFilePath
+			$ppmEnvironmentalDetails | Where-Object { $_.productAttributes.driftAlarm -match "Red" } | ConvertTo-Json -depth 100 | Out-File $ppmVariables.outputFilePath
 		} else {
 			$ppmEnvironmentalDetails | ConvertTo-Json -depth 100 | Out-File $ppmVariables.outputFilePath
 		}
@@ -1286,7 +1286,7 @@ Function setEnvironmentPasswordPolicy {
 
 	#start setting Password Policy based on driftAlarm
 	#VC
-	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "VC") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "VC") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "VC" }
 		$passwordTtlInDays = $products.productAttributes.passwdExpInDays
 		$emailNotification = $products.productAttributes.passwdNotifyEmail
@@ -1296,7 +1296,7 @@ Function setEnvironmentPasswordPolicy {
 	}
 	
 	#SSO
-	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "SSO") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "SSO") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript {$_.productType -eq "SSO"}
 		$passHistory = $products.productAttributes.passwdHistoryRestriction
 		$minCharacterLength = $products.productAttributes.passwdMinimumLength
@@ -1333,7 +1333,7 @@ Function setEnvironmentPasswordPolicy {
 	}
 	
 	#ESXi
-	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "ESXi") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "ESXi") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "ESXi" }
 		$passwdExpInDays = $products.productAttributes.passwdExpInDays
 		$numAttempts = $products.productAttributes.passwdMaxFailAttempts
@@ -1361,13 +1361,13 @@ Function setEnvironmentPasswordPolicy {
 	$cliPasswdMaxFailAttempts = $products.productAttributes.cliPasswdMaxFailAttempts
 	$cliPasswdMaxFailIntervalInSec = $products.productAttributes.cliPasswdMaxFailIntervalInSec
 	$minCharacterLength = $products.productAttributes.passwdMinimumLength
-	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "NSXMgr") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "NSXMgr") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		Write-LogMessage -type INFO -Message "NSX Manager: Setting the password policy."
 		Set-NsxtManagerAuthenticationPolicy -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName -apiLockoutPeriod $apiPasswdUnlockIntervalInSec -apiResetPeriod $apiPasswdMaxFailIntervalInSec -apiMaxAttempt $apiPasswdMaxFailAttempts -cliLockoutPeriod $cliPasswdMaxFailIntervalInSec -cliMaxAttempt $cliPasswdMaxFailAttempts -minPasswdLength $minCharacterLength | Out-Null
 		Start-Sleep -s 15
 		Write-LogMessage -type INFO -Message "NSX Manager: Completed setting the password policy."
 	}
-	if ($ppmEnvironmentalDetails | where-Object { ($_.productType -match "NSXEdge") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "NSXEdge") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		Write-LogMessage -type INFO -Message "NSX Edge: Setting the password policy."
 		Start-Sleep -s 15
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "NSXEdge" }
@@ -1380,7 +1380,7 @@ Function setEnvironmentPasswordPolicy {
 	
 	#WSA
 	if ($ppmVariables.wsaFqdn -and $ppmVariables.wsaAdminUser -and $ppmVariables.wsaAdminPass) {
-		if($ppmEnvironmentalDetails | where { ($_.productType -match "WSA") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
+		if($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "WSA") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 			$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "WSA" }
 			$minCharacterLength = $products.productAttributes.passwdMinimumLength
 			$minLowercaseChar = $products.productAttributes.passwdMinLowercase
