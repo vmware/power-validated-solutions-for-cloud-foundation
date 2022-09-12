@@ -11367,7 +11367,7 @@ Function Enable-vROPSManagementPack {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateSet("SDDC Health")] [ValidateNotNullOrEmpty()] [String]$packType,
+        [Parameter (Mandatory = $true)] [ValidateSet("SDDC Health","SrmAdapter","VrAdapter")] [ValidateNotNullOrEmpty()] [String]$packType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pakFile
     )
 
