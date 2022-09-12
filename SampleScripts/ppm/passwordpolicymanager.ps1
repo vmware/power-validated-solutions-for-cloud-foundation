@@ -92,7 +92,7 @@ $requireModuleList = @(
     [pscustomobject]@{ Module='PowerValidatedSolutions';Version='1.8.0' }
 	[pscustomobject]@{ Module='PowerVCF';Version='2.2.0' }
 )
-# check if required modules have been imported
+# Check if required modules have been imported
 $errorModule = $false
 
 Write-Output "Checking Required Modules"
@@ -113,7 +113,7 @@ if ($errorModule) {
 }
 
 ################ Perform Initialization ####################
-# initialize Script Variables
+# Initialize Script Variables
 $ppmVariables = New-Object -TypeName psobject
 $ppmVariables | Add-Member -notepropertyname "sddcManagerFqdn" -notepropertyvalue ""
 $ppmVariables | Add-Member -notepropertyname "sddcManagerUser" -notepropertyvalue ""
@@ -136,13 +136,13 @@ $ppmVariables | Add-Member -notepropertyname "isEnvDetailSet" -notepropertyvalue
 $ppmStandardConfigValues = New-Object System.Collections.Generic.List[System.Object]
 $ppmEnvironmentalDetails = New-Object System.Collections.Generic.List[System.Object]
 
-# initialize Script log file
+# Initialize Script log file
 Start-SetupLogFile -Path $PSScriptRoot -ScriptName $MyInvocation.MyCommand.Name
 
 
 ################ Perform Parameters variable Check ####################
 Try {
-	#test SDDC Manager connection
+	# Test SDDC Manager connection
 	Write-LogMessage -Type INFO -Message "Testing connection to SDDC Manager server" -Colour Yellow
 	$checkServer = Test-Connection -ComputerName $sddcFqdn -Quiet -Count 1
 	if ($checkServer -eq "True") {
@@ -151,7 +151,7 @@ Try {
 			Write-LogMessage -Type ERROR -Message "Testing a connection to server $sddcFqdn failed, please check your details and try again" -Colour Red
 			Exit
 		} else {
-				#test SDDC workload domain exists
+				# Test SDDC workload domain exists
 			$workloadDomainExists = Get-VCFWorkloadDomain -name $sddcDomain
 			if ($workloadDomainExists) {
 				Write-LogMessage -Type INFO -Message "Testing Completed Successfully" -Colour Yellow
@@ -552,7 +552,7 @@ Function importStandardConfigurations {
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails
 	)
 	
-	#checking for file exists:
+	# Checking for file exists:
 	if (Test-Path $ppmVariables.commonPolicyFilePath) {
 		$ppmStandardConfiguration = Get-Content -Path $ppmVariables.commonPolicyFilePath -Raw | ConvertFrom-Json
 	} else {
@@ -562,7 +562,7 @@ Function importStandardConfigurations {
 	
 	$errorCount = 0;
 	
-	#validating values
+	# Validating values
 	$CommonValues = New-Object -TypeName psobject
 	$CommonValues | Add-Member -notepropertyname "passwdExpInDays" -notepropertyvalue "Null"
 	$CommonValues | Add-Member -notepropertyname "passwdMinimumLength" -notepropertyvalue "Null"
@@ -709,7 +709,7 @@ Function getEsxiPasswordPolicy {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
 	)
 	
-	#construct Environment Object
+	# Construct Environment Object
 	$passwordPolicyNodes = New-Object System.Collections.Generic.List[System.Object]
 	$results = Get-EsxiPasswordPolicy -server $server -user $user -pass $pass -domain $domain -cluster $cluster
 	foreach ($result in $results) {
@@ -722,7 +722,7 @@ Function getEsxiPasswordPolicy {
 		$esxiConfigTypeValues | Add-Member -notepropertyname "passwdMinimumLengthFor4CharClass" -notepropertyvalue "Empty"
 		$esxiConfigTypeValues | Add-Member -notepropertyname "passwdMinimumCharLengthForPhrase" -notepropertyvalue "Empty"
 
-		#parsing ESXi password policy string
+		# Parsing ESXi password policy string
 		$result.PasswordQualityControl | Select-String -Pattern "^retry=(\d+)\s+min=(.+),(.+),(.+),(.+),(.+)" | Foreach-Object {$PasswdPolicyRetryValue, $PasswdPolicyMinValue1, $PasswdPolicyMinValue2, $PasswdPolicyMinValue3, $PasswdPolicyMinValue4, $PasswdPolicyMinValue5 = $_.Matches[0].Groups[1..6].Value}
 		$esxiConfigTypeValues.passwdExpInDays = $result.PaswordMaxDays
 		$esxiConfigTypeValues.passwdMaxFailAttempts = $PasswdPolicyRetryValue
@@ -751,7 +751,7 @@ Function getVCServerPasswordPolicy {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
 	)
 	
-	#construct Environment Object
+	# Construct Environment Object
 	$passwordPolicyNodes = New-Object System.Collections.Generic.List[System.Object]
 	$VCConfigTypeValues =  New-Object -TypeName psobject
 	$VCConfigTypeValues | Add-Member -notepropertyname "passwdExpInDays" -notepropertyvalue "Empty" 
@@ -779,7 +779,7 @@ Function getSingleSignOnPasswordPolicy {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
 	)
 	
-	#construct Environment Object
+	# Construct Environment Object
 	$passwordPolicyNodes = New-Object System.Collections.Generic.List[System.Object]
 	
     Try {
@@ -840,7 +840,7 @@ Function getSingleSignOnPasswordPolicy {
 Function getNsxtManagerPasswordPolicy {
 	<#
 		Retrieves NSX Manager Password Policies
-		#>
+	#>
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -1047,7 +1047,7 @@ Function getEnvironmentPasswordPolicyDetail {
 	if ($ppmVariables.isEnvDetailSet -eq $false) {
 		Write-LogMessage -type INFO -Message "Retrieving Environment Details...(this might take a while depends on the number of ESXi hosts)" -Colour Yellow
 		
-		##Retrieve ESXi hosts password policy details
+		# Retrieve ESXi hosts password policy details
 		Write-LogMessage -type INFO -Message "Retrieving ESXi Hosts password policies..."
 		$vcenter = Get-vCenterServerDetail -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
 		$clusterID = Get-VCFWorkloadDomain -name $ppmVariables.sddcDomainName
@@ -1119,10 +1119,10 @@ Function exportReportHTML {
 		[Parameter (Mandatory = $true)] [AllowEmptyCollection()][System.Collections.Generic.List[System.Object]]$ppmEnvironmentalDetails,
 		[Parameter (mandatory = $false)] [Switch]$docCompare = $false
 	) 
-		#retrieving environmental details
+		# Retrieving environmental details
 	getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 	$count = 0
-		#addressing comparison reports
+		# Addressing comparison reports
 	if ($docCompare -eq $true) {
 		foreach ($eachNode in $ppmEnvironmentalDetails) {
 			foreach ($eachAttribute in $eachNode.productAttributes.PSObject.Properties){
@@ -1142,34 +1142,34 @@ Function exportReportHTML {
 			}
 		}
 	}
-	#prepare html header
+	# Prepare html header
 	$htmlOutput = "<html><title>Password Policy Report</title><style type=" + '"text/css"' + ">.myTable { border-collapse:collapse; }.myTable td, .myTable th {text-align:center;padding:5px;border:1px solid #000;}</style><head><H1>Password Policy Report for the Workload domain <font color=#6495ED>$($ppmVariables.sddcDomainName)</font> </H1></head><body><br><H4><p>-Report Ran on <font color=#6495ED>" + (Get-Date).tostring("dd-MM-yyyy-hh-mm-ss") + "</font> for the Workload domain <font color=#6495ED>$($ppmVariables.sddcDomainName)</font>"
 	if ($docCompare -eq $false) {
 		$htmlOutput = $htmlOutput + "</p></H4><br><H4><p><font color=#FFA500>-Common Password Policy file path was not provided.  Drift data not available </font></p></H4>"
 	} else {
 		$htmlOutput = $htmlOutput + "</p></H4><br><p>Legend: drift data format <font color=#DC143C><i>Current Environment Value</i></font>[<i>standard Password Policy value</i>]</p>"
 	}
-	#prepare ESXi servers section"
+	# Prepare ESXi servers section"
 	$htmlOutput = $htmlOutput + '<H3>ESXi servers Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "ESXi" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdMaxFailAttempts,passwdMinimumLengthFor1CharClass,passwdMinimumLengthFor2CharClass,passwdMinimumLengthFor3CharClass,passwdMinimumLengthFor4CharClass,passwdMinimumCharLengthForPhrase | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	#prepare vCenter Servers section"
+	# Prepare vCenter Servers section"
 	$htmlOutput = $htmlOutput + '<H3>vCenter Server Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "VC" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdExpInDays,passwdNotifyEmail | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	#prepare SSO section"
+	# Prepare SSO section"
 	$htmlOutput = $htmlOutput + '<H3>Single Sign On Password Policy</H3><p><font color=#6495ED>SSO FQDN: ' + $ppmVariables.ssoServerFqdn + '</font></p><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "SSO" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	#prepare NSX Manager servers section"
+	# Prepare NSX Manager servers section"
 	$htmlOutput = $htmlOutput + '<H3>NSX Manager Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "NSXMgr" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,apiPasswdMaxFailAttempts,apiPasswdMaxFailIntervalInSec,apiPasswdUnlockIntervalInSec,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	#prepare NSX Edge servers section"
+	# Prepare NSX Edge servers section"
 	$htmlOutput = $htmlOutput + '<H3>NSX Edge Password Policy</h3><table class="myTable">'
 	$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "NSXEdge" } | select-object -Property FQDN -ExpandProperty productAttributes | select-object FQDN,passwdMinimumLength,cliPasswdMaxFailAttempts,cliPasswdMaxFailIntervalInSec | sort-object -Property FQDN | ConvertTo-Html -Fragment -As Table
 	$htmlOutput += $tmpHtmlOutput
-	#prepare Workspace ONE Access servers section"
+	# Prepare Workspace ONE Access servers section"
 	if($ppmVariables.skipWSA -eq $false){
 		$htmlOutput = $htmlOutput + '<H3>Workspace ONE Access Password Policy</H3><p><font color=#6495ED>WSA FQDN: ' + $ppmVariables.wsaFqdn + '</font></p><table class="myTable">'
 		$tmpHtmlOutput = $ppmEnvironmentalDetails | Where-Object { $_.productType -match "WSA" } | select-object -ExpandProperty productAttributes | select-object -property * -ExcludeProperty FQDN,productType,driftAlarm,driftMessage | ConvertTo-Html -Fragment -As Table
@@ -1202,7 +1202,7 @@ Function exportReportJSON {
 	)
 
 	$count = 0
-	#addressing comparison reports
+	# Addressing comparison reports
 	if ($docCompare -eq $true) {
 		foreach ($eachNode in $ppmEnvironmentalDetails){
 			$eachNode.productAttributes.driftAlarm = "Green"
@@ -1277,15 +1277,14 @@ Function setEnvironmentPasswordPolicy {
 			}
 		}
 	}
-	#Getting vcenter info
+	# Getting vcenter info
 	$vcenter = Get-vCenterServerDetail -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
 	if (!$ppmVariables.esxiCluster) {
 		$clusterID = Get-VCFWorkloadDomain -name $ppmVariables.sddcDomainName
 		$ppmVariables.esxiCluster = $clusterID
 	}
 
-	#start setting Password Policy based on driftAlarm
-	#VC
+	# Start setting Password Policy based on driftAlarm: VC
 	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "VC") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "VC" }
 		$passwordTtlInDays = $products.productAttributes.passwdExpInDays
@@ -1295,7 +1294,7 @@ Function setEnvironmentPasswordPolicy {
 		Write-LogMessage -type INFO -Message "vCenter Server Appliance: Completed setting the password policy."
 	}
 	
-	#SSO
+	# Start setting Password Policy based on driftAlarm: SSO
 	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "SSO") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript {$_.productType -eq "SSO"}
 		$passHistory = $products.productAttributes.passwdHistoryRestriction
@@ -1332,7 +1331,7 @@ Function setEnvironmentPasswordPolicy {
 		Write-LogMessage -type INFO -Message "Single-Sign On Domain: Completed setting the password policy."
 	}
 	
-	#ESXi
+	# Start setting Password Policy based on driftAlarm: ESXi
 	if ($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "ESXi") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 		$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "ESXi" }
 		$passwdExpInDays = $products.productAttributes.passwdExpInDays
@@ -1353,7 +1352,7 @@ Function setEnvironmentPasswordPolicy {
 		Write-LogMessage -type INFO -Message "ESXi hosts: Completed setting the password policy."
 	}
 	
-	#NSX-T
+	# Start setting Password Policy based on driftAlarm: NSX-T
 	$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript {$_.productType -eq "NSXMgr"}
 	$apiPasswdMaxFailAttempts = $products.productAttributes.apiPasswdMaxFailAttempts
 	$apiPasswdMaxFailIntervalInSec = $products.productAttributes.apiPasswdMaxFailIntervalInSec
@@ -1378,7 +1377,7 @@ Function setEnvironmentPasswordPolicy {
 		Write-LogMessage -type INFO -Message "NSX Edge: Completed setting the password policy."
 	}
 	
-	#WSA
+	# Start setting Password Policy based on driftAlarm: WSA
 	if ($ppmVariables.wsaFqdn -and $ppmVariables.wsaAdminUser -and $ppmVariables.wsaAdminPass) {
 		if($ppmEnvironmentalDetails | Where-Object { ($_.productType -match "WSA") -and ($_.productAttributes.driftAlarm -match "Red") } ) {
 			$products = $ppmStandardConfigValues | Select-Object -Skip 0 | Where-Object -FilterScript { $_.productType -eq "WSA" }
