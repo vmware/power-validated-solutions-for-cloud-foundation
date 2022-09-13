@@ -13,23 +13,23 @@
 
 	.EXAMPLE
 	passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.json" -commonPolicyFile ".\standardConfigure.json" -publishJSON
-	Generates a Password Policy Report to a JSON file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes and highlights differences between the policies collected against a common policy file based on the -commonPolicyFile parameter.
+	Generates a Password Policy Report to a JSON file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single Sign-On, NSX Manager, NSX Edge, and Workspace ONE Access nodes and the highlights the differences between the policies collected against a common policy file based on the -commonPolicyFile parameter.
 
     .EXAMPLE
     passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -publishHTML
-    Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes.
+    Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single Sign-On, NSX Manager, NSX Edge, and Workspace ONE Access nodes.
 	
 	.EXAMPLE
     passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -commonPolicyFile ".\standardConfigure.json" -publishHTML
-    Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes and highlights differences between the policies collected against a common policy file based on the -commonPolicyFile parameter.
+    Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, vCenter Single Sign-On, NSX Manager, NSX Edge. and Workspace ONE Access nodes as well as highlights the differences between the policies collected against a common policy file based on the -commonPolicyFile parameter.
 
 	.EXAMPLE
 	passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -commonPolicyFile ".\standardConfigure.json" -applyPasswordPolicy
-    Configures password policies as defined by the common policy file based on the -commonPolicyFile parameter for all ESXi hosts, vCenter Server, vCenter Single-Sign On, NSX Manager, NSX Edge and Workspace ONE Access nodes for a given Workload Domain.
+	Configures password policies as defined by the common policy file based on the -commonPolicyFile parameter for all ESXi hosts, vCenter Server, vCenter Single Sign-On, NSX Manager, NSX Edge, and Workspace ONE Access nodes for a given Workload Domain.
 
 	.EXAMPLE
     passwordPolicyManager.ps1 -sddcFqdn sfo-vcf01.sfo.rainpole.io -sddcUser administrator@vsphere.local -sddcPass VMw@re1! -sddcDomain sfo-w01 -ssoFqdn sfo-m01-vc01.sfo.rainpole.io -ssoUser administrator@vsphere.local -ssoPass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaAdminPass VMw@re1! -outputFile ".\sfo-m01_domain_pp_report.html" -publishHTML
-    Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, NSX Manager, NSX Edge and Workspace ONE Access nodes and a vCenter Single-Sign On external to the provided Workload Domain. 
+    Generates a Password Policy Report to a HTML file based on the -outputFile parameter for the provided Workload Domain containing all ESXi hosts, vCenter Server, NSX Manager, NSX Edge, Workspace ONE Access nodes, and a vCenter Single Sign-On external to the provided Workload Domain.
 #>
 
 Param (
@@ -1480,12 +1480,12 @@ Try {
 	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly -eq $false) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -doComparison
+		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -docCompare
 		Exit
 	} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $false) {
 		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -doComparison
+		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -docCompare
 		Exit
 	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $true) {
 		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
