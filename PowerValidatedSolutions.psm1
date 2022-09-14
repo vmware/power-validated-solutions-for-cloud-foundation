@@ -10528,10 +10528,9 @@ Function Get-vRAvRLIConfig {
         Returns the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 
         .DESCRIPTION
-        The Get-vRAvRLIConfig cmdlet returns the vRealize Log Insight logging
-        configuration for vRealize Automation.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and
-        connects to the first vRealize Automation appliance using the -rootPass value.
+        The Get-vRAvRLIConfig cmdlet returns the vRealize Log Insight logging configuration for vRealize Automation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
+        vRealize Automation appliance using the -rootPass value.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Validates that network connectivity is possible to the first vRealize Automation appliance
@@ -10592,8 +10591,8 @@ Function Set-vRAvRLIConfig {
 
         .DESCRIPTION
         The Set-vRAvRLIConfig cmdlet sets the vRealize Log Insight logging configuration for vRealize Automation.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the
-        first vRealize Automation appliance using the -rootPass value.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
+        vRealize Automation appliance using the -rootPass value.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Validates that network connectivity and authentication is possible to vRealize Log Insight
@@ -10689,10 +10688,9 @@ Function Remove-vRAvRLIConfig {
         Removes the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 
         .DESCRIPTION
-        The Remove-vRAvRLIConfig cmdlet removes the vRealize Log Insight logging
-        configuration for vRealize Automation.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and
-        connects to the first vRealize Automation appliance using the -rootPass value.
+        The Remove-vRAvRLIConfig cmdlet removes the vRealize Log Insight logging configuration for vRealize Automation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
+        vRealize Automation appliance using the -rootPass value.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Validates that network connectivity is possible to the first vRealize Automation appliance
