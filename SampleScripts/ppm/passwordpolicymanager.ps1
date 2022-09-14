@@ -525,7 +525,7 @@ Function checkRange() {
 
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$value,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [string]$value,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$minRange,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$maxRange,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$required
@@ -535,7 +535,7 @@ Function checkRange() {
 		Write-LogMessage -Type ERROR -Message "$name variable has not been configured. Please check the standard configuration JSON configuration file."  -Colour Red
 		return $false
 	} elseif (($value -lt $minRange) -or ($value -gt $maxRange)) {
-		Write-LogMessage -Type ERROR -Message "The recommended range for $name should be between $minRange and $maxRange."  -Colour Red
+		Write-LogMessage -Type ERROR -Message "The recommended range for $name should be between $minRange and $maxRange.(current value is $value)"  -Colour Red
 		return $false
 	}
 	else {
@@ -626,33 +626,33 @@ Function importStandardConfigurations {
 	} else {
 		$passwdMinLen = $CommonValues."passwdMinimumLength"
 	}
-	$checkReturn = checkRange -name "passwdMinUppercase" -value $CommonValues."passwdMinUppercase" -minRange 1 -maxRange 9000 -required $false 
+	$checkReturn = checkRange -name "passwdMinUppercase" -value $CommonValues."passwdMinUppercase" -minRange 1 -maxRange 9000 -required $true 
 	if (!$checkReturn) {
 		$passwdUpper = 1
 		$errorCount += 1
 	} else {
 		$passwdUpper = $CommonValues."passwdMinUppercase"
 	}
-	$checkReturn = checkRange -name "passwdMinLowercase" -value $CommonValues."passwdMinLowercase" -minRange 1 -maxRange 9000 -required $false 
+	$checkReturn = checkRange -name "passwdMinLowercase" -value $CommonValues."passwdMinLowercase" -minRange 1 -maxRange 9000 -required $true 
 	if (!$checkReturn) { 
 		$passwdLower = 
 		$errorCount += 1
 	} else {
 		$passwdLower = $CommonValues."passwdMinLowercase"
 	}
-	$checkReturn = checkRange -name "passwdMinNumeric" -value $CommonValues."passwdMinNumeric" -minRange 1 -maxRange 9000 -required $false
+	$checkReturn = checkRange -name "passwdMinNumeric" -value $CommonValues."passwdMinNumeric" -minRange 1 -maxRange 9000 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
-	$checkReturn = checkRange -name "passwdMinSpecial" -value $CommonValues."passwdMinSpecial" -minRange 1 -maxRange 9000 -required $false
+	$checkReturn = checkRange -name "passwdMinSpecial" -value $CommonValues."passwdMinSpecial" -minRange 1 -maxRange 9000 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
-	$checkReturn = checkRange -name "passwdMaxConsecutiveIdenticalChar" -value $CommonValues."passwdMaxConsecutiveIdenticalChar" -minRange 1 -maxRange 9000 -required $false
+	$checkReturn = checkRange -name "passwdMaxConsecutiveIdenticalChar" -value $CommonValues."passwdMaxConsecutiveIdenticalChar" -minRange 1 -maxRange 9000 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
-	$checkReturn = checkRange -name "passwdHistoryRestriction" -value $CommonValues."passwdHistoryRestriction" -minRange 5 -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdHistoryRestriction" -value $CommonValues."passwdHistoryRestriction" -minRange 5 -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
@@ -672,36 +672,36 @@ Function importStandardConfigurations {
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
-	$checkReturn = checkRange -name "passwdMaximumLength" -value $CommonValues."passwdMaximumLength" -minRange $passwdMinLen -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdMaximumLength" -value $CommonValues."passwdMaximumLength" -minRange $passwdMinLen -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
 	$maxValue = [int]$passwdUpper + [int]$passwdLower
-	$checkReturn = checkRange -name "passwdMinAlphabetic" -value $CommonValues."passwdMinAlphabetic" -minRange $maxValue -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdMinAlphabetic" -value $CommonValues."passwdMinAlphabetic" -minRange $maxValue -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1
 	}
-	$checkReturn = checkRange -name "passwdMaxPreviousCharactersReused" -value $CommonValues."passwdMaxPreviousCharactersReused" -minRange 0 -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdMaxPreviousCharactersReused" -value $CommonValues."passwdMaxPreviousCharactersReused" -minRange 0 -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1;
 	}
-	$checkReturn = checkRange -name "passwdAttemptsIntervalInMins" -value $CommonValues."passwdAttemptsIntervalInMins" -minRange 0 -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdAttemptsIntervalInMins" -value $CommonValues."passwdAttemptsIntervalInMins" -minRange 0 -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1;
 	}
-	$checkReturn = checkRange -name "passwdUnlockIntervalInMins" -value $CommonValues."passwdUnlockIntervalInMins" -minRange 0 -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdUnlockIntervalInMins" -value $CommonValues."passwdUnlockIntervalInMins" -minRange 0 -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1;
 	}
-	$checkReturn = checkRange -name "tempPasswdLifetimeInHour" -value $CommonValues."tempPasswdLifetimeInHour" -minRange 1 -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "tempPasswdLifetimeInHour" -value $CommonValues."tempPasswdLifetimeInHour" -minRange 1 -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1;
 	}
-	$checkReturn = checkRange -name "passwdExpReminderInDay" -value $CommonValues."passwdExpReminderInDay" -minRange 1 -maxRange 9999 -required $false
+	$checkReturn = checkRange -name "passwdExpReminderInDay" -value $CommonValues."passwdExpReminderInDay" -minRange 1 -maxRange 9999 -required $true
 	if (!$checkReturn) {
 		$errorCount += 1;
 	}
-	$checkReturn = checkRange -name "passwdExpReminderNotificationFrequencyInDay" -value $CommonValues."passwdExpReminderNotificationFrequencyInDay" -minRange 1 -maxRange 9999 -required $false 
+	$checkReturn = checkRange -name "passwdExpReminderNotificationFrequencyInDay" -value $CommonValues."passwdExpReminderNotificationFrequencyInDay" -minRange 1 -maxRange 9999 -required $true 
 	if (!$checkReturn) {
 		$errorCount += 1;
 	}

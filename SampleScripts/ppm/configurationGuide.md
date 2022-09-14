@@ -2,17 +2,17 @@
 {
 	"Default":{ // Mininum settings required [products affected by the configuration].
 		"passwdExpInDays":"90", // Password expiration period in days [ESXi, VC, SSO, WSA]; default password expires every 90 days.
-		"passwdMinimumLength":"15", // Minimum character length for password in number of characters [ESXi, SSO, NSXT, WSA]; default minimum is 15 characters.
+		"passwdMinimumLength":"15", // Minimum character length for password in number of characters [ESXi, SSO, NSX, WSA]; default minimum is 15 characters.
 		"passwdMinUppercase":"1", // Minimum number of Upper case (A-Z) characters within the password [SSO, WSA]; default minimum is 1 upper case character.
 		"passwdMinLowercase":"1", // Minimum number of Lower case (a-z) characters within the password [SSO, WSA]; default minimum is 1 lower case character.
 		"passwdMinNumeric":"1", // Minimum number of Numeric (0-9) characters within the password[SSO, WSA]; default minimum is 1 numeric character.
 		"passwdMinSpecial":"1", // Minimum numnber of special characters within the password [SSO, WSA]; default minimum is 1 special character.
 		"passwdMaxConsecutiveIdenticalChar":"1", // Minimum number of consecutive identical character within the password [SSO, WSA]; default is only 3 consecutive.
 		"passwdHistoryRestriction":"5", // Minimum number of unique new passwords before an old password can be reused [SSO, WSA]; default is 5 unique password. 
-		"passwdUnlockIntervalInSec":"900", // Interval in seconds until a locked account automatically unlocks [SSO, WSA]; default is 15 mins
+		"passwdUnlockIntervalInSec":"900", // Interval in seconds until a locked account automatically unlocks [SSO, WSA, NSX]; default is 15 mins
 		"passwdMaxFailAttempts":"5", // Maximum number of login attempts before account auto lock [SSO, WSA]; default is 5 attempts.
 		"passwdAttemptsIntervalInSec":"180", // Interval in seconds before login attempts counter resets [SSO, WSA]; default is 3 mins.
-		"passwdMaxFailIntervalInSec":"180",		 // Interval in seconds before cli login attempts counter resets[NSXT]; default is 3 mins.
+		"passwdMaxFailIntervalInSec":"180",		 // Interval in seconds before cli login attempts counter resets[SSO, NSX]; default is 3 mins.
 		"passwdNotifyEmail":"admin@rainpole.io", // Email for notifying vCenter Server appliance password expiration date [VC].
 		"passwdMaximumLength":"20", // Maximum character length for password in number of characters [SSO]; default is 20 characters.
 		"passwdMinAlphabetic":"2", // Minimum number of alphabetic (A-Z,a-z) characters in the password [SSO]; default is 2 characters.
@@ -54,15 +54,15 @@
 	"NSXMgr":{ // [optional] More specific detail option for each product can be set within the configuration JSON.
 		"passwdMinimumLength":"Default",
 		"apiPasswdMaxFailAttempts":"Default",
-		"apiPasswdAttemptsIntervalInSec":"Default",
+		"apiPasswdMaxFailIntervalInSec":"Default",
 		"apiPasswdUnlockIntervalInSec":"Default",
 		"cliPasswdMaxFailAttempts":"Default",
-		"cliPasswdAttemptsIntervalInSec":"Default"
+		"cliPasswdMaxFailIntervalInSec":"Default"
 	},
 	"NSXEdge":{ // [optional] More specific detail option for each product can be set within the configuration JSON.
 		"passwdMinimumLength":"Default",
-		"passwdMaxFailAttempts":"Default",
-		"passwdAttemptsIntervalInSec":"Default"
+		"cliPasswdMaxFailAttempts":"Default",
+		"cliPasswdMaxFailIntervalInSec":"Default"
 	},
 	"WSA":{ // [optional] More specific detail option for each product can be set within the configuration JSON.
 		"passwdExpInDays":"Default",
