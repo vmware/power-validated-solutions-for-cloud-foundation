@@ -10554,7 +10554,7 @@ Function Get-vRAvRLIConfig {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                      if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
                                 if (Test-vRAConnection -server $vRADetails.node1IpAddress) {   
                                     $vmName = $vraDetails.fqdn | Select-Object -First 1
@@ -10563,7 +10563,7 @@ Function Get-vRAvRLIConfig {
                                         $scriptCommand = "vracli vrli"
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains('No vRLI integration configured')) {
-                                            Write-Output "vRealize Automation integration with vRealize Log Insight not set: SKIPPED"
+                                            Write-Output "vRealize Automation integration with vRealize Log Insight status 'Not Configured'"
                                         } elseif (($output.ScriptOutput).Contains('agentId')) {
                                             $output.ScriptOutput
                                         } else {
@@ -10602,7 +10602,7 @@ Function Set-vRAvRLIConfig {
 
         .EXAMPLE
         Set-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
-        This example sets the vRealize Log Insight logging configuration on vRealize Automation to vRealize Log Insight.
+        This example sets the vRealize Log Insight logging configuration on vRealize Automation.
     #>
 
     Param (
@@ -10658,15 +10658,12 @@ Function Set-vRAvRLIConfig {
                                                     $status = Get-vRAvRLIConfig -server $server -user $user -pass $pass -rootPass $rootPass      
                                                     if (($status).Contains("`"host`": `"$uriHost`"")) -and (($status).Contains("`"port`": $uriPort")) -and (($status).Contains("`"scheme`": `"$uriProtocol`"")) {
                                                         Write-Output 'Setting the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL'
-                                                    }
-                                                    elseif (($status).Contains('No vRLI integration configured')) {
-                                                        Write-Output 'vRealize Automation integration with vRealize Log Insight configuration not set: SKIPPED'
-                                                    }
-                                                    else {
+                                                    } elseif (($status).Contains('No vRLI integration configured')) {
+                                                        Write-Warning 'vRealize Automation integration with vRealize Log Insight configuration not set: SKIPPED'
+                                                    } else {
                                                         Write-Error 'Setting the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED'
                                                     }
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
                                                 }
                                             }
@@ -10729,9 +10726,9 @@ Function Remove-vRAvRLIConfig {
                                         if (($output.ScriptOutput).Contains('Clearing vRLI integration configuration')) {
                                             Write-Output "Clearing the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL"
                                         } elseif (($output.ScriptOutput).Contains('No vRLI integration configured')) {
-                                            Write-Output "vRealize Automation integration with vRealize Log Insight not set: SKIPPED"
+                                            Write-Warning "vRealize Automation integration with vRealize Log Insight not set: SKIPPED"
                                         } else {
-                                            Write-Error "Clearing the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
+                                            Write-Warning "Clearing the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
