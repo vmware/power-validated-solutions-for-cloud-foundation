@@ -10522,6 +10522,228 @@ Function Undo-NsxtNodeProfileSyslogExporter {
 }
 Export-ModuleMember -Function Undo-NsxtNodeProfileSyslogExporter
 
+Function Get-vRAvRLIConfig {
+    <#
+		.SYNOPSIS
+        Returns the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+
+        .DESCRIPTION
+        The Get-vRAvRLIConfig cmdlet returns the vRealize Log Insight logging configuration for vRealize Automation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
+        vRealize Automation appliance using the -rootPass value.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that network connectivity is possible to the first vRealize Automation appliance
+        - Returns the vRealize Log Insight configuration in vRealize Automation
+
+        .EXAMPLE
+        Get-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        This example returns the vRealize Log Insight logging configuration on vRealize Automation.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
+                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {   
+                                    $vmName = $vraDetails.fqdn | Select-Object -First 1
+                                    $vmName = $vmName.Split(".")[0]
+                                    if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                        $scriptCommand = "vracli vrli"
+                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+                                        if (($output.ScriptOutput).Contains('No vRLI integration configured')) {
+                                            Write-Output "vRealize Automation integration with vRealize Log Insight status 'Not Configured'"
+                                        } elseif (($output.ScriptOutput).Contains('agentId')) {
+                                            $output.ScriptOutput
+                                        } else {
+                                            Write-Error "Returning the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-vRAvRLIConfig
+
+Function Set-vRAvRLIConfig {
+    <#
+		.SYNOPSIS
+        Sets the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+
+        .DESCRIPTION
+        The Set-vRAvRLIConfig cmdlet sets the vRealize Log Insight logging configuration for vRealize Automation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
+        vRealize Automation appliance using the -rootPass value.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that network connectivity is possible to the first vRealize Automation appliance
+        - Sets the vRealize Log Insight configuration on vRealize Automation
+
+        .EXAMPLE
+        Set-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        This example sets the vRealize Log Insight logging configuration on vRealize Automation.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
+        [Parameter (Mandatory = $true)] [ValidateSet("HTTPS", "HTTP")] [String]$protocol,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$port
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
+                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {
+                                    if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                                        if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                                                $vmName = $vraDetails.fqdn | Select-Object -First 1
+                                                $vmName = $vmName.Split('.')[0]
+                                                if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+
+                                                    # Set the uri format and default ports
+                                                    if ($protocol -eq "HTTPS") {
+                                                        $uriProtocol = $protocol.ToLower()
+                                                        $uriPort = 9543 # CFAPI SSL Default
+                                                    } elseif ($protocol -eq "HTTP") {
+                                                        $uriProtocol = $protocol.ToLower()
+                                                        $uriPort = 9000 # CFAPI Non-SSL Default
+                                                    }
+
+                                                    # Set the port if provided
+                                                    if ($PsBoundParameters.ContainsKey("port")) {
+                                                        $uriPort = $port
+                                                    }
+
+                                                    # Set the uri to the vRealize Log Insight cluster FQDN
+                                                    $uriHost = $vcfVrliDetails.fqdn
+
+                                                    # Run commands based on the selected protocol
+                                                    if ($protocol -eq "HTTPS") {
+                                                        $scriptCommand = "vracli vrli set " + $uriProtocol + "://" + $uriHost + ":" + $uriPort + " --force" # Must use --force to accept certificate.
+                                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+                                                    } else {
+                                                        $scriptCommand = 'vracli vrli set ' + $uriProtocol + '://' + $uriHost + ':' + $uriPort
+                                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+                                                    }
+
+                                                    $status = Get-vRAvRLIConfig -server $server -user $user -pass $pass -rootPass $rootPass      
+                                                    if (($status).Contains("`"host`": `"$uriHost`"")) -and (($status).Contains("`"port`": $uriPort")) -and (($status).Contains("`"scheme`": `"$uriProtocol`"")) {
+                                                        Write-Output 'Setting the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL'
+                                                    } elseif (($status).Contains('No vRLI integration configured')) {
+                                                        Write-Warning 'vRealize Automation integration with vRealize Log Insight configuration not set: SKIPPED'
+                                                    } else {
+                                                        Write-Error 'Setting the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED'
+                                                    }
+                                                } else {
+                                                    Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-vRAvRLIConfig
+
+Function Remove-vRAvRLIConfig {
+    <#
+		.SYNOPSIS
+        Removes the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+
+        .DESCRIPTION
+        The Remove-vRAvRLIConfig cmdlet removes the vRealize Log Insight logging configuration for vRealize Automation.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
+        vRealize Automation appliance using the -rootPass value.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that network connectivity is possible to the first vRealize Automation appliance
+        - Unsets the vRealize Log Insight configuration in vRealize Automation
+
+        .EXAMPLE
+        Remove-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        This example removes the vRealize Log Insight logging configuration on vRealize Automation.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                      if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
+                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {   
+                                    $vmName = $vraDetails.fqdn | Select-Object -First 1
+                                    $vmName = $vmName.Split(".")[0]
+                                    if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                        $scriptCommand = "vracli vrli unset"
+                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+                                        if (($output.ScriptOutput).Contains('Clearing vRLI integration configuration')) {
+                                            Write-Output "Clearing the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL"
+                                        } elseif (($output.ScriptOutput).Contains('No vRLI integration configured')) {
+                                            Write-Warning "vRealize Automation integration with vRealize Log Insight not set: SKIPPED"
+                                        } else {
+                                            Write-Warning "Clearing the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Remove-vRAvRLIConfig
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
