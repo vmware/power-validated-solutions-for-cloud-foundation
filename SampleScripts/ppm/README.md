@@ -91,7 +91,7 @@ $sampleConfigurationPath = ".\sampleConfiguration.json"
 		"passwdUnlockIntervalInSec":"900", // Interval in seconds until a locked account automatically unlocks [SSO, WSA, NSX]; default is 15 mins
 		"passwdMaxFailAttempts":"5", // Maximum number of login attempts before account auto lock [SSO, WSA]; default is 5 attempts.
 		"passwdAttemptsIntervalInSec":"180", // Interval in seconds before login attempts counter resets [SSO, WSA]; default is 3 mins.
-		"passwdMaxFailIntervalInSec":"180",		 // Interval in seconds before cli login attempts counter resets[SSO, NSX]; default is 3 mins.
+		"passwdMaxFailIntervalInSec":"180", // Interval in seconds before cli login attempts counter resets[SSO, NSX]; default is 3 mins.
 		"passwdNotifyEmail":"admin@rainpole.io", // Email for notifying vCenter Server appliance password expiration date [VC].
 		"passwdMaximumLength":"20", // Maximum character length for password in number of characters [SSO]; default is 20 characters.
 		"passwdMinAlphabetic":"2", // Minimum number of alphabetic (A-Z,a-z) characters in the password [SSO]; default is 2 characters.
