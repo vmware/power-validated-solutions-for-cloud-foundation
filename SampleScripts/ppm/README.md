@@ -1,3 +1,64 @@
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Table of Content:
+01...Introduction
+02...How To
+03...Sample Configuration Guidance
+04...Known Issues/Troubleshoot
+
+01. Introduction
+
+The PasswordPolicyManager PowerShell script is used to retrieve and configure password policy settings for ESXi hosts, vCenter Server, Single Sign On Services, NSX-T Data Center, and Workspace ONE Access.
+
+You can configure the existing sampleConfiguration JSON file with a set of password policy requirements and use the file to generate a report with the current password settings or directly configure the password settings for each product. Password settings do not have full parity across products, you compare or configure specific password settings for each product based on the values provided in the sampleConfigurationFull JSON file. 
+
+02. How To
+//prerequisites
+The PasswordPolicyManager PowerShell script is tested in the following system and modules
+Windows Server 2016
+Powershell version 5.1.1 Desktop
+PowerVCF version 2.2.0
+PowerValidatedSolutions Version 1.8.0
+
+//Configure a standard configuration JSON
+1. Copy the sampleConfigurationSimple.json(or sampleConfigurationFull.json) file as sampleConfiguration.json file
+2. Modify the copied sampleConfiguration.json file according to Section 03: Sample Configuration Guidance. and according to your password policy requirements
+3. Save the changes.
+
+//How to use the PasswordPolicyManager PowerShell script
+//.Example: To export current password policy of a workload domain in a JSON format
+//.Note: To generate an HTML password policy report, replace the publishJSON snippet with publishHTML in the command. 
+
+$sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io" 
+$sddcManagerUser = "administrator@vsphere.local" 
+$sddcManagerPass = "VMw@re1!" 
+$sddcManagerDomain = “sfo-m01” 
+$wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io" 
+$wsaServerUser= "admin" 
+$wsaServerPass = "VMw@re1!" 
+$sampleConfigurationPath = ".\sampleConfiguration.json"
+$outputfile = ".\password_policy_report"
+
+.\passwordpolicymanager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $sampleConfigurationPath -outputFile $outputfile -publishJSON
+
+//.Example: To apply sampleConfiguration password policy requirements to a workload domain
+
+$sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io" 
+$sddcManagerUser = "administrator@vsphere.local" 
+$sddcManagerPass = "VMw@re1!" 
+$sddcManagerDomain = “sfo-m01” 
+$wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io" 
+$wsaServerUser= "admin" 
+$wsaServerPass = "VMw@re1!" 
+$sampleConfigurationPath = ".\sampleConfiguration.json"
+
+.\passwordpolicymanager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $sampleConfigurationPath -configurePasswordPolicy
+
+03. Sample Configuration Guidance
+
 ```json
 {
 	"Default":{ // Mininum settings required [products affected by the configuration].
@@ -83,3 +144,9 @@
 	}
 }
 ```
+
+04. Known Issues/Troubleshoot
+
+Issue: Encounter Access Error when trying to retrieve or apply password policy to NSX Manager or NSX Edge product with correct credential
+Workaround: Please wait 15 seconds and rerun the script again
+
