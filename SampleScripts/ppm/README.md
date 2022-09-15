@@ -1,63 +1,81 @@
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# `passowrdPolicyManager`
 
-Table of Content:
-01...Introduction
-02...How To
-03...Sample Configuration Guidance
-04...Known Issues/Troubleshoot
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Requirements](#requirements)
+3. [Get Started](#get-started)
+4. [Sample Configuration Guidance](#sample-configuration-guidance)
+5. [Known Issues](#known-issues)
 
-01. Introduction
+## Introduction
 
-The PasswordPolicyManager PowerShell script is used to retrieve and configure password policy settings for ESXi hosts, vCenter Server, Single Sign On Services, NSX-T Data Center, and Workspace ONE Access.
+The `passwordPolicyManager` PowerShell script is used to retrieve and configure password policy settings for ESXi hosts, vCenter Server, Single Sign On Services, NSX-T Data Center, and Workspace ONE Access.
 
-You can configure the existing sampleConfiguration JSON file with a set of password policy requirements and use the file to generate a report with the current password settings or directly configure the password settings for each product. Password settings do not have full parity across products, you compare or configure specific password settings for each product based on the values provided in the sampleConfigurationFull JSON file. 
+You can configure the existing `sampleConfigurationSimple.json` file with a set of password policy requirements and use the file to generate a report with the current password settings or directly configure the password settings for each product.
 
-02. How To
-//prerequisites
-The PasswordPolicyManager PowerShell script is tested in the following system and modules
-Windows Server 2016
-Powershell version 5.1.1 Desktop
-PowerVCF version 2.2.0
-PowerValidatedSolutions Version 1.8.0
+Password settings do not have full parity across products, you compare or configure specific password settings for each product based on the values provided in the `sampleConfigurationFull.json` file.
 
-//Configure a standard configuration JSON
-1. Copy the sampleConfigurationSimple.json(or sampleConfigurationFull.json) file as sampleConfiguration.json file
-2. Modify the copied sampleConfiguration.json file according to Section 03: Sample Configuration Guidance. and according to your password policy requirements
+## Requirements
+
+The `passwordPolicyManager` PowerShell script is tested on the following:
+
+- Windows Server 2019 and later
+- Windows Powershell 5.1
+- `PowerVCF` 2.2.0
+- `PowerValidatedSolutions` 1.8.0
+
+## Getting Started
+
+Configure using the standard configuration.
+
+1. Copy the `sampleConfigurationSimple.json` (or `sampleConfigurationFull.json`) file as `sampleConfiguration.json` file.
+
+2. Modify the copied `sampleConfiguration.json` file according to Section 03: Sample Configuration Guidance. and according to your password policy requirements.
+
 3. Save the changes.
 
-//How to use the PasswordPolicyManager PowerShell script
-//.Example: To export current password policy of a workload domain in a JSON format
-//.Note: To generate an HTML password policy report, replace the publishJSON snippet with publishHTML in the command. 
+Run the `passwordPolicyManager` PowerShell script.
 
-$sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io" 
-$sddcManagerUser = "administrator@vsphere.local" 
-$sddcManagerPass = "VMw@re1!" 
-$sddcManagerDomain = “sfo-m01” 
-$wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io" 
-$wsaServerUser= "admin" 
-$wsaServerPass = "VMw@re1!" 
+**Example**:
+
+Export current password policy of a workload domain in a JSON format.
+
+> **Note**
+>
+> To generate an HTML password policy report, replace the `publishJSON` parameter with `publishHTML` in the command.
+
+```powershell
+$sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io"
+$sddcManagerUser = "administrator@vsphere.local"
+$sddcManagerPass = "VMw@re1!"
+$sddcManagerDomain = “sfo-m01”
+$wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io"
+$wsaServerUser= "admin"
+$wsaServerPass = "VMw@re1!"
 $sampleConfigurationPath = ".\sampleConfiguration.json"
 $outputfile = ".\password_policy_report"
 
 .\passwordpolicymanager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $sampleConfigurationPath -outputFile $outputfile -publishJSON
+```
 
-//.Example: To apply sampleConfiguration password policy requirements to a workload domain
+**Example**:
 
-$sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io" 
-$sddcManagerUser = "administrator@vsphere.local" 
-$sddcManagerPass = "VMw@re1!" 
-$sddcManagerDomain = “sfo-m01” 
-$wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io" 
-$wsaServerUser= "admin" 
-$wsaServerPass = "VMw@re1!" 
+Apply `sampleConfiguration` password policy requirements to a workload domain
+
+```powershell
+$sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io"
+$sddcManagerUser = "administrator@vsphere.local"
+$sddcManagerPass = "VMw@re1!"
+$sddcManagerDomain = “sfo-m01”
+$wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io"
+$wsaServerUser= "admin"
+$wsaServerPass = "VMw@re1!"
 $sampleConfigurationPath = ".\sampleConfiguration.json"
 
 .\passwordpolicymanager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $sampleConfigurationPath -configurePasswordPolicy
+```
 
-03. Sample Configuration Guidance
+## Sample Configuration Guidance
 
 ```json
 {
@@ -69,7 +87,7 @@ $sampleConfigurationPath = ".\sampleConfiguration.json"
 		"passwdMinNumeric":"1", // Minimum number of Numeric (0-9) characters within the password[SSO, WSA]; default minimum is 1 numeric character.
 		"passwdMinSpecial":"1", // Minimum numnber of special characters within the password [SSO, WSA]; default minimum is 1 special character.
 		"passwdMaxConsecutiveIdenticalChar":"1", // Minimum number of consecutive identical character within the password [SSO, WSA]; default is only 3 consecutive.
-		"passwdHistoryRestriction":"5", // Minimum number of unique new passwords before an old password can be reused [SSO, WSA]; default is 5 unique password. 
+		"passwdHistoryRestriction":"5", // Minimum number of unique new passwords before an old password can be reused [SSO, WSA]; default is 5 unique password.
 		"passwdUnlockIntervalInSec":"900", // Interval in seconds until a locked account automatically unlocks [SSO, WSA, NSX]; default is 15 mins
 		"passwdMaxFailAttempts":"5", // Maximum number of login attempts before account auto lock [SSO, WSA]; default is 5 attempts.
 		"passwdAttemptsIntervalInSec":"180", // Interval in seconds before login attempts counter resets [SSO, WSA]; default is 3 mins.
@@ -90,21 +108,21 @@ $sampleConfigurationPath = ".\sampleConfiguration.json"
 		"passwdMinimumLengthFor1CharClass":"disabled", // ESXi password character length required for 1 character class set, set "disable" for not allowing password to have 1 character class set.
 		"passwdMinimumLengthFor2CharClass":"disabled", // ESXi password character length required for 2 character class set, set "disable" for not allowing password to have 2 character class set.
 		"passwdMinimumLengthFor3CharClass":"disabled", // ESXi password character length required for 3 character class set, set "disable" for not allowing password to have 3 character class set.
-		"passwdMinimumLengthFor4CharClass":"Default",  
-		"passwdMinimumCharLengthForPhrase":"disabled" // ESXi minimum character length for password phrase, set "disable" for not allowing password phrase. 
+		"passwdMinimumLengthFor4CharClass":"Default",
+		"passwdMinimumCharLengthForPhrase":"disabled" // ESXi minimum character length for password phrase, set "disable" for not allowing password phrase.
 	},
 	"VC":{ // [optional] More specific detail option for each product can be set within the configuration JSON.
 		"passwdExpInDays":"Default",
 		"passwdNotifyEmail":"admin@rainpole.io"
 	},
 	"SSO":{ // [optional] More specific detail option for each product can be set within the configuration JSON.
-		"passwdExpInDays":"Default",	
+		"passwdExpInDays":"Default",
 		"passwdHistoryRestriction":"Default",
 		"passwdMinimumLength":"Default",
 		"passwdMaximumLength":"20",
-		"passwdMinUppercase":"Default",	
+		"passwdMinUppercase":"Default",
 		"passwdMinLowercase":"Default",
-		"passwdMinAlphabetic":"2", 
+		"passwdMinAlphabetic":"2",
 		"passwdMinNumeric":"Default",
 		"passwdMinSpecial":"Default",
 		"passwdMaxConsecutiveIdenticalChar":"Default",
@@ -145,8 +163,8 @@ $sampleConfigurationPath = ".\sampleConfiguration.json"
 }
 ```
 
-04. Known Issues/Troubleshoot
+## Known Issues
 
-Issue: Encounter Access Error when trying to retrieve or apply password policy to NSX Manager or NSX Edge product with correct credential
-Workaround: Please wait 15 seconds and rerun the script again
+**Issue**: You encounter an access error when retrieving or applying the password policy to NSX Managers or NSX Edges.
 
+**Workaround**: Please wait 15 seconds and run the script again.
