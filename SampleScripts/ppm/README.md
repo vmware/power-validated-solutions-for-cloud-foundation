@@ -79,13 +79,13 @@ $sampleConfigurationPath = ".\sampleConfiguration.json"
 
 ```json
 {
-	"Default":{ // Mininum settings required [products affected by the configuration].
+	"Default":{ // Minimum settings required [products affected by the configuration].
 		"passwdExpInDays":"90", // Password expiration period in days [ESXi, VC, SSO, WSA]; default password expires every 90 days.
 		"passwdMinimumLength":"15", // Minimum character length for password in number of characters [ESXi, SSO, NSX, WSA]; default minimum is 15 characters.
 		"passwdMinUppercase":"1", // Minimum number of Upper case (A-Z) characters within the password [SSO, WSA]; default minimum is 1 upper case character.
 		"passwdMinLowercase":"1", // Minimum number of Lower case (a-z) characters within the password [SSO, WSA]; default minimum is 1 lower case character.
 		"passwdMinNumeric":"1", // Minimum number of Numeric (0-9) characters within the password[SSO, WSA]; default minimum is 1 numeric character.
-		"passwdMinSpecial":"1", // Minimum numnber of special characters within the password [SSO, WSA]; default minimum is 1 special character.
+		"passwdMinSpecial":"1", // Minimum number of special characters within the password [SSO, WSA]; default minimum is 1 special character.
 		"passwdMaxConsecutiveIdenticalChar":"1", // Minimum number of consecutive identical character within the password [SSO, WSA]; default is only 3 consecutive.
 		"passwdHistoryRestriction":"5", // Minimum number of unique new passwords before an old password can be reused [SSO, WSA]; default is 5 unique password.
 		"passwdUnlockIntervalInSec":"900", // Interval in seconds until a locked account automatically unlocks [SSO, WSA, NSX]; default is 15 mins
