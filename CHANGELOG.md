@@ -1,32 +1,49 @@
 # Release History
 
-## Unreleased
+## v1.8.0 (2022-27-09)
+
+- Enhanced `Request-CSPToken` cmdlet to request a token from VMware Cloud.
+- Enhanced `Update-vRACloudAccountZone` and `Update-vRACloudZone` cmdlets to support placement policy for cloud zones in vRealize Automation.
+- Enhanced `Confirm-PSModule` cmdlet so its an exported function and can be executed on the command line.
+- Enhanced `Enable-vROPSManagementPack` cmdlet to support Site Recovery Manager and vSphere Replication Management Packs.
+- Renamed to `Get-CSPPoxyAppliance` cmdlet to `Get-CloudProxy` and added:
+  - `-environment` switch to support Production and Staging VMC
+  - Support for both Cloud Proxy and Cloud Extensibility Proxy.
+  - Support for either downloading or simply providing the URL path.
+  - Support for downloading on Core (Linux, Windows and Mac).
 - Added region blocks for easier code navigation.
 - Added the vRealize Automation Cloud to vSphere integration role for Cloud Assembly.
 - Added the vRealize Suite Lifecycle Manager to vSphere integration role.
-- Adds `Test-vROPsAdapterStatus` and `Test-vROPsAdapterStatusByType` cmdlets to test the status vRealize Operations adapters.
-- Enhanced the `Request-CSPToken` cmdlet to request a token from VMware Cloud.
-- Renamed to `Get-CSPPoxyAppliance` cmdlet to `Get-CloudProxy` and added:
-    - `-environment` switch to support Production and Staging VMC
-    - Support for both Cloud Proxy and Cloud Extensibility Proxy.
-    - Support for either downloading or simply providing the URL path.
-    - Support for downloading on Core (Linux, Windows and Mac).
-- Added the `Get-CloudProxyOtk` cmdlet to retrieve the One Time Key (OTK) for both the Cloud Proxy and the Cloud Extensibility Proxy.
-- Added the `Get-vROVersion` cmdlet with support for standalone, embedded, and cloud extensibility proxy vRealize Orchestrator instance.
-- Added the `Get-CEPWorkflow` cmdlet to return workflows from cloud extensibility proxy's vRealize Orchestrator instance.
-- Added the `Invoke-CEPWorkflow` cmdlet to start a Workflow on a cloud extensibility proxy's vRealize Orchestrator instance.
-- Added the `Get-CEPWorkflowExecution` cmdlet to return the Workflow Execution ID from a cloud extensibility proxy's vRealize Orchestrator instance.
-- Added the `Get-CEPWorkflowExecutionState` cmdlet to return the Workflow Execution State from a cloud extensibility proxy's vRealize Orchestrator instance.
-- Added the `Add-CEPTrustedCertificate` cmdlet to add a trusted cert to a cloud extensibility proxy's vRealize Orchestrator instance.
-- Added the `Add-CEPvCenterServer` cmdlet to add a vCenter server to a cloud extensibility proxy's vRealize Orchestrator instance.
-- Added the `Update-vROPSvRAAdapterCredential` cmd to support updatin the vRealize Automation Integration credential in vRealize Operations Manager.
-- Enhances the `Update-vRACloudAccountZone` and `Update-vRACloudZone` cmdlets to support placement policy for cloud zones in vRealize Automation.
-- Added the `Get-vRAAPIVersion` and `Get-vRAIntegrationDetail` cmdlets to support support updating the placement policy for cloud zones in vRealize Automation.
-- Added the `Get-ESXiPasswordPolicy` and `Get-VCServerPasswordPolicy` to return the password expiration policy for an ESXi host and vCenter Server instance in number.
-- Added the `Set-EsxiPasswordExpirationPeriod` cmdlet to set the password expiration period on an ESXi host in number of days.
-- Updated `Confirm-PSModule` so its an exported function and can be executed on the command line.
+- Added `Test-vROPsAdapterStatus` and `Test-vROPsAdapterStatusByType` cmdlets to test the status vRealize Operations adapters.
+- Added `New-vRAvROPSIntegrationItem` cmdlet to configure vRealize Operations Manager integration in vRealize Automation.
+- Added `Undo-vRAvROPsIntegrationItem` cmdlet to remove vRealize Operations Manager integration from vRealize Automation.
+- Added `Add-vRAIntegrationItem` cmdlet to add an external systems to vRealize Automation.
+- Added `Test-vRAIntegrationItem` cmdlet to test an integration item in vRealize Automation.
+- Added `Remove-vRAIntegrationItem` cmdlet to remove an integration item from vRealize Automation.
+- Added `Get-CloudProxyOtk` cmdlet to retrieve the One Time Key (OTK) for both the Cloud Proxy and the Cloud Extensibility Proxy.
+- Added `Get-vROVersion` cmdlet with support for standalone, embedded, and cloud extensibility proxy vRealize Orchestrator instance.
+- Added `Get-CEPWorkflow` cmdlet to return workflows from cloud extensibility proxy's vRealize Orchestrator instance.
+- Added `Invoke-CEPWorkflow` cmdlet to start a Workflow on a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added `Get-CEPWorkflowExecution` cmdlet to return the Workflow Execution ID from a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added `Get-CEPWorkflowExecutionState` cmdlet to return the Workflow Execution State from a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added `Add-CEPTrustedCertificate` cmdlet to add a trusted cert to a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added `Add-CEPvCenterServer` cmdlet to add a vCenter server to a cloud extensibility proxy's vRealize Orchestrator instance.
+- Added `Update-vROPSvRAAdapterCredential` cmdlet to support updating the vRealize Automation integration credential in vRealize Operations Manager.
+- Added `Get-vRAAPIVersion` and `Get-vRAIntegrationDetail` cmdlets to support support updating the placement policy for cloud zones in vRealize Automation.
+- Added `Get-ESXiPasswordPolicy` cmdlet to return the password expiration policy for ESXi.
+- Added `Get-VCServerPasswordPolicy` cmdlet to return the password expiration policy for vCenter Server.
+- Added `Set-EsxiPasswordExpirationPeriod` cmdlet to set the password expiration period on an ESXi host in number of days.
+- Added Sample Script in SampleScripts\ppm folder, Password Policy Manager to enable auditing and configuration of password policies across VMware Cloud Foundation.
+  - `passwordPolicyManager.ps1` generates and audit report or configures the password policies.
+  - `sampleConfigurationFull.json` configuration JSON covering all product configuration parameters.
+  - `smapleConfigurstionSimple.json` configuration JSON covering default configuration parameters.
+  - `README.md` providing details on how to use Password Policy Manager.
+- Added `Get-vRAvRLIConfig` cmdlet to retrieve the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+- Added `Set-vRAvRLIConfig` cmdlet to configure the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+- Added `Remove-vRAvRLIConfig` cmdlet to remove the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 
 ## v1.7.0 (2022-31-05)
+
 - Added `Set-vSRNetworkConfig` cmdlet to configure a secondary ethernet adapter and the required routing for vSphere Replication appliances in the protected and recovery sites
 - Added `Undo-vSRNetworkConfig` cmdlet to remove the secondary ethernet adapter and its configuration from vSphere Replication appliances in the protected and recovery sites
 - Added `New-vSRVMkernelPort` cmdlet to create VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites.
@@ -37,6 +54,7 @@
 - Added `Undo-SRMLicenseConfig` cmdlet to remove the license configuration from Site Recovery Manager in the protected and recovery sites.
 
 ## v1.6.0 (2022-28-04)
+
 - Fixed `Add-vROPSAdapterNsxt` cmdlet so that the description is maintained when validating the certificate of the NSX-T Adapter
 - Added `Add-vROPSAdapterIdentityManager` cmdlet to support adding a new Identity Manager Adapter in vRealize Operations Manager.
 - Added `Undo-vROPSAdapter` cmdlet to support the removal of an Adapter from vRealize Operations Manager.
@@ -56,6 +74,7 @@ instances in Site Recovery Manager
 - Added `Undo-vSRPortGroup` cmdlet to remove port groups for vSphere Replication appliances in the protected and recovery sites.
 
 ## v1.5.0 (2022-29-03)
+
 - Enhanced `Add-SsoPermission` cmdlet to verify that the SSO Group exists in vCenter Single Sign-On.
 - Enhanced `Enable-SupervisorCluster` cmdlet additional enhancements around pre-validation of inputs.
 - Enhanced `Add-vRLIAgentGroup` cmdlet to support adding multiple Agent Groups of the same type.
@@ -84,17 +103,18 @@ instances in Site Recovery Manager
 - Added `Add-vROPSNtpServer` cmdlet to add NTP Servers to vRealize Operations Manager.
 - Added `Undo-vROPSNtpServer` cmdlet to revert the NTP configuration of vRealize Operations Manager to match SDDC Manager.
 - Added Sample Scripts in the SampleScripts\iam folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `iamUndoDeployment.ps1` automates the removal of the Identity and Access Management for VMware Cloud Foundation validated solution.
+  - `iamUndoDeployment.ps1` automates the removal of the Identity and Access Management for VMware Cloud Foundation validated solution.
 - Updated Sample Scripts in the SampleScripts\iam folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `iamConfigureWorkspaceOne.ps1` updated input values to use latest VCF 4.4.x Planning and Prep Workbook.
+  - `iamConfigureWorkspaceOne.ps1` updated input values to use latest VCF 4.4.x Planning and Prep Workbook.
  Added Sample Scripts in the SampleScripts\dri folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `driConfigureSupervisorCluster.ps1` automates the configuration of vSphere, NSX and enables the Supervisor Cluster.
-    - `driDeployTanzuCluster.ps1` automates the the deployment of a Tanzu Kubernetes Cluster.
-    - `driUndoDeployment.ps1` automates the removal of the Developer Ready Infrastructure for VMware Cloud Foundation validated solution.
+  - `driConfigureSupervisorCluster.ps1` automates the configuration of vSphere, NSX and enables the Supervisor Cluster.
+  - `driDeployTanzuCluster.ps1` automates the the deployment of a Tanzu Kubernetes Cluster.
+  - `driUndoDeployment.ps1` automates the removal of the Developer Ready Infrastructure for VMware Cloud Foundation validated solution.
 Added Sample Scripts in the SampleScripts\ila folder, each script uses the Planning and Preparation Workbook as the input source:
     - `ilaUndoVrealizeLogInsight.ps1` automates the removal of Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
 ## v1.4.0 (2022-22-02)
+
 - Enhanced all Developer Ready Infrastructure Solution cmdlets for better error handling and message output.
 - Added `Undo-NetworkSegment` cmdlet to remove an NSX segment from an NSX Management Cluster.
 - Added `Undo-PrefixList` cmdlet to remove an NSX Prefix List from an NSX Management Cluster.
@@ -111,6 +131,7 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Undo-NsxtNodeProfileSyslogExporter` cmdlet to remove all syslog exporter from the default node profile or specified node profile id.
 
 ## v1.3.0 (2022-25-01)
+
 - Fixed `New-vRSLCMLockerLicense` cmdlet where depending on the speed of the system the license would be added but POST_VALIDATION would fail.
 - Enhanced all Identity and Access Management Solution cmdlets for better error handling and message output.
 - Enhanced all vRealize Operations Manager cmdlets for better error handling and message output.
@@ -154,13 +175,14 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Add-vRLIAlertVirtualMachine` cmdlet to create vRealize Log Insight alerts by virtual machine.
 - Added `Undo-vRLIAlert` cmdlet to remove alerts from vRealize Log Insight.
 - Added Sample Notification Templates in the SampleNotifications folder:
-    - `vrli-vcf-datacenter.json` defines the vRealize Log Insight alerts that should be configured for VMware Cloud Foundation at the datacenter level.
-    - `vrli-vcf-vmVrslcm.json` defines the vRealize Log Insight alerts that should be configured for vRealize Suite Lifecycle Manager.
+  - `vrli-vcf-datacenter.json` defines the vRealize Log Insight alerts that should be configured for VMware Cloud Foundation at the datacenter level.
+  - `vrli-vcf-vmVrslcm.json` defines the vRealize Log Insight alerts that should be configured for vRealize Suite Lifecycle Manager.
 - Added Sample Scripts in the SampleScripts\iom folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `iomDeployVrealizeOperations.ps1` automates the install and config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
-    - `iomConfigureVrealizeOperations.ps1` automates the integration config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
+  - `iomDeployVrealizeOperations.ps1` automates the install and config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
+  - `iomConfigureVrealizeOperations.ps1` automates the integration config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
 
 ## v1.2.0 (2021-30-11)
+
 - Fixed `Add-GlobalPermission` where an error is thrown when Internet Explorer has not been launched in the operating system.
 - Fixed `Set-DatastoreTag` where it was failing to create a single tag and category when multiple vCenter Servers in the Single-Sign On domain.
 - Fixed `Add-StoragePolicy` where is was failing to add the storage policy when multiple vCenter Servers in the Single-Sign On domain.
@@ -193,17 +215,18 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Undo-VMFolder` cmdlet to remove a folder from vCenter Server.
 - Added `Add-vRLIAuthenticationGroup` cmdlet to assign vRealize Log Insight roles to Workspace ONE Access Groups.
 - Added Sample Scripts in the SampleScripts\iam folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `iamConfigureVsphere.ps1` automates all the configuration of vSphere/SDDC Manager elements for Identity and Access Management for VMware Cloud Foundation.
-    - `iamConfigureWorkspaceOne.ps1` automates all the configuration of Workspace ONE Access elements for Identity and Access Management for VMware Cloud Foundation.
+  - `iamConfigureVsphere.ps1` automates all the configuration of vSphere/SDDC Manager elements for Identity and Access Management for VMware Cloud Foundation.
+  - `iamConfigureWorkspaceOne.ps1` automates all the configuration of Workspace ONE Access elements for Identity and Access Management for VMware Cloud Foundation.
     - `iamConfigureNsx.ps1` automates all the configuration of the NSX elements for Identity and Access Management for VMware Cloud Foundation.
 - Added Sample Scripts in the SampleScripts\ila folder, each script uses the Planning and Preparation Workbook as the input source:
-    - `ilaDeployVrealizeLogInsight.ps1` automates the install and config of vRealize Log Insight for Intelligent Logging and Analytics for VMware Cloud Foundation.
-    - `ilaConfigureVrealizeLogInsight.ps1` automates the integration config of vRealize Log Insight for Intelligent Logging and Analytics for VMware Cloud Foundation.
+  - `ilaDeployVrealizeLogInsight.ps1` automates the install and config of vRealize Log Insight for Intelligent Logging and Analytics for VMware Cloud Foundation.
+  - `ilaConfigureVrealizeLogInsight.ps1` automates the integration config of vRealize Log Insight for Intelligent Logging and Analytics for VMware Cloud Foundation.
 - Added `New-SupervisorClusterCSR` cmdlet to create a new certificate signing request for the defined Supervisor Cluster.
 - Added `Add-SupervisorClusterCertificate` cmdlet to add a signed TLS certificate for the defined Supervisor Cluster.
 - Added `Add-NamespaceVmClass` cmdlet to add an existing VM Class to a Supervisor Namespace.
 
 ## v1.1.0 (2021-05-10)
+
 - Fixed `Set-vCenterPermission` where a failure can occur if the workload domain does not follow the same naming as the vCenter Server.
 - Enhanced `Add-VmStartupRule` to check both VM Groups exists before attempting to create the VM-to-VM Group.
 - Enhanced `Add-ContentLibrary` to support creation of both Published and Subscription Content Libraries.
@@ -211,18 +234,20 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `New-vRSLCMLockerLicense` cmdlet to support adding licenses to the vRealize Lifecycle Suite Manager Locker.
 - Added `Add-VmGroup` cmdlet to support adding Virtual Machines to existing VM Groups (availability Zones in particular).
 - Added a number of new functions to support automation of the Site Protection and Disaster Recovery solution:
-    - `Install-SiteRecoveryManager`
-    - `Install-vSphereReplicationManager`
-    - `Connect-DRSolutionTovCenter`
-    - `Install-VAMICertificate`
-    - `Backup-VMOvfProperties`
-    - `Restore-VMOvfProperties`
-    - `Copy-vRealizeLoadBalancer`
+  - `Install-SiteRecoveryManager`
+  - `Install-vSphereReplicationManager`
+  - `Connect-DRSolutionTovCenter`
+  - `Install-VAMICertificate`
+  - `Backup-VMOvfProperties`
+  - `Restore-VMOvfProperties`
+  - `Copy-vRealizeLoadBalancer`
 
 ## v1.0.1 (2021-16-09)
+
 - Fixed the way Certificate file is read in `Add-WSALdapDirectory` to avoid truncation of certificate data.
 - Fixed `Add-ContentLibrary` where creation using subscription URL was failing.
 - Fixed `Add-VMFolder` where it was creating a folder in each vCenter Server in the Single Sign-On Domain.
 
 ## v1.0.0 (2021-24-08)
+
 - Initial Module Release
