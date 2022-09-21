@@ -17,7 +17,7 @@
 - Added `Test-vROPsAdapterStatus` and `Test-vROPsAdapterStatusByType` cmdlets to test the status vRealize Operations adapters.
 - Added `New-vRAvROPSIntegrationItem` cmdlet to configure vRealize Operations Manager integration in vRealize Automation.
 - Added `Undo-vRAvROPsIntegrationItem` cmdlet to remove vRealize Operations Manager integration from vRealize Automation.
-- Added `Add-vRAIntegrationItem` cmdlet to add an external systems to vRealize Automation.
+- Added `Add-vRAIntegrationItem` cmdlet to add an external system to vRealize Automation.
 - Added `Test-vRAIntegrationItem` cmdlet to test an integration item in vRealize Automation.
 - Added `Remove-vRAIntegrationItem` cmdlet to remove an integration item from vRealize Automation.
 - Added `Get-CloudProxyOtk` cmdlet to retrieve the One Time Key (OTK) for both the Cloud Proxy and the Cloud Extensibility Proxy.
@@ -29,14 +29,14 @@
 - Added `Add-CEPTrustedCertificate` cmdlet to add a trusted cert to a cloud extensibility proxy's vRealize Orchestrator instance.
 - Added `Add-CEPvCenterServer` cmdlet to add a vCenter server to a cloud extensibility proxy's vRealize Orchestrator instance.
 - Added `Update-vROPSvRAAdapterCredential` cmdlet to support updating the vRealize Automation integration credential in vRealize Operations Manager.
-- Added `Get-vRAAPIVersion` and `Get-vRAIntegrationDetail` cmdlets to support support updating the placement policy for cloud zones in vRealize Automation.
+- Added `Get-vRAAPIVersion` and `Get-vRAIntegrationDetail` cmdlets to support updating the placement policy for cloud zones in vRealize Automation.
 - Added `Get-ESXiPasswordPolicy` cmdlet to return the password expiration policy for ESXi.
 - Added `Get-VCServerPasswordPolicy` cmdlet to return the password expiration policy for vCenter Server.
 - Added `Set-EsxiPasswordExpirationPeriod` cmdlet to set the password expiration period on an ESXi host in number of days.
 - Added Sample Script in SampleScripts\ppm folder, Password Policy Manager to enable auditing and configuration of password policies across VMware Cloud Foundation.
   - `passwordPolicyManager.ps1` generates and audit report or configures the password policies.
   - `sampleConfigurationFull.json` configuration JSON covering all product configuration parameters.
-  - `smapleConfigurstionSimple.json` configuration JSON covering default configuration parameters.
+  - `sampleConfigurationSimple.json` configuration JSON covering default configuration parameters.
   - `README.md` providing details on how to use Password Policy Manager.
 - Added `Get-vRAvRLIConfig` cmdlet to retrieve the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 - Added `Set-vRAvRLIConfig` cmdlet to configure the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
