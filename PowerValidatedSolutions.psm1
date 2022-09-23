@@ -10600,7 +10600,7 @@ Function Set-vRAvRLIConfig {
         - Sets the vRealize Log Insight configuration on vRealize Automation
 
         .EXAMPLE
-        Set-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        Set-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -protocol HTTPS
         This example sets the vRealize Log Insight logging configuration on vRealize Automation.
     #>
 
@@ -10655,7 +10655,7 @@ Function Set-vRAvRLIConfig {
                                                     }
 
                                                     $status = Get-vRAvRLIConfig -server $server -user $user -pass $pass -rootPass $rootPass      
-                                                    if (($status).Contains("`"host`": `"$uriHost`"")) -and (($status).Contains("`"port`": $uriPort")) -and (($status).Contains("`"scheme`": `"$uriProtocol`"")) {
+                                                    if (($status).Contains("`"host`": `"$uriHost`"") -and ($status).Contains("`"port`": $uriPort") -and ($status).Contains("`"scheme`": `"$uriProtocol`"")) {
                                                         Write-Output 'Setting the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL'
                                                     } elseif (($status).Contains('No vRLI integration configured')) {
                                                         Write-Warning 'vRealize Automation integration with vRealize Log Insight configuration not set: SKIPPED'
