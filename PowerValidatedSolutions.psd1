@@ -95,7 +95,7 @@
         PSData = @{
     
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags         = @('VMware', 'ValidatedSolutions', 'VMwareValidatedSolutions','CloudFoundation', 'VMwareCloudFoundation',)
+            Tags         = @('VMware', 'ValidatedSolutions', 'VMwareValidatedSolutions','CloudFoundation', 'VMwareCloudFoundation')
     
             # A URL to the license for this module.
             LicenseUri   = 'https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/blob/main/LICENSE'
