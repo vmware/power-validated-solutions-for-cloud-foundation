@@ -10744,6 +10744,76 @@ Function Remove-vRAvRLIConfig {
 }
 Export-ModuleMember -Function Remove-vRAvRLIConfig
 
+Function Enable-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Enables the vRealize Log Insight content pack from the marketplace.
+
+        .DESCRIPTION
+        The Enable-vRLIContentPack cmdlet installs a designated vRealize Log Insight content pack from the online
+        Content Pack Marketplace hosted on GitHub.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that network connectivity is possible to vRealize Log Insight
+        - Installs the vRealize Log Insight content pack selected from the marketplace
+
+        .EXAMPLE
+        Enable-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack VRO
+        #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet('VRO')] [String]$contentPack
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            # Define the content pack file names per version
+                            $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                            if ($vcfVersion -ge 4.3.0 -and $contentPack -eq "VRO") {$contentPackFile = "VMware-vRO-8.3plus-v1.0.vlcp"}
+
+                            if ($response = Get-vRLIMarketplaceMetadata) {
+                                $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
+                                $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
+                                $contentPackName = ($response).name
+                                $json = $response | ConvertTo-Json -Depth 100 -Compress
+                            } else {
+                                Write-Warning "Retrieving content pack ($contentPackFile) metadata from the marketplace: PRE_VALIDATION_FAILED"
+                            }
+
+                            if (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
+                                Write-Warning "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)), already exists: SKIPPED"
+                            } else {
+                                if ($json) {
+                                    Install-vRLIContentPack -json $json | Out-Null
+                                    if ($contenPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName })) {
+                                        Write-Output "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                    }   
+                                } else {
+                                    Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                            }       
+                        }          
+                    }         
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Enable-vRLIContentPack
+
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -28924,7 +28994,7 @@ Function Get-vRLIContentPack {
     #>
 
     Try {
-        $uri = "https://$vrliAppliance/api/v1/content/contentpack/list"
+        $uri = "https://$vrliAppliance/api/v1/content/contentpack"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response.contentPackMetadataList
     }
@@ -29466,6 +29536,63 @@ Function Remove-vRLIAlert {
     }
 }
 Export-ModuleMember -Function Remove-vRLIAlert
+
+Function Get-vRLIMarketplaceMetadata {
+    <#
+        .SYNOPSIS
+        Returns metadate for available items in the Content Pack Marketplace.
+
+        .DESCRIPTION
+        The Get-vRLIMarketplaceMetadata cmdlet returns the metadata for vRealize Log Insight content packs available in
+        the Content Pack Marketplace hosted on GitHub (https://github.com/vmw-loginsight/).
+
+        .EXAMPLE
+        Get-vRLIMarketplaceMetadata
+        This example returns the metadata for vRealize Log Insight content packs in the Content Pack MarketPlace.
+    #>
+
+    Try {
+        # Get the headers with authorization to pull content lack from the GitHub repository
+        # Note: Uses the same token used by vRealize Log Insight's in-product Marketplace as seen in Chrome Developer Tools
+        $ghToken = 'bGktbWFya2V0cGxhY2U6Y2UzYjBkODFjYzczMTJhZjk5ZDYzMjFjZDlkMTUzOTc4ZjZlZjM2NQ=='
+        $ghHeaders = New-Object 'System.Collections.Generic.Dictionary[[String],[String]]'
+        $ghHeaders.Add('Accept', 'application/vnd.github.VERSION.raw')
+        $ghHeaders.Add('Authorization', "Basic $ghToken")
+
+        # Get the content pack metadata from the GitHub repository
+        $uri = 'https://api.github.com/repos/vmw-loginsight/vlcp/contents/content/'
+        Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-vRLIMarketplaceMetadata
+
+Function Install-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Installs a content pack to vRealize Log Insight.
+
+        .DESCRIPTION
+        The Install-vRLIContentPack cmdlet installed a content pack to vRealize Log Insight.
+
+        .EXAMPLE
+        Install-vRLIContentPack -json $json
+        This example installs a content pack to vRealize Log Insight from a JSON payload.
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/content/contentpack"
+        Invoke-RestMethod -Method 'POST' -Uri $Uri -ContentType 'application/octet-stream' -Headers $vrliHeaders -Body $json
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-vRLIContentPack
 
 #EndRegion  End vRealize Log Insight Functions                 ######
 #####################################################################
