@@ -19430,6 +19430,7 @@ Function Set-NsxtComputeManager {
     }
     elseif ($inputObject.resource_type -eq "ComputeManager") {
         $computeManagerId = $inputObject.id
+        $computeManagerDisplayName = $inputObject.display_name
         $computeManagerRevision = $inputObject._revision
         $computeManagerFqdn = $inputObject.server
         $computeManagerOriginType = $inputObject.origin_type
@@ -19447,6 +19448,7 @@ Function Set-NsxtComputeManager {
 {
 "_revision" : $computeManagerRevision,
 "server" : "$computeManagerFqdn",
+"display_name" : "$computeManagerDisplayName",
 "origin_type" : "$computeManagerOriginType",
 "set_as_oidc_provider" : "$EnableTrust",
 "credential" :
