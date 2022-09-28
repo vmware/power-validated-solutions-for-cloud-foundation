@@ -10522,6 +10522,64 @@ Function Undo-NsxtNodeProfileSyslogExporter {
 }
 Export-ModuleMember -Function Undo-NsxtNodeProfileSyslogExporter
 
+Function Get-vROpsLogForwardingConfig {
+    <#
+        .SYNOPSIS
+        Gets the vRealize Operations Manager log forwarding configuration.
+
+        .DESCRIPTION
+        The Get-vROpsLogForwardingConfig cmdlet gets the vRealize Operations Manager logging forwarding configuration.
+        The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Gets the vRealize Operations Manager logging forwarding configuration
+
+        .EXAMPLE
+        Get-vROpsLogForwardingConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example returns the log forwarding configuration on vRealize Operations.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($vcfVropsDetails = Get-vROpsServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
+                                if (Test-vROpsConnection -server $vcfVropsDetails.loadBalancerFqdn) {   
+                                    if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                                        if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                                                $response = Get-vROpsLogForwarding
+                                                $response
+                                                if ($response.enabled -eq $false) {
+                                                    Write-Warning "vRealize Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to vRealize Log Insight status: Not enabled."
+                                                } elseif ($response.enabled -eq $true -and $response.host -ne $vcfVrliDetails.fqdn) {
+                                                    Write-Warning "vRealize Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to vRealize Log Insight status: Not configured with $($vcfVrliDetails.fqdn)."                    
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-vROpsLogForwardingConfig
+
 Function Get-vRAvRLIConfig {
     <#
 		.SYNOPSIS
@@ -28640,6 +28698,35 @@ Function Search-vROPSUserGroup {
     }
 }
 Export-ModuleMember -Function Search-vROPSUserGroup
+
+
+Function Get-vROpsLogForwarding {
+    <#
+        .SYNOPSIS
+        Gets the vRealize Operations Manager logging forwarding configuration.
+
+        .DESCRIPTION
+        The Get-vROpsLogForwarding cmdlet gets the vRealize Operations Manager logging forwarding configuration.
+
+        .EXAMPLE
+        Get-vROpsLogForwarding
+        This example returns the logging forwarding configuration on vRealize Operations.
+    #>
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/logs/forwarding"
+        if ($PSEdition -eq 'Core') {
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck
+        } else {
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
+        }
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROpsLogForwarding
 
 Function Get-vROPSNotification {
     <#
