@@ -10564,7 +10564,7 @@ Function Get-vRAvRLIConfig {
                                         if (($output.ScriptOutput).Contains('No vRLI integration configured')) {
                                             Write-Output "vRealize Automation integration with vRealize Log Insight status 'Not Configured'"
                                         } elseif (($output.ScriptOutput).Contains('agentId')) {
-                                            $output.ScriptOutput
+                                            $output.ScriptOutput | ConvertFrom-JSON
                                         } else {
                                             Write-Error "Returning the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
                                         }
