@@ -17,7 +17,6 @@ jobs:
   label-needs-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Apply Labels
         uses: actions/labeler@v4
         if: github.event.action == 'opened' && env.IN_MAINTAINER_LIST == 'false'
