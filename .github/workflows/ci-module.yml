@@ -1,0 +1,53 @@
+---
+name: Module CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.psm1'
+      - '**.psd1'
+
+jobs:
+  test-pwshcore-linux:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run Pester Tests (pwsh)
+      run: |
+        Write-Output $PSVersionTable.PSVersion.Major $PSVersionTable.PSRemotingProtocolVersion.Minor
+        Set-PSRepository psgallery -InstallationPolicy trusted
+        Install-Module -Name Pester -confirm:$false -Force
+        Invoke-Pester -Path "./.ci/pester.tests.ps1" -EnableExit
+      shell: pwsh
+
+  # test-pwshcore-windows:
+  #   strategy:
+  #     matrix:
+  #       platform: [windows-latest]
+  #   runs-on: ${{ matrix.platform }}
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Run Pester Tests (pwsh)
+  #     run: |
+  #       Write-Output $PSVersionTable.PSVersion.Major $PSVersionTable.PSRemotingProtocolVersion.Minor
+  #       Set-PSRepository psgallery -InstallationPolicy trusted
+  #       Install-Module -Name Pester -confirm:$false -Force
+  #       Invoke-Pester -Path "./.ci/pester.test.ps1" -EnableExit
+  #     shell: pwsh
+  
+  # test-powershell-windows:
+  #   runs-on: windows-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Run Pester Tests (Windows PowerShell)
+  #     run: |
+  #       Write-Output $PSVersionTable.PSVersion.Major $PSVersionTable.PSRemotingProtocolVersion.Minor
+  #       Set-PSRepository psgallery -InstallationPolicy trusted
+  #       Install-Module -Name Pester -Confirm:$false -Force
+  #       Invoke-Pester -Path "./.ci/pester.tests.ps1" -EnableExit
+  #       if ($Error[0].Fullyqualifiederrorid -eq 'PesterAssertionFailed') {exit 1}        
+  #     shell: powershell
