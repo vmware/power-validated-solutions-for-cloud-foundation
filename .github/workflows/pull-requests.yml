@@ -1,8 +1,14 @@
 ---
-name: Pull Request Target (All types)
+name: Pull Request Target
 
-'on':
-  - pull_request_target
+on:
+  pull_request_target:
+    types:
+    - opened
+    - synchronize
+    - reopened
+    - edited
+    - ready_for_review
 
 env:
   IN_MAINTAINER_LIST: '${{ contains(secrets.MAINTAINER_LIST, github.actor) }}'
@@ -35,12 +41,12 @@ jobs:
           l_max_size: '1000'
           xl_label: size/xl
           fail_if_xl: 'false'
-          message_if_xl: >
-            'This pull request exceeds the recommended size of 1000 lines and
+          message_if_xl: >-
+            This pull request exceeds the recommended size of 1000 lines and
             might be rejected due to its size.
 
             Please make sure you are not addressing multiple issues in a pull
-            request.'
+            request.
           github_api_url: api.github.com
   new-contributor:
     runs-on: ubuntu-latest
@@ -53,7 +59,7 @@ jobs:
             Hello, @${{github.actor}}. :wave:
 
             It looks like this is your first pull request submission to the
-            project! If you haven’t already done, so please review the
+            project! If you haven't already done, so please review the
             [CONTRIBUTOR](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/blob/main/CODE_OF_CONDUCT.md)
             guide to ensure your contribution adheres to the recommended
             practice and has all the necessary elements in place for a

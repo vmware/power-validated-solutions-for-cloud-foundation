@@ -1,9 +1,11 @@
 ---
-name: Check Maintainer Edit Permissions
-'on':
+name: Maintainer Access
+
+on:
   pull_request_target:
     types:
       - opened
+
 jobs:
   maintainer-access-check:
     env:
@@ -11,7 +13,7 @@ jobs:
       IN_MAINTAINER_LIST: '${{ contains( secrets.MAINTAINER_LIST, github.actor) }}'
     runs-on: ubuntu-latest
     steps:
-      - name: Comment If Maintainers Cannot Edit
+      - name: Check Maintainer Edit Permissions
         if: >-
           ${{ ( env.IN_MAINTAINER_LIST == 'false' ) && (
           env.MAINTAINER_CAN_MODIFY == 'false' ) }}
