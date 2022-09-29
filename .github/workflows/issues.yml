@@ -6,9 +6,6 @@ on:
     types:
     - opened
 
-env:
-  IN_MAINTAINER_LIST: ${{ contains(secrets.MAINTAINER_LIST, github.actor) }}
-
 jobs:
   label-issues:
     runs-on: ubuntu-latest
