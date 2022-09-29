@@ -3,7 +3,6 @@ name: Bug Report
 description: Is something not working as expected? Submit a bug.
 labels:
   - bug
-  - needs-triage
 body:
   - type: markdown
     attributes:

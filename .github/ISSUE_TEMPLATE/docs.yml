@@ -4,12 +4,11 @@ description: Found a typo or something that needs clarification?
 title: '[DOCS] REPLACE WITH SHORT DESCRIPTION'
 labels:
   - documentation
-  - needs-review
 body:
   - type: markdown
     attributes:
       value: >
-        When filing a documentation issue, please include the following information.
+        When filing a documentation issue, please include the followinginformation.
   - type: checkboxes
     id: terms
     attributes:

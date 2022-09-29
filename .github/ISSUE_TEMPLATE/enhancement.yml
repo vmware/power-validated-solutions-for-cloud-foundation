@@ -3,7 +3,6 @@ name: Enhancement Request
 description: Is something critical missing? Suggest an enhancement.
 labels:
   - enhancement
-  - needs-review
 body:
   - type: markdown
     attributes:
