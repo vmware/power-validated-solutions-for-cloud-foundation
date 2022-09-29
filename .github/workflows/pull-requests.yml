@@ -21,7 +21,7 @@ jobs:
         uses: actions/labeler@v4
         if: github.event.action == 'opened' && env.IN_MAINTAINER_LIST == 'false'
         with:
-          configuration-path: .github/labels-pull-requests.yml
+          configuration-path: .github/labeler-pull-requests.yml
           repo-token: '${{ secrets.GITHUB_TOKEN }}'      
   label-size:
     runs-on: ubuntu-latest
