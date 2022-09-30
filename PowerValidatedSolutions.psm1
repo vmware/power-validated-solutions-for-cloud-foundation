@@ -24545,13 +24545,18 @@ Function Export-WsaJsonSpec {
         .EXAMPLE
         Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
+        This example creates a JSON deployment specification of Standard Workspace ONE Access using the Planning and Preparation Workbook
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard
     )
 
     Try {
@@ -24565,6 +24570,8 @@ Function Export-WsaJsonSpec {
                 Break
             }
         }
+
+        if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
@@ -24635,31 +24642,38 @@ Function Export-WsaJsonSpec {
                                                     'fipsMode'                      = "false"
                                                 }
 
-                                                #### Generate Workspace ONE Access Cluster Details
-                                                $clusterLbProperties = @()
-                                                $clusterLbProperties += [pscustomobject]@{
-                                                    'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                                                    'lockerCertificate'     = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                }
+                                                #### Generate Workspace ONE Access Details
+                                                if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                    $clusterLbProperties = @()
+                                                    $clusterLbProperties += [pscustomobject]@{
+                                                        'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
+                                                        'lockerCertificate'     = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                    }
+                                                
+                                                    $clusterDelegateObject = @()
+                                                    $clusterDelegateObject += [pscustomobject]@{
+                                                        'ip'			= $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
+                                                    }
 
-                                                $clusterDelegateObject = @()
-                                                $clusterDelegateObject += [pscustomobject]@{
-                                                    'ip'			= $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
-                                                }
+                                                    $clusterVipsObject = @()
+                                                    $clusterVipsObject += [pscustomobject]@{
+                                                        'type'			= "vidm-lb"
+                                                        'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
+                                                    }
+                                                    $clusterVipsObject += [pscustomobject]@{
+                                                        'type'			= "vidm-delegate"
+                                                        'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
+                                                    }
 
-                                                $clusterVipsObject = @()
-                                                $clusterVipsObject += [pscustomobject]@{
-                                                    'type'			= "vidm-lb"
-                                                    'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
-                                                }
-                                                $clusterVipsObject += [pscustomobject]@{
-                                                    'type'			= "vidm-delegate"
-                                                    'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
-                                                }
-
-                                                $clusterObject = @()
-                                                $clusterObject += [pscustomobject]@{
-                                                    'clusterVips'	= $clusterVipsObject
+                                                    $clusterObject = @()
+                                                    $clusterObject += [pscustomobject]@{
+                                                        'clusterVips'	= $clusterVipsObject
+                                                    }
+                                                } else {
+                                                    $clusterObject = @()
+                                                    $clusterObject += [pscustomobject]@{
+                                                        'clusterVips'	= @()
+                                                    }
                                                 }
 
                                                 #### Generate vRealize Log Insight Node Details
@@ -24689,13 +24703,15 @@ Function Export-WsaJsonSpec {
                                                     'type'			= "vidm-primary"
                                                     'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
                                                 }
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'			= "vidm-secondary"
-                                                    'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
-                                                }
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'			= "vidm-secondary"
-                                                    'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
+                                                if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "vidm-secondary"
+                                                        'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
+                                                    }
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "vidm-secondary"
+                                                        'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
+                                                    }
                                                 }
 
                                                 #### Generate the Workspace ONE Properties Section
@@ -24723,7 +24739,7 @@ Function Export-WsaJsonSpec {
 
                                                 $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "wsaDeploymentSpec.json" 
                                                 
-                                                Write-Output "Creation of Deployment JSON Specification file for Clustered Workspace ONE Access: SUCCESSFUL"
+                                                Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
                                             }
                                             else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
@@ -24773,6 +24789,10 @@ Function New-WSADeployment {
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example starts a deployment of Clustered Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
+        This example starts a deployment of Standard Workspace ONE Access using the Planning and Preparation Workbook
     #>
 
     Param (
@@ -24780,7 +24800,8 @@ Function New-WSADeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -24793,13 +24814,19 @@ Function New-WSADeployment {
         }
     }
 
+    if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            if (!$PsBoundParameters.ContainsKey("standard")) {
+                                Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            } else {
+                                Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -standard | Out-Null
+                            }
                             $json = (Get-Content -Raw .\wsaDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
@@ -24813,11 +24840,11 @@ Function New-WSADeployment {
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                                 }
                                                 else {
-                                                    Write-Output "Deployment Rquest for Clustered Workspace ONE Access (Request Ref: $($newRequest.requestId))"
+                                                    Write-Output "Deployment Rquest for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
                                                 }
                                             }
                                             else {
-                                                Write-Error "Request to deploy Clustered Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI"
+                                                Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI"
                                             }
                                             
                                         }
@@ -24834,7 +24861,7 @@ Function New-WSADeployment {
                                 }
                             }
                             else {
-                                Write-Warning "Clustered Workspace ONE Access in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
                     }
