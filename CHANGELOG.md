@@ -1,5 +1,10 @@
 # Release History
 
+## v1.9.0 (Not Released)
+
+- Enhanced `Export-WsaJsonSpec` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
+- Enhanced `New-WSADeployment` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
+
 ## v1.8.0 (2022-27-09)
 
 - Enhanced `Request-CSPToken` cmdlet to request a token from VMware Cloud.
