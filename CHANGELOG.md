@@ -4,6 +4,12 @@
 
 - Enhanced `Export-WsaJsonSpec` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
 - Enhanced `New-WSADeployment` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
+- Added `Enable-vRLIContentPack` cmdlet to support installation of content packs from the vRealize Log Insight in-product marketplace.
+- Added `Get-vRLIMarketplaceMetadata` cmdlet to support installation of content packs from the vRealize Log Insight in-product marketplace.
+- Added `Install-vRLIContentPack` cmdlet to support installation of content packs from the vRealize Log Insight in-product marketplace.
+- Added `Get-vRLIContentPack` cmdlet to support installation of content packs from the vRealize Log Insight in-product marketplace.
+- Added `Get-vROpsLogForwardingConfig` to support verification of vRealize Operations log forwarding.
+- Added `Get-vROpsLogForwarding` to support verification of vRealize Operations log forwarding.
 
 ## v1.8.0 (2022-27-09)
 
