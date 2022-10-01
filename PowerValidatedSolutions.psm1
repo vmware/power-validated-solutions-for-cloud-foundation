@@ -10386,6 +10386,151 @@ Function Undo-vRLIAlert {
 }
 Export-ModuleMember -Function Undo-vRLIAlert
 
+Function Add-vRLILogForwarder {
+    <#
+		.SYNOPSIS
+        Adds a log forwarder destination to vRealize Log Insight
+
+        .DESCRIPTION
+        The Add-vRLILogForwarder cmdlet adds log forwarder destination to vRealize Log Insight. The cmdlet connects to
+        SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Adds a log forwarder destination to vRealize Log Insight
+
+        .EXAMPLE
+        Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name lax-vrli01 -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514 -transport TCP -acceptCert false -sslEnabled false -testConnection false
+        This example adds a log forwarder to vRealize Log Insight using syslog over TCP 514.
+
+        .EXAMPLE
+        Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name lax-vrli01 -fqdn lax-vrli01.lax.rainpole.io -protocol CFAPI -port 9543 -acceptCert true -sslEnabled true -testConnection true
+        This example adds a log forwarder destination to vRealize Log Insight
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateSet("CFAPI", "SYSLOG", "RAW")] [String]$protocol,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$port,
+        [Parameter (Mandatory = $false)] [ValidateSet("TCP", "UDP")] [String]$transport,
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$acceptCert,
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$sslEnabled,
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$testConnection
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            if (! (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn})) {
+                                if ($protocol -eq 'SYSLOG' -and (-not $PsBoundParameters.ContainsKey('transport'))) {
+                                    Throw 'You must enter a transport for SYSLOG.'
+                                } elseif ($protocol -eq 'SYSLOG' -and ($PsBoundParameters.ContainsKey('transport'))) {
+                                    Set-vRLILogForwarder -name $name -server $fqdn -protocol $protocol -port $port -transport $transport -acceptCert $acceptCert -sslEnabled $sslEnabled -testConnection $testConnection | Out-Null
+                                    if (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn}) {
+                                        Write-Output "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                    }
+                                } else {
+                                    Set-vRLILogForwarder -name $name -server $fqdn -protocol $protocol -port $port -acceptCert $acceptCert -sslEnabled $sslEnabled -testConnection $testConnection | Out-Null
+                                    if (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn}) {
+                                        Write-Output "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                    }          
+                                }
+                            } else {
+                                Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)), already exist: SKIPPED"
+                            }
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLILogForwarder
+
+Function Undo-vRLILogForwarder {
+    <#
+		.SYNOPSIS
+        Removes a log forwarder destination to vRealize Log Insight
+
+        .DESCRIPTION
+        The Undo-vRLILogForwarder cmdlet removes log forwarder destination to vRealize Log Insight. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Removes a log forwarder destination from vRealize Log Insight
+
+        .EXAMPLE
+        Undo-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514
+        This example removes a log forwarder to vRealize Log Insight using syslog over TCP 514.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateSet("CFAPI", "SYSLOG", "RAW")] [String]$protocol,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$port,
+        [Parameter (Mandatory = $false)] [ValidateSet("TCP", "UDP")] [String]$transport
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {                   
+                            if ($protocol -eq 'SYSLOG' -and (-not $PsBoundParameters.ContainsKey('transport'))) {
+                                Throw 'You must enter a transport for SYSLOG.'
+                            } elseif ($protocol -eq 'SYSLOG' -and ($PsBoundParameters.ContainsKey('transport'))) {
+                                if ($response = Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port -and $_.transportProtocol -eq $transport}) {
+                                    Remove-vRLILogForwarder -id $response.id | Out-Null
+                                    if (Get-vRlILogForwarder | Where-Object { $_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port -and $_.transportProtocol -eq $transport}) {
+                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                    } else {
+                                        Write-Output "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                    }
+                                } else {
+                                    Write-Warning "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)), configuration does not exist."
+                                }
+                            } else {
+                                if ($response = Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port}) {
+                                    Remove-vRLILogForwarder -id $response.id | Out-Null
+                                    if (Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port}) {
+                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                    } else {
+                                        Write-Output "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                    }
+                                } else {
+                                    Write-Warning "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)), configuration does not exist."
+                                }        
+                            }
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRLILogForwarder
+
 Function Add-NsxtNodeProfileSyslogExporter {
     <#
         .SYNOPSIS
@@ -29700,11 +29845,11 @@ Function Set-vRLILogForwarder {
         The Set-vRLILogForwarder cmdlet adds a log forwarder destination to vRealize Log Insight.
 
         .EXAMPLE
-        Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol SYSLOG -port 514 -transport TCP
+        Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol SYSLOG -port 514 -transport TCP -acceptCert false -sslEnabled false -testConnection false
         This example adds a log forwarder to vRealize Log Insight using syslog over TCP 514.
 
         .EXAMPLE
-        Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol CFAPI -port 9543 -sslEnabled
+        Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol CFAPI -port 9543 acceptCert true -sslEnabled true -testConnection true
         This example adds a log forwarder to vRealize Log Insight using the Ingestion API and SSL enabled.
     #>
 
@@ -29714,16 +29859,12 @@ Function Set-vRLILogForwarder {
         [Parameter (Mandatory = $true)] [ValidateSet("CFAPI", "SYSLOG", "RAW")] [String]$protocol,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$port,
         [Parameter (Mandatory = $false)] [ValidateSet("TCP", "UDP")] [String]$transport,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$acceptCert,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sslEnabled,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$testConnection
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$acceptCert,
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$sslEnabled,
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$testConnection
     )
 
     Try {
-        if ($PsBoundParameters.ContainsKey("acceptCert")) {$acceptCert -eq "true"} else {$acceptCert -eq "false" | Out-Null}
-        if ($PsBoundParameters.ContainsKey("sslEnabled")) {$sslEnabled -eq "true"} else {$sslEnabled -eq "false" | Out-Null}
-        if ($PsBoundParameters.ContainsKey("testConnection")) {$testConnection -eq "true"} else {$testConnection -eq "false" | Out-Null}
-
         $uri = "https://$vrliAppliance/api/v2/log-forwarder"
 
         if ($protocol -eq 'SYSLOG' -and (-not $PsBoundParameters.ContainsKey('transport'))) {
