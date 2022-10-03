@@ -10963,13 +10963,14 @@ Function Enable-vRLIContentPack {
 
         .EXAMPLE
         Enable-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack VRO
+        This examples installs the vRealize Orchestrator content pack from the marketplace.
         #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateSet('VRO')] [String]$contentPack
+        [Parameter (Mandatory = $true)] [ValidateSet('VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD')] [String]$contentPack
     )
 
     Try {
@@ -10978,14 +10979,27 @@ Function Enable-vRLIContentPack {
                 if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                         if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
-                            # Define the content pack file names per version
-                            $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                            if ($vcfVersion -ge 4.3.0 -and $contentPack -eq "VRO") {$contentPackFile = "VMware-vRO-8.3plus-v1.0.vlcp"}
+                            # Define the supported content pack namespaces
+                            if ($contentPack -eq 'VSPHERE') {$contentPackNamespace = 'com.vmware.vsphere'}
+                            if ($contentPack -eq 'VSAN') {$contentPackNamespace = 'com.vmware.vsan'}
+                            if ($contentPack -eq 'NSX') {$contentPackNamespace = 'com.vmware.nsxt'}
+                            if ($contentPack -eq 'WSA') {$contentPackNamespace = 'com.vmware.vidm'}
+                            if ($contentPack -eq 'VRSLCM') {$contentPackNamespace = 'com.vmware.vrslcm801'}
+                            if ($contentPack -eq 'VROPS') {$contentPackNamespace = 'com.vmware.vrops67'}
+                            if ($contentPack -eq 'VRNI') {$contentPackNamespace = 'om.vmware.vrni'}
+                            if ($contentPack -eq 'VRA') {$contentPackNamespace = 'com.vmware.vra.83'}
+                            if ($contentPack -eq 'VRO') {$contentPackNamespace = 'com.vmware.vro.83'}
+                            if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}                            
+                            if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
+                            if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
+
+                            $index = Get-vRLIMarketplaceMetadata -index
+                            $contentPackFile = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).filename
+                            $contentPackName = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).name
 
                             if ($response = Get-vRLIMarketplaceMetadata) {
                                 $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
                                 $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
-                                $contentPackName = ($response).name
                                 $json = $response | ConvertTo-Json -Depth 100 -Compress
                             } else {
                                 Write-Warning "Retrieving content pack ($contentPackFile) metadata from the marketplace: PRE_VALIDATION_FAILED"
@@ -10996,10 +11010,10 @@ Function Enable-vRLIContentPack {
                             } else {
                                 if ($json) {
                                     Install-vRLIContentPack -json $json | Out-Null
-                                    if ($contenPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName })) {
+                                    if ($contentPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName })) {
                                         Write-Output "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                        Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }   
                                 } else {
                                     Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -11016,6 +11030,89 @@ Function Enable-vRLIContentPack {
 }
 Export-ModuleMember -Function Enable-vRLIContentPack
 
+Function Update-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Updates the vRealize Log Insight content pack from the marketplace.
+
+        .DESCRIPTION
+        The Update-vRLIContentPack cmdlet updates a designated vRealize Log Insight content pack from the online
+        Content Pack Marketplace hosted on GitHub.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that network connectivity is possible to vRealize Log Insight
+        - Updates the vRealize Log Insight content pack selected from the marketplace
+
+        .EXAMPLE
+        Update-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack NSX
+        This example updates the vRealize Log Insight content pack for NSX to the latest version from the marketplace.
+        #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet('VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD')] [String]$contentPack
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            # Define the supported content pack namespaces
+                            if ($contentPack -eq 'VSPHERE') {$contentPackNamespace = 'com.vmware.vsphere'}
+                            if ($contentPack -eq 'VSAN') {$contentPackNamespace = 'com.vmware.vsan'}
+                            if ($contentPack -eq 'NSX') {$contentPackNamespace = 'com.vmware.nsxt'}
+                            if ($contentPack -eq 'WSA') {$contentPackNamespace = 'com.vmware.vidm'}
+                            if ($contentPack -eq 'VRSLCM') {$contentPackNamespace = 'com.vmware.vrslcm801'}
+                            if ($contentPack -eq 'VROPS') {$contentPackNamespace = 'com.vmware.vrops67'}
+                            if ($contentPack -eq 'VRNI') {$contentPackNamespace = 'om.vmware.vrni'}
+                            if ($contentPack -eq 'VRA') {$contentPackNamespace = 'com.vmware.vra.83'}
+                            if ($contentPack -eq 'VRO') {$contentPackNamespace = 'com.vmware.vro.83'}
+                            if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}                            
+                            if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
+                            if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
+
+                            $index = Get-vRLIMarketplaceMetadata -index
+                            $contentPackFile = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).filename
+                            $contentPackName = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).name
+                            $contentPackVersion = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
+
+                            if (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
+                                if ($response = Get-vRLIMarketplaceMetadata) {
+                                    $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
+                                    $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
+                                    $json = $response | ConvertTo-Json -Depth 100 -Compress
+                                    if ($response.contentVersion -lt $contentPackVersion) {
+                                        Install-vRLIContentPack -update -json $json | Out-Null
+                                        if ($contentPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) | Out-Null) {
+                                            Write-Output "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }   
+                                    } else {
+                                        Write-Warning "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)), no update available: SKIPPED"
+                                    }
+                                } else {
+                                    Write-Error "Retrieving content pack ($contentPackFile) metadata from the marketplace: PRE_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Error "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not installed: PRE_VALIDATION_FAILED"
+                            }   
+                        }          
+                    }         
+                }
+            }
+        }
+    }
+    Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-vRLIContentPack
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -30235,6 +30332,10 @@ Function Get-vRLIMarketplaceMetadata {
         This example returns the metadata for vRealize Log Insight content packs in the Content Pack MarketPlace.
     #>
 
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$index
+    )
+    
     Try {
         # Get the headers with authorization to pull content lack from the GitHub repository
         # Note: Uses the same token used by vRealize Log Insight's in-product Marketplace as seen in Chrome Developer Tools
@@ -30243,8 +30344,13 @@ Function Get-vRLIMarketplaceMetadata {
         $ghHeaders.Add('Accept', 'application/vnd.github.VERSION.raw')
         $ghHeaders.Add('Authorization', "Basic $ghToken")
 
-        # Get the content pack metadata from the GitHub repository
-        $uri = 'https://api.github.com/repos/vmw-loginsight/vlcp/contents/content/'
+        if ($PsBoundParameters.ContainsKey("index")) {
+            # Get the content pack index from the GitHub repository
+            $uri = 'https://api.github.com/repos/vmw-loginsight/vlcp/contents/index.json'
+        } else {
+            # Get the content pack metadata from the GitHub repository
+            $uri = 'https://api.github.com/repos/vmw-loginsight/vlcp/contents/content/'
+        }
         Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -30263,14 +30369,23 @@ Function Install-vRLIContentPack {
         .EXAMPLE
         Install-vRLIContentPack -json $json
         This example installs a content pack to vRealize Log Insight from a JSON payload.
+
+        .EXAMPLE
+        Insall-vRLIContentPack -update -json $json
+        This example updates a content pack in vRealize Log Insight from a JSON payload.
     #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$update
     )
 
     Try {
-        $uri = "https://$vrliAppliance/api/v1/content/contentpack"
+        if ($PsBoundParameters.ContainsKey("update")) {
+            $uri = "https://$vrliAppliance/api/v1/content/contentpack?overwrite=true"
+        } else {
+            $uri = "https://$vrliappliance/api/v1/content/contentpack"
+        }
         Invoke-RestMethod -Method 'POST' -Uri $Uri -ContentType 'application/octet-stream' -Headers $vrliHeaders -Body $json
     } Catch {
         Debug-ExceptionWriter -object $_
