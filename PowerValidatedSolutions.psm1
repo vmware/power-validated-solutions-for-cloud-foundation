@@ -10436,14 +10436,14 @@ Function Add-vRLILogForwarder {
                                     if (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn}) {
                                         Write-Output "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Set-vRLILogForwarder -name $name -server $fqdn -protocol $protocol -port $port -acceptCert $acceptCert -sslEnabled $sslEnabled -testConnection $testConnection | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn}) {
                                         Write-Output "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }          
                                 }
                             } else {
@@ -10501,7 +10501,7 @@ Function Undo-vRLILogForwarder {
                                 if ($response = Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port -and $_.transportProtocol -eq $transport}) {
                                     Remove-vRLILogForwarder -id $response.id | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object { $_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port -and $_.transportProtocol -eq $transport}) {
-                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     } else {
                                         Write-Output "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     }
@@ -10512,7 +10512,7 @@ Function Undo-vRLILogForwarder {
                                 if ($response = Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port}) {
                                     Remove-vRLILogForwarder -id $response.id | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port}) {
-                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): FAILED"
+                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     } else {
                                         Write-Output "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     }
