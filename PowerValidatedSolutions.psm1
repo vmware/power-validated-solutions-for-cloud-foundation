@@ -11271,6 +11271,75 @@ Function New-vROPSDeployment {
 }
 Export-ModuleMember -Function New-vROPSDeployment
 
+Function Import-vROPSUserAccount {
+    <#
+        .SYNOPSIS
+        Import a user from Workspace ONE Access and assign access in vRealize Operations Manager
+
+        .DESCRIPTION
+        The Import-vROPSUserAccount cmdlet imports a user from Workspace ONE Access and assigns access in vRealize
+        Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that Workspace ONE Access has been configured as an authentication source
+        - Validates the user account provided can be found in vRealize Operations Manager
+        - Validated the role exists within vRealize Operations Manager
+        - Imports the user and assigns the vRealize Operations Manager role
+
+        .EXAMPLE
+        Import-vROPSUserAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -userName nigel.mccloud -role Administrator
+        This example imports a user into vRealize Operations Manager and assigns the role
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if (!(Get-vROPSUserAccount -username $userName)) {
+                                if (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}) {
+                                    if ($userAccount = Search-vROPSUserAccount -sourceId (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}).id -domain $domain -userName ($userName + '@' + $domain)) {
+                                        if (Get-vROPSAuthRole -name $role -ErrorAction SilentlyContinue) {
+                                            Add-vROPSUserAccount -sourceId (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}).id -userName $userAccount.name -lastName $userAccount.lastName -firstName $userAccount.firstName -distinguishedName $domain -role $role | Out-Null
+                                            if (Get-vROPSUserAccount -username $userName) {
+                                                Write-Output "Importing user account into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Importing user account into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "Unable to locate role in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to locate user account in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($userName): PRE_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to locate Authentication Source in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Importing user account into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)), already performed: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Import-vROPSUserAccount
+
 Function Import-vROPSUserGroup {
     <#
         .SYNOPSIS
@@ -28575,6 +28644,61 @@ Function Get-vROPSAuthRole {
 }
 Export-ModuleMember -Function Get-vROPSAuthRole
 
+Function Get-vROPSUserAccount {
+    <#
+        .SYNOPSIS
+        Get list of local user accounts using identifiers or/and names.
+
+        .DESCRIPTION
+        The Get-vROPSUserAccount cmdlet gets a user account in vRealize Operations Manager
+
+        .EXAMPLE
+        Get-vROPSUserAccount
+        This example gets a list of all available authentication sources.
+
+        .EXAMPLE
+        Get-vROPSUserAccount -id <userAccount_id>
+        This example gets detailed information about the user account using the ID.
+
+        .EXAMPLE
+        Get-vROPSUserAccount -username <userAccount_username>
+        This example gets detailed information about the user account using the username.
+
+        .EXAMPLE
+        Get-vROPSUserAccount -roleName <userAccount_roleName>
+        This example gets detailed information about the user account using the role name.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$roleName
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$vropsAppliance/suite-api/api/auth/users?id=$id&_no_links=true"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response
+        } elseif ($PsBoundParameters.ContainsKey("username")) {
+            $uri = "https://$vropsAppliance/suite-api/api/auth/users?username=$username&_no_links=true"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
+            $response.users
+        } elseif ($PsBoundParameters.ContainsKey("roleName")) {
+            $uri = "https://$vropsAppliance/suite-api/api/auth/users?roleName=$roleName&_no_links=true"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
+            $response.users
+        } else {
+            $uri = "https://$vropsAppliance/suite-api/api/auth/users"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
+            $response.users
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSUserAccount
+
 Function Get-vROPSUserGroup {
     <#
         .SYNOPSIS
@@ -28625,6 +28749,53 @@ Function Get-vROPSUserGroup {
 }
 Export-ModuleMember -Function Get-vROPSUserGroup
 
+Function Add-vROPSUserAccount {
+    <#
+        .SYNOPSIS
+        Imports a user account from an authentication source.
+
+        .DESCRIPTION
+        The Add-vROPSUserAccount cmdlet imports a user account from the authentication source into vRealize Operations
+        Manager.
+
+        .EXAMPLE
+        Add-vROPSUserAccount -sourceId <authentication_sourceId> -userName <user_account_name> -lastName <user_last_name> -firstName <user_first_name> -distinguishedName <user_distinguishedName> -role <role_name>
+        This example imports a user account from the authentication source and assigns a role.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$lastName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$firstName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$distinguishedName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/auth/sources/$sourceId/users"
+        $body = '{ "users" : [
+        {
+            "username" : "' + $userName + '",
+            "firstName" : "' + $firstName + '",
+            "lastName" : "' + $lastName + '",
+            "distinguishedName" : "' + $domain + '",
+            "emailAddress" : "' + $userName + '@' + $domain + '",
+            "enabled" : true,
+            "role-permissions" : [ {
+                "roleName" : "' + $role + '",
+                "allowAllObjects" : true
+            } ]
+        }]}'
+        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Add-vROPSUserAccount
+
 Function Add-vROPSUserGroup {
     <#
         .SYNOPSIS
@@ -28664,6 +28835,34 @@ Function Add-vROPSUserGroup {
 }
 Export-ModuleMember -Function Add-vROPSUserGroup
 
+Function Remove-vROPSUserAccount {
+    <#
+        .SYNOPSIS
+        Deletes a user account.
+
+        .DESCRIPTION
+        The Remove-vROPSUserAccount cmdlet deletes a user account from vRealize Operations Manager.
+
+        .EXAMPLE
+        Remove-vROPSUserAccount -id <userAccount_Id>
+        This example deletes a user account from vRealize Operations Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/auth/users/$id"
+        $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vropsHeaders
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vROPSUserAccount
+
 Function Remove-vROPSUserGroup {
     <#
         .SYNOPSIS
@@ -28692,6 +28891,41 @@ Function Remove-vROPSUserGroup {
 }
 Export-ModuleMember -Function Remove-vROPSUserGroup
 
+Function Search-vROPSUserAccount {
+    <#
+        .SYNOPSIS
+        Search for a user account in the source.
+
+        .DESCRIPTION
+        The Search-vROPSUserAccount cmdlet searches for a user account in the source in vRealize Operations Manager.
+
+        .EXAMPLE
+        Search-vROPSUserAccount -sourceId 6d971ad0-a979-4dc1-81af-e77f6c8c158c -domain sfo.rainpole.io -userName "nigel.mccloud"
+        This example searches for a user account in the source defined by source ID.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$userName
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/auth/sources/$sourceId/users/search"
+        
+        $body = '{
+                "domain": "' + $domain + '",
+                "name": "' + $nameName + '"
+            }'
+        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
+        $response.'user-search-response'
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Search-vROPSUserAccount
+
 Function Search-vROPSUserGroup {
     <#
         .SYNOPSIS
@@ -28713,6 +28947,7 @@ Function Search-vROPSUserGroup {
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/auth/sources/$sourceId/usergroups/search"
+        
         $body = '{
                 "domain": "' + $domain + '",
                 "name": "' + $groupName + '"
@@ -28726,6 +28961,33 @@ Function Search-vROPSUserGroup {
 }
 Export-ModuleMember -Function Search-vROPSUserGroup
 
+Function Update-vROPSUserAccount {
+    <#
+        .SYNOPSIS
+        Updates a user account.
+
+        .DESCRIPTION
+        The Update-vROPSUserAccount cmdlet updates a user account in vRealize Operations Manager.
+
+        .EXAMPLE
+        Updates-vROPSUserAccount -id <userAccount_Id>
+        This example updateds a user account in vRealize Operations Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$vropsAppliance/suite-api/api/auth/users/$id"
+        $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vropsHeaders -Body $body
+        $response
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Update-vROPSUserAccount
 
 Function Get-vROpsLogForwarding {
     <#
