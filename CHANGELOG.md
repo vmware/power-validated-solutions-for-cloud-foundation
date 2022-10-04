@@ -10,6 +10,10 @@
 - Added `Get-vRLIContentPack` cmdlet to support installation of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Get-vROpsLogForwardingConfig` to support verification of vRealize Operations log forwarding.
 - Added `Get-vROpsLogForwarding` to support verification of vRealize Operations log forwarding.
+- Updated Sample Scripts in the SampleScripts\ila folder, to support the VCF 4.5.x Planning and Prep Workbook:
+  - `ilaDeployVrealizeLogInsight.ps1`
+  - `ilaConfigureVrealizeLogInsight.ps1`
+  - `ilaUndoVrealizeLogInsight.ps1`
 
 ## v1.8.0 (2022-27-09)
 

@@ -10,6 +10,11 @@
     Date:   2022-03-04
     Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
+    .CHANGE_LOG
+
+    - 1.1.000   (Gary Blake / 2022-10-04) - Added Support for VCF 4.5.x Planning and Prep Workbook
+
+    ===================================================================================================================
 
     .SYNOPSIS
     Remove Intelligent Logging and Analytics from a VMware Cloud Foundation instance
@@ -19,7 +24,7 @@
     VMware Cloud Foundation instance
 
     .EXAMPLE
-    ilaConfigureVrealizeLogInsight.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs
+    ilaUndoVrealizeLogInsight.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs
     This example performs the removal of Intelligent Logging and Analytics from a VMware Cloud Foundation instance using the parameters provided within the Planning and Preparation Workbook
 #>
 
@@ -54,40 +59,10 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
-
-            # $sddcDomainName             = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-            
-            # $domain                     = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-            # $subDomain                  = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-
-            # $vidmVmList                 = "$vmNameNode1.$domain","$vmNameNode2.$domain","$vmNameNode2.$domain"
-            # $photonVmList               = "$($pnpWorkbook.Workbook.Names["sddc_mgr_hostname"].Value).$subDomain","$($pnpWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value).$domain","$vmNameNode1.$domain","$vmNameNode2.$domain","$vmNameNode3.$domain"
-            # $licenseKey                             =  if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrli_license"].Value }
-            # $password                               = $pnpWorkbook.Workbook.Names["region_vrli_admin_password"].Value
-            # $userName                               = "admin"
-            
-            # $vrliVmList                             = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
-            
-            # $antiAffinityVMs                        = $vrliVmList
-            # $drsGroupNameWsa                        = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
-            # $drsGroupVMs                            = $vrliVmList
-            # $groupName                              = "primary_az_vmgroup"
-            # $stretchedCluster                       = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-            # $vmList                                 = $vrliVmList
-        
-            
-            # $antiAffinityVMs                        = $vrliVmList
-            # $drsGroupNameWsa                        = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
-            # $drsGroupVMs                            = $vrliVmList
-            # $groupName                              = "primary_az_vmgroup"
-            # $stretchedCluster                       = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-            # $vmList                                 = $vrliVmList
-            
-
 
             $sddcDomainName             = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
             $sddcWldDomainName          = $pnpWorkbook.Workbook.Names["wld_sddc_domain"].Value
