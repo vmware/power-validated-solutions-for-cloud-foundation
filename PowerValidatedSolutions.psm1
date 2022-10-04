@@ -9323,7 +9323,7 @@ Function Export-vRLIJsonSpec {
                                         if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
                                         if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2"}
                                         if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2"}
-										if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.0"}
+										if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2"}
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
                                             'id' 			= "vrli"
@@ -13224,7 +13224,7 @@ Function Export-vRAJsonSpec {
                                                 if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0"}
                                                 if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2"}
                                                 if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2"}
-												if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.0"}
+												if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vra"
