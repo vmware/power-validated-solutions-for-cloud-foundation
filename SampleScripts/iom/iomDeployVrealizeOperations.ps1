@@ -54,9 +54,9 @@ Try {
             Write-LogMessage -Type INFO -Message "Gathering Details from SDDC Manager Inventory and Extracting Worksheet Data from the Excel Workbook"
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
-            Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
+            Write-LogMessage -type INFO -message "Checking Valid Planning and Preparation Workbook Provided"
             if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
-                Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
+                Write-LogMessage -type INFO -message "Planning and Preparation Workbook Provided Not Supported" -colour Red 
                 Break
             }
 
