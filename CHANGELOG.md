@@ -23,6 +23,13 @@
   - `driConfigureSupervisorCluster.ps1`
   - `driDeployTanzuCluster.ps1`
   - `driUndoDeployment.ps1`
+- Updated Sample Scripts in the SampleScripts\ila folder, to support the VCF 4.5.x Planning and Prep Workbook:
+  - `ilaDeployVrealizeLogInsight.ps1`
+  - `ilaConfigureVrealizeLogInsight.ps1`
+  - `ilaUndoVrealizeLogInsight.ps1`
+- Updated Sample Scripts in the SampleScripts\iom folder, to support the VCF 4.5.x Planning and Prep Workbook:
+  - `iomConfigureVrealizeOperations.ps1`
+  - `iomDeployVrealizeOperations.ps1`
 
 ## v1.8.0 (2022-27-09)
 
