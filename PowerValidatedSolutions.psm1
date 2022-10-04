@@ -10994,8 +10994,9 @@ Function Enable-vRLIContentPack {
                             if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
 
                             $index = Get-vRLIMarketplaceMetadata -index
-                            $contentPackFile = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).filename
+                            $contentPackFile = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).filename
                             $contentPackName = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).name
+                            $contentPackVersion = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
 
                             if ($response = Get-vRLIMarketplaceMetadata) {
                                 $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
@@ -11006,17 +11007,17 @@ Function Enable-vRLIContentPack {
                             }
 
                             if (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
-                                Write-Warning "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)), already exists: SKIPPED"
+                                Write-Warning "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)), already exists: SKIPPED"
                             } else {
                                 if ($json) {
                                     Install-vRLIContentPack -json $json | Out-Null
                                     if ($contentPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName })) {
-                                        Write-Output "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }   
                                 } else {
-                                    Write-Error "Installing content pack ($contentPackName) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    Write-Error "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
                             }       
                         }          
@@ -11077,30 +11078,30 @@ Function Update-vRLIContentPack {
                             if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
 
                             $index = Get-vRLIMarketplaceMetadata -index
-                            $contentPackFile = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).filename
-                            $contentPackName = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).name
-                            $contentPackVersion = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
+                            $contentPackFile = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).filename
+                            $contentPackName = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).name
+                            $contentPackVersion = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
 
-                            if (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
+                            if ($status = Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
                                 if ($response = Get-vRLIMarketplaceMetadata) {
                                     $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
                                     $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
                                     $json = $response | ConvertTo-Json -Depth 100 -Compress
-                                    if ($response.contentVersion -lt $contentPackVersion) {
+                                    if ($status.contentVersion -lt $contentPackVersion) {
                                         Install-vRLIContentPack -update -json $json | Out-Null
-                                        if ($contentPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) | Out-Null) {
-                                            Write-Output "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        if (Get-vRLIContentPack | Where-Object {$_.name -eq $contentPackName -and $_.contentVersion -eq $contentPackVersion}) {
+                                            Write-Output "Updating the content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Updating the content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }   
                                     } else {
-                                        Write-Warning "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)), no update available: SKIPPED"
+                                        Write-Warning "Updating the content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)), no update needed: SKIPPED"
                                     }
                                 } else {
                                     Write-Error "Retrieving content pack ($contentPackFile) metadata from the marketplace: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Updating content pack ($contentPackName) on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not installed: PRE_VALIDATION_FAILED"
+                                Write-Error "Updating content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not installed: PRE_VALIDATION_FAILED"
                             }   
                         }          
                     }         
@@ -30337,13 +30338,8 @@ Function Get-vRLIMarketplaceMetadata {
     )
     
     Try {
-        # Get the headers with authorization to pull content lack from the GitHub repository
-        # Note: Uses the same token used by vRealize Log Insight's in-product Marketplace as seen in Chrome Developer Tools
-        $ghToken = 'bGktbWFya2V0cGxhY2U6Y2UzYjBkODFjYzczMTJhZjk5ZDYzMjFjZDlkMTUzOTc4ZjZlZjM2NQ=='
-        $ghHeaders = New-Object 'System.Collections.Generic.Dictionary[[String],[String]]'
-        $ghHeaders.Add('Accept', 'application/vnd.github.VERSION.raw')
-        $ghHeaders.Add('Authorization', "Basic $ghToken")
-
+        # Get the headers with authorization to pull content pack from the GitHub repository
+        createGitHubAuthHeader
         if ($PsBoundParameters.ContainsKey("index")) {
             # Get the content pack index from the GitHub repository
             $uri = 'https://api.github.com/repos/vmw-loginsight/vlcp/contents/index.json'
@@ -31395,6 +31391,15 @@ Function createVAMIAuthHeader {
     $VAMIAuthheaders = @{"Content-Type" = "application/json" }
     $VAMIAuthheaders.Add("dr.config.service.sessionid", "$sessionId")
     $VAMIAuthheaders
+}
+
+Function createGitHubAuthHeader {
+    # Get the headers with authorization to pull content pack from the GitHub repository
+    # Note: Uses the same token used by vRealize Log Insight's in-product Marketplace as seen in Chrome Developer Tools
+    $ghToken = 'bGktbWFya2V0cGxhY2U6Y2UzYjBkODFjYzczMTJhZjk5ZDYzMjFjZDlkMTUzOTc4ZjZlZjM2NQ=='
+    $Global:ghHeaders = New-Object 'System.Collections.Generic.Dictionary[[String],[String]]'
+    $ghHeaders.Add('Accept', 'application/vnd.github.VERSION.raw')
+    $ghHeaders.Add('Authorization', "Basic $ghToken")
 }
 
 Function Request-VAMISessionId {
