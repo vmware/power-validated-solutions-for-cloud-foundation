@@ -13,6 +13,15 @@
 - Updated Sample Scripts in the SampleScripts\iom folder, to support the VCF 4.5.x Planning and Prep Workbook:
   - `iomConfigureVrealizeOperations.ps1`
   - `iomDeployVrealizeOperations.ps1`
+- Updated Sample Scripts in the SampleScripts\iam folder, to support the VCF 4.5.x Planning and Prep Workbook:
+  - `iamConfigureVsphere.ps1`
+  - `iamConfigureNsx.ps1`
+  - `iamConfigureWorkspaceOne.ps1`
+  - `iamUndoDeployment.ps1`
+- Updated Sample Scripts in the SampleScripts\dri folder, to support the VCF 4.5.x Planning and Prep Workbook:
+  - `driConfigureSupervisorCluster.ps1`
+  - `driDeployTanzuCluster.ps1`
+  - `driUndoDeployment.ps1`
 
 ## v1.8.0 (2022-27-09)
 
