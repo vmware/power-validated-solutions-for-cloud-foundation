@@ -10,6 +10,12 @@
     Date:   2022-03-23
     Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
+    .CHANGE_LOG
+
+    - 1.1.000   (Gary Blake / 2022-10-03)   - Added support for VCF 4.5.x Planning and Prep Workbook
+                                            - Enhanced Signed Certificate Steps to Check for Domain Membership
+
+    ===================================================================================================================
     
     .SYNOPSIS
     Configure vSphere/NSX/Supervisor Cluster for Developer Ready Infrastructure
@@ -54,7 +60,7 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
@@ -91,8 +97,8 @@ Try {
             $wmNamespaceEditUserGroup           = $pnpWorkbook.Workbook.Names["group_gg_kub_admins"].Value
             $wmNamespaceViewUserGroup           = $pnpWorkbook.Workbook.Names["group_gg_kub_readonly"].Value
             $licenseKey                         = $pnpWorkbook.Workbook.Names["esx_k8s_license"].Value
-            $certificateRequestFile             = $filePath + "\supervisorCluster.csr"
-            $certificateFile                    = $filePath + "\supervisorCluster.cer"
+            $certificateRequestFile             = $filePath + "\" + $pnpWorkbook.Workbook.Names["wld_cluster"].Value + ".csr"
+            $certificateFile                    = $filePath + "\" + $pnpWorkbook.Workbook.Names["wld_cluster"].Value + ".1.cer"
 
             $wmClusterInput = @{
                 server = $sddcManagerFqdn
@@ -125,72 +131,78 @@ Try {
             }
 
             # Add a Network Segment for Tanzu to NSX-T Data Center
-            Write-LogMessage -Type INFO -Message "Add a Network Segment for Tanzu to NSX-T Data Center"
+            Write-LogMessage -Type INFO -Message "Attempting to Add a Network Segment for Tanzu to NSX-T Data Center"
             $StatusMsg = Add-NetworkSegment -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -SegmentName $kubSegmentName -ConnectedGateway $wldTier1GatewayName -Cidr $kubSegmentGatewayCIDR -TransportZone $overlayTzName -GatewayType Tier1 -SegmentType Overlay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Add IP Prefix Lists to the Tier-0 Gateway for Tanzu to NSX-T Data Center
-            Write-LogMessage -Type INFO -Message "Add IP Prefix Lists to the Tier-0 Gateway for Tanzu to NSX-T Data Center"
+            Write-LogMessage -Type INFO -Message "Attempting to Add IP Prefix Lists to the Tier-0 Gateway for Tanzu to NSX-T Data Center"
             $StatusMsg = Add-PrefixList -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -Tier0Gateway $wldTier0GatewayName -PrefixListName $wldPrefixListName -SubnetCIDR $kubSegmentSubnetCidr -ingressSubnetCidr $ingressSubnetCidr -egressSubnetCidr $egressSubnetCidr -GE "28" -LE "32" -Action PERMIT -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a Route Map on the Tier-0 Gateway for Tanzu to NSX-T Data Center
-            Write-LogMessage -Type INFO -Message "Create a Route Map on the Tier-0 Gateway for Tanzu to NSX-T Data Center"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a Route Map on the Tier-0 Gateway for Tanzu to NSX-T Data Center"
             $StatusMsg = Add-RouteMap -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -Tier0Gateway $wldTier0GatewayName -RouteMap $wldRouteMapName -PrefixListName $wldPrefixListName -Action PERMIT -ApplyPolicy:$True -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Assign a New Tag to the vSAN Datastore in vCenter Server
-            Write-LogMessage -Type INFO -Message "Assign a New Tag to the vSAN Datastore in vCenter Server"
+            Write-LogMessage -Type INFO -Message "Attempting to Assign a New Tag to the vSAN Datastore in vCenter Server"
             $StatusMsg = Set-DatastoreTag -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -TagName $tagName -TagCategoryName $tagCategoryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg"; $ErrorMsg = $null } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a Storage Policy that Uses the New vSphere Tag in vCenter Server
-            Write-LogMessage -Type INFO -Message "Create a Storage Policy that Uses the New vSphere Tag in vCenter Server"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a Storage Policy that Uses the New vSphere Tag in vCenter Server"
             $StatusMsg = Add-StoragePolicy -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -PolicyName $spbmPolicyName -TagName $tagName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg"; $ErrorMsg = $null } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a Subscribed Content Library for Tanzu in vCenter Server
-            Write-LogMessage -Type INFO -Message "Create a Subscribed Content Library for Tanzu in vCenter Server"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a Subscribed Content Library for Tanzu in vCenter Server"
             $StatusMsg = Add-ContentLibrary -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -ContentLibraryName $contentLibraryName -SubscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg"; $ErrorMsg = $null } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Deploy a Supervisor Cluster for Developer Ready Infrastructure
-            Write-LogMessage -Type INFO -Message "Deploy a Supervisor Cluster for Developer Ready Infrastructure"
-            $StatusMsg = Enable-SupervisorCluster @wmClusterInput -RunAsync -SkipValidation $true -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            Write-LogMessage -Type INFO -Message "Attempting to Deploy a Supervisor Cluster for Developer Ready Infrastructure"
+            $StatusMsg = Enable-SupervisorCluster @wmClusterInput -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg"; $ErrorMsg = '' } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-            # Replace the Supervisor Cluster Kubernetes API Endpoint Certificate for Developer Ready Infrastructure
-            Write-LogMessage -Type INFO -Message "Replace the Supervisor Cluster Kubernetes API Endpoint Certificate for Developer Ready Infrastructure"
-            Write-LogMessage -Type INFO -Message "Generating the Supervisor Cluster CSR File"
-            $StatusMsg = New-SupervisorClusterCSR -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -CommonName $CommonName -Organization $Organization -OrganizationalUnit $OrganizationalUnit -Country $Country -StateOrProvince $StateOrProvince -Locality $Locality -AdminEmailAddress $AdminEmailAddress -KeySize $Keysize -FilePath $certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            # Signed Certificate Replacement Procedures - Requires System Executing the Script to be Joine to the Certificate Authority Domain
+            if ($env:USERDNSDomain -eq $($domainFqdn.ToUpper)) {
+                # Replace the Supervisor Cluster Kubernetes API Endpoint Certificate for Developer Ready Infrastructure
+                Write-LogMessage -Type INFO -Message "Attempting to Replace the Supervisor Cluster Kubernetes API Endpoint Certificate for Developer Ready Infrastructure"
+                Write-LogMessage -Type INFO -Message "Attempting to Generate the Supervisor Cluster CSR File"
+                $StatusMsg = New-SupervisorClusterCSR -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -CommonName $CommonName -Organization $Organization -OrganizationalUnit $OrganizationalUnit -Country $Country -StateOrProvince $StateOrProvince -Locality $Locality -AdminEmailAddress $AdminEmailAddress -KeySize $Keysize -FilePath $certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-            Write-LogMessage -Type INFO -Message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
-            $StatusMsg = Request-SignedCertificate -mscaComputerName $mscaComputerName -mscaName $mscaName -domainUsername $domainBindUser -domainPassword $domainBindPass -certificateTempalate $certificateTempalate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                Write-LogMessage -Type INFO -Message "Attempting to Request a Signed Certificate from the Microsoft Certificate Authority"
+                $StatusMsg = Request-SignedCertificate -mscaComputerName $mscaComputerName -mscaName $mscaName -domainUsername $domainBindUser -domainPassword $domainBindPass -certificateTempalate $certificateTempalate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-            Write-LogMessage -Type INFO -Message "Installing the Supervisor Cluster Signed-Certificate"
-            $StatusMsg = Add-SupervisorClusterCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -FilePath F:\vvs\supervisorCluster.cer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            
+                Write-LogMessage -Type INFO -Message "Attempting to Install the Supervisor Cluster Signed-Certificate"
+                $StatusMsg = Add-SupervisorClusterCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -FilePath F:\vvs\supervisorCluster.cer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            } else {
+                Write-LogMessage -Type INFO -Message "System Executing Script is Not Joined to the Domain '$domainFqdn': SKIPPING" -Colour Cyan
+            }
+
             # License the Supervisor Cluster for Developer Ready Infrastructure
-            Write-LogMessage -Type INFO -Message "License the Supervisor Cluster for Developer Ready Infrastructure"
+            Write-LogMessage -Type INFO -Message "Attempting to License the Supervisor Cluster for Developer Ready Infrastructure"
             $StatusMsg = Add-SupervisorClusterLicense -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -Cluster $wmClusterName -LicenseKey $licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Deploy a Supervisor Namespace for Developer Ready Infrastructure
-            Write-LogMessage -Type INFO -Message "Deploy a Supervisor Namespace for Developer Ready Infrastructure"
+            Write-LogMessage -Type INFO -Message "Attempting to Deploy a Supervisor Namespace for Developer Ready Infrastructure"
             $StatusMsg = Add-Namespace -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -Cluster $wmClusterName -Namespace $wmNamespaceName -StoragePolicy $spbmPolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg"; $ErrorMsg = '' } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Assign the Supervisor Namespace Roles to Active Directory Groups
-            Write-LogMessage -Type INFO -Message "Assign the Supervisor Namespace Roles to Active Directory Groups"
+            Write-LogMessage -Type INFO -Message "Attempting to Assign the Supervisor Namespace Roles to Active Directory Groups"
             $StatusMsg = Add-NamespacePermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $wldSddcDomainName -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -namespace $wmNamespaceName -principal $wmNamespaceEditUserGroup -role edit -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Add-NamespacePermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $wldSddcDomainName -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -namespace $wmNamespaceName -principal $wmNamespaceViewUserGroup -role view -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Enable the Registry Service on the Supervisor Cluster for Developer Ready Infrastructure
-            Write-LogMessage -Type INFO -Message "Enable the Registry Service on the Supervisor Cluster for Developer Ready Infrastructure"
+            Write-LogMessage -Type INFO -Message "Attempting to Enable the Registry Service on the Supervisor Cluster for Developer Ready Infrastructure"
             $StatusMsg = Enable-Registry -Server $sddcManagerFqdn -User $sddcManagerUser -Pass $sddcManagerPass -Domain $wldSddcDomainName -StoragePolicy $spbmPolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
         }

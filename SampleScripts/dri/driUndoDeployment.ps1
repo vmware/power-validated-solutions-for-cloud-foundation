@@ -10,7 +10,12 @@
     Date:   2022-03-23
     Copyright 2021-2022 VMware, Inc.
     ===================================================================================================================
-    
+    .CHANGE_LOG
+
+    - 1.1.000   (Gary Blake / 2022-10-03) - Added support for VCF 4.5.x Planning and Prep Workbook
+
+    ===================================================================================================================
+        
     .SYNOPSIS
     Remove Developer Ready Infrastructure from a VMware Cloud Foundation Instance
 
@@ -54,7 +59,7 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
