@@ -10400,11 +10400,11 @@ Function Add-vRLILogForwarder {
         - Adds a log forwarder destination to vRealize Log Insight
 
         .EXAMPLE
-        Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name lax-vrli01 -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514 -transport TCP -acceptCert false -sslEnabled false -testConnection false
+        Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name "SFO to LAX" -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514 -transport TCP -acceptCert false -sslEnabled false -testConnection false
         This example adds a log forwarder to vRealize Log Insight using syslog over TCP 514.
 
         .EXAMPLE
-        Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name lax-vrli01 -fqdn lax-vrli01.lax.rainpole.io -protocol CFAPI -port 9543 -acceptCert true -sslEnabled true -testConnection true
+        Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name "SFO to LAX" -fqdn lax-vrli01.lax.rainpole.io -protocol CFAPI -port 9543 -acceptCert true -sslEnabled true -testConnection true
         This example adds a log forwarder destination to vRealize Log Insight
     #>
 
@@ -30289,6 +30289,37 @@ Function Remove-vRLILogForwarder {
     }
 }
 Export-ModuleMember -Function Remove-vRLILogForwarder
+
+Function Update-vRLILogForwarder {
+    <#
+        .SYNOPSIS
+        Updates a log forwarder.
+
+        .DESCRIPTION
+        The Updates-vRLILogForwarder cmdlet updates s a log forwarder destination from vRealize Log Insight.
+
+        .EXAMPLE
+        Updates-vRLILogForwarder
+        This example updates a log forwarder destination from vRealize Log Insight.
+
+        .EXAMPLE
+        Updates-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022" -json $json
+        This example updates a log forwarder destination from vRealize Log Insight.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v2/log-forwarder/$id"
+        Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vrliHeaders -Body $json
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Update-vRLILogForwarder
 
 Function Test-vRLILogForwarder {
     <#
