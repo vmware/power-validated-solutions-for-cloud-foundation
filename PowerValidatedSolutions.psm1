@@ -30085,7 +30085,7 @@ Function Get-vRLILogForwarder {
         if ($PsBoundParameters.ContainsKey('id')) {
             $uri = "https://$vrliAppliance/api/v2/log-forwarder/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
-            $response.forwarders
+            $response
         }
         else {
             $uri = "https://$vrliAppliance/api/v2/log-forwarder"
