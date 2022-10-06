@@ -22,6 +22,10 @@
     .EXAMPLE
     iomDeployVrealizeOperations.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs
     This example performs the deployment and configure of vRealize Operations Manager using the parameters provided within the Planning and Preparation Workbook
+
+    .EXAMPLE
+    iomDeployVrealizeOperations.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs -nested
+    This example performs a minimal footprint deployment and configuration of vRealize Operations Manager using the parameters provided within the Planning and Preparation Workbook
 #>
 
 Param (
@@ -29,7 +33,8 @@ Param (
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
-    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath
+    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath,
+    [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
 )
 
 Clear-Host; Write-Host ""
@@ -72,7 +77,11 @@ Try {
             $xintUserName                           = $pnpWorkbook.Workbook.Names["vrslcm_xreg_admin_username"].Value
             $vropsFolder                            = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
             $vropsrcFolder                          = $pnpWorkbook.Workbook.Names["region_vrops_collector_vm_folder"].Value
-            $vropsVmList                            = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+            if (!$PsBoundParameters.ContainsKey("nested")) {
+                $vropsVmList                            = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+            } else {
+                $vropsVmList                            = $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+            }
             $vropsrcVmList                          = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
             $vropsAntiAffinityRuleName              = "anti-affinity-rule-vrops"
             $vropsAntiAffinityVMs                   = $vropsVmList
@@ -125,9 +134,15 @@ Try {
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Deploy vRealize Operations Manager by Using vRealize Suite Lifecycle Manager
-            Write-LogMessage -Type INFO -Message "Deploy vRealize Operations Manager by Using vRealize Suite Lifecycle Manager"
-            $StatusMsg = New-vROPSDeployment -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            if (!$PsBoundParameters.ContainsKey("nested")) {
+                Write-LogMessage -Type INFO -Message "Deploy vRealize Operations Manager by Using vRealize Suite Lifecycle Manager"
+                $StatusMsg = New-vROPSDeployment -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg -contains "FAILED" ) { Write-LogMessage -Type ERROR -Message "$StatusMsg"; Break } else { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            } else {
+                Write-LogMessage -Type INFO -Message "Deploy vRealize Operations Manager by Using vRealize Suite Lifecycle Manager"
+                $StatusMsg = New-vROPSDeployment -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -workbook $workbook -monitor -nested -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg -contains "FAILED" ) { Write-LogMessage -Type ERROR -Message "$StatusMsg"; Break } else { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            }
 
             # Create Virtual Machine and Template Folders for the vRealize Operations Manager Virtual Machines
             Write-LogMessage -Type INFO -Message "Create Virtual Machine and Template Folders for the vRealize Operations Manager Virtual Machines"

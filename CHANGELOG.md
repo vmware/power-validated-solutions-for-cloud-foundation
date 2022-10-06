@@ -2,15 +2,23 @@
 
 ## v1.9.0 (Not Released)
 
+- Fixed `ilaDeployVrealizeLogInsight.ps1` where the call for cmdlet named Add-vRLISmtpConfiguration had a typo.
 - Enhanced `Export-WsaJsonSpec` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
 - Enhanced `New-WSADeployment` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
+- Enhanced `Export-vROPSJsonSpec` cmdlet to support deploying a smaller footprint of vRealize Operations for nested environments.
+- Enhanced `New-vROPSDeployment` cmdlet to support smaller footprint of vRealize Operations for nested environments.
+- Enhanced `ilaConfigureVrealizeLogInsight.ps1` Sample Script to detect Standard versus Clustered Workspace ONE.
+- Enhanced `iomDeployVrealizeOperations.ps1` Sample Script to support smaller footprint of vRealize Operations for nested environments.
+- Enhanced `ilaDeployVrealizeLogInsight.ps1` Sample Script to skip trying to configure Archive and Retention settings when no NFS details are provided.
 - Added `Enable-vRLIContentPack` cmdlet to support install of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Update-vRLIContentPack` cmdlet to support update of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Get-vRLIMarketplaceMetadata` cmdlet to support install and upgrade of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Install-vRLIContentPack` cmdlet to support installation of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Get-vRLIContentPack` cmdlet to support install and upgrade of content packs from the vRealize Log Insight in-product marketplace.
-- Added `Get-vROpsLogForwardingConfig` to support verification of vRealize Operations log forwarding.
-- Added `Get-vROpsLogForwarding` to support verification of vRealize Operations log forwarding.
+- Added `Get-vROpsLogForwardingConfig` cmdlet to support verification of vRealize Operations log forwarding.
+- Added `Get-vROpsLogForwarding` cmdlet to support verification of vRealize Operations log forwarding.
+- Updated `Export-vRLIJsonSpec` cmdlet to define vRealize Log Insight v8.8.2 as the default install for VCF 4.5.
+- Updated `Export-vRAJsonSpec` cmdlet to define vRealize Automation v8.8.2 as the default install for VCF 4.5.
 - Updated Sample Scripts in the SampleScripts\ila folder, to support the VCF 4.5.x Planning and Prep Workbook:
   - `ilaDeployVrealizeLogInsight.ps1`
   - `ilaConfigureVrealizeLogInsight.ps1`

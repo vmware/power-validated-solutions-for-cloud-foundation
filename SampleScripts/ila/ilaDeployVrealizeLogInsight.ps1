@@ -160,14 +160,16 @@ Try {
 
             # Configure SMTP for vRealize Log Insight
             Write-LogMessage -Type INFO -Message "Configure SMTP for vRealize Log Insight"
-            $StatusMsg = Add-vRLISmtpConfiguation -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -smtpServer $smtpServer -port $port -sender $sender -smtpUser $smtpUser -smtpPass $smtpPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            $StatusMsg = Add-vRLISmtpConfiguration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -smtpServer $smtpServer -port $port -sender $sender -smtpUser $smtpUser -smtpPass $smtpPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Configure Log Retention and Archiving for vRealize Log Insight
-            Write-LogMessage -Type INFO -Message "Configure Log Retention and Archiving for vRealize Log Insight"
-            $StatusMsg = Add-vRLILogArchive -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -emailAddress $emailAddress -retentionNotificationDays $retentionNotificationDays -retentionInterval weeks -retentionPeriodDays $retentionPeriodDays -archiveLocation $archiveLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-        
+            if (!($archiveLocation -match "Value Missing")) {
+                Write-LogMessage -Type INFO -Message "Configure Log Retention and Archiving for vRealize Log Insight"
+                $StatusMsg = Add-vRLILogArchive -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -emailAddress $emailAddress -retentionNotificationDays $retentionNotificationDays -retentionInterval weeks -retentionPeriodDays $retentionPeriodDays -archiveLocation $archiveLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            }
+            
             # Enable Authentication for vRealize Log Insight by Using Workspace ONE Access
             Write-LogMessage -Type INFO -Message "Enable Authentication for vRealize Log Insight by Using Workspace ONE Access"
             $StatusMsg = Add-vRLIAuthenticationWSA -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -wsaFqdn $wsaFqdn -wsaUser $wsaUser -wsaPass $wsaPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
