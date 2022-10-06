@@ -17160,10 +17160,10 @@ Function Get-NsxtServerDetail {
 
                 $nsxtCluster = New-Object -TypeName PSCustomObject
                 $nsxtCluster | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $nsxtServerDetails.vipFqdn
-                $nsxtCluster | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM") }).username
-                $nsxtCluster | Add-Member -notepropertyname 'adminPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM") }).password
-                $nsxtCluster | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM") }).username
-                $nsxtCluster | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM") }).password
+                $nsxtCluster | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username 
+                $nsxtCluster | Add-Member -notepropertyname 'adminPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
+                $nsxtCluster | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username
+                $nsxtCluster | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
                 if ($listNodes) {
 					$nsxtCluster | Add-Member -notepropertyname 'nodes' -notepropertyvalue $nsxtServerDetails.nodes
 				}
