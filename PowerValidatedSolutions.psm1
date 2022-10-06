@@ -30452,15 +30452,15 @@ Function Request-CSPToken {
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
-        VMware Cloud Service -environment production -apiToken <string>
+        Request-CSPToken -environment production -apiToken <string>
         This example shows how to connect to the production VMware Cloud Service and obtain an authorization token.
 
         .EXAMPLE
-        VMware Cloud Service -environment staging -apiToken <string>
+        Request-CSPToken -environment staging -apiToken <string>
         This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token.
 
         .EXAMPLE
-        VMware Cloud Service -environment staging -apiToken <string> -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io
+        Request-CSPToken -environment staging -apiToken <string> -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io
         This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token and set
         set the fqdn for the Cloud Extensibility Proxy for vRealize Orchestrator configuration.
     #>
@@ -30528,10 +30528,15 @@ Function Get-CloudProxy {
         .EXAMPLE
         Get-CloudProxy -environment production -type 'Cloud Proxy' -ovaUrl
         This example shows how to obtain the URL to the Cloud Proxy OVA.
+
+        .EXAMPLE
+        Get-CloudProxy -environment production -region uk -type 'Cloud Proxy' -ovaUrl
+        This example shows how to obtain the URL to the Cloud Proxy OVA for the United Kingdom region.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $false)] [ValidateSet("au","br","ca","de","jp","sg","uk","us")] [ValidateNotNullOrEmpty()] [String]$region,
         [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
         [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [Switch]$download,
         [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [String]$path,
@@ -30542,7 +30547,15 @@ Function Get-CloudProxy {
         if ($environment -eq "staging") {
             $baseUrl = "https://api.staging.symphony-dev.com"
         } elseif ($environment -eq "production") {
-            $baseUrl = "https://api.mgmt.cloud.vmware.com"
+            if ($PsBoundParameters.ContainsKey("region")) {
+                if ($region -eq "us") {
+                    $baseUrl = 'https://api.mgmt.cloud.vmware.com'
+                } else {
+                    $baseUrl = "https://$region.api.mgmt.cloud.vmware.com"
+                }       
+            } else {
+                $baseUrl = "https://api.mgmt.cloud.vmware.com"
+            }
         }
 
         if ($type -eq "Cloud Proxy") {
@@ -30608,25 +30621,37 @@ Function Get-CloudProxyOtk {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
-        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
+        [Parameter (Mandatory = $false)] [ValidateSet("au","br","ca","de","jp","sg","uk","us")] [ValidateNotNullOrEmpty()] [String]$region
     )
 
     Try {
-        if ($environment -eq "staging") {
-            $baseUrl = "https://api.staging.symphony-dev.com"
-        } elseif ($environment -eq "production") {
-            $baseUrl = "https://api.mgmt.cloud.vmware.com"
+        if ($environment -eq 'staging') {
+            $baseUrl = 'https://api.staging.symphony-dev.com'
+        }
+        elseif ($environment -eq 'production') {
+            if ($PsBoundParameters.ContainsKey('region')) {
+                if ($region -eq 'us') {
+                    $baseUrl = 'https://api.mgmt.cloud.vmware.com'
+                }
+                else {
+                    $baseUrl = "https://$region.api.mgmt.cloud.vmware.com"
+                }       
+            } else {
+                $baseUrl = 'https://api.mgmt.cloud.vmware.com'
+            }
         }
         $apiUrl = "/api/otk-v3"
         $uri = $baseUrl + $apiUrl
 
         if ($type -eq "Cloud Proxy") {
-            $body = '{"url":"https://api.staging.symphony-dev.com","service":"cloud_assembly"}'
+            $body = '{"url":"' + $baseUrl + '","service":"cloud_assembly"}'
         } elseif ($type -eq "Cloud Extensibility Proxy") {
-            $body = '{"url":"https://api.staging.symphony-dev.com","service":"cloud_assembly_extensibility"}'
+            $body = '{"url":"' + $baseUrl + '","service":"cloud_assembly_extensibility"}'
         }
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $cspHeader -Body $body
         $response
+
     }
     Catch {
         Write-Error $_.Exception.Message
