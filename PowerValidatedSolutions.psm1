@@ -9323,7 +9323,7 @@ Function Export-vRLIJsonSpec {
                                         if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
                                         if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2"}
                                         if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2"}
-										if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.0"}
+										if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2"}
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
                                             'id' 			= "vrli"
@@ -11142,13 +11142,18 @@ Function Export-vROPsJsonSpec {
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example creates a JSON specification file for deploying vRealize Operations Manager using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
+        This example creates a reduce footprint JSON specification file for deploying vRealize Operations Manager using the Planning and Preparation Workbook data
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
     )
 
     Try {
@@ -11354,9 +11359,11 @@ Function Export-vROPsJsonSpec {
                                                     'type'			= "replica"
                                                     'properties'	= ($replicaProperties | Select-Object -Skip 0)
                                                 }
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'			= "data"
-                                                    'properties'	= ($dataProperties | Select-Object -Skip 0)
+                                                if (!$PsBoundParameters.ContainsKey("nested")) {
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "data"
+                                                        'properties'	= ($dataProperties | Select-Object -Skip 0)
+                                                    }
                                                 }
                                                 $nodesobject += [pscustomobject]@{
                                                     'type'			= "remotecollector"
@@ -11444,6 +11451,10 @@ Function New-vROPSDeployment {
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example starts a deployment of vRealize Operations Manager via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
+        This example starts a reduce footprint deployment of vRealize Operations Manager via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -11451,7 +11462,8 @@ Function New-vROPSDeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -11469,7 +11481,11 @@ Function New-vROPSDeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass | Out-Null
+                            if (!$PsBoundParameters.ContainsKey("nested")) {
+                                Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass | Out-Null
+                            } else {
+                                Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested | Out-Null
+                            }
                             $json = (Get-Content -Raw .\vropsDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
@@ -13322,7 +13338,7 @@ Function Export-vRAJsonSpec {
                                                 if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0"}
                                                 if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2"}
                                                 if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2"}
-												if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.0"}
+												if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2"}
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vra"
