@@ -54,7 +54,7 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
@@ -100,9 +100,9 @@ Try {
             $domainBindPass                 = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
             $vraServiceAccount              = $pnpWorkbook.Workbook.Names["user_svc_vra_vsphere"].Value
             $vroServiceAccount              = $pnpWorkbook.Workbook.Names["user_svc_vro_vsphere"].Value
-            $nsxEdgeVMFolder                = "sfo-w01-fd-edge"
-            $localDatastoreFolder           = "sfo-w01-fd-ds-local"
-            $readOnlyDatastoreFolder        = "sfo-w01-fd-ds-readonly"
+            $nsxEdgeVMFolder                = $pnpWorkbook.Workbook.Names["wld_vra_storage_folder"].Value
+            $localDatastoreFolder           = $pnpWorkbook.Workbook.Names["wld_vra_storage_folder"].Value
+            $readOnlyDatastoreFolder        = $pnpWorkbook.Workbook.Names["wld_vra_storage_readonly_folder"].Value
             $nsxVraUser                     = $pnpWorkbook.Workbook.Names["user_svc_vra_nsx"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
             $capabilityTag                  = $pnpWorkbook.Workbook.Names["xreg_vra_cloud_account_cloud_capability_tag"].Value
             $tagKey                         = "enabled"
