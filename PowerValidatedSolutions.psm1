@@ -28907,6 +28907,64 @@ Function Remove-vROPSAlertPlugin {
 }
 Export-ModuleMember -Function Remove-vROPSAlertPlugin
 
+Function Get-vROPSAlertDefinition {
+    <#
+        .SYNOPSIS
+        Get collection of alert definitions matching the search criteria specified
+
+        .DESCRIPTION
+        The Get-vROPSAlertDefinition cmdlet gets collection of alert definitions matching the search criteria specified in vRealize Operations
+
+        .EXAMPLE
+        Get-vROPSAlertDefinition
+        This example gets all alert definitions
+
+        .EXAMPLE
+        Get-vROPSAlertDefinition -id SrmAdapter
+        This example gets an alert definition by its id
+
+        .EXAMPLE
+        Get-vROPSAlertDefinition -adapterKind SrmAdapter
+        This example gets all alert definitions for the adapter type SrmAdapter
+
+        .EXAMPLE
+        Get-vROPSAlertDefinition -resourceKind "Protection Groups"
+        This example gets all alert definitions for the resource type SrmAdapter
+    #>
+
+    [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $false, ParameterSetName = 'default')]
+        [Parameter (Mandatory = $false, ParameterSetName = 'id')] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $false, ParameterSetName = 'adapterKind')] [ValidateNotNullOrEmpty()] [String]$adapterKind,
+        [Parameter (Mandatory = $false, ParameterSetName = 'resourceKind')] [ValidateNotNullOrEmpty()] [String]$resourceKind
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$vropsAppliance/suite-api/api/alertdefinitions?id=$id&_no_links=true"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
+            $response.alertDefinitions
+        } elseif ($PsBoundParameters.ContainsKey("adapterKind")) {
+            $uri = "https://$vropsAppliance/suite-api/api/alertdefinitions?adapterKind=$adapterKind&_no_links=true"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
+            $response.alertDefinitions
+        } elseif ($PsBoundParameters.ContainsKey("resourceKind")) {
+            $uri = "https://$vropsAppliance/suite-api/api/alertdefinitions?resourceKind=$resourceKind&_no_links=true"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
+            $response.alertDefinitions
+        } else {
+            $uri = "https://$vropsAppliance/suite-api/api/alertdefinitions"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
+            $response.alertDefinitions
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vROPSAlertDefinition
+
 Function Set-vROPSAlertPluginStatus {
     <#
         .SYNOPSIS
