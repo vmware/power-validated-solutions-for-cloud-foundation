@@ -18,10 +18,13 @@
 - Added `Get-vROpsLogForwardingConfig` cmdlet to support verification of vRealize Operations log forwarding.
 - Added `Get-vROpsLogForwarding` cmdlet to support verification of vRealize Operations log forwarding.
 - Added `Add-vROPSAdapterVr` cmdlet to support adding a vSphere Replication adapter to vRealize Operations.
+- Added `Add-vROPSAdapterSrm` cmdlet to support adding a Site Recovery Manager adapter to vRealize Operations.
 - Added `Get-vROPSAlertDefinition` cmdlet a sub-function to obtain alert definition details from vRealize Operations.
 - Added `vrops-srm-notifications.csv` Sample Notification file for configuraing Site Recovery Manager alert notifications in vRealize Operations. 
 - Updated `Export-vRLIJsonSpec` cmdlet to define vRealize Log Insight v8.8.2 as the default install for VCF 4.5.
 - Updated `Export-vRAJsonSpec` cmdlet to define vRealize Automation v8.8.2 as the default install for VCF 4.5.
+- Updated `Undo-vROPSAdapter` cmdlet to support removing VrAdpater and SrmAdapter adapter types from vRealize Operations.
+- Updated `Undo-vROPSCredential` cmdlet to support removing VrAdpater and SrmAdapter credentials from vRealize Operations.
 - Updated Sample Scripts in the SampleScripts\ila folder, to support the VCF 4.5.x Planning and Prep Workbook:
   - `ilaDeployVrealizeLogInsight.ps1`
   - `ilaConfigureVrealizeLogInsight.ps1`
