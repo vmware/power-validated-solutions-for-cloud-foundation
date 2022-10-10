@@ -12779,8 +12779,8 @@ Function Add-vROPSAdapterSrm {
                                     } else {
                                         Write-Error "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): POST_VALIDATION_FAILED"
                                     }
-                                    # Remove-Item .\addAdapter.json -Force -Confirm:$false
-                                    # Remove-Item .\patchAdapter.json -Force -Confirm:$false 
+                                    Remove-Item .\addAdapter.json -Force -Confirm:$false
+                                    Remove-Item .\patchAdapter.json -Force -Confirm:$false 
                                 } else {
                                     Write-Warning "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)), already exists: SKIPPED"
                                 }      
