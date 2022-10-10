@@ -12692,6 +12692,112 @@ Function Add-vROPSAdapterIdentityManager {
 }
 Export-ModuleMember -Function Add-vROPSAdapterIdentityManager
 
+Function Add-vROPSAdapterSrm {
+    <#
+		.SYNOPSIS
+        Adds a Site Recovery Manager Adapter to vRealize Operations Manager
+
+        .DESCRIPTION
+        The Add-vROPSAdapterSrm cmdlet adds an Site Recovery Manager Adapter to vRealize Operations Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that the Workload Domain is valid and then obtains the NSX Management Cluster details
+        - Validates that the Remote Collector Group exits in vRealize Operations Manager
+        - Validates that the Adapter and Credentials do not already exist in vRealize Operations Manager
+        - Creates a new Site Recovery Manager Adapter in vRealize Operations Manager
+        - Starts the collection of the Site Recovery Manager Adapter in vRealize Operations Manager
+
+        .EXAMPLE
+        Add-vROPSAdapterSrm -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -srmFqdn sfo-m01-srm01.sfo.rainpole.io -srmUser vrops-srm -srmPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        This example creates a Site Recovery Manager Adapter in vRealize Opertations Manager and assigns to the remote collector group defined
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmPass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName="Default collector group"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
+                                if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $srmFqdn})) {
+                                    if (!(Get-vROPSCredential | Where-Object {$_.name -eq $srmFqdn})) {
+                                        $credentialJson = '{
+                                            "name": "'+ $srmFqdn +'",
+                                            "adapterKindKey": "SrmAdapter",
+                                            "credentialKindKey": "SRM Credentials",
+                                            "fields": [
+                                                { "name": "username", "value": "'+ $srmUser +'" },
+                                                { "name": "password", "value": "'+ $srmPass +'" }
+                                        ]}'
+                                        $credentialJson | Out-File .\addCredential.json
+                                        Add-vROPSCredential -json .\addCredential.json | Out-Null
+                                        Remove-Item .\addCredential.json -Force -Confirm:$false
+                                    }
+                                    $adapterJson = '{
+                                        "name": "'+ $srmFqdn +'",
+                                        "description": "SRM Adapter - '+ $srmFqdn +'",
+                                        "adapterKindKey": "SrmAdapter",
+                                        "monitoringInterval": 5,
+                                        "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id +'",
+                                        "resourceIdentifiers": [
+                                            { "name": "host", "value": "'+ $srmFqdn +'" },
+                                            { "name": "port", "value": "443" }
+                                        ],
+                                        "credential": {
+                                            "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -eq $srmFqdn}).id +'"
+                                            }
+                                    }'
+                                    $adapterJson | Out-File .\addAdapter.json
+                                    Add-vROPSAdapter -json .\addAdapter.json | Out-Null
+                                    $testAdapter = Test-vROPSAdapterConnection -json .\addAdapter.json
+                                    $adapterDetail = $testAdapter
+                                    $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "SRM Adapter - $($srmFqdn)"
+                                    $adapterDetail.PSObject.Properties.Remove('links')
+                                    $adapterDetail.'adapter-certificates' = $adapterDetail.'adapter-certificates' | Select-Object * -ExcludeProperty certificateDetails
+                                    $certificates = New-Object System.Collections.ArrayList
+                                    $certificates = $adapterDetail.'adapter-certificates'
+                                    $adapterDetail.PSObject.Properties.Remove('adapter-certificates')
+                                    $adapterDetail | Add-Member -NotePropertyName adapter-certificates -NotePropertyValue ([Array]$certificates)
+                                    $adapterDetail.id = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $srmFqdn}).id
+                                    $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\patchAdapter.json  -Force
+                                    Set-vROPSAdapter -json .\patchAdapter.json -patch | Out-Null
+                                    if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $srmFqdn}) {
+                                        Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $srmFqdn}).id | Out-Null
+                                        Write-Output "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                    Remove-Item .\addAdapter.json -Force -Confirm:$false
+                                    Remove-Item .\patchAdapter.json -Force -Confirm:$false 
+                                } else {
+                                    Write-Warning "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)), already exists: SKIPPED"
+                                }      
+                            } else {
+                                Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                            }  
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSAdapterSrm
+
 Function Add-vROPSAdapterVr {
     <#
 		.SYNOPSIS
@@ -12710,7 +12816,7 @@ Function Add-vROPSAdapterVr {
         - Starts the collection of the vSphere Replication Adapter in vRealize Operations Manager
 
         .EXAMPLE
-        Add-vROPSAdapterVr -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-01 -vrFqdn sfo-m01-vrms01.sfo.rainpole.io -vrUser vrops-vr@vsphere.local -vrPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
+        Add-vROPSAdapterVr -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vrFqdn sfo-m01-vrms01.sfo.rainpole.io -vrUser vrops-vr@vsphere.local -vrPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
         This example creates a vSphere Replication Adapter in vRealize Opertations Manager and assigns to the remote collector group defined
     #>
 
@@ -12718,7 +12824,6 @@ Function Add-vROPSAdapterVr {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrPass,
@@ -12780,7 +12885,6 @@ Function Add-vROPSAdapterVr {
                                         Write-Error "Adding vSphere Replication Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)): POST_VALIDATION_FAILED"
                                     }
                                     Remove-Item .\addAdapter.json -Force -Confirm:$false
-                                    Remove-Item .\createdAdapter.json -Force -Confirm:$false
                                     Remove-Item .\patchAdapter.json -Force -Confirm:$false 
                                 } else {
                                     Write-Warning "Adding vSphere Replication Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)), already exists: SKIPPED"
@@ -12823,7 +12927,7 @@ Function Undo-vROPSAdapter {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterName,
-        [Parameter (Mandatory = $true)] [ValidateSet("PingAdapter","IdentityManagerAdapter","NSXTAdapter","SDDCHealthAdapter")] [String]$adapterType
+        [Parameter (Mandatory = $true)] [ValidateSet("PingAdapter","IdentityManagerAdapter","NSXTAdapter","SDDCHealthAdapter","SrmAdapter","VrAdapter")] [String]$adapterType
     )
 
     Try {
@@ -12881,7 +12985,7 @@ Function Undo-vROPSCredential {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialName,
-        [Parameter (Mandatory = $true)] [ValidateSet("IdentityManagerAdapter","NSXTAdapter","CASAdapter")] [String]$credentialType
+        [Parameter (Mandatory = $true)] [ValidateSet("IdentityManagerAdapter","NSXTAdapter","CASAdapter","SrmAdapter","VrAdapter")] [String]$credentialType
     )
 
     Try {
