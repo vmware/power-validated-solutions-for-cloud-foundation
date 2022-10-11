@@ -47,6 +47,8 @@
   - `iomDeployVrealizeOperations.ps1`
 - Added Sample Scripts in the SampleScripts\pca folder, uses the Planning and Preparation Workbook as the input source:
   - `pcaDeployVrealizeAutomation.ps1`
+- Added Sample Scripts in the SampleScripts\iom folder, to configure Solution Interoperability for Intelligent Operations Management:
+  - `iomSolutionInteroperability.ps1`
 
 ## v1.8.0 (2022-27-09)
 
