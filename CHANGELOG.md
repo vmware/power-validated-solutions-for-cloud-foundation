@@ -51,6 +51,9 @@
   - `pcaDeployVrealizeAutomation.ps1`
 - Added Sample Scripts in the SampleScripts\iom folder, to configure Solution Interoperability for Intelligent Operations Management:
   - `iomSolutionInteroperability.ps1`
+- Added Sample Scripts in the SampleScripts\ila folder, to perform configuration of Solution Interoperability for Intelligent Logging and Analytics:
+  - `ilaSolutionInteroperability.ps1`
+  - `ilaUndoSolutionInteroperability.ps1`
 - Added Sample Scripts in the SampleScripts\iam folder, for configuring and removing Solution Interoperability:
   - `iamSolutionInteroperability.ps1`
 
