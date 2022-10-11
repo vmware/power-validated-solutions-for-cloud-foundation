@@ -20,7 +20,9 @@
 - Added `Add-vROPSAdapterVr` cmdlet to support adding a vSphere Replication adapter to vRealize Operations.
 - Added `Add-vROPSAdapterSrm` cmdlet to support adding a Site Recovery Manager adapter to vRealize Operations.
 - Added `Get-vROPSAlertDefinition` cmdlet a sub-function to obtain alert definition details from vRealize Operations.
-- Added `vrops-srm-notifications.csv` Sample Notification file for configuraing Site Recovery Manager alert notifications in vRealize Operations. 
+- Added `vrops-srm-notifications.csv` Sample Notification file for configuring Site Recovery Manager alert notifications in vRealize Operations.
+- Added `Remove-vRLIAgentGroup` cmdlet a sub-function to support removing agent groups from vRealize Log Insight.
+- Added `Undo-vRLIAgentGroup` cmdlet to support removing an agent group from vRealize Log Insight.
 - Updated `Export-vRLIJsonSpec` cmdlet to define vRealize Log Insight v8.8.2 as the default install for VCF 4.5.
 - Updated `Export-vRAJsonSpec` cmdlet to define vRealize Automation v8.8.2 as the default install for VCF 4.5.
 - Updated `Undo-vROPSAdapter` cmdlet to support removing VrAdpater and SrmAdapter adapter types from vRealize Operations.
@@ -47,6 +49,8 @@
   - `iomDeployVrealizeOperations.ps1`
 - Added Sample Scripts in the SampleScripts\pca folder, uses the Planning and Preparation Workbook as the input source:
   - `pcaDeployVrealizeAutomation.ps1`
+- Added Sample Scripts in the SampleScripts\iam folder, for configuring and removing Solution Interoperability:
+  - `iamSolutionInteroperability.ps1`
 
 ## v1.8.0 (2022-27-09)
 
