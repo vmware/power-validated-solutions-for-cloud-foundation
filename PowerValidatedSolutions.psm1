@@ -9831,7 +9831,7 @@ Function Add-vRLIAgentGroup {
                                     Write-Error "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), already exists: SKIPPED"
+                                Write-Warning "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), already performed: SKIPPED"
                             }
                         }
                     }
@@ -9843,6 +9843,58 @@ Function Add-vRLIAgentGroup {
     }
 }
 Export-ModuleMember -Function Add-vRLIAgentGroup
+
+Function Undo-vRLIAgentGroup {
+    <#
+		.SYNOPSIS
+        Deletes an agent group in vRealize Log Insight
+
+        .DESCRIPTION
+        The Undo-vRLIAgentGroup cmdlet deletes an agent group from vRealize Log Insight. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Deletes an agent group from the vRealize Log Insight if not already configured
+
+        .EXAMPLE
+        Undo-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupName "Workspace ONE Access (IAM) - Appliance Agent Group"
+        This example deletes an agent group for Workspace ONE Access in vRealize Log Insight
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$agentGroupName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName}) {
+                                Remove-vRLIAgentGroup -groupName $agentGroupName | Out-Null
+                                if (!(Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName})) {
+                                    Write-Output "Deleting Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Deleting Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Deleting Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), does not exist: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRLIAgentGroup
 
 Function Register-vRLIWorkloadDomain {
     <#
@@ -29995,6 +30047,34 @@ Function New-vRLIAgentGroup {
     }
 }
 Export-ModuleMember -Function New-vRLIAgentGroup
+
+Function Remove-vRLIAgentGroup {
+    <#
+        .SYNOPSIS
+        Remove an agent group
+
+        .DESCRIPTION
+        The Remove-vRLIAgentGroup cmdlet deletes an agent group
+
+        .EXAMPLE
+        Remove-vRLIAgentGroup -groupName "Workspace ONE Access (IAM) - Appliance Agent Group"
+        This example deletes an agent group
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupName
+    )
+
+    Try {
+        $groupName = $groupName.replace(' ','%20')
+        $uri = "https://$vrliAppliance/api/v1/agent/groups/$groupName"
+        Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vrliHeaders
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRLIAgentGroup
 
 Function Get-vRLISmtpConfiguration {
     <#
