@@ -23,6 +23,7 @@
 - Added `vrops-srm-notifications.csv` Sample Notification file for configuring Site Recovery Manager alert notifications in vRealize Operations.
 - Added `Remove-vRLIAgentGroup` cmdlet a sub-function to support removing agent groups from vRealize Log Insight.
 - Added `Undo-vRLIAgentGroup` cmdlet to support removing an agent group from vRealize Log Insight.
+- Added `Add-StorageFolder` cmdlet to support adding a storage folder in vCenter Server.
 - Updated `Export-vRLIJsonSpec` cmdlet to define vRealize Log Insight v8.8.2 as the default install for VCF 4.5.
 - Updated `Export-vRAJsonSpec` cmdlet to define vRealize Automation v8.8.2 as the default install for VCF 4.5.
 - Updated `Undo-vROPSAdapter` cmdlet to support removing VrAdpater and SrmAdapter adapter types from vRealize Operations.
@@ -51,10 +52,10 @@
   - `pcaDeployVrealizeAutomation.ps1`
 - Added Sample Scripts in the SampleScripts\iom folder, to configure Solution Interoperability for Intelligent Operations Management:
   - `iomSolutionInteroperability.ps1`
-- Added Sample Scripts in the SampleScripts\ila folder, to perform configuration of Solution Interoperability for Intelligent Logging and Analytics:
+- Added Sample Scripts in the SampleScripts\ila folder, to configure Solution Interoperability for for Intelligent Logging and Analytics:
   - `ilaSolutionInteroperability.ps1`
   - `ilaUndoSolutionInteroperability.ps1`
-- Added Sample Scripts in the SampleScripts\iam folder, for configuring and removing Solution Interoperability:
+- Added Sample Scripts in the SampleScripts\iam folder, to configure Solution Interoperability for Identity and Access Management:
   - `iamSolutionInteroperability.ps1`
 
 ## v1.8.0 (2022-27-09)

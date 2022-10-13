@@ -15741,6 +15741,68 @@ Function Add-VMFolder {
 }
 Export-ModuleMember -Function Add-VMFolder
 
+Function Add-StorageFolder {
+    <#
+        .SYNOPSIS
+        Create a Storage Folder
+
+        .DESCRIPTION
+        The Add-StorageFolder cmdlet creates a Storage folder. The cmdlet connects to SDDC Manager using the -server,
+        -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the Workload Domain exists in the SDDC Manager inventory
+        - Retrives the details of the vCenter Server for the Workload Domain provided
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Validates that the Storage folder is not present in the vCenter Server inventory
+        - Creates the Storage folder in the vCenter Server inventory
+
+        .EXAMPLE
+        Add-StorageFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myStorageFolder"
+        This example shows how to create the folder myStorageFolder within the VMware Cloud Foundation domain sfo-m01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folderName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                $datacenter = (Get-Datacenter -Cluster $cluster -Server $vcfVcenterDetails.fqdn).Name
+                                if (Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore) {
+                                    Write-Warning "Adding Storage Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName), already exists: SKIPPED"
+                                } else {
+                                    (Get-View -Server $vcfVcenterDetails.fqdn (Get-View -Server $vcfVcenterDetails.fqdn -viewtype datacenter -filter @{"name" = [String]$datacenter }).datastorefolder).CreateFolder($folderName) | Out-Null
+                                    if ((Get-Folder -Name $folderName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction Ignore)) {
+                                        Write-Output  "Adding Storage Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Storage Folder to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($folderName): POST_VALIDATION_FAILED"
+                                    }
+                                }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-StorageFolder
+
 Function Undo-VMFolder {
     <#
         .SYNOPSIS
@@ -15759,6 +15821,10 @@ Function Undo-VMFolder {
         .EXAMPLE
         Undo-VMFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myFolder" -folderType VM
         This example shows how to remove the folder myFolder within the VMware Cloud Foundation domain sfo-m01
+
+        .EXAMPLE
+        Undo-VMFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myFolder" -folderType Datastore
+        This example shows how to remove the storage folder myStorageFolder within the VMware Cloud Foundation domain sfo-m01
         #>
 
     Param (
