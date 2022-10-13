@@ -7782,7 +7782,7 @@ Function Enable-SupervisorCluster {
         .EXAMPLE
         Enable-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -sizeHint Tiny -managementVirtualNetwork sfo-w01-kub-seg01 -managementNetworkMode StaticRange -managementNetworkStartIpAddress 192.168.20.10 -managementNetworkAddressRangeSize 5 -managementNetworkGateway 192.168.20.1 -managementNetworkSubnetMask 255.255.255.0 -cluster sfo-w01-cl01 -contentLibrary Kubernetes -ephemeralStoragePolicy vsphere-with-tanzu-storage-policy -imageStoragePolicy vsphere-with-tanzu-storage-policy -masterStoragePolicy vsphere-with-tanzu-storage-policy -nsxEdgeCluster sfo-w01-ec01 -distributedSwitch sfo-w01-sfo-w01-vc01-sfo-w01-cl01-vds01 -podCIDRs "100.100.0.0/20" -serviceCIDR "100.200.0.0/22" -externalIngressCIDRs "192.168.21.0/24" -externalEgressCIDRs "192.168.22.0/24" -masterNtpServers @("172.16.11.253", "172.16.12.253") -masterDnsServers @("172.16.11.4", "172.16.11.5") -masterDnsName sfo-w01-cl01.sfo.rainpole.io -masterDnsSearchDomain sfo.rainpole.io -workerDnsServers @("172.16.11.4", "172.16.11.5")
         This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01
-        #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7823,332 +7823,336 @@ Function Enable-SupervisorCluster {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoadmin -Password $vcfVcenterDetails.ssoAdminPass | Out-Null
-                            if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
-                                if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
-                                    if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
-                                        [bool]$inputParameterValidation = $true
-                                        #Check SkipValidation parameter
-                                        if (($SkipValidation.isPreset)) {
-                                            # Validate if vCenter uses 'local'
-                                            if ($vcfVcenterDetails.fqdn) {
-                                                if (($vcfVcenterDetails.fqdn.split(".")[$_.count-1] -eq "local") -and ($masterDnsSearchDomain.split(".")[$_.count-1] -ne "local")) {
-                                                    Write-Warning "'local' domain detected in ($(vcfVcenterDetails.fqdn)), make sure you have provided masterDnsSearchDomain ($masterDnsSearchDomain) to match"
-                                                }
-                                            }
-                                            # Validate management network inputs
-                                            # Valid Starting IP Address is an actual IPv4 address
-                                            if ($managementNetworkStartIpAddress) {
-                                                if (!(Test-IPaddressArray -IPaddressArray $managementNetworkStartIpAddress)) {
-                                                    Write-Error "Invalid Management Network Start IP address ($managementNetworkStartIpAddress): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Valid Subnet Mask
-                                            if ($managementNetworkSubnetMask) {
-                                                if (!(Test-IPaddressArray -IPaddressArray $managementNetworkSubnetMask)) {
-                                                    Write-Error "Management Network Subnet Mask ($managementNetworkSubnetMask) validation failed: PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate Gateway IP Address is an actual IPv4 address and exists in the same subnet as the management starting address
-                                            if ($managementNetworkGateway) {
-                                                Try {
-                                                    if (Test-IPaddressArray $managementNetworkGateway) {
-                                                        #Validate the Gateway IP address and the starting IP address are in the same subnet
-                                                        $checkManagementNetworkGatewayInSubnet = $null
-                                                        Try {
-                                                            $checkManagementNetworkGatewayInSubnet = Test-IpAddress -IpAddress $managementNetworkGateway -Subnet "$managementNetworkStartIpAddress/$managementNetworkCidr"
-                                                        } Catch {}
-                                                        if ($checkManagementNetworkGatewayInSubnet.Validated -eq $false) {
-                                                            Write-Error "Cannot validate the gateway IP address for the Management Network ($managementNetworkGateway) is from the same subnet as the Management Network Starting IP Address ($managementNetworkStartIpAddress/$managementNetworkCidr): PRE_VLALIDATION_FAILED"
-                                                            $inputParameterValidation = $false
-                                                        }
+                            if (!(Get-WMCluster -cluster $cluster -ErrorAction Ignore)) {
+                                Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoadmin -Password $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                if (($vcfNsxtDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                                    if (Test-NSXTConnection -server $vcfNsxtDetails.fqdn) {
+                                        if (Test-NSXTAuthentication -server $vcfNsxtDetails.fqdn -user $vcfNsxtDetails.adminUser -pass $vcfNsxtDetails.adminPass) {
+                                            [bool]$inputParameterValidation = $true
+                                            #Check SkipValidation parameter
+                                            if (($SkipValidation.isPreset)) {
+                                                # Validate if vCenter uses 'local'
+                                                if ($vcfVcenterDetails.fqdn) {
+                                                    if (($vcfVcenterDetails.fqdn.split(".")[$_.count-1] -eq "local") -and ($masterDnsSearchDomain.split(".")[$_.count-1] -ne "local")) {
+                                                        Write-Warning "'local' domain detected in ($(vcfVcenterDetails.fqdn)), make sure you have provided masterDnsSearchDomain ($masterDnsSearchDomain) to match"
                                                     }
-                                                } Catch {
-                                                    Write-Error "Invalid IP address ($managementNetworkGateway) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
                                                 }
-                                            }
-                                            # Validate Management Virtual Network (dvPortGroup) exists
-                                            if ($ManagementVirtualNetwork) {
-                                                Try {
-                                                    $checkManagementVirtualNetwork = Get-VirtualNetwork -Name $ManagementVirtualNetwork -ErrorAction SilentlyContinue
-                                                } Catch {
-                                                    #Do nothing
-                                                }
-                                                if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
-                                                    Write-Error "Invalid Management Virtual Network ($ManagementVirtualNetwork): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                } 
-                                            }
-                                            # Validate Ephemeral Storage Policy exists
-                                            if ($ephemeralStoragePolicy){
-                                                $checkEphemeralStoragePolicy = $null
-                                                Try {
-                                                    $checkEphemeralStoragePolicy = Get-SpbmStoragePolicy -Name $EphemeralStoragePolicy -ErrorAction SilentlyContinue
-                                                } Catch {
-                                                    #Do nothing
-                                                }
-                                                if (!$checkEphemeralStoragePolicy -or !$ephemeralStoragePolicy) {
-                                                    Write-Error "Invalid Ephemeral Storage Policy ($EphemeralStoragePolicy): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate Image Storage Policy exists
-                                            if ($imageStoragePolicy) {
-                                                $checkImageStoragePolicy = $null
-                                                Try {
-                                                    $checkImageStoragePolicy = Get-SpbmStoragePolicy -Name $ImageStoragePolicy -ErrorAction SilentlyContinue
-                                                } Catch {
-                                                    #Do nothing
-                                                }
-                                                if (!$checkImageStoragePolicy -or !$imageStoragePolicy) {
-                                                    Write-Error "Invalid Image Storage Policy ($ImageStoragePolicy): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate Master Storage Policy exists
-                                            if ($masterStoragePolicy) {
-                                                $checkMasterStoragePolicy = $null
-                                                Try {
-                                                    $checkMasterStoragePolicy = Get-SpbmStoragePolicy -Name $MasterStoragePolicy -ErrorAction SilentlyContinue
-                                                }Catch {
-                                                    #Do nothing
-                                                }
-                                                if (!$checkMasterStoragePolicy -or !$masterStoragePolicy) {
-                                                    Write-Error "Invalid Master Storage Policy ($MasterStoragePolicy): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate NSX Edge Cluster exists and lookup ID. TBD chech status of the Edge Cluster and TNs
-                                            if ($nsxEdgeCluster) {
-                                                $nsxEdgeClusterId = $null
-                                                $checkNsxEdgeCluster = $null
-                                                Try {
-                                                    $checkNsxEdgeCluster = Get-NsxEdgeCluster -Name $nsxEdgeCluster -ErrorAction SilentlyContinue
-                                                    $nsxEdgeClusterId = $checkNsxEdgeCluster.Id
-                                                } Catch {
-                                                    #Do nothing
-                                                }
-                                                if (!$nsxEdgeClusterId -or !$nsxEdgeCluster) {
-                                                    Write-Error "Invalid NSX Edge Cluster ($NsxEdgeCluster): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate control plane NTP servers exist and are functional
-                                            if ($masterNtpServers) {
-                                                Foreach ($masterNtpServer in $masterNtpServers) {
-                                                    $checkNtpServer = $null
-                                                    $checkNtpServer = Test-ntpServer $masterNtpServer
-                                                    if (!($checkNtpServer)) {
-                                                        Write-Error "Invalid master NTP server ($masterNtpServer) : PRE_VALIDATION_FAILED"
+                                                # Validate management network inputs
+                                                # Valid Starting IP Address is an actual IPv4 address
+                                                if ($managementNetworkStartIpAddress) {
+                                                    if (!(Test-IPaddressArray -IPaddressArray $managementNetworkStartIpAddress)) {
+                                                        Write-Error "Invalid Management Network Start IP address ($managementNetworkStartIpAddress): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
                                                     }
                                                 }
-                                            }
-                                            # Validate control plane DNS servers exist and are functional
-                                            if ($masterDnsServers) {
-                                                $checkDnsServers = $null
-                                                $checkDnsServers = Test-DnsServers $masterDnsServers
-                                                if (!($checkDnsServers)) {
-                                                    Write-Error "Invalid master dns servers ($masterDnsServers) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
+                                                # Valid Subnet Mask
+                                                if ($managementNetworkSubnetMask) {
+                                                    if (!(Test-IPaddressArray -IPaddressArray $managementNetworkSubnetMask)) {
+                                                        Write-Error "Management Network Subnet Mask ($managementNetworkSubnetMask) validation failed: PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
                                                 }
-                                            }
-                                            # Validate worker DNS servers exist and are functional
-                                            if ($workerDnsServers) {
-                                                $checkDnsServers = $null
-                                                $checkDnsServers = Test-DnsServers $workerDnsServers
-                                                if (!($checkDnsServers)) {
-                                                    Write-Error "Invalid worker dns servers ($workerDnsServers) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate ContentLibrary exists
-                                            #Full validation (checking type, subscription, etc.) is TBD
-                                            if ($contentLibrary) {
-                                                $checkContentLibrary = $null
-                                                Try {
-                                                    $checkContentLibrary = Get-SubscribedLibrary -Name $contentLibrary -ErrorAction SilentlyContinue
-                                                } Catch {
-                                                    Debug-ExceptionWriter -object $_
-                                                }
-                                                if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
-                                                    Write-Error "Invalid Content Library ($contentLibrary): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                } 
-                                            }
-                                            # Validate Distributed Virtual Switch exists
-                                            if ($distributedSwitch) {
-                                                $checkDistributedSwitch = $null
-                                                Try {
-                                                    $checkDistributedSwitch = Get-VDSwitch -Name $distributedSwitch -ErrorAction SilentlyContinue
-                                                } Catch {
-                                                    Debug-ExceptionWriter -object $_
-                                                }
-                                                if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
-                                                    Write-Error "Invalid Virtual Distributed Switch ($distributedSwitch): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                } 
-                                            } 
-                                            # Validates Pod subnet inputs are formatted correctly and sized to meet minimum requirements
-                                            if ($podCIDRs) {
-                                                $checkPodCidr = $null
-                                                $checkPodCidr = Test-WMSubnetInput -Subnet $podCIDRs -SubnetType "Pod"
-                                                if (!($checkPodCidr)) {
-                                                    Write-Error "Invalid podCIDRs ($podCIDRs) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validates Service subnet inputs are formatted correctly and sized to meet minimum requirements
-                                            if ($serviceCIDR) {
-                                                $checkServiceCidr = $null
-                                                $checkServiceCidr = Test-WMSubnetInput -Subnet $serviceCIDR -SubnetType "Service"
-                                                if (!($checkServiceCidr)) {
-                                                    Write-Error "Invalid ServiceCIDR ($serviceCIDR) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validates Ingress subnet inputs are formatted correctly and sized to meet minimum requirements
-                                            if ($externalIngressCIDRs) {
-                                                $checkIngressCidr = $null
-                                                $checkIngressCidr = Test-WMSubnetInput -Subnet $serviceCIDR -SubnetType "Ingress"
-                                                if (!($checkIngressCidr)) {
-                                                    Write-Error "Invalid IngressCIDR ($externalIngressCIDRs) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validates Egress subnet inputs are formatted correctly and sized to meet minimum requirements
-                                            if ($externalEgressCIDRs) {
-                                                $checkEgressCidr = $null
-                                                $checkEgressCidr = Test-WMSubnetInput -Subnet $externalEgressCIDRs -SubnetType "Egress"
-                                                if (!($checkEgressCidr)) {
-                                                    Write-Error "Invalid EgressCIDR ($externalEgressCIDRs) : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                }
-                                            }
-                                            # Validate control plane Kubernetes API endpoint is valid and in DNS
-                                            # TBD as this is not mandatory parameter
-                                            if ($masterDnsName) {
-                                                foreach ($dnsName in $masterDnsName) {
-                                                    $checkDnsName = $null
+                                                # Validate Gateway IP Address is an actual IPv4 address and exists in the same subnet as the management starting address
+                                                if ($managementNetworkGateway) {
                                                     Try {
-                                                        $checkDnsName = Resolve-DnsName -Name $DnsName -Type A -QuickTimeout -ErrorAction Stop
-                                                    } Catch [System.ComponentModel.Win32Exception] {
-                                                        Write-Error "Invalid control plane DNS name ($DnsName): PRE_VALIDATION_FAILED"
+                                                        if (Test-IPaddressArray $managementNetworkGateway) {
+                                                            #Validate the Gateway IP address and the starting IP address are in the same subnet
+                                                            $checkManagementNetworkGatewayInSubnet = $null
+                                                            Try {
+                                                                $checkManagementNetworkGatewayInSubnet = Test-IpAddress -IpAddress $managementNetworkGateway -Subnet "$managementNetworkStartIpAddress/$managementNetworkCidr"
+                                                            } Catch {}
+                                                            if ($checkManagementNetworkGatewayInSubnet.Validated -eq $false) {
+                                                                Write-Error "Cannot validate the gateway IP address for the Management Network ($managementNetworkGateway) is from the same subnet as the Management Network Starting IP Address ($managementNetworkStartIpAddress/$managementNetworkCidr): PRE_VLALIDATION_FAILED"
+                                                                $inputParameterValidation = $false
+                                                            }
+                                                        }
+                                                    } Catch {
+                                                        Write-Error "Invalid IP address ($managementNetworkGateway) : PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
                                                     }
-                                                    if ($checkDnsName) {
-                                                        $checkMasterIpAddress = $null
-                                                        Try {
-                                                            $checkMasterIpAddress = Test-IpAddress -IpAddress $checkDnsName.Answers[0].Address.IPAddressToString -Subnet $externalIngressCIDRs
-                                                        } Catch {
-                                                            #Do nothing
-                                                        }
-                                                        if ($checkMasterIpAddress.Validated -eq $false) {
-                                                            Write-Error -Message "Cannot validate the IP address for $DnsName ($DnsNameIpAddress) is from the external ingress CIDR ($externalIngressCIDRs). : PRE_VALIDATION_FAILED"
+                                                }
+                                                # Validate Management Virtual Network (dvPortGroup) exists
+                                                if ($ManagementVirtualNetwork) {
+                                                    Try {
+                                                        $checkManagementVirtualNetwork = Get-VirtualNetwork -Name $ManagementVirtualNetwork -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
+                                                        Write-Error "Invalid Management Virtual Network ($ManagementVirtualNetwork): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    } 
+                                                }
+                                                # Validate Ephemeral Storage Policy exists
+                                                if ($ephemeralStoragePolicy){
+                                                    $checkEphemeralStoragePolicy = $null
+                                                    Try {
+                                                        $checkEphemeralStoragePolicy = Get-SpbmStoragePolicy -Name $EphemeralStoragePolicy -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if (!$checkEphemeralStoragePolicy -or !$ephemeralStoragePolicy) {
+                                                        Write-Error "Invalid Ephemeral Storage Policy ($EphemeralStoragePolicy): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validate Image Storage Policy exists
+                                                if ($imageStoragePolicy) {
+                                                    $checkImageStoragePolicy = $null
+                                                    Try {
+                                                        $checkImageStoragePolicy = Get-SpbmStoragePolicy -Name $ImageStoragePolicy -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if (!$checkImageStoragePolicy -or !$imageStoragePolicy) {
+                                                        Write-Error "Invalid Image Storage Policy ($ImageStoragePolicy): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validate Master Storage Policy exists
+                                                if ($masterStoragePolicy) {
+                                                    $checkMasterStoragePolicy = $null
+                                                    Try {
+                                                        $checkMasterStoragePolicy = Get-SpbmStoragePolicy -Name $MasterStoragePolicy -ErrorAction SilentlyContinue
+                                                    }Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if (!$checkMasterStoragePolicy -or !$masterStoragePolicy) {
+                                                        Write-Error "Invalid Master Storage Policy ($MasterStoragePolicy): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validate NSX Edge Cluster exists and lookup ID. TBD chech status of the Edge Cluster and TNs
+                                                if ($nsxEdgeCluster) {
+                                                    $nsxEdgeClusterId = $null
+                                                    $checkNsxEdgeCluster = $null
+                                                    Try {
+                                                        $checkNsxEdgeCluster = Get-NsxEdgeCluster -Name $nsxEdgeCluster -ErrorAction SilentlyContinue
+                                                        $nsxEdgeClusterId = $checkNsxEdgeCluster.Id
+                                                    } Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if (!$nsxEdgeClusterId -or !$nsxEdgeCluster) {
+                                                        Write-Error "Invalid NSX Edge Cluster ($NsxEdgeCluster): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validate control plane NTP servers exist and are functional
+                                                if ($masterNtpServers) {
+                                                    Foreach ($masterNtpServer in $masterNtpServers) {
+                                                        $checkNtpServer = $null
+                                                        $checkNtpServer = Test-ntpServer $masterNtpServer
+                                                        if (!($checkNtpServer)) {
+                                                            Write-Error "Invalid master NTP server ($masterNtpServer) : PRE_VALIDATION_FAILED"
                                                             $inputParameterValidation = $false
                                                         }
                                                     }
                                                 }
-                                            }
-                                            # Validate master DNS search domain is formatted correctly and exists in DNS
-                                            if ($masterDnsSearchDomain) {
-                                                $checkMasterDnsSearchDomain = $null
-                                                Try {
-                                                    $checkMasterDnsSearchDomain = Resolve-DnsName -Name $masterDnsSearchDomain -Type A -QuickTimeout -ErrorAction Stop
-                                                } Catch [System.ComponentModel.Win32Exception] {
-                                                    Write-Error "Invalid control plane DNS search domain ($masterDnsSearchDomain): PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
+                                                # Validate control plane DNS servers exist and are functional
+                                                if ($masterDnsServers) {
+                                                    $checkDnsServers = $null
+                                                    $checkDnsServers = Test-DnsServers $masterDnsServers
+                                                    if (!($checkDnsServers)) {
+                                                        Write-Error "Invalid master dns servers ($masterDnsServers) : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
                                                 }
-                                            }
-                                            # Validate vSphere license is in place
-                                            Try {
-                                                $checkLicense = Get-WMLicenseStatus -server $server -domain $domain -ErrorAction SilentlyContinue
-                                                if ($checkLicense.namespaces_licensed -eq $false) {
-                                                    Write-Error -Message "The vSphere license applied to cluster $cluster does not support Workload Management or is expired. Please resolve this and try again : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
-                                                } elseif ($checklicense.namespaces_supported -eq $false) {
-                                                    Write-Error -Message "The cluster $cluster does not support Workload Management. Please resolve this and try again. : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
+                                                # Validate worker DNS servers exist and are functional
+                                                if ($workerDnsServers) {
+                                                    $checkDnsServers = $null
+                                                    $checkDnsServers = Test-DnsServers $workerDnsServers
+                                                    if (!($checkDnsServers)) {
+                                                        Write-Error "Invalid worker dns servers ($workerDnsServers) : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
                                                 }
-                                            } Catch {
-                                                Debug-ExceptionWriter -object $_
-                                            }
-                                            # Validate the cluster is present
-                                            if ($cluster) {
-                                                $checkCluster = $null
+                                                # Validate ContentLibrary exists
+                                                #Full validation (checking type, subscription, etc.) is TBD
+                                                if ($contentLibrary) {
+                                                    $checkContentLibrary = $null
+                                                    Try {
+                                                        $checkContentLibrary = Get-SubscribedLibrary -Name $contentLibrary -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        Debug-ExceptionWriter -object $_
+                                                    }
+                                                    if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
+                                                        Write-Error "Invalid Content Library ($contentLibrary): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    } 
+                                                }
+                                                # Validate Distributed Virtual Switch exists
+                                                if ($distributedSwitch) {
+                                                    $checkDistributedSwitch = $null
+                                                    Try {
+                                                        $checkDistributedSwitch = Get-VDSwitch -Name $distributedSwitch -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        Debug-ExceptionWriter -object $_
+                                                    }
+                                                    if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
+                                                        Write-Error "Invalid Virtual Distributed Switch ($distributedSwitch): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    } 
+                                                } 
+                                                # Validates Pod subnet inputs are formatted correctly and sized to meet minimum requirements
+                                                if ($podCIDRs) {
+                                                    $checkPodCidr = $null
+                                                    $checkPodCidr = Test-WMSubnetInput -Subnet $podCIDRs -SubnetType "Pod"
+                                                    if (!($checkPodCidr)) {
+                                                        Write-Error "Invalid podCIDRs ($podCIDRs) : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validates Service subnet inputs are formatted correctly and sized to meet minimum requirements
+                                                if ($serviceCIDR) {
+                                                    $checkServiceCidr = $null
+                                                    $checkServiceCidr = Test-WMSubnetInput -Subnet $serviceCIDR -SubnetType "Service"
+                                                    if (!($checkServiceCidr)) {
+                                                        Write-Error "Invalid ServiceCIDR ($serviceCIDR) : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validates Ingress subnet inputs are formatted correctly and sized to meet minimum requirements
+                                                if ($externalIngressCIDRs) {
+                                                    $checkIngressCidr = $null
+                                                    $checkIngressCidr = Test-WMSubnetInput -Subnet $serviceCIDR -SubnetType "Ingress"
+                                                    if (!($checkIngressCidr)) {
+                                                        Write-Error "Invalid IngressCIDR ($externalIngressCIDRs) : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validates Egress subnet inputs are formatted correctly and sized to meet minimum requirements
+                                                if ($externalEgressCIDRs) {
+                                                    $checkEgressCidr = $null
+                                                    $checkEgressCidr = Test-WMSubnetInput -Subnet $externalEgressCIDRs -SubnetType "Egress"
+                                                    if (!($checkEgressCidr)) {
+                                                        Write-Error "Invalid EgressCIDR ($externalEgressCIDRs) : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validate control plane Kubernetes API endpoint is valid and in DNS
+                                                # TBD as this is not mandatory parameter
+                                                if ($masterDnsName) {
+                                                    foreach ($dnsName in $masterDnsName) {
+                                                        $checkDnsName = $null
+                                                        Try {
+                                                            $checkDnsName = Resolve-DnsName -Name $DnsName -Type A -QuickTimeout -ErrorAction Stop
+                                                        } Catch [System.ComponentModel.Win32Exception] {
+                                                            Write-Error "Invalid control plane DNS name ($DnsName): PRE_VALIDATION_FAILED"
+                                                            $inputParameterValidation = $false
+                                                        }
+                                                        if ($checkDnsName) {
+                                                            $checkMasterIpAddress = $null
+                                                            Try {
+                                                                $checkMasterIpAddress = Test-IpAddress -IpAddress $checkDnsName.Answers[0].Address.IPAddressToString -Subnet $externalIngressCIDRs
+                                                            } Catch {
+                                                                #Do nothing
+                                                            }
+                                                            if ($checkMasterIpAddress.Validated -eq $false) {
+                                                                Write-Error -Message "Cannot validate the IP address for $DnsName ($DnsNameIpAddress) is from the external ingress CIDR ($externalIngressCIDRs). : PRE_VALIDATION_FAILED"
+                                                                $inputParameterValidation = $false
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                # Validate master DNS search domain is formatted correctly and exists in DNS
+                                                if ($masterDnsSearchDomain) {
+                                                    $checkMasterDnsSearchDomain = $null
+                                                    Try {
+                                                        $checkMasterDnsSearchDomain = Resolve-DnsName -Name $masterDnsSearchDomain -Type A -QuickTimeout -ErrorAction Stop
+                                                    } Catch [System.ComponentModel.Win32Exception] {
+                                                        Write-Error "Invalid control plane DNS search domain ($masterDnsSearchDomain): PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                }
+                                                # Validate vSphere license is in place
                                                 Try {
-                                                    $checkCluster = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue
+                                                    $checkLicense = Get-WMLicenseStatus -server $server -domain $domain -ErrorAction SilentlyContinue
+                                                    if ($checkLicense.namespaces_licensed -eq $false) {
+                                                        Write-Error -Message "The vSphere license applied to cluster $cluster does not support Workload Management or is expired. Please resolve this and try again : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    } elseif ($checklicense.namespaces_supported -eq $false) {
+                                                        Write-Error -Message "The cluster $cluster does not support Workload Management. Please resolve this and try again. : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
                                                 } Catch {
-                                                    #Do nothing
+                                                    Debug-ExceptionWriter -object $_
                                                 }
-                                                if (!$checkCluster -or ($checkCluster.Name -ne $cluster)) {
-                                                    Write-Error "Invalid vSphere cluster $cluster. : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
+                                                # Validate the cluster is present
+                                                if ($cluster) {
+                                                    $checkCluster = $null
+                                                    Try {
+                                                        $checkCluster = Get-Cluster -Name $cluster -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if (!$checkCluster -or ($checkCluster.Name -ne $cluster)) {
+                                                        Write-Error "Invalid vSphere cluster $cluster. : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
+                                                    $checkWmCluster = $null
+                                                    Try {
+                                                        $checkWmCluster = Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue
+                                                    } Catch {
+                                                        #Do nothing
+                                                    }
+                                                    if ($checkWmCluster) {
+                                                        Write-Error "Cluster $cluster is already enabled for Workload management : PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
                                                 }
-                                                $checkWmCluster = $null
-                                                Try {
-                                                    $checkWmCluster = Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue
-                                                } Catch {
-                                                    #Do nothing
-                                                }
-                                                if ($checkWmCluster) {
-                                                    Write-Error "Cluster $cluster is already enabled for Workload management : PRE_VALIDATION_FAILED"
-                                                    $inputParameterValidation = $false
+                                                # If any of the prevalidation failed
+                                                if ($inputParameterValidation) {
+                                                    Write-Output "Pre-validation : SUCESSFULL" 
+                                                } else {
+                                                    Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
+                                                    Break
                                                 }
                                             }
-                                            # If any of the prevalidation failed
+                                            # TBD MasterDnsServerIpAddress          = $masterDnsServers
                                             if ($inputParameterValidation) {
-                                                Write-Output "Pre-validation : SUCESSFULL" 
+                                                $internalWMClusterInput = @{
+                                                    SizeHint                          = $SizeHint
+                                                    ManagementVirtualNetwork          = (Get-VirtualNetwork -Name $managementVirtualNetwork)
+                                                    ManagementNetworkMode             = $managementNetworkMode
+                                                    ManagementNetworkStartIpAddress   = $managementNetworkStartIpAddress
+                                                    ManagementNetworkAddressRangeSize = $managementNetworkAddressRangeSize
+                                                    ManagementNetworkGateway          = $managementNetworkGateway
+                                                    ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
+                                                    MasterDnsNames                    = $masterDnsName
+                                                    MasterNtpServer                   = $masterNtpServers
+                                                    Cluster                           = (Get-Cluster -Name $cluster)
+                                                    ContentLibrary                    = $contentLibrary
+                                                    EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
+                                                    ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
+                                                    MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)
+                                                    NsxEdgeClusterId                  = ((Get-NsxEdgeCluster -Name $nsxEdgeCluster).id)
+                                                    DistributedSwitch                 = (Get-VDSwitch -Name $distributedSwitch)
+                                                    PodCIDRs                          = $podCIDRs
+                                                    ServiceCIDR                       = $serviceCIDR
+                                                    ExternalIngressCIDRs              = $externalIngressCIDRs
+                                                    ExternalEgressCIDRs               = $externalEgressCIDRs
+                                                    WorkerDnsServer                   = $workerDnsServers
+                                                    MasterDnsServerIpAddress          = $masterDnsServers
+                                                    MasterDnsSearchDomain             = $masterDnsSearchDomain
+                                                }
+                                            }
+                                            if ($ValidateOnly.isPresent) {
+                                                Write-Output "Validation completed : SUCCESSFUL"
                                             } else {
-                                                Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
-                                                Break
-                                            }
-                                        }
-                                        # TBD MasterDnsServerIpAddress          = $masterDnsServers
-                                        if ($inputParameterValidation) {
-                                            $internalWMClusterInput = @{
-                                                SizeHint                          = $SizeHint
-                                                ManagementVirtualNetwork          = (Get-VirtualNetwork -Name $managementVirtualNetwork)
-                                                ManagementNetworkMode             = $managementNetworkMode
-                                                ManagementNetworkStartIpAddress   = $managementNetworkStartIpAddress
-                                                ManagementNetworkAddressRangeSize = $managementNetworkAddressRangeSize
-                                                ManagementNetworkGateway          = $managementNetworkGateway
-                                                ManagementNetworkSubnetMask       = $managementNetworkSubnetMask
-                                                MasterDnsNames                    = $masterDnsName
-                                                MasterNtpServer                   = $masterNtpServers
-                                                Cluster                           = (Get-Cluster -Name $cluster)
-                                                ContentLibrary                    = $contentLibrary
-                                                EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
-                                                ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
-                                                MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)
-                                                NsxEdgeClusterId                  = ((Get-NsxEdgeCluster -Name $nsxEdgeCluster).id)
-                                                DistributedSwitch                 = (Get-VDSwitch -Name $distributedSwitch)
-                                                PodCIDRs                          = $podCIDRs
-                                                ServiceCIDR                       = $serviceCIDR
-                                                ExternalIngressCIDRs              = $externalIngressCIDRs
-                                                ExternalEgressCIDRs               = $externalEgressCIDRs
-                                                WorkerDnsServer                   = $workerDnsServers
-                                                MasterDnsServerIpAddress          = $masterDnsServers
-                                                MasterDnsSearchDomain             = $masterDnsSearchDomain
-                                            }
-                                        }
-                                        if ($ValidateOnly.isPresent) {
-                                            Write-Output "Validation completed : SUCCESSFUL"
-                                        } else {
-                                            Enable-WMCluster @internalWMClusterInput -RunAsync -ConfigurationTimeoutSeconds $ConfigurationTimeoutSeconds | Out-Null
-                                            Write-Output  "Submitted Creation of Supervisor Cluster $cluster in vCenter Server $($vcfVcenterDetails.fqdn). This may take a while to complete. Operation will timeout after ($ConfigurationTimeoutSeconds) seconds"
-                                            $startSleep = 300
-                                            $SleepTime = 60
-                                            Start-Sleep $startSleep
-                                            if (Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue) {
-                                                Watch-WmClusterConfigStatus -wmClusterName $cluster -sleepTime $SleepTime -retriesCount (($ConfigurationTimeoutSeconds-$startSleep)/$sleepTime)
+                                                Enable-WMCluster @internalWMClusterInput -RunAsync -ConfigurationTimeoutSeconds $ConfigurationTimeoutSeconds | Out-Null
+                                                Write-Output  "Submitted Creation of Supervisor Cluster $cluster in vCenter Server $($vcfVcenterDetails.fqdn). This may take a while to complete. Operation will timeout after ($ConfigurationTimeoutSeconds) seconds"
+                                                $startSleep = 300
+                                                $SleepTime = 60
+                                                Start-Sleep $startSleep
+                                                if (Get-WMCluster -Cluster $cluster -ErrorAction SilentlyContinue) {
+                                                    Watch-WmClusterConfigStatus -wmClusterName $cluster -sleepTime $SleepTime -retriesCount (($ConfigurationTimeoutSeconds-$startSleep)/$sleepTime)
+                                                }
                                             }
                                         }
                                     }
                                 }
+                            } else {
+                                Write-Warning "Deploying Kubernetes Supervisor Cluster, already deployed: SKIPPED"
                             }
                         }
                     }
