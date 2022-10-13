@@ -10,6 +10,7 @@
 - Enhanced `ilaConfigureVrealizeLogInsight.ps1` Sample Script to detect Standard versus Clustered Workspace ONE.
 - Enhanced `iomDeployVrealizeOperations.ps1` Sample Script to support smaller footprint of vRealize Operations for nested environments.
 - Enhanced `ilaDeployVrealizeLogInsight.ps1` Sample Script to skip trying to configure Archive and Retention settings when no NFS details are provided.
+- Enhanced `Enable-SupervisorCluster` cmdlet to check for the existence of the Supervisor Cluster.
 - Added `Enable-vRLIContentPack` cmdlet to support install of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Update-vRLIContentPack` cmdlet to support update of content packs from the vRealize Log Insight in-product marketplace.
 - Added `Get-vRLIMarketplaceMetadata` cmdlet to support install and upgrade of content packs from the vRealize Log Insight in-product marketplace.
