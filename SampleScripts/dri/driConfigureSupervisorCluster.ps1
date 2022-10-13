@@ -83,13 +83,16 @@ Try {
             $spbmPolicyName                     = $pnpWorkbook.Workbook.Names["k8s_vcenter_storage_policy"].Value
             $contentLibraryName                 = $pnpWorkbook.Workbook.Names["k8s_vcenter_content_library"].Value
             $wmClusterName                      = $pnpWorkbook.Workbook.Names["wld_cluster"].Value
-            $CommonName                         = $pnpWorkbook.Workbook.Names["k8s_cluster_endpoint_fqdn"].Value
-            $Organization                       = $pnpWorkbook.Workbook.Names["ca_organization"].Value
-            $OrganizationalUnit                 = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
-            $Country                            = $pnpWorkbook.Workbook.Names["ca_country"].Value
-            $StateOrProvince                    = $pnpWorkbook.Workbook.Names["ca_state"].Value
-            $Locality                           = $pnpWorkbook.Workbook.Names["ca_locality"].Value
-            $AdminEmailAddress                  = $pnpWorkbook.Workbook.Names["ca_email_address"].Value
+            $commonName                         = $pnpWorkbook.Workbook.Names["k8s_cluster_endpoint_fqdn"].Value
+            $organization                       = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+            $organizationalUnit                 = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+            $country                            = $pnpWorkbook.Workbook.Names["ca_country"].Value
+            $stateOrProvince                    = $pnpWorkbook.Workbook.Names["ca_state"].Value
+            $locality                           = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+            $adminEmailAddress                  = $pnpWorkbook.Workbook.Names["ca_email_address"].Value
+            if ($null -eq $adminEmailAddress) {
+                $adminEmailAddress = "tanzu-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+            }
             $KeySize                            = $pnpWorkbook.Workbook.Names["ca_key_size"].Value
             $domainBindUser                     = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
             $domainBindPass                     = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
@@ -97,8 +100,13 @@ Try {
             $wmNamespaceEditUserGroup           = $pnpWorkbook.Workbook.Names["group_gg_kub_admins"].Value
             $wmNamespaceViewUserGroup           = $pnpWorkbook.Workbook.Names["group_gg_kub_readonly"].Value
             $licenseKey                         = $pnpWorkbook.Workbook.Names["esx_k8s_license"].Value
+            $mscaComputerName                   = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+            $mscaName                           = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+            $certificateTemplate                = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
             $certificateRequestFile             = $filePath + "\" + $pnpWorkbook.Workbook.Names["wld_cluster"].Value + ".csr"
             $certificateFile                    = $filePath + "\" + $pnpWorkbook.Workbook.Names["wld_cluster"].Value + ".1.cer"
+            $caUsername                         = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+            $caUserPassword                     = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
 
             $wmClusterInput = @{
                 server = $sddcManagerFqdn
@@ -170,15 +178,15 @@ Try {
                 # Replace the Supervisor Cluster Kubernetes API Endpoint Certificate for Developer Ready Infrastructure
                 Write-LogMessage -Type INFO -Message "Attempting to Replace the Supervisor Cluster Kubernetes API Endpoint Certificate for Developer Ready Infrastructure"
                 Write-LogMessage -Type INFO -Message "Attempting to Generate the Supervisor Cluster CSR File"
-                $StatusMsg = New-SupervisorClusterCSR -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -CommonName $CommonName -Organization $Organization -OrganizationalUnit $OrganizationalUnit -Country $Country -StateOrProvince $StateOrProvince -Locality $Locality -AdminEmailAddress $AdminEmailAddress -KeySize $Keysize -FilePath $certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = New-SupervisorClusterCSR -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -CommonName $commonName -Organization $organization -OrganizationalUnit $organizationalUnit -Country $country -StateOrProvince $stateOrProvince -Locality $locality -adminEmailAddress $adminEmailAddress -KeySize $keysize -FilePath $certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
                 Write-LogMessage -Type INFO -Message "Attempting to Request a Signed Certificate from the Microsoft Certificate Authority"
-                $StatusMsg = Request-SignedCertificate -mscaComputerName $mscaComputerName -mscaName $mscaName -domainUsername $domainBindUser -domainPassword $domainBindPass -certificateTempalate $certificateTempalate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Request-SignedCertificate -mscaComputerName $mscaComputerName -mscaName $mscaName -domainUsername $caUsername -domainPassword $caUserPassword -certificateTemplate $certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
                 Write-LogMessage -Type INFO -Message "Attempting to Install the Supervisor Cluster Signed-Certificate"
-                $StatusMsg = Add-SupervisorClusterCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -FilePath F:\vvs\supervisorCluster.cer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Install-SupervisorClusterCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             } else {
                 Write-LogMessage -Type INFO -Message "System Executing Script is Not Joined to the Domain '$domainFqdn': SKIPPING" -Colour Cyan

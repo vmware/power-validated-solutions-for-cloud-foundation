@@ -9064,7 +9064,7 @@ Function Add-TanzuKubernetesCluster {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 Connect-WMCluster -cluster $cluster -user $user -pass $pass | Out-Null
                                 New-TanzuKubernetesCluster -YAML $yaml | Out-Null
-                                Write-Output "Creating Tanzu Kubernetes Cluster in Supervisor Cluster ($cluster) using YAMP ($yaml): SUCCESSFUL"
+                                Write-Output "Creating Tanzu Kubernetes Cluster in Supervisor Cluster ($cluster) using YAML ($yaml): SUCCESSFUL"
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             Disconnect-WMCluster | Out-Null
