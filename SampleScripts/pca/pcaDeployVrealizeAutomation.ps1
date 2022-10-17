@@ -90,6 +90,16 @@ Try {
             $bindUser                       = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
             $bindPass                       = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
             $baseDnGroup                    = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
+            $orgOwner                       = $pnpWorkbook.Workbook.Names["group_gg_vra_org_owners"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $cloudAssemblyAdmins            = $pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $cloudAssemblyUsers             = $pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_users"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $cloudAssemblyViewers           = $pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_viewers"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $serviceBrokerAdmins            = $pnpWorkbook.Workbook.Names["group_gg_vra_service_broker_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $serviceBrokerUsers             = $pnpWorkbook.Workbook.Names["group_gg_vra_service_broker_users"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $serviceBrokerViewers           = $pnpWorkbook.Workbook.Names["group_gg_vra_service_broker_viewers"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $orchestratorAdmins             = $pnpWorkbook.Workbook.Names["group_gg_vra_orchestrator_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $orchestratorDesigners          = $pnpWorkbook.Workbook.Names["group_gg_vra_orchestrator_designers"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            $orchestratorViewers            = $pnpWorkbook.Workbook.Names["group_gg_vra_orchestrator_viewers"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
             $adGroups                       = "$($pnpWorkbook.Workbook.Names["group_gg_vra_org_owners"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_users"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_cloud_assembly_viewers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_service_broker_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_service_broker_users"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_service_broker_viewers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_orchestrator_admins"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_orchestrator_designers"].Value)", "$($pnpWorkbook.Workbook.Names["group_gg_vra_orchestrator_viewers"].Value)"
             $displayName                    = $pnpWorkbook.Workbook.Names["xreg_vra_org_name"].Value
             $vraUser                        = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
@@ -100,7 +110,7 @@ Try {
             $domainBindPass                 = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
             $vraServiceAccount              = $pnpWorkbook.Workbook.Names["user_svc_vra_vsphere"].Value
             $vroServiceAccount              = $pnpWorkbook.Workbook.Names["user_svc_vro_vsphere"].Value
-            $nsxEdgeVMFolder                = $pnpWorkbook.Workbook.Names["wld_vra_storage_folder"].Value
+            $nsxEdgeVMFolder                = $pnpWorkbook.Workbook.Names["wld_user_edge_vm_folder"].Value
             $localDatastoreFolder           = $pnpWorkbook.Workbook.Names["wld_vra_storage_folder"].Value
             $readOnlyDatastoreFolder        = $pnpWorkbook.Workbook.Names["wld_vra_storage_readonly_folder"].Value
             $nsxVraUser                     = $pnpWorkbook.Workbook.Names["user_svc_vra_nsx"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
@@ -119,52 +129,58 @@ Try {
             $rootCer = "Root64.cer"
             if (!(Test-Path ($filePath + "\" + $rootCer) )) { Write-LogMessage -Type ERROR -Message "Unable to Find Certificate File: $rootCer, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found Certificate File: $rootCer" }
 
+            $vraVsphereTemplate = ($filePath + "\" + "vra-vsphere-integration.role")
+            if (!(Test-Path ($vraVsphereTemplate) )) { Write-LogMessage -Type ERROR -Message "Unable to Find vSphere Role Template: $vraVsphereTemplate, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found vSphere Role Template: $vraVsphereTemplate" }
+
+            $vroVsphereTemplate = ($filePath + "\" + "vro-vsphere-integration.role")
+            if (!(Test-Path ($vroVsphereTemplate) )) { Write-LogMessage -Type ERROR -Message "Unable to Find vSphere Role Template: $vroVsphereTemplate, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found vSphere Role Template: $vroVsphereTemplate" }
+
             # Add the vRealize Automation License to vRealize Suite Lifecycle Manager
-            Write-LogMessage -Type INFO -Message "Add the vRealize Automation License to vRealize Suite Lifecycle Manager"
+            Write-LogMessage -Type INFO -Message "Attempting to Add the vRealize Automation License to vRealize Suite Lifecycle Manager"
             $StatusMsg = New-vRSLCMLockerLicense -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -alias $licenseAlias -license $licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Import the Certificate for vRealize Automation to vRealize Suite Lifecycle Manager
-            Write-LogMessage -Type INFO -Message "Import the Certificate for vRealize Automation to vRealize Suite Lifecycle Manager"
+            Write-LogMessage -Type INFO -Message "Attempting to Import the Certificate for vRealize Automation to vRealize Suite Lifecycle Manager"
             $StatusMsg = Import-vRSLCMLockerCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -certificateAlias $certificateAlias -certChainPath ($filePath + "\" + $vraPem) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Add the vRealize Automation Password to vRealize Suite Lifecycle Manager
-            Write-LogMessage -Type INFO -Message "Add the vRealize Automation Password to vRealize Suite Lifecycle Manager"
+            Write-LogMessage -Type INFO -Message "Attempting to Add the vRealize Automation Password to vRealize Suite Lifecycle Manager"
             $StatusMsg = New-vRSLCMLockerPassword -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -alias $rootPasswordAlias -password $rootPassword -userName $rootUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = New-vRSLCMLockerPassword -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -alias $xintPasswordAlias -password $xintPassword -userName $xintUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Deploy vRealize Automation by Using vRealize Suite Lifecycle Manager
-            Write-LogMessage -Type INFO -Message "Deploy vRealize Automation by Using vRealize Suite Lifecycle Manager"
+            Write-LogMessage -Type INFO -Message "Attempting to Deploy vRealize Automation by Using vRealize Suite Lifecycle Manager"
             $StatusMsg = New-vRADeployment -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a Virtual Machine and Template Folder for the vRealize Automation Cluster Virtual Machines
-            Write-LogMessage -Type INFO -Message "Create a Virtual Machine and Template Folder for the vRealize Automation Cluster Virtual Machines"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a Virtual Machine and Template Folder for the vRealize Automation Cluster Virtual Machines"
             $StatusMsg = Add-VMFolder -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -folderName $vraFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Move the vRealize Automation Cluster Virtual Machines to the Dedicated Folder
-            Write-LogMessage -Type INFO -Message "Move the vRealize Automation Cluster Virtual Machines to the Dedicated Folder"
+            Write-LogMessage -Type INFO -Message "Attempting to Move the vRealize Automation Cluster Virtual Machines to the Dedicated Folder"
             $StatusMsg = Move-VMtoFolder -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -vmList $vraVmList -folder $vraFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Relocating vRealize Automation Cluster Virtual Machines to Dedicated Folder: SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a Virtual Machine and Template Folder and a Resource Pool for the vRealize Automation-Managed Workloads on the VI Workload Domain vCenter Server
-            Write-LogMessage -Type INFO -Message "Create a Virtual Machine and Template Folder and a Resource Pool for the vRealize Automation-Managed Workloads on the VI Workload Domain vCenter Server"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a Virtual Machine and Template Folder and a Resource Pool for the vRealize Automation-Managed Workloads on the VI Workload Domain vCenter Server"
             $StatusMsg = Add-VMFolder -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -folderName $workloadFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Add-ResourcePool -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -resourcePoolName $workloadResource -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Configure a vSphere DRS Anti-Affinity Rule for the vRealize Automation Cluster Virtual Machines
-            Write-LogMessage -Type INFO -Message "Configure a vSphere DRS Anti-Affinity Rule for the vRealize Automation Cluster Virtual Machines"
+            Write-LogMessage -Type INFO -Message "Attempting to Configure a vSphere DRS Anti-Affinity Rule for the vRealize Automation Cluster Virtual Machines"
             $StatusMsg = Add-AntiAffinityRule -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -ruleName $antiAffinityRuleName -antiAffinityVMs $antiAffinityVMs -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a VM Group and Define the Startup Order of the vRealize Automation Cluster Virtual Machines
-            Write-LogMessage -Type INFO -Message "Create a VM Group and Define the Startup Order of the vRealize Automation Cluster Virtual Machines"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a VM Group and Define the Startup Order of the vRealize Automation Cluster Virtual Machines"
             $StatusMsg = Add-ClusterGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -drsGroupName $drsGroupNameVra -drsGroupVMs $drsGroupVMs -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Add-VmStartupRule -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -ruleName $ruleName -vmGroup  $drsGroupNameVra -dependOnVmGroup $drsGroupNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -172,52 +188,72 @@ Try {
 
             if ($stretchedCluster -eq "Include") {
                 # Add the vRealize Automation Cluster Virtual Machines to the First Availability Zone VM Group
-                Write-LogMessage -Type INFO -Message "Add the vRealize Automation Cluster Virtual Machines to the First Availability Zone VM Group"
+                Write-LogMessage -Type INFO -Message "Attempting to Add the vRealize Automation Cluster Virtual Machines to the First Availability Zone VM Group"
                 $StatusMsg = Add-VmGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -name $groupName -vmList $vraVmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             }
 
             # Configure the Organization Name for vRealize Automation
-            Write-LogMessage -Type INFO -Message "Configure the Organization Name for vRealize Automation"
+            Write-LogMessage -Type INFO -Message "Attempting to Configure the Organization Name for vRealize Automation"
             $StatusMsg = Update-vRAOrganizationDisplayName -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -displayName $displayName -vraUser $vraUser -vraPass $vraPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Synchronize the Active Directory Groups for vRealize Automation in Workspace ONE Access
-            Write-LogMessage -Type INFO -Message "Synchronize the Active Directory Groups for vRealize Automation in Workspace ONE Access"
+            Write-LogMessage -Type INFO -Message "Attempting to Synchronize the Active Directory Groups for vRealize Automation in Workspace ONE Access"
             $StatusMsg = Add-WorkspaceOneDirectoryGroup -server $wsaFqdn -user $wsaUser -pass $wsaPass -domain $domain -bindUser $bindUser -bindPass  $bindPass -baseDnGroup $baseDnGroup -adGroups $adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Assign Organization and Service Roles to the Groups for vRealize Automation
-            # TODO: 
+            Write-LogMessage -Type INFO -Message "Attempting to Assign Organization and Service Roles to the Groups for vRealize Automation"
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $orgOwner -orgRole org_owner -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $cloudAssemblyAdmins -orgRole org_member -serviceRole automationservice:cloud_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $cloudAssemblyUsers -orgRole org_member -serviceRole automationservice:user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $cloudAssemblyViewers -orgRole org_member -serviceRole automationservice:viewer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $serviceBrokerAdmins -orgRole org_member -serviceRole catalog:admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $serviceBrokerUsers -orgRole org_member -serviceRole catalog:user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $serviceBrokerViewers -orgRole org_member -serviceRole catalog:viewer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $orchestratorAdmins -orgRole org_member -serviceRole orchestration:admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $orchestratorDesigners -orgRole org_member -serviceRole orchestration:designer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            $StatusMsg = Add-vRAGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -displayName $orchestratorViewers -orgRole org_member -serviceRole orchestration:viewer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Define Custom Roles in vSphere for vRealize Automation and vRealize Orchestrator
-            Write-LogMessage -Type INFO -Message "Define Custom Roles in vSphere for vRealize Automation and vRealize Orchestrator"
-            $StatusMsg = Add-vSphereRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -roleName $vraVsphereRoleName -template "F:\PowerValidatedSolutions\vSphereRoles\vra-vsphere-integration.role" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            Write-LogMessage -Type INFO -Message "Attempting to Define Custom Roles in vSphere for vRealize Automation and vRealize Orchestrator"
+            $StatusMsg = Add-vSphereRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -roleName $vraVsphereRoleName -template $vraVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Add-vSphereRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -roleName $vroVsphereRoleName -template "F:\PowerValidatedSolutions\vSphereRoles\vro-vsphere-integration.role" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            $StatusMsg = Add-vSphereRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -roleName $vroVsphereRoleName -template $vroVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Configure Service Account Permissions for the vRealize Automation and vRealize Orchestrator Integrations to vSphere
-            Write-LogMessage -Type INFO -Message "Configure Service Account Permissions for the vRealize Automation and vRealize Orchestrator Integrations to vSphere"
+            Write-LogMessage -Type INFO -Message "Attempting to Configure Service Account Permissions for the vRealize Automation and vRealize Orchestrator Integrations to vSphere"
             $StatusMsg = Add-vCenterGlobalPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vraServiceAccount -role $vraVsphereRoleName -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red } 
             $StatusMsg = Add-vCenterGlobalPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vroServiceAccount -role $vroVsphereRoleName -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             
             # Restrict the vRealize Automation and vRealize Orchestrator Service Accounts Access to the Management Domain
-            Write-LogMessage -Type INFO -Message "Restrict the vRealize Automation and vRealize Orchestrator Service Accounts Access to the Management Domain"
+            Write-LogMessage -Type INFO -Message "Attempting to Restrict the vRealize Automation and vRealize Orchestrator Service Accounts Access to the Management Domain"
             $StatusMsg = Set-vCenterPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainAlias -workloadDomain $sddcDomainName -principal $vraServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Set-vCenterPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainAlias -workloadDomain $sddcDomainName -principal $vroServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Create a Virtual Machine and Template Folder for the vRealize Automation Workload Virtual Machines
-            Write-LogMessage -Type INFO -Message "Create a Virtual Machine and Template Folder for the vRealize Automation Workload Virtual Machines"
+            Write-LogMessage -Type INFO -Message "Attempting to Create a Virtual Machine and Template Folder for the vRealize Automation Workload Virtual Machines"
             $StatusMsg = Add-VMFolder -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -folderName $nsxEdgeVMFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
     
             # Restrict the vRealize Automation and vRealize Orchestrator Service Accounts Access to Virtual Machine and Datastore Folders in the VI Workload Domain
-            Write-LogMessage -Type INFO -Message "Restrict the vRealize Automation and vRealize Orchestrator Service Accounts Access to Virtual Machine and Datastore Folders in the VI Workload Domain"
+            Write-LogMessage -Type INFO -Message "Attempting to Restrict the vRealize Automation and vRealize Orchestrator Service Accounts Access to Virtual Machine and Datastore Folders in the VI Workload Domain"
             $StatusMsg = Set-vCenterPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainAlias -workloadDomain $sddcWldDomainName -principal $vraServiceAccount -role "NoAccess" -folderName $nsxEdgeVMFolder -folderType "VM" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Set-vCenterPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainAlias -workloadDomain $sddcWldDomainName -principal $vraServiceAccount -role "NoAccess" -folderName $localDatastoreFolder -folderType "Datastore" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -232,32 +268,32 @@ Try {
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Configure Service Account Permissions for the vRealize Automation to NSX-T Data Center Integration on the VI Workload Domain NSX Manager Cluster
-            Write-LogMessage -Type INFO -Message "Configure Service Account Permissions for the vRealize Automation to NSX-T Data Center Integration on the VI Workload Domain NSX Manager Cluster"
+            Write-LogMessage -Type INFO -Message "Attempting to Configure Service Account Permissions for the vRealize Automation to NSX-T Data Center Integration on the VI Workload Domain NSX Manager Cluster"
             $StatusMsg = Add-NsxtVidmRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -type user -principal $nsxVraUser -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Add Cloud Accounts for the VI Workload Domains to vRealize Automation
-            Write-LogMessage -Type INFO -Message "Add Cloud Accounts for the VI Workload Domains to vRealize Automation"
+            Write-LogMessage -Type INFO -Message "Attempting to Add Cloud Accounts for the VI Workload Domains to vRealize Automation"
             $StatusMsg = New-vRACloudAccount -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -vraUser $vraUser -vraPass $vraPass -capabilityTab $capabilityTag -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Configure the Cloud Zones in vRealize Automation
-            Write-LogMessage -Type INFO -Message "Configure the Cloud Zones in vRealize Automation"
+            Write-LogMessage -Type INFO -Message "Attempting to Configure the Cloud Zones in vRealize Automation"
             $StatusMsg = Update-vRACloudAccountZone -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -vraUser $vraUser -vraPass $vraPass -tagKey $tagKey -tagValue $tagValue -folder $workloadFolder -resourcePool $workloadResource -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Configure Email Alerts in Service Broker
-            Write-LogMessage -Type INFO -Message "Configure Email Alerts in Service Broker"
+            Write-LogMessage -Type INFO -Message "Attempting to Configure Email Alerts in Service Broker"
             $StatusMsg = Add-vRANotification -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -smtpServer $smtpServer -emailAddress $emailAddress -sender $senderName -connection NONE -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Import the Trusted Certificate into vRealize Orchestrator
-            Write-LogMessage -Type INFO -Message "Import the Trusted Certificates into vRealize Orchestrator"
-            $StatusMsg = Add-vROTrustedCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -certFile $rootCer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+            Write-LogMessage -Type INFO -Message "Attempting to Import the Trusted Certificates into vRealize Orchestrator"
+            $StatusMsg = Add-vROTrustedCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vraUser $vraUser -vraPass $vraPass -certFile ($filePath + "\" + $rootCer) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             
             # Add the VI Workload Domain vCenter Server to vRealize Orchestrator
-            Write-LogMessage -Type INFO -Message "Add the VI Workload Domain vCenter Server to vRealize Orchestrator"
+            Write-LogMessage -Type INFO -Message "Attempting to Add the VI Workload Domain vCenter Server to vRealize Orchestrator"
             $StatusMsg = Add-vROvCenterServer -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -vraUser $vraUser -vraPass $vraPass -vcUser $vcUser -vcPass $vcPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
         }
