@@ -10125,7 +10125,7 @@ Function Add-vRLILogArchive {
                             Set-vRLIRetentionThreshold -enable true -interval $retentionNotificationDays -intervalUnit $retentionInterval | Out-Null
                             $partitionId = (Get-vRLIIndexPartition).id
                             Set-vRLILogArchive -id $partitionId -enable true -retentionPeriod $retentionPeriodDays -archiveEnable true -archiveLocation $archiveLocation
-                            Write-Output "Configuring Email Notifications, Retention Period and Archive Location in vRealize Log Insight ($($vrliDetails.fqdn)): SUCCESSFUL"
+                            Write-Output "Configuring Email Notifications, Retention Period and Archive Location in vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                         }
                     }
                 }
