@@ -1963,7 +1963,7 @@ Function Install-SiteRecoveryManager {
         - Deploys the Site Recovery Manage Virtual Appliance
 
         .EXAMPLE
-        Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmSubnetMask 255.255.255.0 -srmOvfPath F:\identity-manager.ova -srmFolder sfo-m01-fd-srm
+        Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmNetPrefix 255.255.255.0 -srmNetworkSearchPath sfo.rainpole.io -srmFolder sfo-m01-fd-srm -srmVaRootPassword VMw@re1! -srmVaAdminPassword VMw@re1! -srmDbPassword VMw@re1! -deploymentOption standard -srmOvfPath F:\identity-manager.ova
         This example deploys the Site Recovery Manager Virtual Appliance into the sfo-m01-fd-srm folder of the management domain
     #>
 
@@ -2072,7 +2072,7 @@ Function Install-vSphereReplicationManager {
         - Deploys the vSphere Replication Manager Virtual Appliance
 
         .EXAMPLE
-        Install-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsIpAddress 192.168.31.60 -vrmsGateway 192.168.31.1 -vrmsSubnetMask 255.255.255.0 -vrmsOvfPath F:\vrms.ova -vrmsFolder sfo-m01-fd-vrms
+        Install-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsIpAddress 192.168.31.60 -vrmsGateway 192.168.31.1 -vrmsNetPrefix 255.255.255.0 -vrmsNetworkSearchPath sfo.rainpole.io -vrmsFolder sfo-m01-fd-vrms -vrmsVaRootPassword VMw@re1! -vrmsVaAdminPassword VMw@re1! -vrmsOvfPath F:\vrms.ova
         This example deploys the vSphere Replication Manager Virtual Appliance into the sfo-m01-fd-vrms folder of the management domain
     #>
 
@@ -2087,9 +2087,10 @@ Function Install-vSphereReplicationManager {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsNetPrefix,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsNetworkSearchPath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsFolder,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsVaRootPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsVaAdminPassword,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vrmsOvfPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vrmsVaRootPassword,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vrmsVaAdminPassword
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmwareOvfToolPath='C:\Program Files\VMware\VMware OVF Tool\ovftool.exe'
     )
 
     Try {
@@ -2101,50 +2102,64 @@ Function Install-vSphereReplicationManager {
                 Break
             }
         }
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-        $vrmsHostname = $vrmsFqdn.Split(".")[0]
-        $vrmsDomain = $vrmsFQDN.Substring($vrmsFQDN.IndexOf(".") + 1)
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $vrmsExists = Get-VM -Name $vrmsHostname -ErrorAction SilentlyContinue
-            if ($vrmsExists) {
-                Write-Warning "A virtual machine called $vrmsHostname already exists in vCenter Server $vcServer"
-            } else {
-                $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
-                $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
-                $datacenter = (Get-Datacenter -Cluster $cluster).Name
-                $mgmtPortgroup = ((get-vmhost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object {$_.DeviceName -eq "vmk0"}).PortGroupName
-                $ntpServer = (Get-VCFConfigurationNTP).ipAddress
-                if ($ntpServer.Count -gt 1) {
-                    $ntpServer = $ntpServer -Join ","
-                }
-                $netMode = "static"
-                $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $vrmsHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $vrmsFolder + ' --net:"Network 1"=' + $mgmtPortgroup + '  --datastore=' + $datastore + ' --prop:varoot-password=' + $vrmsVaRootPassword + ' --prop:vaadmin-password=' + $vrmsVaAdminPassword +' --prop:network.netmode.vSphere_Replication_Appliance=' + $netMode + ' --prop:network.ip0.vSphere_Replication_Appliance=' + $vrmsIpAddress + ' --prop:network.netprefix0.vSphere_Replication_Appliance=' + $vrmsNetPrefix + ' --prop:vami.hostname=' + $vrmsFqdn + ' --prop:network.domain.vSphere_Replication_Appliance=' + $vrmsDomain + ' --prop:network.searchpath.vSphere_Replication_Appliance=' + $vrmsNetworkSearchPath + ' --prop:ntpserver=' + $ntpServer +' --prop:network.gateway.vSphere_Replication_Appliance=' + $vrmsGateway + ' --prop:network.DNS.vSphere_Replication_Appliance=' + $dnsServer1 + ',' + $dnsServer2 + '  --prop:enableFileIntegrity= ' + $enableFileIntegrity +' --vService:installation=com.vmware.vim.vsm:extension_vservice ' + $vrmsOvfPath + '  "vi://' + $vcenter.ssoAdmin + ':' + $vcenter.ssoAdminPass + '@' + $vcenter.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
-                Invoke-Expression "& $command"
-                $vrmsExists = Get-VM -Name $vrmsHostname -ErrorAction SilentlyContinue
-                if ($vrmsExists) {
-                    $Timeout = 900  ## seconds
-                    $CheckEvery = 15  ## seconds
-                    Try {
-                        $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
-                        Write-Output "Waiting for $vrmsIpAddress to become pingable."
-                        While (!(Test-NetConnection $vrmsIpAddress -Port 5480 -WarningAction silentlyContinue | Where-Object { $_.TcpTestSucceeded -eq $True })) {
-                        ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
-                        if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                            Throw "Timeout Exceeded. Giving up on ping availability to $vrmsIpAddress"
+        if (!(Test-Path -Path $vmwareOvfToolPath)) {
+            Write-Error  "VMware OVF Tool ($vmwareOvfToolPath) Not Found, Run again with parameter -vmwareOvfToolPath <path to exe file>"
+            Break
+        }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $vrmsHostname = $vrmsFqdn.Split(".")[0]
+                            $vrmsDomain = $vrmsFQDN.Substring($vrmsFQDN.IndexOf(".") + 1)
+                            if (Get-VM -Name $vrmsHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
+                                Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname), already exists: SKIPPED"
+                            } else {
+                                # $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
+                                # $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
+                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
+                                $datacenter = (Get-Datacenter -Cluster $cluster).Name
+                                if (((Get-VCFConfigurationDNS).ipAddress).Count -gt 1) {
+                                    $dnsServer = (Get-VCFConfigurationDNS).ipAddress[0] + "," + (Get-VCFConfigurationDNS).ipAddress[1]
+                                } else { 
+                                    $dnsServer = (Get-VCFConfigurationDNS).ipAddress
+                                }
+                                if (((Get-VCFConfigurationNTP).ipAddress).Count -gt 1) {
+                                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0] + "," + (Get-VCFConfigurationNTP).ipAddress[1]
+                                } else { 
+                                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress
+                                }
+                                $mgmtPortgroup = ((Get-VMHost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object {$_.DeviceName -eq "vmk0"}).PortGroupName
+                                $netMode = "static"
+                                $command = '" ' + $vmwareOvfToolPath + '" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $vrmsHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $vrmsFolder + ' --net:"Network 1"=' + $mgmtPortgroup + '  --datastore=' + $datastore + ' --prop:varoot-password=' + $vrmsVaRootPassword + ' --prop:vaadmin-password=' + $vrmsVaAdminPassword +' --prop:network.netmode.vSphere_Replication_Appliance=' + $netMode + ' --prop:network.ip0.vSphere_Replication_Appliance=' + $vrmsIpAddress + ' --prop:network.netprefix0.vSphere_Replication_Appliance=' + $vrmsNetPrefix + ' --prop:vami.hostname=' + $vrmsFqdn + ' --prop:network.domain.vSphere_Replication_Appliance=' + $vrmsDomain + ' --prop:network.searchpath.vSphere_Replication_Appliance=' + $vrmsNetworkSearchPath + ' --prop:ntpserver=' + $ntpServer +' --prop:network.gateway.vSphere_Replication_Appliance=' + $vrmsGateway + ' --prop:network.DNS.vSphere_Replication_Appliance=' + $dnsServer + '  --prop:enableFileIntegrity= ' + $enableFileIntegrity +' --vService:installation=com.vmware.vim.vsm:extension_vservice ' + $vrmsOvfPath + '  "vi://' + $vcfVcenterDetails.ssoAdmin + ':' + $vcfVcenterDetails.ssoAdminPass + '@' + $vcfVcenterDetails.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
+                                Invoke-Expression "& $command"
+                                if (Get-VM -Name $vrmsHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
+                                    $Timeout = 900  ## seconds
+                                    $CheckEvery = 15  ## seconds
+                                    Try {
+                                        $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                                        Write-Output "Waiting for vSphere Replication Instance ($vrmsFQDN) using IP Address ($vrmsIpAddress) to Become Pingable."
+                                        While (!(Test-NetConnection $vrmsIpAddress -Port 5480 -WarningAction silentlyContinue | Where-Object { $_.TcpTestSucceeded -eq $True })) {
+                                        ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                                        if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                            Throw "Timeout Exceeded. Giving up on ping availability to $vrmsIpAddress"
+                                        }
+                                        Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                                        }
+                                    } Catch {
+                                        Write-Error "Failed to get a Response from vSphere Replication Instance ($vrmsFQDN): POST_VALIDATION_FAILURE"
+                                    } Finally {
+                                        $timer.Stop()  ## Stop the timer
+                                        Write-Output "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
+                                    }       
+                                }
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
-                        Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
-                        }
-                    } Catch {
-                        Write-Error "Failed to get a Response from $vrmsFqdn"
-                    } Finally {
-                        $timer.Stop()  ## Stop the timer
-                        Write-Output "$vrmsHostname Deployed Successfully"
-                    }       
+                    }
                 }
-                Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
             }
         }
     } Catch {
