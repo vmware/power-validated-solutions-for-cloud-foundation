@@ -1978,11 +1978,12 @@ Function Install-SiteRecoveryManager {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmNetPrefix,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmNetworkSearchPath,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmFolder,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmVaRootPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmVaAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmDbPassword,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$srmOvfPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$srmVaRootPassword,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$srmVaAdminPassword,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$srmDbPassword,
-        [Parameter (Mandatory = $false)] [ValidateSet("Standard", "Large")] [String]$deploymentOption
+        [Parameter (Mandatory = $false)] [ValidateSet("Standard", "Large")] [String]$deploymentOption,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmwareOvfToolPath='C:\Program Files\VMware\VMware OVF Tool\ovftool.exe'
     )
 
     Try {
@@ -1990,51 +1991,65 @@ Function Install-SiteRecoveryManager {
             $srmOvfPath = Get-ExternalFileName -title "Select the Site Recovery Manager OVF file (.ovf)" -fileType "ovf"
         } else {
             if (!(Test-Path -Path $srmOvfPath)) {
-                Write-Error  "Site Recovery Manager OVA '$srmOvfPath' File Not Found"
+                Write-Error  "Site Recovery Manager OVA ($srmOvfPath) File Not Found"
                 Break
             }
         }
-        $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-        Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-        $srmHostname = $srmFqdn.Split(".")[0]
-        $srmDomain = $srmFQDN.Substring($srmFQDN.IndexOf(".") + 1)
-        if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-            $srmExists = Get-VM -Name $srmHostname -ErrorAction SilentlyContinue
-            if ($srmExists) {
-                Write-Warning "A virtual machine called $srmHostname already exists in vCenter Server $vcServer"
-            } else {
-                $dnsServer1 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "True" }).ipAddress
-                $dnsServer2 = (Get-VCFConfigurationDNS | Where-Object { $_.isPrimary -Match "False" }).ipAddress
-                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
-                $datacenter = (Get-Datacenter -Cluster $cluster).Name
-                $mgmtPortgroup = ((get-vmhost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object {$_.DeviceName -eq "vmk0"}).PortGroupName
-                $ntpServer = (Get-VCFConfigurationNTP).ipAddress
-                $netMode = "static"
-                $command = '"C:\Program Files\VMware\VMware OVF Tool\ovftool.exe" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $srmHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $srmFolder + ' --net:"Network 1"=' + $mgmtPortgroup + '  --datastore=' + $datastore + ' --deploymentOption=' + $deploymentOption + ' --prop:varoot-password=' + $srmVaRootPassword + ' --prop:vaadmin-password=' + $srmVaAdminPassword +' --prop:dbpassword=' + $srmDbPassword + ' --prop:network.netmode.VMware_Site_Recovery_Manager_Appliance=' + $netMode + ' --prop:network.ip0.VMware_Site_Recovery_Manager_Appliance=' + $srmIpAddress + ' --prop:network.netprefix0.VMware_Site_Recovery_Manager_Appliance=' + $srmNetPrefix + ' --prop:vami.hostname=' + $srmFqdn + ' --prop:network.domain.VMware_Site_Recovery_Manager_Appliance=' + $srmDomain + ' --prop:network.searchpath.VMware_Site_Recovery_Manager_Appliance=' + $srmNetworkSearchPath + ' --prop:ntpserver=' + $ntpServer +' --prop:network.gateway.VMware_Site_Recovery_Manager_Appliance=' + $srmGateway + ' --prop:network.DNS.VMware_Site_Recovery_Manager_Appliance=' + $dnsServer1 + ',' + $dnsServer2 + '  --prop:enableFileIntegrity= ' + $enableFileIntegrity +' ' + $srmOvfPath + '  "vi://' + $vcenter.ssoAdmin + ':' + $vcenter.ssoAdminPass + '@' + $vcenter.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
-                Invoke-Expression "& $command"
-                $srmExists = Get-VM -Name $srmHostname -ErrorAction SilentlyContinue
-                if ($srmExists) {
-                    $Timeout = 900  ## seconds
-                    $CheckEvery = 15  ## seconds
-                    Try {
-                        $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
-                        Write-Output "Waiting for $srmIpAddress to become pingable."
-                        While (!(Test-NetConnection $srmIpAddress -Port 5480 -WarningAction silentlyContinue | Where-Object { $_.TcpTestSucceeded -eq $True })) {
-                            ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
-                            if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                                Throw "Timeout Exceeded. Giving up on ping availability to $srmIpAddress"
+        if (!(Test-Path -Path $vmwareOvfToolPath)) {
+            Write-Error  "VMware OVF Tool ($vmwareOvfToolPath) Not Found, Run again with parameter -vmwareOvfToolPath <path to exe file>"
+            Break
+        }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $srmHostname = $srmFqdn.Split(".")[0]
+                            $srmDomain = $srmFQDN.Substring($srmFQDN.IndexOf(".") + 1)
+                            if (Get-VM -Name $srmHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore) {
+                                Write-Warning "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname), already exists: SKIPPED"
+                            } else {
+                                $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
+                                $datastore = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).primaryDatastoreName
+                                $datacenter = (Get-Datacenter -Cluster $cluster).Name
+                                if (((Get-VCFConfigurationDNS).ipAddress).Count -gt 1) {
+                                    $dnsServer = (Get-VCFConfigurationDNS).ipAddress[0] + "," + (Get-VCFConfigurationDNS).ipAddress[1]
+                                } else { 
+                                    $dnsServer = (Get-VCFConfigurationDNS).ipAddress
+                                }
+                                if (((Get-VCFConfigurationNTP).ipAddress).Count -gt 1) {
+                                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0] + "," + (Get-VCFConfigurationNTP).ipAddress[1]
+                                } else { 
+                                    $ntpServer = (Get-VCFConfigurationNTP).ipAddress
+                                }
+                                $mgmtPortgroup = ((Get-VMHost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | Where-Object {$_.DeviceName -eq "vmk0"}).PortGroupName
+                                $netMode = "static"
+                                $command = '" ' + $vmwareOvfToolPath + '" --noSSLVerify --acceptAllEulas  --allowAllExtraConfig --diskMode=thin --powerOn --name=' + $srmHostname + ' --ipProtocol="IPv4" --ipAllocationPolicy="fixedAllocatedPolicy" --vmFolder=' + $srmFolder + ' --net:"Network 1"=' + $mgmtPortgroup + '  --datastore=' + $datastore + ' --deploymentOption=' + $deploymentOption + ' --prop:varoot-password=' + $srmVaRootPassword + ' --prop:vaadmin-password=' + $srmVaAdminPassword +' --prop:dbpassword=' + $srmDbPassword + ' --prop:network.netmode.VMware_Site_Recovery_Manager_Appliance=' + $netMode + ' --prop:network.ip0.VMware_Site_Recovery_Manager_Appliance=' + $srmIpAddress + ' --prop:network.netprefix0.VMware_Site_Recovery_Manager_Appliance=' + $srmNetPrefix + ' --prop:vami.hostname=' + $srmFqdn + ' --prop:network.domain.VMware_Site_Recovery_Manager_Appliance=' + $srmDomain + ' --prop:network.searchpath.VMware_Site_Recovery_Manager_Appliance=' + $srmNetworkSearchPath + ' --prop:ntpserver=' + $ntpServer +' --prop:network.gateway.VMware_Site_Recovery_Manager_Appliance=' + $srmGateway + ' --prop:network.DNS.VMware_Site_Recovery_Manager_Appliance=' + $dnsServer + '  --prop:enableFileIntegrity= ' + $enableFileIntegrity +' ' + $srmOvfPath + '  "vi://' + $vcfVcenterDetails.ssoAdmin + ':' + $vcfVcenterDetails.ssoAdminPass + '@' + $vcfVcenterDetails.fqdn + '/' + $datacenter + '/host/' + $cluster + '/"'
+                                Invoke-Expression "& $command" -ErrorAction Ignore
+                                (Get-VM -Name $srmHostname -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore)
+                                $Timeout = 900  ## seconds
+                                $CheckEvery = 15  ## seconds
+                                Try {
+                                    $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
+                                    Write-Output "Waiting for Site Recovery Manager Instance ($srmFqdn) using IP Address ($srmIpAddress) to Become Pingable."
+                                    While (!(Test-NetConnection $srmIpAddress -Port 5480 -WarningAction silentlyContinue | Where-Object { $_.TcpTestSucceeded -eq $True })) {
+                                        ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                                        if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                            Write-Error "Site Recovery Manager Instance ($srmFqdn) failed to initialize properly. Please delete the VM from vCenter Server ($($vcfVcenterDetails.fqdn)) and retry: POST_VAIDATION_FAILED"
+                                        }
+                                        Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                                    }
+                                } Catch {
+                                    Write-Error "Failed to get a Response from Site Recovery Manager Instance ($srmFqdn): POST_VALIDATION_FAILURE"
+                                } Finally {
+                                    $timer.Stop()  ## Stop the timer
+                                    Write-Output "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
+                                }
                             }
-                            Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
-                    } Catch {
-                        Write-Error "Failed to get a Response from $srmFqdn"
-                    } Finally {
-                        $timer.Stop()  ## Stop the timer
-                        Write-Output "$srmHostname Deployed Successfully"
                     }
                 }
-            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
             }
         }
     } Catch {
