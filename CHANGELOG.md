@@ -1,6 +1,6 @@
 # Release History
 
-## v1.9.0 (Not Released)
+## v1.9.0 (2022-25-10)
 
 - Fixed `ilaDeployVrealizeLogInsight.ps1` where the call for cmdlet named Add-vRLISmtpConfiguration had a typo.
 - Enhanced `Export-WsaJsonSpec` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.

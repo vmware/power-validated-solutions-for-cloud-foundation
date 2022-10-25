@@ -10275,7 +10275,7 @@ Function Add-vRLIAlertDatacenter {
                                                 Write-Output "Adding Datacenter Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
                                         } else {
-                                            Write-Error "Unable to find Dataceter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                            Write-Error "Unable to find Datacenter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
                                     }
                                 }
@@ -15905,15 +15905,15 @@ Function Add-ResourcePool {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
-                                if (!(Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
-                                    New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcenter.fqdn | Out-Null
-                                    if (Get-ResourcePool -Server $vcenter.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
-                                        Write-Output "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): SUCCESSFUL"
+                                if (!(Get-ResourcePool -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $resourcePoolName})) {
+                                    New-ResourcePool -Name $resourcePoolName -Location $cluster -Server $vcfVcenterDetails.fqdn | Out-Null
+                                    if (Get-ResourcePool -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $resourcePoolName}) {
+                                        Write-Output "Adding Resource Pool to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($resourcePoolName): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName): FAILED"
+                                        Write-Error "Adding Resource Pool to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($resourcePoolName): FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Adding Resource Pool to vCenter Server ($($vcenter.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
+                                    Write-Warning "Adding Resource Pool to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($resourcePoolName), already exists: SKIPPED"
                                 }
                                 Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }

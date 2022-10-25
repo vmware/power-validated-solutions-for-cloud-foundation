@@ -12,13 +12,13 @@
     RootModule = 'PowerValidatedSolutions.psm1'
     
     # Version number of this module.
-    ModuleVersion = '1.9.0.1009'
+    ModuleVersion = '1.9.0.1010'
     
     # Supported PSEditions
     # CompatiblePSEditions = @()
     
     # ID used to uniquely identify this module
-    GUID = '49dfeb2b-12e6-4fa3-ad3c-3f6ecdc1b27f'
+    GUID = '59dfeb4b-12d6-4aa3-ad3c-3f6ecdc1b27f'
     
     # Author of this module
     Author = 'Gary Blake, Cloud Infrastructure Business Group (CIBG)'
