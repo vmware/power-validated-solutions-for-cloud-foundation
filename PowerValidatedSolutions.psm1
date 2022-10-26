@@ -2171,19 +2171,21 @@ Export-ModuleMember -Function Install-vSphereReplicationManager
 Function Connect-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
-        Register Site Recovery Manager & vSphere Replciation with vCenter Server
+        Register Site Recovery Manager or vSphere Replication with vCenter Server
 
         .DESCRIPTION
-        The Connect-DRSolutionTovCenter cmdlet deploys the Site Recovery Manage Virtual Appliance OVA. 
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain 
+        The Connect-DRSolutionTovCenter cmdlet registers Site Recovery Manager or vSphere Replication with a vCenter
+        Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the
         vCenter Server details from its inventory and then:
-        - Gathers vSphere configuration from vCenter Server
-        - Gathers DNS and NTP configuration from SDDC Manager
-        - Deploys the Site Recovery Manage Virtual Appliance
+        - Validates if the solution has already been registerd and if not proceeds with the registration
 
         .EXAMPLE
-        Connect-DRSolutionTovCenter -solution SRM -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword 'VMw@re1!' -domainType MANAGEMENT -siteName SFO01 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword 'VMw@re1!' -adminEmail 'admin@rainpole.io'
-        This example registers Site Recovery Manager with the vCenter Server of the management domain
+        Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "srm-administrator@rainpole.io" -solution SRM 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain
+
+        .EXAMPLE
+        Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "vrms-administrator@rainpole.io" -solution VRMS 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
     #>
 
     Param (
@@ -2194,34 +2196,39 @@ Function Connect-DRSolutionTovCenter {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminPassword,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
         [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
     )
 
-    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
-    if ($solution -eq "SRM") {
-        $extensionKey = "com.vmware.vcDr"
-    } else {
-        $extensionKey = "com.vmware.vcHms"
-    }
     Try {
-        # Retireve the vCenter SSL Thumbprint
-        $vcenterFQDN = $vcenter.fqdn
-        $command = 'openssl s_client -connect ' + $vcenterFQDN + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
-        $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
-        $vCenterInstanceUuid = Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Select-Object InstanceUuid
-        $vCenterInstanceUuid = $vCenterInstanceUuid.InstanceUuid
-        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (!((Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword).data.drConfiguration.vcName -eq $vcfVcenterDetails.fqdn)) {
+                        if ($solution -eq "SRM") {
+                            $extensionKey = "com.vmware.vcDr"
+                        } elseif ($solution -eq "VRMS") {
+                            $extensionKey = "com.vmware.vcHms"
+                        }
+                        # Retireve the vCenter SSL Thumbprint
+                        $command = 'openssl s_client -connect ' + $($vcfVcenterDetails.fqdn) + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
+                        $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
+                        $vCenterInstanceUuid = (Connect-VIServer -Server $vcfVcenterDetails.fqdn -User $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass | Select-Object InstanceUuid).InstanceUuid
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
 
-        # Register Site Recovery Manager with vCenter
-        Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcenterFQDN -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $ssoAdminUser -ssoAdminPassword $ssoAdminPassword -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey | Out-Null
-        $validateRegistration = Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
-        if ($validateRegistration.data.drConfiguration.vcName -eq $vcenterFQDN) {
-            Write-output "Successfully Registered $solution instance $applianceFqdn to vCenter Server $vcenterFQDN"
-        } else {
-            Write-Output "Something went wrong"
+                        # Register the Solution with vCenter Server
+                        Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcfVcenterDetails.fqdn -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $vcfVcenterDetails.ssoAdmin -ssoAdminPassword $vcfVcenterDetails.ssoAdminPass -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey | Out-Null
+                        if ((Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword).data.drConfiguration.vcName -eq $vcfVcenterDetails.fqdn) {
+                            Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                            
+                        } else {
+                            Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                        }
+                    } else {
+                        Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                    }
+                }
+            }
         }
     } Catch {
         Debug-ExceptionWriter -object $_
