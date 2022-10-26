@@ -1,5 +1,10 @@
 # Release History
 
+## v1.10.0 (Not Released)
+- Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
+- Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
+- Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements.
+
 ## v1.9.0 (2022-25-10)
 
 - Fixed `ilaDeployVrealizeLogInsight.ps1` where the call for cmdlet named Add-vRLISmtpConfiguration had a typo.
