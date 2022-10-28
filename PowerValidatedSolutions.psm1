@@ -2285,6 +2285,110 @@ Function Install-VAMICertificate {
 }
 Export-ModuleMember -Function Install-VAMICertificate
 
+Function Add-VrmsNetworkAdapter {
+    <#
+		.SYNOPSIS
+        Adds a second ethernet adapter and configures the required routing for vSphere Replication appliance
+
+        .DESCRIPTION
+        The Add-VrmsNetworkAdapter cmdlet adds a second ethernet adapter and configures the required routing for the
+        vSphere Replication appliance.  The cmdlet connects to SDDC Manager using the -server, -user, and
+        -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Configures the secondary ethernet adapter and configures the required routing for vSphere Replication
+        appliances in the protected and recovery sites
+
+        .EXAMPLE
+        Add-VrmsNetworkAdapter -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -subnet 172.18.111.0/24 -ipAddress 172.18.111.125 -gateway 172.18.111.1 -vrmsRootPass VMw@re1! -vrmsAdminPass VMw@re1! -portgroup sfo-m01-cl01-vds01-vrms -remoteNetwork 172.18.96.0/24
+        This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$subnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsRootPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsAdminPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$remoteNetwork
+    )
+
+    Try {
+
+        if (Test-VCFConnection -server $sddcManagerFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ((((Get-View -Server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]) {
+                                $vrmsFqdn = (((Get-View -Server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                $vrmsVmName = $vrmsFqdn.Split(".")[0]
+                                if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup}) {
+                                    if (((Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Get-NetworkAdapter).Count) -le 1) {
+                                        # Shutdown the vSphere Replication Appliance
+                                        if ((Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue).State -eq 'Running') {
+                                            Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Shutdown-VMGuest -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                            While ($vmObject.PowerState -ne 'PoweredOff') {
+                                                Start-Sleep -Seconds 1
+                                                $vmObject = Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue
+                                            }
+                                        }
+                                        # Add the second NIC to the vSphere Replication Appliance
+                                        Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | New-NetworkAdapter -Server $vcfVcenterDetails.fqdn -NetworkName $portgroup -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
+                                        if ((Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue).State -eq 'NotRunning') {
+                                            Start-VM -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                            While ($vmObject.State -ne 'Running') {
+                                                Start-Sleep -Seconds 5
+                                                $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue
+                                            }
+                                        }
+                                        # Configure the IP via VAMI API and Restart the vSphere Replication Appliance
+                                        if (((Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Get-NetworkAdapter).Count) -le 2) {
+                                            Set-DRSolutionNetworkAdapter -fqdn $vrmsFqdn -user admin -password $vrmsAdminPass -interfaceName eth1 -defaultGateway $gateway -cidrPrefix $subnet.Split("/")[1] -ipAddress $ipAddress -ErrorAction Stop | Out-Null
+                                            Restart-VM -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                            # Get-VM -Server $vcfVcenterDetails.fqdn -Name $vrmsVmName | Restart-VMGuest -Confirm:$false | Out-Null
+                                            Do {
+                                                Start-Sleep -Seconds 5
+                                                $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
+                                                $vamiStatus = Test-VAMIAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
+                                            } Until (($vmObject.State -eq "Running") -and ($vamiStatus -eq $true))
+                                            $scriptCommand = "sed -i '/^Gateway*/a Destination=$remoteNetwork' /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd.service"
+                                            Invoke-VMScript -ScriptType bash -VM $vrmsVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrmsRootPass -Server $vcfVcenterDetails.fqdn | Out-Null 
+                                        }
+                                        # Configure the Incoming Storage Replication Port
+                                        Set-vSRIncomingStorageTraffic -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass -ipAddress $ipAddress -ErrorAction SilentlyContinue | Out-Null
+                                        if (!((Get-vSRIncomingStorageTraffic -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass).filterIp -match $ipAddress)) {                                                
+                                            Write-Error "Setting Incoming Storage Traffic IP Address for vSphere Replication Appliance ($vrmsFqdn): POST_VALIDATION_FAILED"
+                                        } else {
+                                            Write-Output "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn): SUCCESSFUL"
+                                        }
+                                    } else {
+                                        Write-Warning "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn), already exists: SKIPPING" 
+                                    }
+                                } else {
+                                    Write-Error "Unable to find vSphere Distributed Port Group ($portgroup) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                                Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                            } else {
+                                Write-Error "No vSphere Replication Appliance Registered with vCenter Server ($($vcfVcenterDetails.fqdn))"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-VrmsNetworkAdapter
+
 Function Get-DRSolutionSummary {
     <#
 		.SYNOPSIS
@@ -6991,6 +7095,171 @@ Function Undo-SRMLicenseConfig {
     }
 }
 Export-ModuleMember -Function Undo-SRMLicenseConfig
+
+Function Add-SrmLicenseKey {
+    <#
+		.SYNOPSIS
+        Add a license for Site Recovery Manager
+
+        .DESCRIPTION
+        The Add-SrmLicenseKey cmdlet adds a license for Site Recovery Manager in vCenter Server. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
+        - Validates whether the license key exists in vCenter Server inventory, and if not, installs them
+        - Assigns the license to Site Recovery Manager
+
+        .EXAMPLE
+        Add-SrmLicenseKey -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
+        This example adds a license key to the Site Recovery Manager instance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmLicenseKey
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
+                                $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                if (Test-SRMConnection -server $srmFqdn) {
+                                    if (Test-SRMAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance
+                                        $licenseManager = Get-View -Server $vcfVcenterDetails.fqdn $serviceInstance.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $vcfVcenterDetails.fqdn}
+                                        $licenseAssignmentManager = Get-View -Server $vcfVcenterDetails.fqdn $licenseManager.licenseAssignmentManager
+                                        if ($licenseManager.Licenses | Where-Object {$_.LicenseKey -eq $srmLicenseKey}) {
+                                            Write-Warning "Adding License key ($srmLicenseKey) for Site Recovery Manager to vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPING"
+                                        } else {
+                                            $licenseManager.AddLicense($srmLicenseKey,$null) | Out-Null
+                                            $licenseManager.UpdateViewData()
+                                            if ($licenseManager.Licenses | Where-Object {$_.LicenseKey -eq $srmLicenseKey}) {
+                                                Write-Output "Adding License key ($srmLicenseKey) for Site Recovery Manager to vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Adding License key ($srmLicenseKey) for Site Recovery Manager to vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                            $srmSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                            $srmPartialUuid = ($licenseAssignmentManager.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmSiteName}).EntityId
+                                            $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                            $output = Invoke-VMScript -VM ($vcfVcenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vcfVcenterDetails.rootPass -Server $vcfVcenterDetails.fqdn
+                                            $srmUuid = ($srmPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                            if (($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -eq $srmLicenseKey) {
+                                                Write-Warning "Assigning License Key ($srmLicenseKey) to Site Recovery Manager instance ($srmFqdn), already exists: SKIPPING"
+                                            } else {
+                                                $licenseAssignmentManager.UpdateAssignedLicense($srmUuid,$srmLicenseKey,$null) | Out-Null
+                                                $licenseAssignmentManager.UpdateViewData() | Out-Null
+                                                if (($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -eq $srmLicenseKey) {
+                                                    Write-Output "Assigning License Key ($srmLicenseKey) to Site Recovery Manager instance ($srmFqdn): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Assigning License Key ($srmLicenseKey) to Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                Write-Error "No Site Recovery Manager Appliance Registered with vCenter Server ($($vcfVcenterDetails.fqdn))"
+                            }
+                        }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-SrmLicenseKey
+
+Function Undo-SrmLicenseKey {
+    <#
+		.SYNOPSIS
+        Removes a license for Site Recovery Manager
+
+        .DESCRIPTION
+        The Undo-SrmLicenseKey cmdlet removes a license for Site Recovery Manager from vCenter Server. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
+        - Validates whether the license key exists in vCenter Server inventory, and removes it
+
+        .EXAMPLE
+        Undo-SrmLicenseKey -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -srmLicenseKey 00000-11111-22222-33333-4444
+        This example removes the license key from Site Recovery Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmLicenseKey
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
+                                $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                if (Test-SRMConnection -server $srmFqdn) {
+                                    if (Test-SRMAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance 
+                                        $licenseManager = Get-View -Server $vcfVcenterDetails.fqdn $serviceInstance.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $vcfVcenterDetails.fqdn}
+                                        $licenseAssignmentManager = Get-View -Server $vcfVcenterDetails.fqdn $licenseManager.licenseAssignmentManager
+                                        $srmSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                        $srmPartialUuid = ($licenseAssignmentManager.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmSiteName}).EntityId
+                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                        $output = Invoke-VMScript -VM ($vcfVcenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vcfVcenterDetails.RootPass -Server $vcfVcenterDetails.fqdn
+                                        $srmUuid = ($srmPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                        if (!($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -or ($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -eq "00000-00000-00000-00000-00000") {
+                                            Write-Warning "Removing License key ($srmLicenseKey) for Site Recovery Manager instance ($srmFqdn), already removed: SKIPPING"
+                                        } else {
+                                            $licenseAssignmentManager.RemoveAssignedLicense($srmUuid) | Out-Null
+                                            $licenseAssignmentManager.UpdateViewData() | Out-Null
+                                            if (!($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey)) {
+                                                Write-Output "Removing License key ($srmLicenseKey) from Site Recovery Manager instance ($srmFqdn): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing License key ($srmLicenseKey) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
+                                            }
+                                            if (!($licenseManager.Licenses | Where-Object {$_.LicenseKey -eq $srmLicenseKey})) {
+                                                Write-Warning "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)), already removed: SKIPPING"
+                                            } else {
+                                                $licenseManager.RemoveLicense($srmLicenseKey) | Out-Null
+                                                $licenseManager.UpdateViewData()
+                                                if (!($licenseManager.Licenses | Where-Object {$_.LicenseKey -eq $srmLicenseKey})) {
+                                                    Write-Output "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SrmLicenseKey
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -16464,6 +16733,114 @@ Function Move-VMtoFolder {
     }
 }
 Export-ModuleMember -Function Move-VMtoFolder
+
+Function Add-VdsPortGroup {
+    <#
+		.SYNOPSIS
+        Create vSphere Distributed port group
+
+        .DESCRIPTION
+        The Add-VdsPortGroup cmdlet creates a vSphere Distributed port groups in vCenter Server. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible the vCenter Server instance
+        - Creates a vSphere Distributed port group in vCenter Server
+
+        .EXAMPLE
+        Add-VdsPortGroup -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -vlan 2619
+        This example creates a vSphere Distributed port group for VLAN ID 2619 named sfo-m01-cl01-vds01-pg-vrms in vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$vlan
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (!(Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)})) {
+                                $createVDPortGroup = New-VDPortGroup -Server $vcfVcenterDetails.fqdn -VDSwitch (Get-VDSwitch -Server $vcfVcenterDetails.fqdn).Name -Name $portgroup -VlanId $vlan -ErrorAction Stop
+                                $createVDPortGroup | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
+                                if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
+                                    Write-Output "Creating vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Creating vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Creating vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)), already exists: SKIPPED"
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-VdsPortGroup
+
+Function Undo-VdsPortGroup {
+    <#
+		.SYNOPSIS
+        Removes vSphere Distributed port group
+
+        .DESCRIPTION
+        The Undo-VdsPortGroup cmdlet removes a vSphere Distributed port groups in vCenter Server. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible the vCenter Server instance
+        - Removes the vSphere Distributed port group in vCenter Server
+
+        .EXAMPLE
+        Undo-VdsPortGroup -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
+        This example removes the vSphere Distributed port group named sfo-m01-cl01-vds01-pg-vrms from vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup}) {
+                                Remove-VDPortGroup -Server $vcfVcenterDetails.fqdn -VDPortGroup $portGroup -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null         
+                                if (!(Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup})) {
+                                    Write-Output "Removing vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)), dosen't exist: SKIPPED"
+                            }
+                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-VdsPortGroup
 
 Function Import-vRSLCMLockerCertificate {
     <#

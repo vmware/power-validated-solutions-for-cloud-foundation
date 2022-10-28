@@ -4,6 +4,11 @@
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
 - Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
 - Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements.
+- Added `Add-VrmsNetworkAdapter` cmdlet to support adding a second nic to vSphere Replication.
+- Added `Add-SrmLicenseKey` cmdlet to support adding and assigning a Site Recovery Manager license.
+- Added `Undo-SrmLicenseKey` cmdlet to support removing a Site Recovery license.
+- Added `Add-VdsPortGroup` cmdlet to support creating a vSphere Distributed Switch port group and assigning a VLAN id.
+- Added `Undo-VdsPortGroup` cmdlet to support removing a vSphere Distributed Switch port group.
 
 ## v1.9.0 (2022-25-10)
 
