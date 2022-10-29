@@ -32178,7 +32178,193 @@ Export-ModuleMember -Function Add-CEPvCenterServer
 #####################################################################
 
 #####################################################################
+#Region     Start of vSphere Replication Functions             ######
+
+Function Request-VrmsToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified vSphere Replication Appliance and obtains an authorization token
+
+        .DESCRIPTION
+        The Request-VrmsToken cmdlet connects to the specified vSphere Replication Appliance and obtains an
+        authorization token. It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-VrmsToken -fqdn sfo-m01-vrms01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example shows how to connect to the vRealize Suite Lifecycle Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
+        $vrmsBasicHeader = @{"Accept" = "application/json, text/plain, */*" }
+        $vrmsBasicHeader.Add("Authorization", "Basic $base64AuthInfo")
+        $vrmsBasicHeader.Add("Content-Type", "application/json")
+        $Global:vrmsAppliance = $fqdn
+
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/session"
+        if ($PSEdition -eq 'Core') {
+            $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
+        }
+        if ($vrmsResponse.StatusCode -eq 200) {
+            $Global:vrmsHeader = @{"Accept" = "application/json"}
+            $vrmsHeader.Add("Content-Type", "application/json")
+            $vrmsHeader.Add("x-dr-session", "$(($vrmsResponse.Content | ConvertFrom-Json).session_id)")
+            Write-Output "Successfully connected to the vSphere Replication Appliance: $vrmsAppliance"
+        }
+    }
+    Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Request-VrmsToken
+
+Function Get-VrmsApplianceDetail {
+    <#
+        .SYNOPSIS
+        Get information about the vSphere Replication Appliance
+
+        .DESCRIPTION
+        The Get-VrmsApplianceDetail cmdlet retrives information about the vSphere Replication Appliance.
+
+        .EXAMPLE
+        Get-VrmsApplianceDetail
+        This example retrives information about the vSphere Replication Appliance
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+        $response
+    }
+    Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsApplianceDetail
+
+#EndRegion  End of vSphere Replication Functions               ######
+#####################################################################
+
+#####################################################################
+#Region     Start of Site Recovery Manager Functions           ######
+
+Function Request-SrmToken {
+    <#
+        .SYNOPSIS
+        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token
+
+        .DESCRIPTION
+        The Request-SrmToken cmdlet connects to the specified Site Recovery Manager and obtains an authorization
+        token. It is required once per session before running all other cmdlets.
+
+        .EXAMPLE
+        Request-SrmToken -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example shows how to connect to the vRealize Suite Lifecycle Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
+        $srmBasicHeader = @{"Accept" = "application/json, text/plain, */*" }
+        $srmBasicHeader.Add("Authorization", "Basic $base64AuthInfo")
+        $srmBasicHeader.Add("Content-Type", "application/json")
+        $Global:srmAppliance = $fqdn
+
+        $uri = "https://$srmAppliance/api/rest/configure/v1/session"
+        if ($PSEdition -eq 'Core') {
+            $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -UseBasicParsing
+        }
+        if ($srmResponse.StatusCode -eq 200) {
+            $Global:srmHeader = @{"Accept" = "application/json"}
+            $srmHeader.Add("Content-Type", "application/json")
+            $srmHeader.Add("x-dr-session", "$(($srmResponse.Content | ConvertFrom-Json).session_id)")
+            Write-Output "Successfully connected to the Site Recovery Manager Appliance: $srmAppliance"
+        }
+    }
+    Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Request-SrmToken
+
+Function Get-SrmApplianceDetail {
+    <#
+        .SYNOPSIS
+        Get information about the Site Recovery Manager Appliance
+
+        .DESCRIPTION
+        The Get-SrmApplianceDetail cmdlet retrives information about the Site Recovery Manager Appliance.
+
+        .EXAMPLE
+        Get-SrmApplianceDetail
+        This example retrives information about the Site Recovery Manager Appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance"
+        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+        $response
+    }
+    Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmApplianceDetail
+
+#EndRegion  End of Site Recovery Manager Functions             ######
+#####################################################################
+
+#####################################################################
 #Region     Start Utility Functions                            ######
+
+Function internalCatchWriter ($applianceName, $applianceFqdn) {
+    if ($_.Exception.Message -match "400") {
+        Write-Error "400 (Bad Request: ($_.Exception.ErrorLabel)"
+    } elseif ($_.Exception.Message -match "401") {
+        Write-Error "401 (Unauthorized: Not Connected to $($applianceName): $($applianceFqdn))"
+    } elseif ($_.Exception.Message -match "403") {
+        Write-Error "403 (Forbidden on $($applianceName): $($applianceFqdn))"
+    } elseif ($_.Exception.Message -match "404") {
+        Write-Error "404 (Resouce Not Found on $($applianceName): $($applianceFqdn))"
+    } elseif ($_.Exception.Message -match "409") {
+        Write-Error "409 (Conflict: $_.Exception.ErrorLabel"
+    } elseif ($_.Exception.Message -match "500") {
+        Write-Error "500 (Internal Server Error: $_.Exception.ErrorLabel"
+    } elseif ($_.Exception.Message -match "Cannot bind parameter 'Uri'") {
+        Write-Error "Missing Access Token (Request an access token for the $($applianceName) to continue)"
+    } else {
+        Write-Error $_.Exception.Message
+    }
+}
 
 Function Debug-ExceptionWriter {
     Param (

@@ -1,6 +1,7 @@
 # Release History
 
 ## v1.10.0 (Not Released)
+
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
 - Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
 - Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements.
@@ -9,6 +10,11 @@
 - Added `Undo-SrmLicenseKey` cmdlet to support removing a Site Recovery license.
 - Added `Add-VdsPortGroup` cmdlet to support creating a vSphere Distributed Switch port group and assigning a VLAN id.
 - Added `Undo-VdsPortGroup` cmdlet to support removing a vSphere Distributed Switch port group.
+- Added `Request-VrmsToken` cmdlet to support requesting a session token for a vSphere Replication Appliance.
+- Added `Get-VrmsApplianceDetail` cmdlet to support getting information about a vSphere Replication Appliance.
+- Added `Request-SrmToken` cmdlet to support requesting a session token for a Site Recovery Manager Appliance.
+- Added `Get-SrmApplianceDetail` cmdlet to support getting information about a Site Recovery Manager Appliance.
+- Added `internalCatchWriter` internal function to control and providing messages around API response codes.
 
 ## v1.9.0 (2022-25-10)
 
