@@ -2236,25 +2236,32 @@ Function Connect-DRSolutionTovCenter {
 }
 Export-ModuleMember -Function Connect-DRSolutionTovCenter
 
-Function Install-VAMICertificate {
+Function Install-VamiCertificate {
     <#
 		.SYNOPSIS
-        Install a Signed Certificate Using VAMI Appliance interface
+        Install a new certificate for a VAMI interface
 
         .DESCRIPTION
-        The Install-VAMICertificate cmdlet replaces the certificate on the Site Recovery Manager appliance
+        The Install-VamiCertificate cmdlet allows you to replace the certificate of a VAMI interface. Supports:
+        - vSphere Replication Appliance
+        - Site Recovery Manager Appliance
 
         .EXAMPLE
-        Install-VAMICertificate -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1! -certFile C:\Certs\sfo-m01-srm01.4.p12 -certPassword VMw@re1!
-        This example configures the Site Recovery Manager Virtual Appliance with the with a signed cert
+        Install-VamiCertificate -server sfo-m01-vrms01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution VRMS
+        This example replaces the certificate for the VAMI interface of the vSphere Replication 
+        
+        .EXAMPLE
+        Install-VamiCertificate -server sfo-m01-srm01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution SRM
+        This example replaces the certificate for the VAMI interface of the Site Recovery Manager appliance
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword,
+        [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
     )
 
     Try {
@@ -2265,25 +2272,29 @@ Function Install-VAMICertificate {
                 Write-Error  "Certificate (.p12) '$certFile' File Not Found"
             }
         }
-        Try {
-            $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($certFile))
-            $body = '{
-                "certificateContent": "'+$base64string+'",
-                "certificatePassword": "'+$certPassword+'"
-            }'
-            $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
-            $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
-            $uri = "https://"+$fqdn+":5480/configure/requestHandlers/installPkcs12Certificate"
-            $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-        } Catch {
-            #TODO - Write function to query cert Thumbprint and compare to installed cert
-            #Debug-ExceptionWriter -object $_
+        
+        if ($solution -eq "VRMS") {
+            if (Test-VrmsVamiConnection -server $server) {
+                if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
+                    Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                    Write-Output "Installing Signed Certifcate on vSphere Replication appliance ($server) using ($certFile): SUCCESSFUL"
+                }
+            
+            }
+        } elseif ($solution -eq "SRM") {
+            if (Test-SrmVamiConnection -server $server) {
+                if (Test-SrmVamiAuthentication -server $server -user $user -pass $pass) {
+                    Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                    Write-Output "Installing Signed Certifcate on Site Recovery Manager appliance ($server) using ($certFile): SUCCESSFUL"
+                }
+            
+            }
         }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Install-VAMICertificate
+Export-ModuleMember -Function Install-VamiCertificate
 
 Function Add-VrmsNetworkAdapter {
     <#
@@ -31602,8 +31613,7 @@ Function Request-VrmsToken {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/session"
         if ($PSEdition -eq 'Core') {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
         }
         if ($vrmsResponse.StatusCode -eq 200) {
@@ -31612,8 +31622,7 @@ Function Request-VrmsToken {
             $vrmsHeader.Add("x-dr-session", "$(($vrmsResponse.Content | ConvertFrom-Json).session_id)")
             Write-Output "Successfully connected to the vSphere Replication Appliance: $vrmsAppliance"
         }
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31634,10 +31643,8 @@ Function Get-VrmsApplianceDetail {
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31667,12 +31674,11 @@ Function Set-VrmsApplianceState {
     Try {
         if ($PsBoundParameters.ContainsKey('action') -eq 'restart') {
             $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/actions/restart"
-        } elseif ($PsBoundParameters.ContainsKey('action') -eq 'stop'){
+        } elseif ($PsBoundParameters.ContainsKey('action') -eq 'stop') {
             $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/actions/stop"
         }
         Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31706,8 +31712,7 @@ Function Get-VrmsTask {
             $uri = "https://$vrmsAppliance/api/rest/configure/v1/tasks"
         }
         Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31743,8 +31748,7 @@ Function Get-VrmsService {
             $uri = "https://$vrmsAppliance/api/rest/configure/v1/services"
             (Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader).list
         }
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31779,8 +31783,7 @@ Function Set-VrmsService {
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/services/$serviceId/actions/$state"
         Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31802,8 +31805,7 @@ Function Get-VrmsNetworkAll {
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network"
         Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31825,8 +31827,7 @@ Function Get-VrmsNetworkDns {
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/dns"
         Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31857,8 +31858,7 @@ Function Set-VrmsNetworkDns {
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/dns"
         Invoke-RestMethod -Method PUT -Uri $uri -Headers $vrmsHeader -Body $body
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31880,8 +31880,7 @@ Function Get-VrmsNetworkInterface {
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
         (Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader).list
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31918,8 +31917,7 @@ Function Set-VrmsNetworkInterface {
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces/$interface"
         Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -31963,8 +31961,7 @@ Function Get-VrmsConfiguration {
             $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
         }
         Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -32022,8 +32019,7 @@ Function Set-VrmsConfiguration {
 
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
         Invoke-RestMethod -Method PUT -Uri $uri -Headers $vrmsHeader -Body $body
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -32054,8 +32050,7 @@ Function Remove-VrmsConfiguration {
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration/actions/remove"
         Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -32086,12 +32081,77 @@ Function Set-VrmsReplication {
         $body = $body | ConvertTo-Json
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/replication-server-settings"
         Invoke-RestMethod -Method PUT -Uri $uri -Headers $vrmsHeader -Body $body
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
 Export-ModuleMember -Function Set-VrmsReplication
+
+Function Get-VrmsVamiCertificate {
+    <#
+        .SYNOPSIS
+        Get the certificate of the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Get-VrmsConfiguration cmdlet retrives the certificate of the VAMI interface of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsConfiguration
+        This example retrives the registration configuration for the vSphere Replication appliance
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsVamiCertificate
+
+Function Set-VrmsVamiCertificate {
+    <#
+        .SYNOPSIS
+        Install a Signed Certificate for the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Set-VrmsVamiCertificate cmdlet replaces the certificate on the VAMI interface of the vSphere
+        Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsVamiCertificate -pkcs12CertFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1!
+        This example replaces the certificate on the VAMI Appliance interface of the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            $pkcs12CertFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType
+        } elseif ($PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            if (!(Test-Path -Path $pkcs12CertFile)) {
+                Write-Error  "Certificate (.p12) '$pkcs12CertFile' File Not Found"
+            }
+        }
+
+        $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes($pkcs12CertFile))
+        $pkcs12Object = New-Object -TypeName psobject
+        $pkcs12Object | Add-Member -notepropertyname 'certificate' -notepropertyvalue $certContent
+        $pkcs12Object | Add-Member -notepropertyname 'password' -notepropertyvalue $certPassword
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'pkcs12_format' -notepropertyvalue $pkcs12Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
+        Set-VrmsApplianceState -action restart | Out-Null
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Set-VrmsVamiCertificate
 
 #EndRegion  End of vSphere Replication Functions               ######
 #####################################################################
@@ -32145,8 +32205,7 @@ Function Request-SrmToken {
             $srmHeader.Add("x-dr-session", "$(($srmResponse.Content | ConvertFrom-Json).session_id)")
             Write-Output "Successfully connected to the Site Recovery Manager Appliance: $srmAppliance"
         }
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
     }
 }
@@ -32167,14 +32226,477 @@ Function Get-SrmApplianceDetail {
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
         internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
     }
 }
 Export-ModuleMember -Function Get-SrmApplianceDetail
+
+Function Set-SrmApplianceState {
+    <#
+        .SYNOPSIS
+        Restart or shutdown the appliance
+
+        .DESCRIPTION
+        The Set-SrmApplianceState cmdlet allows you to restart or shutdown the Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmApplianceState -action restart
+        This example restarts the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Set-SrmApplianceState -action stop
+        This example shutsdown the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('restart','stop')] [String]$action
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('action') -eq 'restart') {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/actions/restart"
+        } elseif ($PsBoundParameters.ContainsKey('action') -eq 'stop') {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/actions/stop"
+        }
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmApplianceState
+
+Function Get-SrmTask {
+    <#
+        .SYNOPSIS
+        Get tasks
+
+        .DESCRIPTION
+        The Get-SrmTask cmdlet retrives the tasks for a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmTask
+        This example retrives all the tasks from the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Get-SrmTask -taskId <task_id>
+        This example retrives a specific task based on the task ID from the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('taskId')) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/tasks/$taskId"
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/tasks"
+        }
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmTask
+
+Function Get-SrmService {
+    <#
+        .SYNOPSIS
+        Get information about Site Recovery Manager appliance services
+
+        .DESCRIPTION
+        The Get-SrmService cmdlet retrives information about the Site Recovery Manager appliance services.
+
+        .EXAMPLE
+        Get-SrmService
+        This example retrives information about all services on the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Get-SrmService -serviceId hms
+        This example retrives information about hms service on the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet('srm','db','drclient','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("serviceId")) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/services/$serviceId"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/services"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader).list
+        }
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmService
+
+Function Set-SrmService {
+    <#
+        .SYNOPSIS
+        Get information about Site Recovery Manager appliance services
+
+        .DESCRIPTION
+        The Set-SrmService cmdlet retrives information about the Site Recovery Manager appliance services.
+
+        .EXAMPLE
+        Set-SrmService -serviceId srm -state stop
+        This example stops the hms service on the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Set-SrmService -serviceId srm -state start
+        This example starts the hms service on the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Set-SrmService -serviceId srm -state restart
+        This example restarts the hms service on the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('srm','db','drclient','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId,
+        [Parameter (Mandatory = $true)] [ValidateSet('start','stop','restart')] [String]$state
+    )
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/services/$serviceId/actions/$state"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmService
+
+Function Get-SrmNetworkAll {
+    <#
+        .SYNOPSIS
+        Get all network configuration
+
+        .DESCRIPTION
+        The Get-SrmNetworkAll cmdlet retrives all the network configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmNetworkAll
+        This example retrives all network configuration of the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmNetworkAll
+
+Function Get-SrmNetworkDns {
+    <#
+        .SYNOPSIS
+        Get DNS configuration
+
+        .DESCRIPTION
+        The Get-SrmNetworkDns cmdlet retrives DNS configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmNetworkDns
+        This example retrives information about the DNS configuration of the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/dns"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmNetworkDns
+
+Function Set-SrmNetworkDns {
+    <#
+        .SYNOPSIS
+        Set DNS configuration
+
+        .DESCRIPTION
+        The Set-SrmNetworkDns cmdlet change the DNS configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmNetworkDns -srmHostname sfo-m01-srm01.sfo.rainpole.io -dnsServers "172.18.95.4","172.18.95.5"
+        This example retrives information about the DNS configuration of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmHostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$dnsServers
+    )
+
+    Try {
+        $body = New-Object psobject -Property @{servers = $dnsServers}
+        $body | Add-Member -notepropertyname 'hostname' -notepropertyvalue $srmHostname
+        $body | Add-Member -notepropertyname 'mode' -notepropertyvalue 'STATIC'
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/dns"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmNetworkDns
+
+Function Get-SrmNetworkInterface {
+    <#
+        .SYNOPSIS
+        Get network interface configuration
+
+        .DESCRIPTION
+        The Get-SrmNetworkInterface cmdlet retrives network interface configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmNetworkInterface
+        This example retrives information about the network interface configuration of the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
+        (Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader).list
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmNetworkInterface
+
+Function Set-SrmNetworkInterface {
+    <#
+        .SYNOPSIS
+        Set network interface configuration
+
+        .DESCRIPTION
+        The Set-SrmNetworkInterface cmdlet configures the network interface of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmNetworkInterface -interface eth0 -ipAddress 172.18.95.126 -gateway 172.18.95.1 -prefix 24
+        This example configures the network interface of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$prefix
+    )
+
+    Try {
+        $ipv4Object = New-Object -TypeName psobject
+        $ipv4Object | Add-Member -notepropertyname 'address' -notepropertyvalue $ipAddress
+        $ipv4Object | Add-Member -notepropertyname 'assignment_mode' -notepropertyvalue 'STATIC'
+        $ipv4Object | Add-Member -notepropertyname 'default_gateway' -notepropertyvalue $gateway
+        $ipv4Object | Add-Member -notepropertyname 'prefix' -notepropertyvalue $prefix
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'ipv4' -notepropertyvalue $ipv4Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/interfaces/$interface"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmNetworkInterface
+
+Function Get-SrmConfiguration {
+    <#
+        .SYNOPSIS
+        Get registration
+
+        .DESCRIPTION
+        The Get-SrmConfiguration cmdlet retrives registration configuration for a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmConfiguration
+        This example retrives the registration configuration for the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Get-SrmConfiguration -reconfigure
+        This example retrives the reconfiguration status for the Site Recovery Manager appliance
+    #>
+    
+    [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $false, ParameterSetName = 'default')]
+        [Parameter (Mandatory = $false, ParameterSetName = 'reconfigure')] [ValidateNotNullOrEmpty()] [Switch]$reconfigure
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('reconfigure')) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/reconfigure-required"
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
+        }
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmConfiguration
+
+Function Set-SrmConfiguration {
+    <#
+        .SYNOPSIS
+        Set the vCenter Server registration
+
+        .DESCRIPTION
+        The Set-SrmConfiguration cmdlet configures the vCenter Server registration for a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail srm-administrator@rainpole.io -siteName SFO-M01
+        This example configures the vCenter Server registration with the vSphere Replication appliance
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterInstanceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName
+    )
+
+    Try {
+        $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
+        $webRequest.GetResponse() | Out-Null
+        $certificate = $webRequest.ServicePoint.Certificate
+        $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+        Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
+        $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
+        $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+
+        $connectionObject = New-Object -TypeName psobject
+        $connectionObject | Add-Member -notepropertyname 'psc_thumbprint' -notepropertyvalue $thumbprint
+        $connectionObject | Add-Member -notepropertyname 'psc_uri' -notepropertyvalue ($vcenterFqdn + ":443")
+        $connectionObject | Add-Member -notepropertyname 'vc_instance_id' -notepropertyvalue $vcenterInstanceId
+        $connectionObject | Add-Member -notepropertyname 'vc_thumbprint' -notepropertyvalue $thumbprint
+
+        $credentialsObject = New-Object -TypeName psobject
+        $credentialsObject | Add-Member -notepropertyname 'admin_password' -notepropertyvalue $ssoPassword
+        $credentialsObject | Add-Member -notepropertyname 'admin_user' -notepropertyvalue $ssoUser
+
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'admin_email' -notepropertyvalue $adminEmail
+        $body | Add-Member -notepropertyname 'extension_key' -notepropertyvalue "com.vmware.vcDr"
+        $body | Add-Member -notepropertyname 'host_name' -notepropertyvalue $srmAppliance
+        $body | Add-Member -notepropertyname 'site_name' -notepropertyvalue $siteName
+        $body | Add-Member -notepropertyname 'connection' -notepropertyvalue $connectionObject
+        $body | Add-Member -notepropertyname 'credentials' -notepropertyvalue $credentialsObject
+        $body = $body | ConvertTo-Json
+
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmConfiguration
+
+Function Remove-SrmConfiguration {
+    <#
+        .SYNOPSIS
+        Remove the configuration
+
+        .DESCRIPTION
+        The Remove-SrmConfiguration cmdlet removes the vCenter Server registration for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Remove-SrmConfiguration -ssoUser administrator@vsphere.local -ssoPassword VMw@re1!
+        This example removes the vCenter Server registration for the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoPassword
+    )
+
+    Try {
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'admin_password' -notepropertyvalue $ssoPassword
+        $body | Add-Member -notepropertyname 'admin_user' -notepropertyvalue $ssoUser
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration/actions/remove"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Remove-SrmConfiguration
+
+Function Get-SrmVamiCertificate {
+    <#
+        .SYNOPSIS
+        Get the certificate of the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Get-SrmVamiCertificate cmdlet retrives the certificate of the VAMI interface of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmVamiCertificate
+        This example retrives the registration configuration for the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmVamiCertificate
+
+Function Set-SrmVamiCertificate {
+    <#
+        .SYNOPSIS
+        Install a Signed Certificate for the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Set-SrmVamiCertificate cmdlet replaces the certificate on the VAMI interface of the Site Recovery
+        Manager appliance.
+
+        .EXAMPLE
+        Set-SrmVamiCertificate -pkcs12CertFile C:\Certs\sfo-m01-srm01.4.p12 -certPassword VMw@re1!
+        This example replaces the certificate on the VAMI Appliance interface of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            $pkcs12CertFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType
+        } elseif ($PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            if (!(Test-Path -Path $pkcs12CertFile)) {
+                Write-Error  "Certificate (.p12) '$pkcs12CertFile' File Not Found"
+            }
+        }
+
+        $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes($pkcs12CertFile))
+        $pkcs12Object = New-Object -TypeName psobject
+        $pkcs12Object | Add-Member -notepropertyname 'certificate' -notepropertyvalue $certContent
+        $pkcs12Object | Add-Member -notepropertyname 'password' -notepropertyvalue $certPassword
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'pkcs12_format' -notepropertyvalue $pkcs12Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
+        Set-VrmsApplianceState -action restart | Out-Null
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Set-SrmVamiCertificate
 
 #EndRegion  End of Site Recovery Manager Functions             ######
 #####################################################################
@@ -32769,24 +33291,24 @@ Function Test-WSAAuthentication {
 }
 Export-ModuleMember -Function Test-WSAAuthentication
 
-Function Test-VrmsConnection {
+Function Test-VrmsVamiConnection {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
     )
 
     if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vrmsConnection = $True
-        Return $vrmsConnection
+        $vrmsVamiConnection = $True
+        Return $vrmsVamiConnection
     }   
     else { 
         Write-Error "Unable to communicate with vSphere Replication Appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
-        $vrmsConnection = $False
-        Return $vrmsConnection
+        $vrmsVamiConnection = $False
+        Return $vrmsVamiConnection
     }
 }
 Export-ModuleMember -Function Test-VrmsConnection
 
-Function Test-VrmsAuthentication {
+Function Test-VrmsVamiAuthentication {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
 		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -32798,13 +33320,57 @@ Function Test-VrmsAuthentication {
     Try {
         $response = Request-VrmsToken -fqdn $server -username $user -password $pass
         if ($vrmsHeader) {
-            $vrmsAuthentication = $True
-            Return $vrmsAuthentication
+            $vrmsVamiConnection = $True
+            Return $vrmsVamiConnection
         }   
         else {
             Write-Error $response
-            $vrmsAuthentication = $False
-            Return $vrmsAuthentication
+            $vrmsVamiConnection = $False
+            Return $vrmsVamiConnection
+        }
+    }
+    Catch {
+        Write-Error $response
+    }
+}
+Export-ModuleMember -Function Test-VAMIAuthentication
+
+Function Test-SrmVamiConnection {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
+        $srmVamiConnection = $True
+        Return $srmVamiConnection
+    }   
+    else { 
+        Write-Error "Unable to communicate with Site Recovery Manager Appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        $srmVamiConnection = $False
+        Return $srmVamiConnection
+    }
+}
+Export-ModuleMember -Function Test-VrmsConnection
+
+Function Test-SrmVamiAuthentication {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Remove-Variable -Name srmHeader -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+
+    Try {
+        $response = Request-SrmToken -fqdn $server -username $user -password $pass
+        if ($srmHeader) {
+            $srmVamiConnection = $True
+            Return $srmVamiConnection
+        }   
+        else {
+            Write-Error $response
+            $srmVamiConnection = $False
+            Return $srmVamiConnection
         }
     }
     Catch {
