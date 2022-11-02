@@ -2058,6 +2058,66 @@ Function Install-SiteRecoveryManager {
 }
 Export-ModuleMember -Function Install-SiteRecoveryManager
 
+Function Undo-SiteRecoveryManager {
+    <#
+		.SYNOPSIS
+        Remove vSphere Replication Virtual Appliance
+
+        .DESCRIPTION
+        The Undo-SiteRecoveryManager cmdlet removes the vSphere Replication Virtual Appliance. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Removes the vSphere Replication Virtual Appliance from vCenter Server
+
+        .EXAMPLE
+        Undo-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmHostname sfo-m01-srm01
+        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmHostname
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VM -Name $srmHostname -ErrorAction Ignore) {
+                                if ((Get-VM -Name $srmHostname).PowerState -ne "PoweredOff") {
+                                    Stop-VM -VM $srmHostname -Kill -Confirm:$false | Out-Null
+                                    if ((Get-VM -Name $srmHostname).PowerState -ne "PoweredOff") {
+                                        Write-Error "Unable to Power Off virtual machine ($srmHostname): PRE_VALIDATION_FAILED"
+                                        Break
+                                    }
+                                }
+                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-null
+                                if (!(Get-VM -Name $srmHostname -ErrorAction Ignore)) {
+                                    Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname), already removed: SKIPPED"
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SiteRecoveryManager
+
 Function Install-vSphereReplicationManager {
     <#
 		.SYNOPSIS
@@ -2168,6 +2228,66 @@ Function Install-vSphereReplicationManager {
 }
 Export-ModuleMember -Function Install-vSphereReplicationManager
 
+Function Undo-vSphereReplicationManager {
+    <#
+		.SYNOPSIS
+        Remove vSphere Replication Virtual Appliance
+
+        .DESCRIPTION
+        The Undo-vSphereReplicationManager cmdlet removes the vSphere Replication Virtual Appliance. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Removes the vSphere Replication Virtual Appliance from vCenter Server
+
+        .EXAMPLE
+        Undo-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsHostname sfo-m01-vrms01
+        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsHostname
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VM -Name $vrmsHostname -ErrorAction Ignore) {
+                                if ((Get-VM -Name $vrmsHostname).PowerState -ne "PoweredOff") {
+                                    Stop-VM -VM $vrmsHostname -Kill -Confirm:$false | Out-Null
+                                    if ((Get-VM -Name $vrmsHostname).PowerState -ne "PoweredOff") {
+                                        Write-Error "Unable to Power Off virtual machine ($vrmsHostname): PRE_VALIDATION_FAILED"
+                                        Break
+                                    }
+                                }
+                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-null
+                                if (!(Get-VM -Name $vrmsHostname -ErrorAction Ignore)) {
+                                    Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname), already removed: SKIPPED"
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSphereReplicationManager
+
 Function Connect-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
@@ -2175,8 +2295,11 @@ Function Connect-DRSolutionTovCenter {
 
         .DESCRIPTION
         The Connect-DRSolutionTovCenter cmdlet registers Site Recovery Manager or vSphere Replication with a vCenter
-        Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the
-        vCenter Server details from its inventory and then:
+        Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication is possible to the vSphere Replication or Site
+        Recovery Manaeger instance
         - Validates if the solution has already been registerd and if not proceeds with the registration
 
         .EXAMPLE
@@ -2204,28 +2327,41 @@ Function Connect-DRSolutionTovCenter {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                    if (!((Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword).data.drConfiguration.vcName -eq $vcfVcenterDetails.fqdn)) {
-                        if ($solution -eq "SRM") {
-                            $extensionKey = "com.vmware.vcDr"
-                        } elseif ($solution -eq "VRMS") {
-                            $extensionKey = "com.vmware.vcHms"
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($solution -eq "VRMS") {
+                                if (Test-VrmsVamiConnection -server $applianceFqdn) {
+                                    if (Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if (!((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                            Set-VrmsConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName  | Out-Null
+                                            if ((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                                Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            } elseif ($solution -eq "SRM") {
+                                if (Test-SrmVamiConnection -server $applianceFqdn) {
+                                    if (Test-SrmVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if (!((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                            Set-SrmConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName  | Out-Null
+                                            if ((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                                Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        # Retireve the vCenter SSL Thumbprint
-                        $command = 'openssl s_client -connect ' + $($vcfVcenterDetails.fqdn) + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
-                        $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
-                        $vCenterInstanceUuid = (Connect-VIServer -Server $vcfVcenterDetails.fqdn -User $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass | Select-Object InstanceUuid).InstanceUuid
                         Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-
-                        # Register the Solution with vCenter Server
-                        Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcfVcenterDetails.fqdn -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $vcfVcenterDetails.ssoAdmin -ssoAdminPassword $vcfVcenterDetails.ssoAdminPass -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey | Out-Null
-                        if ((Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword).data.drConfiguration.vcName -eq $vcfVcenterDetails.fqdn) {
-                            Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                            
-                        } else {
-                            Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
-                        }
-                    } else {
-                        Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
                     }
                 }
             }
@@ -2236,25 +2372,114 @@ Function Connect-DRSolutionTovCenter {
 }
 Export-ModuleMember -Function Connect-DRSolutionTovCenter
 
-Function Install-VAMICertificate {
+Function Undo-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
-        Install a Signed Certificate Using VAMI Appliance interface
+        Remove registration of Site Recovery Manager or vSphere Replication with vCenter Server
 
         .DESCRIPTION
-        The Install-VAMICertificate cmdlet replaces the certificate on the Site Recovery Manager appliance
+        The Undo-DRSolutionTovCenter cmdlet removes registration of Site Recovery Manager or vSphere Replication with
+        a vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication is possible to the vSphere Replication or Site
+        Recovery Manaeger instance
+        - Validates if the solution is registerd and if so proceeds to unregister
 
         .EXAMPLE
-        Install-VAMICertificate -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1! -certFile C:\Certs\sfo-m01-srm01.4.p12 -certPassword VMw@re1!
-        This example configures the Site Recovery Manager Virtual Appliance with the with a signed cert
+        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution SRM 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain
+
+        .EXAMPLE
+        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution VRMS 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($solution -eq "VRMS") {
+                                if (Test-VrmsVamiConnection -server $applianceFqdn) {
+                                    if (Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if ((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                            Remove-VrmsConfiguration -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                            if (!((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                                Write-Output "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            } elseif ($solution -eq "SRM") {
+                                if (Test-SrmVamiConnection -server $applianceFqdn) {
+                                    if (Test-SrmVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if ((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                            Remove-SrmConfiguration -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                            if (!((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                                Write-Output "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-DRSolutionTovCenter
+
+Function Install-VamiCertificate {
+    <#
+		.SYNOPSIS
+        Install a new certificate for a VAMI interface
+
+        .DESCRIPTION
+        The Install-VamiCertificate cmdlet allows you to replace the certificate of a VAMI interface. Supports:
+        - vSphere Replication Appliance
+        - Site Recovery Manager Appliance
+
+        .EXAMPLE
+        Install-VamiCertificate -server sfo-m01-vrms01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution VRMS
+        This example replaces the certificate for the VAMI interface of the vSphere Replication 
+        
+        .EXAMPLE
+        Install-VamiCertificate -server sfo-m01-srm01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution SRM
+        This example replaces the certificate for the VAMI interface of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword,
+        [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
     )
 
     Try {
@@ -2265,25 +2490,29 @@ Function Install-VAMICertificate {
                 Write-Error  "Certificate (.p12) '$certFile' File Not Found"
             }
         }
-        Try {
-            $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($certFile))
-            $body = '{
-                "certificateContent": "'+$base64string+'",
-                "certificatePassword": "'+$certPassword+'"
-            }'
-            $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
-            $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
-            $uri = "https://"+$fqdn+":5480/configure/requestHandlers/installPkcs12Certificate"
-            $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-        } Catch {
-            #TODO - Write function to query cert Thumbprint and compare to installed cert
-            #Debug-ExceptionWriter -object $_
+        
+        if ($solution -eq "VRMS") {
+            if (Test-VrmsVamiConnection -server $server) {
+                if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
+                    Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                    Write-Output "Installing Signed Certifcate on vSphere Replication appliance ($server) using ($certFile): SUCCESSFUL"
+                }
+            
+            }
+        } elseif ($solution -eq "SRM") {
+            if (Test-SrmVamiConnection -server $server) {
+                if (Test-SrmVamiAuthentication -server $server -user $user -pass $pass) {
+                    Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                    Write-Output "Installing Signed Certifcate on Site Recovery Manager appliance ($server) using ($certFile): SUCCESSFUL"
+                }
+            
+            }
         }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Install-VAMICertificate
+Export-ModuleMember -Function Install-VamiCertificate
 
 Function Add-VrmsNetworkAdapter {
     <#
@@ -2292,78 +2521,69 @@ Function Add-VrmsNetworkAdapter {
 
         .DESCRIPTION
         The Add-VrmsNetworkAdapter cmdlet adds a second ethernet adapter and configures the required routing for the
-        vSphere Replication appliance.  The cmdlet connects to SDDC Manager using the -server, -user, and
-        -password values:
+        vSphere Replication appliance.  The cmdlet connects to SDDC Manager using the -server, -user, and -password
+        values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
-        - Configures the secondary ethernet adapter and configures the required routing for vSphere Replication
-        appliances in the protected and recovery sites
+        - Validates that network connectivity and authentication is possible to the vSphere Replication instance
+        - Configures the secondary ethernet adapter and configures the required routing for the replication network
 
         .EXAMPLE
-        Add-VrmsNetworkAdapter -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -subnet 172.18.111.0/24 -ipAddress 172.18.111.125 -gateway 172.18.111.1 -vrmsRootPass VMw@re1! -vrmsAdminPass VMw@re1! -portgroup sfo-m01-cl01-vds01-vrms -remoteNetwork 172.18.96.0/24
+        Add-VrmsNetworkAdapter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsRootPass VMw@re1! -vrmsAdminPass VMw@re1! -vrmsIpAddress 172.18.95.125 -replicationSubnet 172.18.111.0/24 -replicationIpAddress 172.18.111.125 -replicationGateway 172.18.111.1  -replicationPortgroup sfo-m01-cl01-vds01-pg-vrms -replicationRemoteNetwork 172.18.96.0/24
         This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$subnet,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsRootPass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsAdminPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$remoteNetwork
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsIpAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$replicationSubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$replicationIpAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$replicationGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$replicationPortgroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$replicationRemoteNetwork
     )
 
     Try {
 
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if ((((Get-View -Server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]) {
-                                $vrmsFqdn = (((Get-View -Server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
-                                $vrmsVmName = $vrmsFqdn.Split(".")[0]
-                                if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup}) {
+                            $vrmsVmName = $vrmsFqdn.Split(".")[0]
+                            if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $replicationPortgroup}) {
+                                if (Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass) {
                                     if (((Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Get-NetworkAdapter).Count) -le 1) {
-                                        # Shutdown the vSphere Replication Appliance
-                                        if ((Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue).State -eq 'Running') {
-                                            Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Shutdown-VMGuest -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-                                            While ($vmObject.PowerState -ne 'PoweredOff') {
-                                                Start-Sleep -Seconds 1
-                                                $vmObject = Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue
-                                            }
-                                        }
-                                        # Add the second NIC to the vSphere Replication Appliance
-                                        Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | New-NetworkAdapter -Server $vcfVcenterDetails.fqdn -NetworkName $portgroup -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
-                                        if ((Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue).State -eq 'NotRunning') {
-                                            Start-VM -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-                                            While ($vmObject.State -ne 'Running') {
-                                                Start-Sleep -Seconds 5
-                                                $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue
-                                            }
-                                        }
-                                        # Configure the IP via VAMI API and Restart the vSphere Replication Appliance
-                                        if (((Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Get-NetworkAdapter).Count) -le 2) {
-                                            Set-DRSolutionNetworkAdapter -fqdn $vrmsFqdn -user admin -password $vrmsAdminPass -interfaceName eth1 -defaultGateway $gateway -cidrPrefix $subnet.Split("/")[1] -ipAddress $ipAddress -ErrorAction Stop | Out-Null
-                                            Restart-VM -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-                                            # Get-VM -Server $vcfVcenterDetails.fqdn -Name $vrmsVmName | Restart-VMGuest -Confirm:$false | Out-Null
-                                            Do {
-                                                Start-Sleep -Seconds 5
-                                                $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
-                                                $vamiStatus = Test-VAMIAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
-                                            } Until (($vmObject.State -eq "Running") -and ($vamiStatus -eq $true))
-                                            $scriptCommand = "sed -i '/^Gateway*/a Destination=$remoteNetwork' /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd.service"
-                                            Invoke-VMScript -ScriptType bash -VM $vrmsVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrmsRootPass -Server $vcfVcenterDetails.fqdn | Out-Null 
-                                        }
+                                        # Add the second NIC to the vSphere Replication Appliance and Restart
+                                        Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | New-NetworkAdapter -Server $vcfVcenterDetails.fqdn -NetworkName $replicationPortgroup -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
+                                        Set-VrmsApplianceState -action restart | Out-Null
+                                        Do {
+                                            Start-Sleep 2
+                                            $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
+                                            $vamiStatus = Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
+                                        } Until (($vmObject.IPAddress) -and ($vamiStatus -eq $true))
+                                        # Configure the IP via API and Restart the vSphere Replication Appliance
+                                        Set-VrmsNetworkInterface -interface eth1 -ipAddress $replicationIPAddress -gateway $replicationGateway -prefix $replicationSubnet.Split("/")[1]  | Out-Null
+                                        Set-VrmsApplianceState -action restart | Out-Null
+                                        Do {
+                                            Start-Sleep 2
+                                            $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
+                                            $vamiStatus = Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
+                                        } Until (($vmObject.IPAddress) -and ($vamiStatus -eq $true))
+                                        # Configure a static route for the replication network
+                                        $scriptCommand = "sed -i '/^Gateway*/a Destination=$replicationRemoteNetwork' /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd.service"
+                                        Invoke-VMScript -ScriptType bash -VM $vrmsVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrmsRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                         # Configure the Incoming Storage Replication Port
-                                        Set-vSRIncomingStorageTraffic -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass -ipAddress $ipAddress -ErrorAction SilentlyContinue | Out-Null
-                                        if (!((Get-vSRIncomingStorageTraffic -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass).filterIp -match $ipAddress)) {                                                
+                                        Request-VrmsToken -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass | Out-Null
+                                        Set-VrmsReplication -filterIp $replicationIpAddress -managementIp $vrmsIpAddress | Out-Null
+                                        #Set-vSRIncomingStorageTraffic -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass -ipAddress $replicationIpAddress -ErrorAction SilentlyContinue | Out-Null
+                                        if (!((Get-VrmsConfiguration -replication).filter_ip -match $replicationIpAddress)) {                                                
                                             Write-Error "Setting Incoming Storage Traffic IP Address for vSphere Replication Appliance ($vrmsFqdn): POST_VALIDATION_FAILED"
                                         } else {
                                             Write-Output "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn): SUCCESSFUL"
@@ -2372,11 +2592,9 @@ Function Add-VrmsNetworkAdapter {
                                         Write-Warning "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn), already exists: SKIPPING" 
                                     }
                                 } else {
-                                    Write-Error "Unable to find vSphere Distributed Port Group ($portgroup) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find vSphere Distributed Port Group ($replicationPortgroup) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-                            } else {
-                                Write-Error "No vSphere Replication Appliance Registered with vCenter Server ($($vcfVcenterDetails.fqdn))"
                             }
                         }
                     }
@@ -2388,247 +2606,6 @@ Function Add-VrmsNetworkAdapter {
     }
 }
 Export-ModuleMember -Function Add-VrmsNetworkAdapter
-
-Function Get-DRSolutionSummary {
-    <#
-		.SYNOPSIS
-        Retrieves the Site Recovery Manager summary
-
-        .DESCRIPTION
-        The Get-DRSolutionSummary cmdlet retrieves the Site Recovery Manager summary
-
-        .EXAMPLE
-        Get-DRSolutionSummary -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example retrieves the Site Recovery Manager summary
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
-    )
-
-    Try {
-        $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
-        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
-        $uri = "https://" + $fqdn + ":5480/configure/requestHandlers/getSummaryInfo"
-        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-        $response
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}    
-Export-ModuleMember -Function Get-DRSolutionSummary
-
-Function Get-DRSolutionNetworkConfig {
-    <#
-		.SYNOPSIS
-        Retrieves the Site Recovery Manager appliance network configuration
-
-        .DESCRIPTION
-        The Get-DRSolutionNetworkConfig cmdlet retrieves the Site Recovery Manager appliance network configuration
-
-        .EXAMPLE
-        Get-DRSolutionNetworkConfig -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example retrieves the Site Recovery Manager appliance network configuration
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
-    )
-
-    Try {
-        if (Test-VAMIConnection -server $fqdn) {
-            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
-                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getNetworkingInfo"
-                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $body
-                $response.data
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Get-DRSolutionNetworkConfig
-
-Function Set-DRSolutionNetworkAdapter {
-    <#
-		.SYNOPSIS
-        Configures an ethernet adapter on a DR solution via VAMI interface
-
-        .DESCRIPTION
-        The Set-DRSolutionNetworkAdapter cmdlet configures an ethernet adapter on a DR solution via VAMI interface
-
-        .EXAMPLE
-        Set-DRSolutionNetworkAdapter -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1! -interfaceName eth1 -defaultGateway 172.16.11.253 -cidrPrefix 24 -ipAddress 172.16.11.123
-        This example configures the Site Recovery Manager appliance secondary ethernet adapter
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$defaultGateway,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$cidrPrefix,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress
-    )
-
-    Try {
-        if (Test-VAMIConnection -server $fqdn) {
-            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
-                $networkConfig = Get-DRSolutionNetworkConfig -fqdn $fqdn -username $username -password $password
-                $ipv4 =  [PSCustomObject] @{
-                    "interfaceName" = "$interfaceName"
-                    "defaultGateway" = "$defaultGateway"
-                    "prefix" = $cidrPrefix
-                    "mode" = "STATICMODE"
-                    "address" = "$ipAddress"
-                }
-                ($networkConfig.interfaces | Where-Object {$_.Name -eq $interfaceName}).ipv4 = $ipv4
-                ($networkConfig.interfaces | Where-Object {$_.Name -eq $interfaceName}).ipv6 = $null
-                $networkConfig = $networkConfig | ConvertTo-Json -Depth 10
-                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/editNetworking"
-                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $networkConfig
-                $response
-            }
-        }        
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}    
-Export-ModuleMember -Function Set-DRSolutionNetworkAdapter
-
-Function Set-vSRIncomingStorageTraffic {
-    <#
-		.SYNOPSIS
-        Configures the IP address for incoming storage traffic on vSphere Replication via VAMI interface
-
-        .DESCRIPTION
-        The Set-vSRIncomingStorageTraffic cmdlet configures the IP address for incoming storage traffic on vSphere
-        Replication via VAMI interface
-
-        .EXAMPLE
-        Set-vSRIncomingStorageTraffic -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1! -ipAddress 172.27.15.123
-        This example sets the IP address for incoming storage traffic on vSphere Replication appliance sfo-m01-vrms01.sfo.rainpole.io to 172.27.15.123
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress
-    )
-
-    Try {
-        if (Test-VAMIConnection -server $fqdn) {
-            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
-                $data =  [PSCustomObject] @{
-                    "filterIp" = "$ipAddress"
-                    "managementIp" = ""
-                }
-                $data = $data | ConvertTo-Json
-                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/setHbrNic"
-                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $data
-                $response
-            }
-        }        
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}    
-Export-ModuleMember -Function Set-vSRIncomingStorageTraffic
-
-Function Get-vSRIncomingStorageTraffic {
-    <#
-		.SYNOPSIS
-        Retrieves the IP address for incoming storage traffic on vSphere Replication via VAMI interface
-
-        .DESCRIPTION
-        The Get-vSRIncomingStorageTraffic cmdlet retrieves the IP address for incoming storage traffic on vSphere
-        Replication via VAMI interface
-
-        .EXAMPLE
-        Get-vSRIncomingStorageTraffic -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1!
-        This example retrieves the IP address for incoming storage traffic on vSphere Replication appliance sfo-m01-vrms01.sfo.rainpole.io
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
-    )
-
-    Try {
-        if (Test-VAMIConnection -server $fqdn) {
-            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
-                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getHbrNic"
-                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders
-                $response.data
-            }
-        }        
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}    
-Export-ModuleMember -Function Get-vSRIncomingStorageTraffic
-
-Function Register-DRSolutionTovCenter {
-    <#
-		.SYNOPSIS
-        Registers Site Recovery Manager & vSphere Replication with a given vCenter Server
-
-        .DESCRIPTION
-        The Register-DRSolutionTovCenter cmdlet registers Site Recovery Manager & vSphere Replication with a given vCenter Server
-
-        .EXAMPLE
-        Register-DRSolutionTovCenter -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -pscHost sfo-m01-vc01.sfo.rainpole.io -thumbprint EA:0F:24:7E:B4:4C:5E:ED:38:AE:79:A6:9E:A2:E8:8F:EE:54:D8:AF:18:6A:A2:57:DC:87:09:68:D4:76:36:DD -vcInstanceId 53cad28c-4160-4956-b7c1-c7bbc5185a39 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword VMw@re1! -siteName SFO01 -adminEmail admin@rainpole.io -hostName sfo-m01-srm01.sfo.rainpole.io
-        This example registers the Site Recovery Manager Virtual Appliance with vCenter
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pscHost,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$thumbprint,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcInstanceId,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminPassword,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensionKey
-    )
-
-    Try {
-        $body = '{
-            "connection": {
-                "pscHost": "'+$pscHost+'",
-                "pscPort": 443,
-                "thumbprint": "'+$thumbprint+'",
-                "vcInstanceId": "'+$vcInstanceId+'",
-                "vcThumbprint": "'+$thumbprint+'"
-            },
-            "adminUser": "'+$ssoAdminUser+'",
-            "adminPassword": "'+$ssoAdminPassword+'",
-            "siteName": "'+$siteName+'",
-            "adminEmail": "'+$adminEmail+'",
-            "hostName": "'+$hostName+'",
-            "extensionKey": "'+$extensionKey+'"
-        }'
-        $body
-        $sessionId = Request-VAMISessionId -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
-        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
-        $uri = "https://"+$applianceFqdn+":5480/configure/requestHandlers/configureAppliance"
-        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
-        $response
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Register-DRSolutionTovCenter
 
 Function Backup-VMOvfProperties {
     <#
@@ -6734,368 +6711,6 @@ Function Undo-vSREsxiStaticRoute {
 }
 Export-ModuleMember -Function Undo-vSREsxiStaticRoute
 
-Function Set-SRMLicenseConfig {
-    <#
-		.SYNOPSIS
-        Configure the license for Site Recovery Manager in the protected and recovery sites
-
-        .DESCRIPTION
-        The Set-SRMLicenseConfig cmdlet configures the license for Site Recovery Manager in the protected and recovery
-        sites. 
-        The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
-        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
-        - Validates whether the license keys exist in vCenter Server inventory, and if not, installs them
-        - Configures the license for Site Recovery Manager in the protected and recovery sites.
-
-        .EXAMPLE
-        Set-SRMLicenseConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vCenterSiteARootPass VMw@re1! -vCenterSiteBRootPass VMw@re1! -srmSiteAKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE -srmSiteBKey 00000-11111-22222-33333-4444
-        This example configures the Site Recovery Manager instances in the protected and recovery sites with their respective license key.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteAKey,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteBKey
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
-                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        $serviceInstanceA = Get-View -Server $siteAvCenterDetails.fqdn ServiceInstance 
-                                                        $licenseManagerA = Get-View -Server $siteAvCenterDetails.fqdn $serviceInstanceA.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteAvCenterDetails.fqdn}
-                                                        $licenseAssignmentManagerA = Get-View -Server $siteAvCenterDetails.fqdn $licenseManagerA.licenseAssignmentManager
-                                                        $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
-                                                        if ($licenseExistsA) {
-                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) has already been installed on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseManagerA.AddLicense($srmSiteAKey,$null) | Out-Null
-                                                                $licenseManagerA.UpdateViewData()
-                                                                $validateLicenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
-                                                                if ($validateLicenseExistsA) {
-                                                                    Write-Output "Add license key for Site Recovery Manager ($srmSiteAKey) to vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been added to vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Set-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            } 
-                                                        }
-                                                        $srmASiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmAFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
-                                                        $srmAPartialUuid = ($licenseAssignmentManagerA.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmASiteName}).EntityId
-                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
-                                                        $output = Invoke-VMScript -VM ($siteAvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteA -Server $siteAvCenterDetails.fqdn
-                                                        $srmAUuid = ($srmAPartialUuid + "-" + $output.ScriptOutput).Trim()
-                                                        $existingSrmALicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
-                                                        if ($existingSrmALicenseKey -eq $srmSiteAKey) {
-                                                            Write-Warning "License key ($srmSiteAKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseAssignmentManagerA.UpdateAssignedLicense($srmAUuid,$srmSiteAKey,$null) | Out-Null
-                                                                $licenseAssignmentManagerA.UpdateViewData() | Out-Null
-                                                                $validateSrmLicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
-                                                                if ($validateSrmLicenseKey -eq $srmSiteAKey) {
-                                                                    Write-Output "Configure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Set-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        }
-                                                    }
-                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                        $serviceInstanceB = Get-View -Server $siteBvCenterDetails.fqdn ServiceInstance 
-                                                        $licenseManagerB = Get-View -Server $siteBvCenterDetails.fqdn $serviceInstanceB.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteBvCenterDetails.fqdn}
-                                                        $licenseAssignmentManagerB = Get-View -Server $siteBvCenterDetails.fqdn $licenseManagerB.licenseAssignmentManager
-                                                        $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
-                                                        if ($licenseExistsB) {
-                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) has already been installed on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseManagerB.AddLicense($srmSiteBKey,$null) | Out-Null
-                                                                $licenseManagerB.UpdateViewData()
-                                                                $validateLicenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
-                                                                if ($validateLicenseExistsB) {
-                                                                    Write-Output "Add license key for Site Recovery Manager ($srmSiteBKey) to vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been added to vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Set-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            } 
-                                                        }
-                                                        $srmBSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmBFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
-                                                        $srmBPartialUuid = ($licenseAssignmentManagerB.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmBSiteName}).EntityId
-                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
-                                                        $output = Invoke-VMScript -VM ($siteBvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteB -Server $siteBvCenterDetails.fqdn
-                                                        $srmBUuid = ($srmBPartialUuid + "-" + $output.ScriptOutput).Trim()
-                                                        $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
-                                                        if ($existingSrmBLicenseKey -eq $srmSiteBKey) {
-                                                            Write-Warning "License key ($srmSiteBKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseAssignmentManagerB.UpdateAssignedLicense($srmBUuid,$srmSiteBKey,$null) | Out-Null
-                                                                $licenseAssignmentManagerB.UpdateViewData() | Out-Null
-                                                                $validateSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
-                                                                if ($validateSrmBLicenseKey -eq $srmSiteBKey) {
-                                                                    Write-Output "Configure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Set-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-SRMLicenseConfig
-
-Function Undo-SRMLicenseConfig {
-    <#
-		.SYNOPSIS
-        Removes the license configuration for Site Recovery Manager in the protected and recovery sites
-
-        .DESCRIPTION
-        The Undo-SRMLicenseConfig cmdlet removes the license configuration from Site Recovery Manager in the protected
-        and recovery sites. 
-        The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
-        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
-        - Validates whether the license keys exist in vCenter Server inventory, and if not, installs them
-        - Removes the license configuration for Site Recovery Manager in the protected and recovery sites
-
-        .EXAMPLE
-        Undo-SRMLicenseConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vCenterSiteARootPass VMw@re1! -vCenterSiteBRootPass VMw@re1! -srmSiteAKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE -srmSiteBKey 00000-11111-22222-33333-4444
-        This example removes the license configuration from Site Recovery Manager instances in the protected and recovery sites with their respective license key.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteAKey,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteBKey
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
-                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        $serviceInstanceA = Get-View -Server $siteAvCenterDetails.fqdn ServiceInstance 
-                                                        $licenseManagerA = Get-View -Server $siteAvCenterDetails.fqdn $serviceInstanceA.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteAvCenterDetails.fqdn}
-                                                        $licenseAssignmentManagerA = Get-View -Server $siteAvCenterDetails.fqdn $licenseManagerA.licenseAssignmentManager
-                                                        $srmASiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmAFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
-                                                        $srmAPartialUuid = ($licenseAssignmentManagerA.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmASiteName}).EntityId
-                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
-                                                        $output = Invoke-VMScript -VM ($siteAvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteA -Server $siteAvCenterDetails.fqdn
-                                                        $srmAUuid = ($srmAPartialUuid + "-" + $output.ScriptOutput).Trim()
-                                                        $srmALicenseKeyAlreadyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
-                                                        if (!$srmALicenseKeyAlreadyRemoved -or $srmALicenseKeyAlreadyRemoved -eq "00000-00000-00000-00000-00000") {
-                                                            Write-Warning "License key ($srmSiteAKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseAssignmentManagerA.RemoveAssignedLicense($srmAUuid) | Out-Null
-                                                                $licenseAssignmentManagerA.UpdateViewData() | Out-Null
-                                                                $validateSrmALicenseKeyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
-                                                                if (!$validateSrmALicenseKeyRemoved) {
-                                                                    Write-Output "Unconfigure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been unconfigured from Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Undo-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        }
-                                                        $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
-                                                        if (!$licenseExistsA) {
-                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) does not exist on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseManagerA.RemoveLicense($srmSiteAKey) | Out-Null
-                                                                $licenseManagerA.UpdateViewData()
-                                                                $validateLicenseRemovedA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
-                                                                if (!$validateLicenseRemovedA) {
-                                                                    Write-Output "Remove license key for Site Recovery Manager ($srmSiteAKey) from vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been removed from vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Undo-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            } 
-                                                        }
-                                                    }
-                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                        $serviceInstanceB = Get-View -Server $siteBvCenterDetails.fqdn ServiceInstance 
-                                                        $licenseManagerB = Get-View -Server $siteBvCenterDetails.fqdn $serviceInstanceB.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteBvCenterDetails.fqdn}
-                                                        $licenseAssignmentManagerB = Get-View -Server $siteBvCenterDetails.fqdn $licenseManagerB.licenseAssignmentManager
-                                                        $srmBSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmBFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
-                                                        $srmBPartialUuid = ($licenseAssignmentManagerB.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmBSiteName}).EntityId
-                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
-                                                        $output = Invoke-VMScript -VM ($siteBvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteB -Server $siteBvCenterDetails.fqdn
-                                                        $srmBUuid = ($srmBPartialUuid + "-" + $output.ScriptOutput).Trim()
-                                                        $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
-                                                        if (!$existingSrmBLicenseKey -or $existingSrmBLicenseKey -eq "00000-00000-00000-00000-00000") {
-                                                            Write-Warning "License key ($srmSiteBKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseAssignmentManagerB.RemoveAssignedLicense($srmBUuid) | Out-Null
-                                                                $licenseAssignmentManagerB.UpdateViewData() | Out-Null
-                                                                $validateSrmBLicenseKeyRemoved = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
-                                                                if (!$validateSrmBLicenseKeyRemoved) {
-                                                                    Write-Output "Unconfigure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Undo-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        }
-                                                        $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
-                                                        if (!$licenseExistsB) {
-                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) does not exist on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
-                                                        } else {
-                                                            Try {
-                                                                $licenseManagerB.RemoveLicense($srmSiteBKey) | Out-Null
-                                                                $licenseManagerB.UpdateViewData() | Out-Null
-                                                                $validateLicenseBRemoved = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
-                                                                if (!$validateLicenseBRemoved) {
-                                                                    Write-Output "Remove license key for Site Recovery Manager ($srmSiteBKey) from vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been removed from vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
-                                                                            'Undo-SRMLicense',
-                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            } 
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Undo-SRMLicenseConfig
-
 Function Add-SrmLicenseKey {
     <#
 		.SYNOPSIS
@@ -7111,22 +6726,22 @@ Function Add-SrmLicenseKey {
         - Assigns the license to Site Recovery Manager
 
         .EXAMPLE
-        Add-SrmLicenseKey -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
+        Add-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -password VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
         This example adds a license key to the Site Recovery Manager instance
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmLicenseKey
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
@@ -7194,22 +6809,22 @@ Function Undo-SrmLicenseKey {
         - Validates whether the license key exists in vCenter Server inventory, and removes it
 
         .EXAMPLE
-        Undo-SrmLicenseKey -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -srmLicenseKey 00000-11111-22222-33333-4444
+        Undo-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmLicenseKey 00000-11111-22222-33333-4444
         This example removes the license key from Site Recovery Manager
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmLicenseKey
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
@@ -16747,23 +16362,23 @@ Function Add-VdsPortGroup {
         - Creates a vSphere Distributed port group in vCenter Server
 
         .EXAMPLE
-        Add-VdsPortGroup -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -vlan 2619
+        Add-VdsPortGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -vlan 2619
         This example creates a vSphere Distributed port group for VLAN ID 2619 named sfo-m01-cl01-vds01-pg-vrms in vCenter Server
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
         [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$vlan
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (!(Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)})) {
@@ -16802,22 +16417,22 @@ Function Undo-VdsPortGroup {
         - Removes the vSphere Distributed port group in vCenter Server
 
         .EXAMPLE
-        Undo-VdsPortGroup -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
+        Undo-VdsPortGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
         This example removes the vSphere Distributed port group named sfo-m01-cl01-vds01-pg-vrms from vCenter Server
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup}) {
@@ -32216,8 +31831,7 @@ Function Request-VrmsToken {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/session"
         if ($PSEdition -eq 'Core') {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
         }
         if ($vrmsResponse.StatusCode -eq 200) {
@@ -32226,8 +31840,7 @@ Function Request-VrmsToken {
             $vrmsHeader.Add("x-dr-session", "$(($vrmsResponse.Content | ConvertFrom-Json).session_id)")
             Write-Output "Successfully connected to the vSphere Replication Appliance: $vrmsAppliance"
         }
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
@@ -32248,14 +31861,515 @@ Function Get-VrmsApplianceDetail {
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
 }
 Export-ModuleMember -Function Get-VrmsApplianceDetail
+
+Function Set-VrmsApplianceState {
+    <#
+        .SYNOPSIS
+        Restart or shutdown the appliance
+
+        .DESCRIPTION
+        The Set-VrmsApplianceState cmdlet allows you to restart or shutdown the vSphere Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsApplianceState -action restart
+        This example restarts the vSphere Replication appliance
+
+        .EXAMPLE
+        Set-VrmsApplianceState -action stop
+        This example shutsdown the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('restart','stop')] [String]$action
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('action') -eq 'restart') {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/actions/restart"
+        } elseif ($PsBoundParameters.ContainsKey('action') -eq 'stop') {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/actions/stop"
+        }
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Set-VrmsApplianceState
+
+Function Get-VrmsTask {
+    <#
+        .SYNOPSIS
+        Get tasks
+
+        .DESCRIPTION
+        The Get-VrmsTask cmdlet retrives the tasks for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsTask
+        This example retrives all the tasks from the vSphere Replication appliance
+
+        .EXAMPLE
+        Get-VrmsTask -taskId <task_id>
+        This example retrives a specific task based on the task ID from the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('taskId')) {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/tasks/$taskId"
+        } else {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/tasks"
+        }
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsTask
+
+Function Get-VrmsService {
+    <#
+        .SYNOPSIS
+        Get information about vSphere Replication appliance services
+
+        .DESCRIPTION
+        The Get-VrmsService cmdlet retrives information about the vSphere Replication appliance services.
+
+        .EXAMPLE
+        Get-VrmsService
+        This example retrives information about all services on the vSphere Replication appliance
+
+        .EXAMPLE
+        Get-VrmsService -serviceId hms
+        This example retrives information about hms service on the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet('drclient','hbrsrv','hmsdb','hms','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("serviceId")) {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/services/$serviceId"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+
+        } else {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/services"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader).list
+        }
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsService
+
+Function Set-VrmsService {
+    <#
+        .SYNOPSIS
+        Get information about vSphere Replication appliance services
+
+        .DESCRIPTION
+        The Set-VrmsService cmdlet retrives information about the vSphere Replication appliance services.
+
+        .EXAMPLE
+        Set-VrmsService -serviceId hms -state stop
+        This example stops the hms service on the vSphere Replication appliance
+
+        .EXAMPLE
+        Set-VrmsService -serviceId hms -state start
+        This example starts the hms service on the vSphere Replication appliance
+
+        .EXAMPLE
+        Set-VrmsService -serviceId hms -state restart
+        This example restarts the hms service on the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('drclient','hbrsrv','hmsdb','hms','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId,
+        [Parameter (Mandatory = $true)] [ValidateSet('start','stop','restart')] [String]$state
+    )
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/services/$serviceId/actions/$state"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Set-VrmsService
+
+Function Get-VrmsNetworkAll {
+    <#
+        .SYNOPSIS
+        Get all network configuration
+
+        .DESCRIPTION
+        The Get-VrmsNetworkAll cmdlet retrives all the network configuration of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsNetworkAll
+        This example retrives all network configuration of the vSphere Replication appliance
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsNetworkAll
+
+Function Get-VrmsNetworkDns {
+    <#
+        .SYNOPSIS
+        Get DNS configuration
+
+        .DESCRIPTION
+        The Get-VrmsNetworkDns cmdlet retrives DNS configuration of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsNetworkDns
+        This example retrives information about the DNS configuration of the vSphere Replication appliance
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/dns"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsNetworkDns
+
+Function Set-VrmsNetworkDns {
+    <#
+        .SYNOPSIS
+        Set DNS configuration
+
+        .DESCRIPTION
+        The Set-VrmsNetworkDns cmdlet change the DNS configuration of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsNetworkDns -vrmsHostname sfo-m01-vrms01.sfo.rainpole.io -dnsServers "172.18.95.4","172.18.95.5"
+        This example retrives information about the DNS configuration of the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsHostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$dnsServers
+    )
+
+    Try {
+        $body = New-Object psobject -Property @{servers = $dnsServers}
+        $body | Add-Member -notepropertyname 'hostname' -notepropertyvalue $vrmsHostname
+        $body | Add-Member -notepropertyname 'mode' -notepropertyvalue 'STATIC'
+        $body = $body | ConvertTo-Json
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/dns"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $vrmsHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Set-VrmsNetworkDns
+
+Function Get-VrmsNetworkInterface {
+    <#
+        .SYNOPSIS
+        Get network interface configuration
+
+        .DESCRIPTION
+        The Get-VrmsNetworkInterface cmdlet retrives network interface configuration of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsNetworkInterface
+        This example retrives information about the network interface configuration of the vSphere Replication appliance
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
+        (Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader).list
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsNetworkInterface
+
+Function Set-VrmsNetworkInterface {
+    <#
+        .SYNOPSIS
+        Set network interface configuration
+
+        .DESCRIPTION
+        The Set-VrmsNetworkInterface cmdlet configures the network interface of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsNetworkInterface -interface eth1 -ipAddress 172.18.111.125 -gateway 172.18.111.1 -prefix 24
+        This example configures the network interface of the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$prefix
+    )
+
+    Try {
+        $ipv4Object = New-Object -TypeName psobject
+        $ipv4Object | Add-Member -notepropertyname 'address' -notepropertyvalue $ipAddress
+        $ipv4Object | Add-Member -notepropertyname 'assignment_mode' -notepropertyvalue 'STATIC'
+        $ipv4Object | Add-Member -notepropertyname 'default_gateway' -notepropertyvalue $gateway
+        $ipv4Object | Add-Member -notepropertyname 'prefix' -notepropertyvalue $prefix
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'ipv4' -notepropertyvalue $ipv4Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces/$interface"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Set-VrmsNetworkInterface
+
+Function Get-VrmsConfiguration {
+    <#
+        .SYNOPSIS
+        Get registration
+
+        .DESCRIPTION
+        The Get-VrmsConfiguration cmdlet retrives registration configuration for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsConfiguration
+        This example retrives the registration configuration for the vSphere Replication appliance
+
+        .EXAMPLE
+        Get-VrmsConfiguration -reconfigure
+        This example retrives the reconfiguration status for the vSphere Replication appliance
+
+        .EXAMPLE
+        Get-VrmsConfiguration -replication
+        This example retrives the storage replication configuration for the vSphere Replication appliance
+    #>
+    
+    [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $false, ParameterSetName = 'default')]
+        [Parameter (Mandatory = $false, ParameterSetName = 'reconfigure')] [ValidateNotNullOrEmpty()] [Switch]$reconfigure,
+        [Parameter (Mandatory = $false, ParameterSetName = 'replication')] [ValidateNotNullOrEmpty()] [Switch]$replication
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('reconfigure')) {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/reconfigure-required"
+        } elseif ($PsBoundParameters.ContainsKey('replication')) {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/replication-server-settings"
+        } else {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
+        }
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsConfiguration
+
+Function Set-VrmsConfiguration {
+    <#
+        .SYNOPSIS
+        Set the vCenter Server registration
+
+        .DESCRIPTION
+        The Set-VrmsConfiguration cmdlet configures the vCenter Server registration for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail vrms-administrator@rainpole.io -siteName SFO-M01
+        This example configures the vCenter Server registration with the vSphere Replication appliance
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterInstanceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName
+    )
+
+    Try {
+        $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
+        $webRequest.GetResponse() | Out-Null
+        $certificate = $webRequest.ServicePoint.Certificate
+        $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+        Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
+        $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
+        $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+
+        $connectionObject = New-Object -TypeName psobject
+        $connectionObject | Add-Member -notepropertyname 'psc_thumbprint' -notepropertyvalue $thumbprint
+        $connectionObject | Add-Member -notepropertyname 'psc_uri' -notepropertyvalue ($vcenterFqdn + ":443")
+        $connectionObject | Add-Member -notepropertyname 'vc_instance_id' -notepropertyvalue $vcenterInstanceId
+        $connectionObject | Add-Member -notepropertyname 'vc_thumbprint' -notepropertyvalue $thumbprint
+
+        $credentialsObject = New-Object -TypeName psobject
+        $credentialsObject | Add-Member -notepropertyname 'admin_password' -notepropertyvalue $ssoPassword
+        $credentialsObject | Add-Member -notepropertyname 'admin_user' -notepropertyvalue $ssoUser
+
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'admin_email' -notepropertyvalue $adminEmail
+        $body | Add-Member -notepropertyname 'extension_key' -notepropertyvalue "com.vmware.vcHms"
+        $body | Add-Member -notepropertyname 'host_name' -notepropertyvalue $vrmsAppliance
+        $body | Add-Member -notepropertyname 'site_name' -notepropertyvalue $siteName
+        $body | Add-Member -notepropertyname 'connection' -notepropertyvalue $connectionObject
+        $body | Add-Member -notepropertyname 'credentials' -notepropertyvalue $credentialsObject
+        $body = $body | ConvertTo-Json
+
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $vrmsHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Set-VrmsConfiguration
+
+Function Remove-VrmsConfiguration {
+    <#
+        .SYNOPSIS
+        Remove the configuration
+
+        .DESCRIPTION
+        The Remove-VrmsConfiguration cmdlet removes the vCenter Server registration for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Remove-VrmsConfiguration -ssoUser administrator@vsphere.local -ssoPassword VMw@re1!
+        This example removes the vCenter Server registration for the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoPassword
+    )
+
+    Try {
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'admin_password' -notepropertyvalue $ssoPassword
+        $body | Add-Member -notepropertyname 'admin_user' -notepropertyvalue $ssoUser
+        $body = $body | ConvertTo-Json
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration/actions/remove"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Remove-VrmsConfiguration
+
+Function Set-VrmsReplication {
+    <#
+        .SYNOPSIS
+        Set the replication server settings
+
+        .DESCRIPTION
+        The Set-VrmsReplication cmdlet configures the replication server settings for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsReplication -filterIp 172.18.111.125 -managementIp 172.18.95.125
+        This example configures the vCenter Server registration with the vSphere Replication appliance
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filterIp,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementIp
+    )
+
+    Try {
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'filter_ip' -notepropertyvalue $filterIp
+        $body | Add-Member -notepropertyname 'management_ip' -notepropertyvalue $managementIp
+        $body = $body | ConvertTo-Json
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/configuration-manager/replication-server-settings"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $vrmsHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Set-VrmsReplication
+
+Function Get-VrmsVamiCertificate {
+    <#
+        .SYNOPSIS
+        Get the certificate of the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Get-VrmsConfiguration cmdlet retrives the certificate of the VAMI interface of a vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsConfiguration
+        This example retrives the registration configuration for the vSphere Replication appliance
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Get-VrmsVamiCertificate
+
+Function Set-VrmsVamiCertificate {
+    <#
+        .SYNOPSIS
+        Install a Signed Certificate for the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Set-VrmsVamiCertificate cmdlet replaces the certificate on the VAMI interface of the vSphere
+        Replication appliance.
+
+        .EXAMPLE
+        Set-VrmsVamiCertificate -pkcs12CertFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1!
+        This example replaces the certificate on the VAMI Appliance interface of the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            $pkcs12CertFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType
+        } elseif ($PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            if (!(Test-Path -Path $pkcs12CertFile)) {
+                Write-Error  "Certificate (.p12) '$pkcs12CertFile' File Not Found"
+            }
+        }
+
+        $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes($pkcs12CertFile))
+        $pkcs12Object = New-Object -TypeName psobject
+        $pkcs12Object | Add-Member -notepropertyname 'certificate' -notepropertyvalue $certContent
+        $pkcs12Object | Add-Member -notepropertyname 'password' -notepropertyvalue $certPassword
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'pkcs12_format' -notepropertyvalue $pkcs12Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
+        Set-VrmsApplianceState -action restart | Out-Null
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Set-VrmsVamiCertificate
 
 #EndRegion  End of vSphere Replication Functions               ######
 #####################################################################
@@ -32309,8 +32423,7 @@ Function Request-SrmToken {
             $srmHeader.Add("x-dr-session", "$(($srmResponse.Content | ConvertFrom-Json).session_id)")
             Write-Output "Successfully connected to the Site Recovery Manager Appliance: $srmAppliance"
         }
-    }
-    Catch {
+    } Catch {
         internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
     }
 }
@@ -32331,14 +32444,477 @@ Function Get-SrmApplianceDetail {
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
         internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
     }
 }
 Export-ModuleMember -Function Get-SrmApplianceDetail
+
+Function Set-SrmApplianceState {
+    <#
+        .SYNOPSIS
+        Restart or shutdown the appliance
+
+        .DESCRIPTION
+        The Set-SrmApplianceState cmdlet allows you to restart or shutdown the Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmApplianceState -action restart
+        This example restarts the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Set-SrmApplianceState -action stop
+        This example shutsdown the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('restart','stop')] [String]$action
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('action') -eq 'restart') {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/actions/restart"
+        } elseif ($PsBoundParameters.ContainsKey('action') -eq 'stop') {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/actions/stop"
+        }
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmApplianceState
+
+Function Get-SrmTask {
+    <#
+        .SYNOPSIS
+        Get tasks
+
+        .DESCRIPTION
+        The Get-SrmTask cmdlet retrives the tasks for a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmTask
+        This example retrives all the tasks from the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Get-SrmTask -taskId <task_id>
+        This example retrives a specific task based on the task ID from the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('taskId')) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/tasks/$taskId"
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/tasks"
+        }
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmTask
+
+Function Get-SrmService {
+    <#
+        .SYNOPSIS
+        Get information about Site Recovery Manager appliance services
+
+        .DESCRIPTION
+        The Get-SrmService cmdlet retrives information about the Site Recovery Manager appliance services.
+
+        .EXAMPLE
+        Get-SrmService
+        This example retrives information about all services on the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Get-SrmService -serviceId hms
+        This example retrives information about hms service on the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet('srm','db','drclient','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("serviceId")) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/services/$serviceId"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/services"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader).list
+        }
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmService
+
+Function Set-SrmService {
+    <#
+        .SYNOPSIS
+        Get information about Site Recovery Manager appliance services
+
+        .DESCRIPTION
+        The Set-SrmService cmdlet retrives information about the Site Recovery Manager appliance services.
+
+        .EXAMPLE
+        Set-SrmService -serviceId srm -state stop
+        This example stops the hms service on the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Set-SrmService -serviceId srm -state start
+        This example starts the hms service on the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Set-SrmService -serviceId srm -state restart
+        This example restarts the hms service on the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('srm','db','drclient','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId,
+        [Parameter (Mandatory = $true)] [ValidateSet('start','stop','restart')] [String]$state
+    )
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/services/$serviceId/actions/$state"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmService
+
+Function Get-SrmNetworkAll {
+    <#
+        .SYNOPSIS
+        Get all network configuration
+
+        .DESCRIPTION
+        The Get-SrmNetworkAll cmdlet retrives all the network configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmNetworkAll
+        This example retrives all network configuration of the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmNetworkAll
+
+Function Get-SrmNetworkDns {
+    <#
+        .SYNOPSIS
+        Get DNS configuration
+
+        .DESCRIPTION
+        The Get-SrmNetworkDns cmdlet retrives DNS configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmNetworkDns
+        This example retrives information about the DNS configuration of the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/dns"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmNetworkDns
+
+Function Set-SrmNetworkDns {
+    <#
+        .SYNOPSIS
+        Set DNS configuration
+
+        .DESCRIPTION
+        The Set-SrmNetworkDns cmdlet change the DNS configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmNetworkDns -srmHostname sfo-m01-srm01.sfo.rainpole.io -dnsServers "172.18.95.4","172.18.95.5"
+        This example retrives information about the DNS configuration of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmHostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$dnsServers
+    )
+
+    Try {
+        $body = New-Object psobject -Property @{servers = $dnsServers}
+        $body | Add-Member -notepropertyname 'hostname' -notepropertyvalue $srmHostname
+        $body | Add-Member -notepropertyname 'mode' -notepropertyvalue 'STATIC'
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/dns"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmNetworkDns
+
+Function Get-SrmNetworkInterface {
+    <#
+        .SYNOPSIS
+        Get network interface configuration
+
+        .DESCRIPTION
+        The Get-SrmNetworkInterface cmdlet retrives network interface configuration of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmNetworkInterface
+        This example retrives information about the network interface configuration of the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
+        (Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader).list
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmNetworkInterface
+
+Function Set-SrmNetworkInterface {
+    <#
+        .SYNOPSIS
+        Set network interface configuration
+
+        .DESCRIPTION
+        The Set-SrmNetworkInterface cmdlet configures the network interface of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmNetworkInterface -interface eth0 -ipAddress 172.18.95.126 -gateway 172.18.95.1 -prefix 24
+        This example configures the network interface of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$prefix
+    )
+
+    Try {
+        $ipv4Object = New-Object -TypeName psobject
+        $ipv4Object | Add-Member -notepropertyname 'address' -notepropertyvalue $ipAddress
+        $ipv4Object | Add-Member -notepropertyname 'assignment_mode' -notepropertyvalue 'STATIC'
+        $ipv4Object | Add-Member -notepropertyname 'default_gateway' -notepropertyvalue $gateway
+        $ipv4Object | Add-Member -notepropertyname 'prefix' -notepropertyvalue $prefix
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'ipv4' -notepropertyvalue $ipv4Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/interfaces/$interface"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmNetworkInterface
+
+Function Get-SrmConfiguration {
+    <#
+        .SYNOPSIS
+        Get registration
+
+        .DESCRIPTION
+        The Get-SrmConfiguration cmdlet retrives registration configuration for a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmConfiguration
+        This example retrives the registration configuration for the Site Recovery Manager appliance
+
+        .EXAMPLE
+        Get-SrmConfiguration -reconfigure
+        This example retrives the reconfiguration status for the Site Recovery Manager appliance
+    #>
+    
+    [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $false, ParameterSetName = 'default')]
+        [Parameter (Mandatory = $false, ParameterSetName = 'reconfigure')] [ValidateNotNullOrEmpty()] [Switch]$reconfigure
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey('reconfigure')) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/reconfigure-required"
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
+        }
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmConfiguration
+
+Function Set-SrmConfiguration {
+    <#
+        .SYNOPSIS
+        Set the vCenter Server registration
+
+        .DESCRIPTION
+        The Set-SrmConfiguration cmdlet configures the vCenter Server registration for a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Set-SrmConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail srm-administrator@rainpole.io -siteName SFO-M01
+        This example configures the vCenter Server registration with the vSphere Replication appliance
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterInstanceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName
+    )
+
+    Try {
+        $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
+        $webRequest.GetResponse() | Out-Null
+        $certificate = $webRequest.ServicePoint.Certificate
+        $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+        Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
+        $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
+        $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+
+        $connectionObject = New-Object -TypeName psobject
+        $connectionObject | Add-Member -notepropertyname 'psc_thumbprint' -notepropertyvalue $thumbprint
+        $connectionObject | Add-Member -notepropertyname 'psc_uri' -notepropertyvalue ($vcenterFqdn + ":443")
+        $connectionObject | Add-Member -notepropertyname 'vc_instance_id' -notepropertyvalue $vcenterInstanceId
+        $connectionObject | Add-Member -notepropertyname 'vc_thumbprint' -notepropertyvalue $thumbprint
+
+        $credentialsObject = New-Object -TypeName psobject
+        $credentialsObject | Add-Member -notepropertyname 'admin_password' -notepropertyvalue $ssoPassword
+        $credentialsObject | Add-Member -notepropertyname 'admin_user' -notepropertyvalue $ssoUser
+
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'admin_email' -notepropertyvalue $adminEmail
+        $body | Add-Member -notepropertyname 'extension_key' -notepropertyvalue "com.vmware.vcDr"
+        $body | Add-Member -notepropertyname 'host_name' -notepropertyvalue $srmAppliance
+        $body | Add-Member -notepropertyname 'site_name' -notepropertyvalue $siteName
+        $body | Add-Member -notepropertyname 'connection' -notepropertyvalue $connectionObject
+        $body | Add-Member -notepropertyname 'credentials' -notepropertyvalue $credentialsObject
+        $body = $body | ConvertTo-Json
+
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration"
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Set-SrmConfiguration
+
+Function Remove-SrmConfiguration {
+    <#
+        .SYNOPSIS
+        Remove the configuration
+
+        .DESCRIPTION
+        The Remove-SrmConfiguration cmdlet removes the vCenter Server registration for a vSphere Replication appliance.
+
+        .EXAMPLE
+        Remove-SrmConfiguration -ssoUser administrator@vsphere.local -ssoPassword VMw@re1!
+        This example removes the vCenter Server registration for the vSphere Replication appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoPassword
+    )
+
+    Try {
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'admin_password' -notepropertyvalue $ssoPassword
+        $body | Add-Member -notepropertyname 'admin_user' -notepropertyvalue $ssoUser
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/configuration-manager/configuration/actions/remove"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Remove-SrmConfiguration
+
+Function Get-SrmVamiCertificate {
+    <#
+        .SYNOPSIS
+        Get the certificate of the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Get-SrmVamiCertificate cmdlet retrives the certificate of the VAMI interface of a Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmVamiCertificate
+        This example retrives the registration configuration for the Site Recovery Manager appliance
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Get-SrmVamiCertificate
+
+Function Set-SrmVamiCertificate {
+    <#
+        .SYNOPSIS
+        Install a Signed Certificate for the VAMI Appliance interface
+
+        .DESCRIPTION
+        The Set-SrmVamiCertificate cmdlet replaces the certificate on the VAMI interface of the Site Recovery
+        Manager appliance.
+
+        .EXAMPLE
+        Set-SrmVamiCertificate -pkcs12CertFile C:\Certs\sfo-m01-srm01.4.p12 -certPassword VMw@re1!
+        This example replaces the certificate on the VAMI Appliance interface of the Site Recovery Manager appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certPassword
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            $pkcs12CertFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType
+        } elseif ($PsBoundParameters.ContainsKey("pkcs12CertFile")) {
+            if (!(Test-Path -Path $pkcs12CertFile)) {
+                Write-Error  "Certificate (.p12) '$pkcs12CertFile' File Not Found"
+            }
+        }
+
+        $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes($pkcs12CertFile))
+        $pkcs12Object = New-Object -TypeName psobject
+        $pkcs12Object | Add-Member -notepropertyname 'certificate' -notepropertyvalue $certContent
+        $pkcs12Object | Add-Member -notepropertyname 'password' -notepropertyvalue $certPassword
+        $body = New-Object -TypeName psobject
+        $body | Add-Member -notepropertyname 'pkcs12_format' -notepropertyvalue $pkcs12Object
+        $body = $body | ConvertTo-Json
+        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
+        Set-VrmsApplianceState -action restart | Out-Null
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Set-SrmVamiCertificate
 
 #EndRegion  End of Site Recovery Manager Functions             ######
 #####################################################################
@@ -32478,12 +33054,6 @@ Function createvCenterAuthHeader {
     $vcAuthHeaders
 }
 
-Function createVAMIAuthHeader {
-    $VAMIAuthheaders = @{"Content-Type" = "application/json" }
-    $VAMIAuthheaders.Add("dr.config.service.sessionid", "$sessionId")
-    $VAMIAuthheaders
-}
-
 Function createGitHubAuthHeader {
     # Get the headers with authorization to pull content pack from the GitHub repository
     # Note: Uses the same token used by vRealize Log Insight's in-product Marketplace as seen in Chrome Developer Tools
@@ -32492,61 +33062,6 @@ Function createGitHubAuthHeader {
     $ghHeaders.Add('Accept', 'application/vnd.github.VERSION.raw')
     $ghHeaders.Add('Authorization', "Basic $ghToken")
 }
-
-Function Request-VAMISessionId {
-    <#
-		.SYNOPSIS
-    	Connects to the specified VAMI interface and requests a session token
-
-    	.DESCRIPTION
-    	The Request-VAMISessionId cmdlet connects to the specified VAMI interface and requests a session token.
-    	It is required once per session before running all other cmdlets
-
-    	.EXAMPLE
-    	Request-VAMISessionId -fqdn sfo-m01-vc01.sfo.rainpole.io -username root -password VMw@re1!
-        This example shows how to connect to a VAMI interface to request a session token
-  	#>
-
-  	Param (
-    	[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [string]$fqdn,
-		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [string]$username,
-		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [string]$password
-  	)
-
-  	If ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
-   		# Request Credentials
-    	$creds = Get-Credential
-    	$username = $creds.UserName.ToString()
-    	$password = $creds.GetNetworkCredential().password
-    }
-
-
-  	    # Validate credentials by executing an API call
-  	    $headers = @{"Content-Type" = "application/json"}
-  	    $uri = "https://"+$fqdn+":5480/configure/requestHandlers/login"
-  	    $body = '{"username": "'+$username+'","password": "'+$password+'"}'
-
-  	    Try {
-    	    # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-    	    if ($PSEdition -eq 'Core') {
-      	    	$response = Invoke-RestMethod -Method POST -Uri $uri -Headers $headers -body $body -SkipCertificateCheck
-      	    	$sessionId = $response.data.sessionId
-    	    }
-    	    else {
-      		    $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $headers -body $body
-      		    $Global:sessionId = $response.data.sessionId
-               
-    	    }
-    	    if ($response.data.sessionId) {
-                #Write-Output "Successfully Requested New VAMI Session Token From: $fqdn"
-                $sessionId
-    	    }
-  	    }
-  	    Catch {
-            Write-Error $_.Exception.Message
-        }
-}
-Export-ModuleMember -Function Request-VAMISessionId
 
 #EndRegion  End Utility Functions                              ######
 #####################################################################
@@ -32994,68 +33509,93 @@ Function Test-WSAAuthentication {
 }
 Export-ModuleMember -Function Test-WSAAuthentication
 
-Function Test-VAMIConnection {
+Function Test-VrmsVamiConnection {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
     )
 
     if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vamiConnection = $True
-        Return $vamiConnection
+        $vrmsVamiConnection = $True
+        Return $vrmsVamiConnection
     }   
     else { 
-        Write-Error "Unable to communicate with appliance VAMI interface ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
-        $vamiConnection = $False
-        Return $vamiConnection
+        Write-Error "Unable to communicate with vSphere Replication Appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        $vrmsVamiConnection = $False
+        Return $vrmsVamiConnection
     }
 }
-Export-ModuleMember -Function Test-VAMIConnection
+Export-ModuleMember -Function Test-VrmsVamiConnection
 
-Function Test-VAMIAuthentication {
+Function Test-VrmsVamiAuthentication {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
 		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
 		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
-    Remove-Variable -Name VAMIAuthHeaders -Scope Global -Force -Confirm:$false -ErrorAction Ignore
-    Remove-Variable -Name SessionId -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+    Remove-Variable -Name vrmsHeader -Scope Global -Force -Confirm:$false -ErrorAction Ignore
 
     Try {
-        $i=0
-        do {
-            $i++
-            Start-Sleep -Seconds 1
-            Request-VAMISessionId -fqdn $server -username $user -password $pass -ErrorAction SilentlyContinue
-            if ($i -ge 30) {
-                $PSCmdlet.ThrowTerminatingError(
-                    [System.Management.Automation.ErrorRecord]::new(
-                        ([System.Management.Automation.GetValueException]"Get session ID from appliance VAMI interface ($server): PRE_VALIDATION_FAILED"),
-                        'Request-VAMISessionId',
-                        [System.Management.Automation.ErrorCategory]::ConnectionError,
-                        ""
-                    )
-                )   
-            }
-        }
-        while ($global:sessionId -eq $null)
-        $global:VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
-
-        if ($VAMIAuthHeaders) {
-            $vamiAuthentication = $True
-            Return $vamiAuthentication
+        $response = Request-VrmsToken -fqdn $server -username $user -password $pass
+        if ($vrmsHeader) {
+            $vrmsVamiConnection = $True
+            Return $vrmsVamiConnection
         }   
         else {
-            Write-Error "Unable to authenticate with appliance VAMI interface ($server), check credentials: PRE_VALIDATION_FAILED"
-            $vamiAuthentication = $False
-            Return $vamiAuthentication
+            Write-Error $response
+            $vrmsVamiConnection = $False
+            Return $vrmsVamiConnection
         }
     }
     Catch {
-        $PSCmdlet.ThrowTerminatingError($PSItem)
+        Write-Error $response
     }
 }
-Export-ModuleMember -Function Test-VAMIAuthentication
+Export-ModuleMember -Function Test-VrmsVamiAuthentication
+
+Function Test-SrmVamiConnection {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
+        $srmVamiConnection = $True
+        Return $srmVamiConnection
+    }   
+    else { 
+        Write-Error "Unable to communicate with Site Recovery Manager Appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        $srmVamiConnection = $False
+        Return $srmVamiConnection
+    }
+}
+Export-ModuleMember -Function Test-SrmVamiConnection
+
+Function Test-SrmVamiAuthentication {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Remove-Variable -Name srmHeader -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+
+    Try {
+        $response = Request-SrmToken -fqdn $server -username $user -password $pass
+        if ($srmHeader) {
+            $srmVamiConnection = $True
+            Return $srmVamiConnection
+        }   
+        else {
+            Write-Error $response
+            $srmVamiConnection = $False
+            Return $srmVamiConnection
+        }
+    }
+    Catch {
+        Write-Error $response
+    }
+}
+Export-ModuleMember -Function Test-SrmVamiAuthentication
 
 Function Test-SRMConnection {
     Param (
@@ -33449,7 +33989,6 @@ Function Test-NtpServer {
 }
 Export-ModuleMember -Function Test-NtpServer
 
-
 #EndRegion  End of Test Functions                              ######
 #####################################################################
 
@@ -33578,6 +34117,733 @@ Function Add-ESXiDomainUser {
     }
 }
 Export-ModuleMember -Function Add-ESXiDomainUser
+
+Function Set-SRMLicenseConfig {
+    <#
+		.SYNOPSIS
+        Configure the license for Site Recovery Manager in the protected and recovery sites
+
+        .DESCRIPTION
+        The Set-SRMLicenseConfig cmdlet configures the license for Site Recovery Manager in the protected and recovery
+        sites. 
+        The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
+        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Validates whether the license keys exist in vCenter Server inventory, and if not, installs them
+        - Configures the license for Site Recovery Manager in the protected and recovery sites.
+
+        .EXAMPLE
+        Set-SRMLicenseConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vCenterSiteARootPass VMw@re1! -vCenterSiteBRootPass VMw@re1! -srmSiteAKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE -srmSiteBKey 00000-11111-22222-33333-4444
+        This example configures the Site Recovery Manager instances in the protected and recovery sites with their respective license key.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteAKey,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteBKey
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
+                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceA = Get-View -Server $siteAvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerA = Get-View -Server $siteAvCenterDetails.fqdn $serviceInstanceA.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteAvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerA = Get-View -Server $siteAvCenterDetails.fqdn $licenseManagerA.licenseAssignmentManager
+                                                        $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                        if ($licenseExistsA) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) has already been installed on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseManagerA.AddLicense($srmSiteAKey,$null) | Out-Null
+                                                                $licenseManagerA.UpdateViewData()
+                                                                $validateLicenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                                if ($validateLicenseExistsA) {
+                                                                    Write-Output "Add license key for Site Recovery Manager ($srmSiteAKey) to vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been added to vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                        $srmASiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmAFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmAPartialUuid = ($licenseAssignmentManagerA.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmASiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteAvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteA -Server $siteAvCenterDetails.fqdn
+                                                        $srmAUuid = ($srmAPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $existingSrmALicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                        if ($existingSrmALicenseKey -eq $srmSiteAKey) {
+                                                            Write-Warning "License key ($srmSiteAKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseAssignmentManagerA.UpdateAssignedLicense($srmAUuid,$srmSiteAKey,$null) | Out-Null
+                                                                $licenseAssignmentManagerA.UpdateViewData() | Out-Null
+                                                                $validateSrmLicenseKey = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                                if ($validateSrmLicenseKey -eq $srmSiteAKey) {
+                                                                    Write-Output "Configure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been configured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                    }
+                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceB = Get-View -Server $siteBvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerB = Get-View -Server $siteBvCenterDetails.fqdn $serviceInstanceB.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteBvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerB = Get-View -Server $siteBvCenterDetails.fqdn $licenseManagerB.licenseAssignmentManager
+                                                        $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                        if ($licenseExistsB) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) has already been installed on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseManagerB.AddLicense($srmSiteBKey,$null) | Out-Null
+                                                                $licenseManagerB.UpdateViewData()
+                                                                $validateLicenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                                if ($validateLicenseExistsB) {
+                                                                    Write-Output "Add license key for Site Recovery Manager ($srmSiteBKey) to vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been added to vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                        $srmBSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmBFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmBPartialUuid = ($licenseAssignmentManagerB.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmBSiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteBvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteB -Server $siteBvCenterDetails.fqdn
+                                                        $srmBUuid = ($srmBPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                        if ($existingSrmBLicenseKey -eq $srmSiteBKey) {
+                                                            Write-Warning "License key ($srmSiteBKey) has already been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseAssignmentManagerB.UpdateAssignedLicense($srmBUuid,$srmSiteBKey,$null) | Out-Null
+                                                                $licenseAssignmentManagerB.UpdateViewData() | Out-Null
+                                                                $validateSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                                if ($validateSrmBLicenseKey -eq $srmSiteBKey) {
+                                                                    Write-Output "Configure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Set-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-SRMLicenseConfig
+
+Function Undo-SRMLicenseConfig {
+    <#
+		.SYNOPSIS
+        Removes the license configuration for Site Recovery Manager in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-SRMLicenseConfig cmdlet removes the license configuration from Site Recovery Manager in the protected
+        and recovery sites. 
+        The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
+        -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Validates whether the license keys exist in vCenter Server inventory, and if not, installs them
+        - Removes the license configuration for Site Recovery Manager in the protected and recovery sites
+
+        .EXAMPLE
+        Undo-SRMLicenseConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vCenterSiteARootPass VMw@re1! -vCenterSiteBRootPass VMw@re1! -srmSiteAKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE -srmSiteBKey 00000-11111-22222-33333-4444
+        This example removes the license configuration from Site Recovery Manager instances in the protected and recovery sites with their respective license key.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vCenterRootPassSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteAKey,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmSiteBKey
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
+                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceA = Get-View -Server $siteAvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerA = Get-View -Server $siteAvCenterDetails.fqdn $serviceInstanceA.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteAvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerA = Get-View -Server $siteAvCenterDetails.fqdn $licenseManagerA.licenseAssignmentManager
+                                                        $srmASiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmAFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmAPartialUuid = ($licenseAssignmentManagerA.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmASiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteAvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteA -Server $siteAvCenterDetails.fqdn
+                                                        $srmAUuid = ($srmAPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $srmALicenseKeyAlreadyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                        if (!$srmALicenseKeyAlreadyRemoved -or $srmALicenseKeyAlreadyRemoved -eq "00000-00000-00000-00000-00000") {
+                                                            Write-Warning "License key ($srmSiteAKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseAssignmentManagerA.RemoveAssignedLicense($srmAUuid) | Out-Null
+                                                                $licenseAssignmentManagerA.UpdateViewData() | Out-Null
+                                                                $validateSrmALicenseKeyRemoved = $licenseAssignmentManagerA.QueryAssignedLicenses($srmAUuid).AssignedLicense.LicenseKey
+                                                                if (!$validateSrmALicenseKeyRemoved) {
+                                                                    Write-Output "Unconfigure license key ($srmSiteAKey) for Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteAKey) has been unconfigured from Site Recovery Manager on vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                        $licenseExistsA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                        if (!$licenseExistsA) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteAKey) does not exist on vCenter Server ($($siteAvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseManagerA.RemoveLicense($srmSiteAKey) | Out-Null
+                                                                $licenseManagerA.UpdateViewData()
+                                                                $validateLicenseRemovedA = $licenseManagerA.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteAKey}
+                                                                if (!$validateLicenseRemovedA) {
+                                                                    Write-Output "Remove license key for Site Recovery Manager ($srmSiteAKey) from vCenter Server ($($siteAvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteAKey) has been removed from vCenter Server ($($siteAvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                    }
+                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                        $serviceInstanceB = Get-View -Server $siteBvCenterDetails.fqdn ServiceInstance 
+                                                        $licenseManagerB = Get-View -Server $siteBvCenterDetails.fqdn $serviceInstanceB.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $siteBvCenterDetails.fqdn}
+                                                        $licenseAssignmentManagerB = Get-View -Server $siteBvCenterDetails.fqdn $licenseManagerB.licenseAssignmentManager
+                                                        $srmBSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmBFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
+                                                        $srmBPartialUuid = ($licenseAssignmentManagerB.QueryAssignedLicenses($null) | Where-Object {$_.EntityDisplayName -eq $srmBSiteName}).EntityId
+                                                        $scriptCommand = "/usr/lib/vmware-vmafd/bin/vmafd-cli get-ldu --server-name localhost"
+                                                        $output = Invoke-VMScript -VM ($siteBvCenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vCenterRootPassSiteB -Server $siteBvCenterDetails.fqdn
+                                                        $srmBUuid = ($srmBPartialUuid + "-" + $output.ScriptOutput).Trim()
+                                                        $existingSrmBLicenseKey = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                        if (!$existingSrmBLicenseKey -or $existingSrmBLicenseKey -eq "00000-00000-00000-00000-00000") {
+                                                            Write-Warning "License key ($srmSiteBKey) has already been unconfigured for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseAssignmentManagerB.RemoveAssignedLicense($srmBUuid) | Out-Null
+                                                                $licenseAssignmentManagerB.UpdateViewData() | Out-Null
+                                                                $validateSrmBLicenseKeyRemoved = $licenseAssignmentManagerB.QueryAssignedLicenses($srmBUuid).AssignedLicense.LicenseKey
+                                                                if (!$validateSrmBLicenseKeyRemoved) {
+                                                                    Write-Output "Unconfigure license key ($srmSiteBKey) for Site Recovery Manager on vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($srmSiteBKey) has been configured for Site Recovery Manager vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                        }
+                                                        $licenseExistsB = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                        if (!$licenseExistsB) {
+                                                            Write-Warning "License key for Site Recovery Manager ($srmSiteBKey) does not exist on vCenter Server ($($siteBvCenterDetails.fqdn)): SKIPPING"
+                                                        } else {
+                                                            Try {
+                                                                $licenseManagerB.RemoveLicense($srmSiteBKey) | Out-Null
+                                                                $licenseManagerB.UpdateViewData() | Out-Null
+                                                                $validateLicenseBRemoved = $licenseManagerB.Licenses | Where-Object {$_.LicenseKey -eq $srmSiteBKey}
+                                                                if (!$validateLicenseBRemoved) {
+                                                                    Write-Output "Remove license key for Site Recovery Manager ($srmSiteBKey) from vCenter Server ($($siteBvCenterDetails.fqdn)): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key for Site Recovery Manager ($srmSiteBKey) has been removed from vCenter Server ($($siteBvCenterDetails.fqdn)): POST_VALIDATION_FAILED"),
+                                                                            'Undo-SRMLicense',
+                                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } 
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SRMLicenseConfig
+
+Function Request-VAMISessionId {
+    <#
+		.SYNOPSIS
+    	Connects to the specified VAMI interface and requests a session token
+
+    	.DESCRIPTION
+    	The Request-VAMISessionId cmdlet connects to the specified VAMI interface and requests a session token.
+    	It is required once per session before running all other cmdlets
+
+    	.EXAMPLE
+    	Request-VAMISessionId -fqdn sfo-m01-vc01.sfo.rainpole.io -username root -password VMw@re1!
+        This example shows how to connect to a VAMI interface to request a session token
+  	#>
+
+  	Param (
+    	[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [string]$fqdn,
+		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [string]$username,
+		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [string]$password
+  	)
+
+  	If ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+   		# Request Credentials
+    	$creds = Get-Credential
+    	$username = $creds.UserName.ToString()
+    	$password = $creds.GetNetworkCredential().password
+    }
+
+
+  	    # Validate credentials by executing an API call
+  	    $headers = @{"Content-Type" = "application/json"}
+  	    $uri = "https://"+$fqdn+":5480/configure/requestHandlers/login"
+  	    $body = '{"username": "'+$username+'","password": "'+$password+'"}'
+
+  	    Try {
+    	    # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+    	    if ($PSEdition -eq 'Core') {
+      	    	$response = Invoke-RestMethod -Method POST -Uri $uri -Headers $headers -body $body -SkipCertificateCheck
+      	    	$sessionId = $response.data.sessionId
+    	    }
+    	    else {
+      		    $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $headers -body $body
+      		    $Global:sessionId = $response.data.sessionId
+               
+    	    }
+    	    if ($response.data.sessionId) {
+                #Write-Output "Successfully Requested New VAMI Session Token From: $fqdn"
+                $sessionId
+    	    }
+  	    }
+  	    Catch {
+            Write-Error $_.Exception.Message
+        }
+}
+Export-ModuleMember -Function Request-VAMISessionId
+
+Function createVAMIAuthHeader {
+    $VAMIAuthheaders = @{"Content-Type" = "application/json" }
+    $VAMIAuthheaders.Add("dr.config.service.sessionid", "$sessionId")
+    $VAMIAuthheaders
+}
+
+Function Test-VAMIConnection {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+    )
+
+    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
+        $vamiConnection = $True
+        Return $vamiConnection
+    }   
+    else { 
+        Write-Error "Unable to communicate with appliance VAMI interface ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        $vamiConnection = $False
+        Return $vamiConnection
+    }
+}
+Export-ModuleMember -Function Test-VAMIConnection
+
+Function Test-VAMIAuthentication {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Remove-Variable -Name VAMIAuthHeaders -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+    Remove-Variable -Name SessionId -Scope Global -Force -Confirm:$false -ErrorAction Ignore
+
+    Try {
+        $i=0
+        do {
+            $i++
+            Start-Sleep -Seconds 1
+            Request-VAMISessionId -fqdn $server -username $user -password $pass -ErrorAction SilentlyContinue
+            if ($i -ge 30) {
+                $PSCmdlet.ThrowTerminatingError(
+                    [System.Management.Automation.ErrorRecord]::new(
+                        ([System.Management.Automation.GetValueException]"Get session ID from appliance VAMI interface ($server): PRE_VALIDATION_FAILED"),
+                        'Request-VAMISessionId',
+                        [System.Management.Automation.ErrorCategory]::ConnectionError,
+                        ""
+                    )
+                )   
+            }
+        }
+        while ($global:sessionId -eq $null)
+        $global:VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
+
+        if ($VAMIAuthHeaders) {
+            $vamiAuthentication = $True
+            Return $vamiAuthentication
+        }   
+        else {
+            Write-Error "Unable to authenticate with appliance VAMI interface ($server), check credentials: PRE_VALIDATION_FAILED"
+            $vamiAuthentication = $False
+            Return $vamiAuthentication
+        }
+    }
+    Catch {
+        $PSCmdlet.ThrowTerminatingError($PSItem)
+    }
+}
+Export-ModuleMember -Function Test-VAMIAuthentication
+
+Function Set-vSRIncomingStorageTraffic {
+    <#
+		.SYNOPSIS
+        Configures the IP address for incoming storage traffic on vSphere Replication via VAMI interface
+
+        .DESCRIPTION
+        The Set-vSRIncomingStorageTraffic cmdlet configures the IP address for incoming storage traffic on vSphere
+        Replication via VAMI interface
+
+        .EXAMPLE
+        Set-vSRIncomingStorageTraffic -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1! -ipAddress 172.27.15.123
+        This example sets the IP address for incoming storage traffic on vSphere Replication appliance sfo-m01-vrms01.sfo.rainpole.io to 172.27.15.123
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $data =  [PSCustomObject] @{
+                    "filterIp" = "$ipAddress"
+                    "managementIp" = ""
+                }
+                $data = $data | ConvertTo-Json
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/setHbrNic"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $data
+                $response
+            }
+        }        
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Set-vSRIncomingStorageTraffic
+
+Function Get-vSRIncomingStorageTraffic {
+    <#
+		.SYNOPSIS
+        Retrieves the IP address for incoming storage traffic on vSphere Replication via VAMI interface
+
+        .DESCRIPTION
+        The Get-vSRIncomingStorageTraffic cmdlet retrieves the IP address for incoming storage traffic on vSphere
+        Replication via VAMI interface
+
+        .EXAMPLE
+        Get-vSRIncomingStorageTraffic -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1!
+        This example retrieves the IP address for incoming storage traffic on vSphere Replication appliance sfo-m01-vrms01.sfo.rainpole.io
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getHbrNic"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders
+                $response.data
+            }
+        }        
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Get-vSRIncomingStorageTraffic
+
+Function Set-DRSolutionNetworkAdapter {
+    <#
+		.SYNOPSIS
+        Configures an ethernet adapter on a DR solution via VAMI interface
+
+        .DESCRIPTION
+        The Set-DRSolutionNetworkAdapter cmdlet configures an ethernet adapter on a DR solution via VAMI interface
+
+        .EXAMPLE
+        Set-DRSolutionNetworkAdapter -fqdn sfo-m01-vrms01.sfo.rainpole.io -user admin -password VMw@re1! -interfaceName eth1 -defaultGateway 172.16.11.253 -cidrPrefix 24 -ipAddress 172.16.11.123
+        This example configures the Site Recovery Manager appliance secondary ethernet adapter
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$defaultGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$cidrPrefix,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $networkConfig = Get-DRSolutionNetworkConfig -fqdn $fqdn -username $username -password $password
+                $ipv4 =  [PSCustomObject] @{
+                    "interfaceName" = "$interfaceName"
+                    "defaultGateway" = "$defaultGateway"
+                    "prefix" = $cidrPrefix
+                    "mode" = "STATICMODE"
+                    "address" = "$ipAddress"
+                }
+                ($networkConfig.interfaces | Where-Object {$_.Name -eq $interfaceName}).ipv4 = $ipv4
+                ($networkConfig.interfaces | Where-Object {$_.Name -eq $interfaceName}).ipv6 = $null
+                $networkConfig = $networkConfig | ConvertTo-Json -Depth 10
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/editNetworking"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $networkConfig
+                $response
+            }
+        }        
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Set-DRSolutionNetworkAdapter
+
+Function Get-DRSolutionSummary {
+    <#
+		.SYNOPSIS
+        Retrieves the Site Recovery Manager summary
+
+        .DESCRIPTION
+        The Get-DRSolutionSummary cmdlet retrieves the Site Recovery Manager summary
+
+        .EXAMPLE
+        Get-DRSolutionSummary -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example retrieves the Site Recovery Manager summary
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        $sessionId = Request-VAMISessionId -fqdn $fqdn -username $username -password $password
+        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)
+        $uri = "https://" + $fqdn + ":5480/configure/requestHandlers/getSummaryInfo"
+        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
+        $response
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}    
+Export-ModuleMember -Function Get-DRSolutionSummary
+
+Function Get-DRSolutionNetworkConfig {
+    <#
+		.SYNOPSIS
+        Retrieves the Site Recovery Manager appliance network configuration
+
+        .DESCRIPTION
+        The Get-DRSolutionNetworkConfig cmdlet retrieves the Site Recovery Manager appliance network configuration
+
+        .EXAMPLE
+        Get-DRSolutionNetworkConfig -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example retrieves the Site Recovery Manager appliance network configuration
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if (Test-VAMIConnection -server $fqdn) {
+            if (Test-VAMIAuthentication -server $fqdn -user $username -pass $password) {
+                $uri = "https://"+$fqdn+":5480/configure/requestHandlers/getNetworkingInfo"
+                $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -Body $body
+                $response.data
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-DRSolutionNetworkConfig
+
+Function Register-DRSolutionTovCenter {
+    <#
+		.SYNOPSIS
+        Registers Site Recovery Manager & vSphere Replication with a given vCenter Server
+
+        .DESCRIPTION
+        The Register-DRSolutionTovCenter cmdlet registers Site Recovery Manager & vSphere Replication with a given vCenter Server
+
+        .EXAMPLE
+        Register-DRSolutionTovCenter -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -pscHost sfo-m01-vc01.sfo.rainpole.io -thumbprint EA:0F:24:7E:B4:4C:5E:ED:38:AE:79:A6:9E:A2:E8:8F:EE:54:D8:AF:18:6A:A2:57:DC:87:09:68:D4:76:36:DD -vcInstanceId 53cad28c-4160-4956-b7c1-c7bbc5185a39 -ssoAdminUser administrator@vsphere.local -ssoAdminPassword VMw@re1! -siteName SFO01 -adminEmail admin@rainpole.io -hostName sfo-m01-srm01.sfo.rainpole.io
+        This example registers the Site Recovery Manager Virtual Appliance with vCenter
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pscHost,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$thumbprint,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcInstanceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adminEmail,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensionKey
+    )
+
+    Try {
+        $body = '{
+            "connection": {
+                "pscHost": "'+$pscHost+'",
+                "pscPort": 443,
+                "thumbprint": "'+$thumbprint+'",
+                "vcInstanceId": "'+$vcInstanceId+'",
+                "vcThumbprint": "'+$thumbprint+'"
+            },
+            "adminUser": "'+$ssoAdminUser+'",
+            "adminPassword": "'+$ssoAdminPassword+'",
+            "siteName": "'+$siteName+'",
+            "adminEmail": "'+$adminEmail+'",
+            "hostName": "'+$hostName+'",
+            "extensionKey": "'+$extensionKey+'"
+        }'
+        $body
+        $sessionId = Request-VAMISessionId -fqdn $applianceFqdn -username admin -password $vamiAdminPassword
+        $VAMIAuthHeaders = createVAMIAuthHeader($sessionId)                    
+        $uri = "https://"+$applianceFqdn+":5480/configure/requestHandlers/configureAppliance"
+        $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $VAMIAuthheaders -body $body
+        $response
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Register-DRSolutionTovCenter
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################

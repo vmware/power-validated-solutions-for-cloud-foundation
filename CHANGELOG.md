@@ -4,17 +4,54 @@
 
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
 - Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
-- Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements.
-- Added `Add-VrmsNetworkAdapter` cmdlet to support adding a second nic to vSphere Replication.
+- Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements and REST API function support.
+- Added `Undo-DRSolutionTovCenter` cmdlet to support removing vCenter Server registration of vSphere Replication and Site Recovery Manager.
+- Enhanced `Install-VamiCertificate` cmdlet to use new REST APIs for vSphere Replication and Site Recovery Manager appliances.
+- Added `Add-VrmsNetworkAdapter` cmdlet to support adding a second nic to a vSphere Replication appliance.
 - Added `Add-SrmLicenseKey` cmdlet to support adding and assigning a Site Recovery Manager license.
-- Added `Undo-SrmLicenseKey` cmdlet to support removing a Site Recovery license.
+- Added `Undo-SrmLicenseKey` cmdlet to support removing a Site Recovery Manager license.
 - Added `Add-VdsPortGroup` cmdlet to support creating a vSphere Distributed Switch port group and assigning a VLAN id.
 - Added `Undo-VdsPortGroup` cmdlet to support removing a vSphere Distributed Switch port group.
-- Added `Request-VrmsToken` cmdlet to support requesting a session token for a vSphere Replication Appliance.
-- Added `Get-VrmsApplianceDetail` cmdlet to support getting information about a vSphere Replication Appliance.
-- Added `Request-SrmToken` cmdlet to support requesting a session token for a Site Recovery Manager Appliance.
-- Added `Get-SrmApplianceDetail` cmdlet to support getting information about a Site Recovery Manager Appliance.
 - Added `internalCatchWriter` internal function to control and providing messages around API response codes.
+- Added `Test-VrmsConnection` cmdlet to support checking the vSphere Replication appliance is responding.
+- Added `Test-VrmsAuthentication` cmdlet to support checking authentication with the vSphere Replication appliance.
+- Added `Request-VrmsToken` cmdlet to support requesting a session token for a vSphere Replication appliance.
+- Added `Get-VrmsApplianceDetail` cmdlet to support getting information about a vSphere Replication appliance.
+- Added `Set-VrmsApplianceState` cmdlet to restart or shutdown a vSphere Replication appliance.
+- Added `Get-VrmsService` cmdlet to support retrieving the status of services running on the vSphere Replication appliance.
+- Added `Set-VrmsService` cmdlet to start/stop/restart services running on a vSphere Replication appliance.
+- Added `Get-VrmsNetworkAll` cmdlet to retrieve all network settings for a vSphere Replication appliance.
+- Added `Get-VrmsNetworkDns` cmdlet to retrieve the DNS configuration for a vSphere Replication appliance.
+- Added `Set-VrmsNetworkDns` cmdlet to configure DNS settings for a vSphere Replication appliance.
+- Added `Get-VrmsNetworkInterface` cmdlet to retrieve the network interface configuration for a vSphere Replication appliance.
+- Added `Set-VrmsNetworkInterface` cmdlet to configure a network interface for a vSphere Replication appliance.
+- Added `Get-VrmsConfiguration` cmdlet to retrieve the registration configuration for a vSphere Replication appliance.
+- Added `Set-VrmsConfiguration` cmdlet to register the vSphere Replication appliance with vCenter Server.
+- Added `Remove-VrmsConfiguration` cmdlet to remove the vCenter Server registration for a vSphere Replication appliance.
+- Added `Set-VrmsReplication` cmdlet to configure the replication filter IP Address for a vSphere Replication appliance.
+- Added `Get-VrmsTask` cmdlet to retrieve tasks from a vSphere Replication appliance.
+- Added `Get-VrmsVamiCertificate` cmdlet to retrieve the certificate of the VAMI interface of a vSphere Replication appliance
+- Added `Set-VrmsVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a vSphere Replication appliance.
+- Added `Test-SrmConnection` cmdlet to support checking the Site Recovery Manager appliance is responding.
+- Added `Test-SrmAuthentication` cmdlet to support checking authentication with the Site Recovery Manager appliance.
+- Added `Request-SrmToken` cmdlet to support requesting a session token for a Site Recovery Manager appliance.
+- Added `Get-SrmApplianceDetail` cmdlet to support getting information about a Site Recovery Manager appliance.
+- Added `Set-SrmApplianceState` cmdlet to restart or shutdown a Site Recovery Manager appliance.
+- Added `Get-SrmService` cmdlet to support retrieving the status of services running on the Site Recovery Manager appliance.
+- Added `Set-SrmService` cmdlet to start/stop/restart services running on a Site Recovery Manager appliance.
+- Added `Get-SrmNetworkAll` cmdlet to retrieve all network settings for a Site Recovery Manager appliance.
+- Added `Get-SrmNetworkDns` cmdlet to retrieve the DNS configuration for a Site Recovery Manager appliance.
+- Added `Set-SrmNetworkDns` cmdlet to configure DNS settings for a Site Recovery Manager appliance.
+- Added `Get-SrmNetworkInterface` cmdlet to retrieve the network interface configuration for a Site Recovery Manager appliance.
+- Added `Set-SrmNetworkInterface` cmdlet to configure a network interface for a Site Recovery Manager appliance.
+- Added `Get-SrmConfiguration` cmdlet to retrieve the registration configuration for a Site Recovery Manager appliance.
+- Added `Set-SrmConfiguration` cmdlet to register the Site Recovery Manager appliance with vCenter Server.
+- Added `Remove-SrmConfiguration` cmdlet to remove the vCenter Server registration for a Site Recovery Manager appliance.
+- Added `Get-SrmTask` cmdlet to retrieve tasks from a Site Recovery Manager appliance.
+- Added `Get-SrmVamiCertificate` cmdlet to retrieve the certificate of the VAMI interface of a Site Recovery Manager appliance.
+- Added `Set-SrmVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a Site Recovery Manager appliance.
+- Added `Undo-SiteRecoveryManager` to remove the Site Recovery Manager virtual appliance.
+- Added `Undo-vSphereReplicationManager` to remove the vSphere Replication virtual appliance.
 
 ## v1.9.0 (2022-25-10)
 
