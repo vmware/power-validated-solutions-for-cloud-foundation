@@ -4,7 +4,8 @@
 
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
 - Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
-- Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements.
+- Enhanced `Connect-DRSolutionTovCenter` cmdlet to support registration with any vCenter Server and code improvements and REST API function support.
+- Added `Undo-DRSolutionTovCenter` cmdlet to support removing vCenter Server registration of vSphere Replication and Site Recovery Manager.
 - Enhanced `Install-VamiCertificate` cmdlet to use new REST APIs for vSphere Replication and Site Recovery Manager appliances.
 - Added `Add-VrmsNetworkAdapter` cmdlet to support adding a second nic to a vSphere Replication appliance.
 - Added `Add-SrmLicenseKey` cmdlet to support adding and assigning a Site Recovery Manager license.
@@ -49,6 +50,8 @@
 - Added `Get-SrmTask` cmdlet to retrieve tasks from a Site Recovery Manager appliance.
 - Added `Get-SrmVamiCertificate` cmdlet to retrieve the certificate of the VAMI interface of a Site Recovery Manager appliance.
 - Added `Set-SrmVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a Site Recovery Manager appliance.
+- Added `Undo-SiteRecoveryManager` to remove the Site Recovery Manager virtual appliance.
+- Added `Undo-vSphereReplicationManager` to remove the vSphere Replication virtual appliance.
 
 ## v1.9.0 (2022-25-10)
 

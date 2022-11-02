@@ -2058,6 +2058,66 @@ Function Install-SiteRecoveryManager {
 }
 Export-ModuleMember -Function Install-SiteRecoveryManager
 
+Function Undo-SiteRecoveryManager {
+    <#
+		.SYNOPSIS
+        Remove vSphere Replication Virtual Appliance
+
+        .DESCRIPTION
+        The Undo-SiteRecoveryManager cmdlet removes the vSphere Replication Virtual Appliance. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Removes the vSphere Replication Virtual Appliance from vCenter Server
+
+        .EXAMPLE
+        Undo-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmHostname sfo-m01-srm01
+        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmHostname
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VM -Name $srmHostname -ErrorAction Ignore) {
+                                if ((Get-VM -Name $srmHostname).PowerState -ne "PoweredOff") {
+                                    Stop-VM -VM $srmHostname -Kill -Confirm:$false | Out-Null
+                                    if ((Get-VM -Name $srmHostname).PowerState -ne "PoweredOff") {
+                                        Write-Error "Unable to Power Off virtual machine ($srmHostname): PRE_VALIDATION_FAILED"
+                                        Break
+                                    }
+                                }
+                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-null
+                                if (!(Get-VM -Name $srmHostname -ErrorAction Ignore)) {
+                                    Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname), already removed: SKIPPED"
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-SiteRecoveryManager
+
 Function Install-vSphereReplicationManager {
     <#
 		.SYNOPSIS
@@ -2168,6 +2228,66 @@ Function Install-vSphereReplicationManager {
 }
 Export-ModuleMember -Function Install-vSphereReplicationManager
 
+Function Undo-vSphereReplicationManager {
+    <#
+		.SYNOPSIS
+        Remove vSphere Replication Virtual Appliance
+
+        .DESCRIPTION
+        The Undo-vSphereReplicationManager cmdlet removes the vSphere Replication Virtual Appliance. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Removes the vSphere Replication Virtual Appliance from vCenter Server
+
+        .EXAMPLE
+        Undo-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsHostname sfo-m01-vrms01
+        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsHostname
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VM -Name $vrmsHostname -ErrorAction Ignore) {
+                                if ((Get-VM -Name $vrmsHostname).PowerState -ne "PoweredOff") {
+                                    Stop-VM -VM $vrmsHostname -Kill -Confirm:$false | Out-Null
+                                    if ((Get-VM -Name $vrmsHostname).PowerState -ne "PoweredOff") {
+                                        Write-Error "Unable to Power Off virtual machine ($vrmsHostname): PRE_VALIDATION_FAILED"
+                                        Break
+                                    }
+                                }
+                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-null
+                                if (!(Get-VM -Name $vrmsHostname -ErrorAction Ignore)) {
+                                    Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname), already removed: SKIPPED"
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSphereReplicationManager
+
 Function Connect-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
@@ -2175,8 +2295,11 @@ Function Connect-DRSolutionTovCenter {
 
         .DESCRIPTION
         The Connect-DRSolutionTovCenter cmdlet registers Site Recovery Manager or vSphere Replication with a vCenter
-        Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the
-        vCenter Server details from its inventory and then:
+        Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication is possible to the vSphere Replication or Site
+        Recovery Manaeger instance
         - Validates if the solution has already been registerd and if not proceeds with the registration
 
         .EXAMPLE
@@ -2204,28 +2327,41 @@ Function Connect-DRSolutionTovCenter {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                    if (!((Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword).data.drConfiguration.vcName -eq $vcfVcenterDetails.fqdn)) {
-                        if ($solution -eq "SRM") {
-                            $extensionKey = "com.vmware.vcDr"
-                        } elseif ($solution -eq "VRMS") {
-                            $extensionKey = "com.vmware.vcHms"
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($solution -eq "VRMS") {
+                                if (Test-VrmsVamiConnection -server $applianceFqdn) {
+                                    if (Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if (!((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                            Set-VrmsConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName  | Out-Null
+                                            if ((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                                Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            } elseif ($solution -eq "SRM") {
+                                if (Test-SrmVamiConnection -server $applianceFqdn) {
+                                    if (Test-SrmVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if (!((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                            Set-SrmConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName  | Out-Null
+                                            if ((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                                Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        # Retireve the vCenter SSL Thumbprint
-                        $command = 'openssl s_client -connect ' + $($vcfVcenterDetails.fqdn) + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
-                        $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
-                        $vCenterInstanceUuid = (Connect-VIServer -Server $vcfVcenterDetails.fqdn -User $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass | Select-Object InstanceUuid).InstanceUuid
                         Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
-
-                        # Register the Solution with vCenter Server
-                        Register-DRSolutionTovCenter -applianceFqdn $applianceFqdn -vamiAdminPassword $vamiAdminPassword -pscHost $vcfVcenterDetails.fqdn -thumbprint $thumbprint -vcInstanceId $vCenterInstanceUuid -ssoAdminUser $vcfVcenterDetails.ssoAdmin -ssoAdminPassword $vcfVcenterDetails.ssoAdminPass -siteName $siteName -adminEmail $adminEmail -hostName $applianceFqdn -extensionKey $extensionKey | Out-Null
-                        if ((Get-DRSolutionSummary -fqdn $applianceFqdn -username admin -password $vamiAdminPassword).data.drConfiguration.vcName -eq $vcfVcenterDetails.fqdn) {
-                            Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
-                            
-                        } else {
-                            Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
-                        }
-                    } else {
-                        Write-Warning "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
                     }
                 }
             }
@@ -2235,6 +2371,88 @@ Function Connect-DRSolutionTovCenter {
     }
 }
 Export-ModuleMember -Function Connect-DRSolutionTovCenter
+
+Function Undo-DRSolutionTovCenter {
+    <#
+		.SYNOPSIS
+        Remove registration of Site Recovery Manager or vSphere Replication with vCenter Server
+
+        .DESCRIPTION
+        The Undo-DRSolutionTovCenter cmdlet removes registration of Site Recovery Manager or vSphere Replication with
+        a vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication is possible to the vSphere Replication or Site
+        Recovery Manaeger instance
+        - Validates if the solution is registerd and if so proceeds to unregister
+
+        .EXAMPLE
+        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution SRM 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain
+
+        .EXAMPLE
+        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution VRMS 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$applianceFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vamiAdminPassword,
+        [Parameter (Mandatory = $true)] [ValidateSet("SRM", "VRMS")] [String]$solution
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($solution -eq "VRMS") {
+                                if (Test-VrmsVamiConnection -server $applianceFqdn) {
+                                    if (Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if ((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                            Remove-VrmsConfiguration -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                            if (!((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                                Write-Output "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            } elseif ($solution -eq "SRM") {
+                                if (Test-SrmVamiConnection -server $applianceFqdn) {
+                                    if (Test-SrmVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
+                                        if ((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                            Remove-SrmConfiguration -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                            if (!((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
+                                                Write-Output "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-DRSolutionTovCenter
 
 Function Install-VamiCertificate {
     <#
@@ -2311,14 +2529,14 @@ Function Add-VrmsNetworkAdapter {
         - Configures the secondary ethernet adapter and configures the required routing for the replication network
 
         .EXAMPLE
-        Add-VrmsNetworkAdapter -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsRootPass VMw@re1! -vrmsAdminPass VMw@re1! -vrmsIpAddress 172.18.95.125 -replicationSubnet 172.18.111.0/24 -replicationIpAddress 172.18.111.125 -replicationGateway 172.18.111.1  -replicationPortgroup sfo-m01-cl01-vds01-pg-vrms -replicationRemoteNetwork 172.18.96.0/24
+        Add-VrmsNetworkAdapter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsRootPass VMw@re1! -vrmsAdminPass VMw@re1! -vrmsIpAddress 172.18.95.125 -replicationSubnet 172.18.111.0/24 -replicationIpAddress 172.18.111.125 -replicationGateway 172.18.111.1  -replicationPortgroup sfo-m01-cl01-vds01-pg-vrms -replicationRemoteNetwork 172.18.96.0/24
         This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsRootPass,
@@ -2333,14 +2551,14 @@ Function Add-VrmsNetworkAdapter {
 
     Try {
 
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $vrmsVmName = $vrmsFqdn.Split(".")[0]
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $replicationPortgroup}) {
-                                if (Test-VrmsAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass) {
+                                if (Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass) {
                                     if (((Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Get-NetworkAdapter).Count) -le 1) {
                                         # Add the second NIC to the vSphere Replication Appliance and Restart
                                         Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | New-NetworkAdapter -Server $vcfVcenterDetails.fqdn -NetworkName $replicationPortgroup -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
@@ -2348,7 +2566,7 @@ Function Add-VrmsNetworkAdapter {
                                         Do {
                                             Start-Sleep 2
                                             $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
-                                            $vamiStatus = Test-VrmsAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
+                                            $vamiStatus = Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
                                         } Until (($vmObject.IPAddress) -and ($vamiStatus -eq $true))
                                         # Configure the IP via API and Restart the vSphere Replication Appliance
                                         Set-VrmsNetworkInterface -interface eth1 -ipAddress $replicationIPAddress -gateway $replicationGateway -prefix $replicationSubnet.Split("/")[1]  | Out-Null
@@ -2356,7 +2574,7 @@ Function Add-VrmsNetworkAdapter {
                                         Do {
                                             Start-Sleep 2
                                             $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
-                                            $vamiStatus = Test-VrmsAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
+                                            $vamiStatus = Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
                                         } Until (($vmObject.IPAddress) -and ($vamiStatus -eq $true))
                                         # Configure a static route for the replication network
                                         $scriptCommand = "sed -i '/^Gateway*/a Destination=$replicationRemoteNetwork' /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd.service"
@@ -6508,22 +6726,22 @@ Function Add-SrmLicenseKey {
         - Assigns the license to Site Recovery Manager
 
         .EXAMPLE
-        Add-SrmLicenseKey -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
+        Add-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -password VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
         This example adds a license key to the Site Recovery Manager instance
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmLicenseKey
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
@@ -6591,22 +6809,22 @@ Function Undo-SrmLicenseKey {
         - Validates whether the license key exists in vCenter Server inventory, and removes it
 
         .EXAMPLE
-        Undo-SrmLicenseKey -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -srmLicenseKey 00000-11111-22222-33333-4444
+        Undo-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmLicenseKey 00000-11111-22222-33333-4444
         This example removes the license key from Site Recovery Manager
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmLicenseKey
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
@@ -16144,23 +16362,23 @@ Function Add-VdsPortGroup {
         - Creates a vSphere Distributed port group in vCenter Server
 
         .EXAMPLE
-        Add-VdsPortGroup -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -vlan 2619
+        Add-VdsPortGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -vlan 2619
         This example creates a vSphere Distributed port group for VLAN ID 2619 named sfo-m01-cl01-vds01-pg-vrms in vCenter Server
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
         [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$vlan
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (!(Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)})) {
@@ -16199,22 +16417,22 @@ Function Undo-VdsPortGroup {
         - Removes the vSphere Distributed port group in vCenter Server
 
         .EXAMPLE
-        Undo-VdsPortGroup -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
+        Undo-VdsPortGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
         This example removes the vSphere Distributed port group named sfo-m01-cl01-vds01-pg-vrms from vCenter Server
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domain)) {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup}) {
@@ -33306,7 +33524,7 @@ Function Test-VrmsVamiConnection {
         Return $vrmsVamiConnection
     }
 }
-Export-ModuleMember -Function Test-VrmsConnection
+Export-ModuleMember -Function Test-VrmsVamiConnection
 
 Function Test-VrmsVamiAuthentication {
     Param (
@@ -33333,7 +33551,7 @@ Function Test-VrmsVamiAuthentication {
         Write-Error $response
     }
 }
-Export-ModuleMember -Function Test-VAMIAuthentication
+Export-ModuleMember -Function Test-VrmsVamiAuthentication
 
 Function Test-SrmVamiConnection {
     Param (
@@ -33350,7 +33568,7 @@ Function Test-SrmVamiConnection {
         Return $srmVamiConnection
     }
 }
-Export-ModuleMember -Function Test-VrmsConnection
+Export-ModuleMember -Function Test-SrmVamiConnection
 
 Function Test-SrmVamiAuthentication {
     Param (
@@ -33377,7 +33595,7 @@ Function Test-SrmVamiAuthentication {
         Write-Error $response
     }
 }
-Export-ModuleMember -Function Test-VAMIAuthentication
+Export-ModuleMember -Function Test-SrmVamiAuthentication
 
 Function Test-SRMConnection {
     Param (
