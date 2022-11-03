@@ -1003,8 +1003,8 @@ Function Set-WorkspaceOneNtpConfig {
 
         .DESCRIPTION
         The Set-WorkspaceOneNtpConfig cmdlet configures the NTP Server details of the Workspace ONE Access Appliance
-        using the same NTP Server configuration as SDDC Manager. The cmdlet connects to SDDC Manager using the -server,
-        -user, and -password values:
+        using the primary NTP Server configured on SDDC Manager if no NTP Server is provided. The cmdlet connects to
+        SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Gathers the NTP configuration details from SDDC Manager
@@ -1012,11 +1012,11 @@ Function Set-WorkspaceOneNtpConfig {
 
         .EXAMPLE
         Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -rootPass VMw@re1!
-        This example configures the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with the same NTP servers defined in SDDC Manager
+        This example configures the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with the primary NTP servers defined in SDDC Manager
 
         .EXAMPLE
         Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -rootPass VMw@re1! -ntpServer ntp.lax.rainpole.io
-        This example adds the NTP server ntp.lax.rainpole.io to the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io in addition to the NTP servers defined in SDDC Manager
+        This example adds the NTP server ntp.lax.rainpole.io to the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io
     #>
 
     Param (
@@ -1026,7 +1026,7 @@ Function Set-WorkspaceOneNtpConfig {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [switch]$vrslcmIntegrated
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$vrslcmIntegrated
     )
     
     Try {
@@ -1035,16 +1035,13 @@ Function Set-WorkspaceOneNtpConfig {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if (!$ntpServer) {
-                                $ntpServer = (Get-VCFConfigurationNTP).ipAddress
-                            } else {
-                                $testNtp = Test-NtpServer -Server $ntpServer
-                                if ($testNtp -eq $false) {
+                            if ($ntpServer) {
+                                if ((Test-NtpServer -Server $ntpServer) -eq $false) {
                                     Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
                                     Break
                                 }
-                                $existingNtpServer = (Get-VCFConfigurationNTP).ipAddress
-                                $ntpServer = $existingNtpServer + "," + $ntpServer
+                            } else {
+                                $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0]
                             }
                             if ($vrslcmIntegrated) {
                                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -1087,8 +1084,7 @@ Function Set-WorkspaceOneNtpConfig {
         Debug-ExceptionWriter -object $_
     }
 }
-New-Alias -Name Undo-WorkspaceOneNtpConfig -Value Set-WorkspaceOneNtpConfig
-Export-ModuleMember -Alias Undo-WorkspaceOneNtpConfig -Function Set-WorkspaceOneNtpConfig
+Export-ModuleMember -Function Set-WorkspaceOneNtpConfig
 
 Function Install-WorkspaceOneCertificate {
     <#
