@@ -1012,21 +1012,29 @@ Function Set-WorkspaceOneNtpConfig {
 
         .EXAMPLE
         Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -rootPass VMw@re1!
-        This example configures the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with the primary NTP servers defined in SDDC Manager
+        This example configures the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with the primary NTP server defined in SDDC Manager
 
         .EXAMPLE
         Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -rootPass VMw@re1! -ntpServer ntp.lax.rainpole.io
         This example adds the NTP server ntp.lax.rainpole.io to the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io
+
+        .EXAMPLE
+        Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -vrslcmIntegrated -ntpServer ntp.lax.rainpole.io 
+        This example adds the NTP server ntp.lax.rainpole.io to the vRealize Suite Lifecycle Manager integrated Workspace ONE Access nodes
+
+        .EXAMPLE
+        Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -vrslcmIntegrated
+        This example adds the primary NTP server defined in SDDC Manager to the vRealize Suite Lifecycle Manager integrated Workspace ONE Access nodes
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $false, ParameterSetName = 'standaloneWsa')] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$vrslcmIntegrated
+        [Parameter (Mandatory = $false, ParameterSetName = 'vrslcmIntegrated')] [ValidateNotNullOrEmpty()] [Switch]$vrslcmIntegrated
     )
     
     Try {
@@ -5187,923 +5195,63 @@ Function Undo-SRMSitePair {
 }
 Export-ModuleMember -Function Undo-SRMSitePair
 
-Function New-vSRPortGroup {
+Function Add-EsxiVMkernelPort {
     <#
 		.SYNOPSIS
-        Create port groups for vSphere Replication appliances in the protected and recovery sites
+        Create a VMkernel port on ESXi hosts
 
         .DESCRIPTION
-        The New-vSRPortGroup cmdlet creates port groups for vSphere Replication appliances in the protected and
-        recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the 
-        -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and 
-        -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Creates port groups for vSphere Replication appliances in the protected and recovery sites defined in
-        -siteAVLAN, -siteBVLAN, and suffix paramters.
+        The Add-EsxiVMkernelPort cmdlet creates a VMkernel port on each ESXi host for vSphere Replication traffic. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Creates a VMkernel port on each ESXi host for vSphere Replication traffic
 
         .EXAMPLE
-        New-vSRPortGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -suffix "vrms"
-        This example creates a port group for VLAN ID 2715 named sfo-m01-cl01-vds01-pg-vrms in the protected vCenter Server instance and a port group for VLAN ID 2815 named lax-m01-cl01-vds01-pg-vrms in the recovery vCenter Server instance
+        Add-EsxiVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
+        This example creates a VMkernel port for each ESXi host Management Domain
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$suffix
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$netmask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$ipAddresses
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $VDSwitchSiteA = Get-VDSwitch -Server $SiteAvCenterDetails.fqdn
-                                                $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN) -or ($_.Name -match "$($VDSwitchSiteA)-pg-$suffix")}
-                                                if ($existingPortGroupSiteA) {
-                                                    Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteA.Name)) or VLAN ID ($siteAVLAN) already exists: SKIPPING"
-                                                } else {
-                                                    Try {
-                                                        $createVDPortGroupSiteA = New-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name "$($VDSwitchSiteA)-pg-$suffix" -VlanId $siteAVLAN -ErrorAction Stop
-                                                        $createVDPortGroupSiteA | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
-                                                        Try {
-                                                            $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
-                                                        } Catch {
-                                                            $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                        }
-                                                        if (!$validateVDPortGroupSiteA) {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Create distributed virtual port group with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
-                                                                    'Get-VDPortGroup',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
-                                                            )
-                                                        } else {
-                                                            if ($validateVDPortGroupSiteA.VlanConfiguration.VlanId -eq $siteAVLAN) {
-                                                                Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
-                                                            } else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Create virtual port group ($($createVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
-                                                                        'Get-VDPortGroup',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                }
-                                                $VDSwitchSiteB = Get-VDSwitch -Server $SiteBvCenterDetails.fqdn
-                                                $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN) -or ($_.Name -match "$($VDSwitchSiteB)-pg-$suffix")}
-                                                if ($existingPortGroupSiteB) {
-                                                    Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteB.Name)) or VLAN ID ($siteBVLAN) already exists: SKIPPING"
-                                                } else {
-                                                    Try {
-                                                        $createVDPortgroupSiteB = New-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name "$($VDSwitchSiteB)-pg-$suffix" -VlanId $siteBVLAN -ErrorAction Stop
-                                                        $createVDPortGroupSiteB | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
-                                                        Try {
-                                                            $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
-                                                        } Catch {
-                                                            $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                        }
-                                                        if (!$validateVDPortGroupSiteB) {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Create distributed virtual port group with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
-                                                                    'Get-VDPortGroup',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                    )
-                                                                )
-                                                        } else {
-                                                            if ($validateVDPortGroupSiteB.VlanConfiguration.VlanId -eq $siteBVLAN) {
-                                                                Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
-                                                            } else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Create virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
-                                                                        'Get-VDPortGroup',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
+                                $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
+                                $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
+                                if ($esxiHosts.Count -eq $ipAddresses.Count) {
+                                    if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}) -ne $esxiHosts.Count) {
+                                        For ($i=0; $i -lt $esxiHosts.Count; $i++) {
+                                            if (!(Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] | Where-Object {$_.vSphereReplicationEnabled -eq $true})) {
+                                                New-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] -VirtualSwitch $vdswitchName -PortGroup $portgroup -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $ipAddresses[$i] -SubnetMask $netmask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
                                             }
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function New-vSRPortGroup
-
-Function Undo-vSRPortGroup {
-    <#
-		.SYNOPSIS
-        Removes port groups for vSphere Replication appliances in the protected and recovery sites
-
-        .DESCRIPTION
-        The Undo-vSRPortGroup cmdlet removes port groups for vSphere Replication appliances in the protected and
-        recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the 
-        -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and 
-        -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes port groups for vSphere Replication appliances in the protected and recovery sites defined in
-        -siteAVLAN and -siteBVLAN paramters.
-
-        .EXAMPLE
-        Undo-vSRPortGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -SiteAVLAN 2715 -SiteBVLAN 2815
-        This example removes a port group for VLAN ID 2715 in the protected vCenter Server instance and a port group for VLAN ID 2815 in the recovery vCenter Server instance
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
-                                                if (!$existingPortGroupSiteA) {
-                                                    Write-Warning "A distributed virtual port group with VLAN ID ($siteAVLAN) does not exist: SKIPPING"
-                                                } else {
-                                                    Try {
-                                                        $VDSwitchSiteA = Get-VDSwitch -Server $SiteAvCenterDetails.fqdn
-                                                        $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -ErrorAction Stop
-                                                        Foreach ($portGroup in $VDPortGroupSiteA) {
-                                                            if ($portGroup.VlanConfiguration.VlanId -eq $SiteAVlan) {
-                                                                Try {
-                                                                    $VDPortGroupSiteAName = $portGroup.Name
-                                                                    Remove-VDPortGroup -Server $SiteAvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
-                                                                    Try {
-                                                                        $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name $portGroup.Name -ErrorAction SilentlyContinue
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    if ($validateVDPortGroupSiteA) {
-                                                                        $PSCmdlet.ThrowTerminatingError(
-                                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                                ([System.Management.Automation.GetValueException]"Remove virtual port group $($VDPortGroupSiteAName) with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
-                                                                                'Remove-VDPortGroup',
-                                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                    } else {
-                                                                        Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
-                                                                    }
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            }
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                }
-                                                $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
-                                                if (!$existingPortGroupSiteB) {
-                                                    Write-Warning "A distributed virtual port group with VLAN ID ($siteBVLAN) does not exist: SKIPPING"
-                                                } else {
-                                                    Try {
-                                                        $VDSwitchSiteB = Get-VDSwitch -Server $SiteBvCenterDetails.fqdn
-                                                        $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -ErrorAction Stop
-                                                        Foreach ($portGroup in $VDPortGroupSiteB) {
-                                                            if ($portGroup.VlanConfiguration.VlanId -eq $SiteBVlan) {
-                                                                Try {
-                                                                    $VDPortGroupSiteBName = $portGroup.Name
-                                                                    Remove-VDPortGroup -Server $SiteBvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
-                                                                    Try {
-                                                                        $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name $portGroup.Name -ErrorAction SilentlyContinue
-                                                                    } Catch {
-                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                    }
-                                                                    if ($validateVDPortGroupSiteB) {
-                                                                        $PSCmdlet.ThrowTerminatingError(
-                                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                                ([System.Management.Automation.GetValueException]"Remove virtual port group ($($VDPortGroupSiteBName)) with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
-                                                                                'Remove-VDPortGroup',
-                                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                    } else {
-                                                                        Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
-                                                                    }
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            }
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Undo-vSRPortGroup
-
-Function Set-vSRNetworkConfig {
-    <#
-		.SYNOPSIS
-        Configure the secondary ethernet adapter and configures the required routing for vSphere Replication appliances
-        in the protected and recovery sites
-
-        .DESCRIPTION
-        The Set-vSRNetworkConfig cmdlet configures the secondary ethernet adapter and configures the required routing 
-        for vSphere Replication appliances in the protected and recovery sites. The cmdlet connects to SDDC Manager in 
-        both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, 
-        -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
-        - Configures the secondary ethernet adapter and configures the required routing for vSphere Replication
-        appliances in the protected and recovery sites
-
-        .EXAMPLE
-        Set-vSRNetworkConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -eth1VLANSiteA 2715 -eth1SubnetSiteA 172.27.15.0/24 -eth1IpAddressSiteA 172.27.15.123 -eth1GatewaySiteA 172.27.15.1 -vSRApplianceRootPassSiteA VMw@re1! -vSRApplianceAdminPassSiteA VMw@re1! -eth1VLANSiteB 2815 -eth1SubnetSiteB 172.28.15.0/24 -eth1IpAddressSiteB 172.28.15.123 -eth1GatewaySiteB 172.28.15.1 -vSRApplianceRootPassSiteB VMw@re1! -vSRApplianceAdminPassSiteB VMw@re1!
-        This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$eth1VLANSiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1SubnetSiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1IpAddressSiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1GatewaySiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceRootPassSiteA,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceAdminPassSiteA,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$eth1VLANSiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1SubnetSiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1IpAddressSiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1GatewaySiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceRootPassSiteB,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceAdminPassSiteB
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $hmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
-                                                $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $eth1VLANSiteA}
-                                                if (!$VDPortGroupSiteA) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($eth1VLANSiteA) exists: PRE_VALIDATION_FAILED"),
-                                                            'Get-VDPortGroup',
-                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                            ""
-                                                        )
-                                                    )                                                
-                                                }
-                                                if ($VDPortGroupSiteA.Count -gt 1) {
-                                                    $VDPortGroupSiteA = $VDPortGRoupSiteA | Where-Object {$_.Name -match "vrms"}  
-                                                }
-                                                $hmsAVmName = $hmsAFqdn.Split(".")[0]
-                                                $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
-                                                if ($numEthAdaptersA -le 1) {
-                                                    $addEth1 = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | New-NetworkAdapter -Server $siteAvCenterDetails.fqdn -NetworkName $VDPortGroupSiteA.Name -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop
-                                                    if (!$addEth1) {
-                                                        $PSCmdlet.ThrowTerminatingError(
-                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                ([System.Management.Automation.SetValueException]"Create ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
-                                                                'New-NetworkAdapter',
-                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                ""
-                                                            )
-                                                        )       
-                                                    }
-                                                    [int]$hmsACidr = $eth1SubnetSiteA.Split("/")[1]
-                                                    Set-DRSolutionNetworkAdapter -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA -interfaceName eth1 -defaultGateway $eth1GatewaySiteA -cidrPrefix $hmsACidr -ipAddress $eth1IpAddressSiteA -ErrorAction Stop | Out-Null
-                                                    Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Restart-VMGuest -Confirm:$False | Out-Null                                                
-                                                    Do {
-                                                        Start-Sleep -Seconds 1
-                                                        $vmRestart = Get-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName
-                                                        $vamiStatus = Test-VAMIAuthentication -server $hmsAFqdn -user admin -pass $vSRApplianceAdminPassSiteA -ErrorAction SilentlyContinue
-                                                    }
-                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
-                                                    $hmsANetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
-                                                    if (($hmsANetConfig.defaultGateway -ne $eth1GatewaySiteA) -or ($hmsANetConfig.prefix -ne $hmsACidr) -or ($hmsANetConfig.address -ne $eth1IpAddressSiteA) -or ($trySetHmsANetConfig.successful -eq $false)) {
-                                                        $PSCmdlet.ThrowTerminatingError(
-                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                ([System.Management.Automation.SetValueException]"Configure second ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
-                                                                'Set-DRSolutionNetworkAdapter',
-                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                ""
-                                                            )
-                                                        )     
-                                                    }
-                                                    Try {
-                                                        $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
-                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                    Try {
-                                                        $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteA\nDestination=$eth1SubnetSiteB' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
-                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                    Try {
-                                                        $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
-                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn
-                                                        if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteA") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteB")) {                                                
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.SetValueException]"Set static route for remote vSphere Replication network ($eth1SubnetSiteB): POST_VALIDATION_FAILED"),
-                                                                    'Set-vSRNetworkConfig',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
-                                                            )
-                                                        } 
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                    Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $eth1IpAddressSiteA -ErrorAction SilentlyContinue | Out-Null
-                                                    $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
-                                                    if (!($incomingStorageTrafficHmsA.filterIp -match $eth1IpAddressSiteA)) {                                                
-                                                        $PSCmdlet.ThrowTerminatingError(
-                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
-                                                                'Set-vSRIncomingStorageTraffic',
-                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                ""
-                                                            )
-                                                        )
-                                                    } else {
-                                                        Write-Output "Configure vSphere Replication appliance ($hmsAVmName) secondary ethernet adapter: SUCCESSFUL"
-                                                    }
-                                                } else {
-                                                    Write-Warning "vSphere Replication appliance ($hmsAVmName) has more than one ethernet adapter: SKIPPING"
-                                                }
-                                                $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
-                                                $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $eth1VLANSiteB}
-                                                if (!$VDPortGroupSiteB) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($eth1VLANSiteB) exists: PRE_VALIDATION_FAILED"),
-                                                            'Get-VDPortGroup',
-                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                            ""
-                                                        )
-                                                    )                                                
-                                                }
-                                                if ($VDPortGroupSiteB.Count -gt 1) {
-                                                    $VDPortGroupSiteB = $VDPortGRoupSiteB | Where-Object {$_.Name -match "vrms"}  
-                                                }
-                                                $hmsBVmName = $hmsBFqdn.Split(".")[0]
-                                                $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
-                                                if ($numEthAdaptersB -le 1) {
-                                                    $addEth1 = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | New-NetworkAdapter -Server $siteBvCenterDetails.fqdn -NetworkName $VDPortGroupSiteB.Name -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue
-                                                    if (!$addEth1) {
-                                                        $PSCmdlet.ThrowTerminatingError(
-                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                ([System.Management.Automation.SetValueException]"Create ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
-                                                                'New-NetworkAdapter',
-                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                ""
-                                                            )
-                                                        )       
-                                                    }
-                                                    [int]$hmsBCidr = $eth1SubnetSiteB.Split("/")[1]
-                                                    Set-DRSolutionNetworkAdapter -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB -interfaceName eth1 -defaultGateway $eth1GatewaySiteB -cidrPrefix $hmsBCidr -ipAddress $eth1IpAddressSiteB -ErrorAction Stop | Out-Null
-                                                    Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Restart-VMGuest -Confirm:$False | Out-Null
-                                                    Do {
-                                                        Start-Sleep -Seconds 1
-                                                        $vmRestart = Get-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName
-                                                        $vamiStatus = Test-VAMIAuthentication -server $hmsBFqdn -user admin -pass $vSRApplianceAdminPassSiteB -ErrorAction SilentlyContinue
-                                                    }
-                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
-                                                    $hmsBNetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
-                                                    if (($hmsBNetConfig.defaultGateway -ne $eth1GatewaySiteB) -or ($hmsBNetConfig.prefix -ne $hmsBCidr) -or ($hmsBNetConfig.address -ne $eth1IpAddressSiteB) -or ($trySetHmsBNetConfig.successful -eq $false)) {
-                                                        $PSCmdlet.ThrowTerminatingError(
-                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                ([System.Management.Automation.SetValueException]"Configure second ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
-                                                                'Set-DRSolutionNetworkAdapter',
-                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                ""
-                                                            )
-                                                        )     
-                                                    }
-                                                    Try {
-                                                        $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
-                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn  
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                    Try {
-                                                        $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteB\nDestination=$eth1SubnetSiteA' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
-                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                    Try {
-                                                        $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
-                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
-                                                        if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteB") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteA")) {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.SetValueException]"Set static route for remote vSphere Replication network ($($eth1SubnetSiteA)): POST_VALIDATION_FAILED"),
-                                                                    'Set-vSRNetworkConfig',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
-                                                            )
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                    Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $eth1IpAddressSiteB -ErrorAction SilentlyContinue | Out-Null
-                                                    $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
-                                                    if (!($incomingStorageTrafficHmsB.filterIp -match $eth1IpAddressSiteB)) {                                                
-                                                        $PSCmdlet.ThrowTerminatingError(
-                                                            [System.Management.Automation.ErrorRecord]::new(
-                                                                ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
-                                                                'Set-vSRIncomingStorageTraffic',
-                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                ""
-                                                            )
-                                                        )
-                                                    } else {
-                                                        Write-Output "Configure vSphere Replication appliance ($hmsBVmName) secondary ethernet adapter: SUCCESSFUL"
-                                                    }
-                                                } else {
-                                                    Write-Warning "vSphere Replication appliance ($hmsBVmName) has more than one ethernet adapter: SKIPPING"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-vSRNetworkConfig
-
-Function Undo-vSRNetworkConfig {
-    <#
-		.SYNOPSIS
-        Removes the secondary ethernet adapter and configures the required routing for vSphere Replication appliances
-        in the protected and recovery sites
-
-        .DESCRIPTION
-        The Undo-vSRNetworkConfig cmdlet configures the secondary ethernet adapter and configures the required routing 
-        for vSphere Replication appliances in the protected and recovery sites. The cmdlet connects to SDDC Manager in 
-        both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, 
-        -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
-        - Removes the secondary ethernet adapter and static routes for vSphere Replication appliances in the protected
-        and recovery sites
-
-        .EXAMPLE
-        Undo-vSRNetworkConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815
-        This example removes the secondary ethernet adapter and static routes for vSphere Replication appliances in the protected and recovery sites
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
-                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $hmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
-                                                $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $siteAVLAN}
-                                                if (!$VDPortGroupSiteA) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($siteAVLAN) exists: PRE_VALIDATION_FAILED"),
-                                                            'Get-VDPortGroup',
-                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                            ""
-                                                        )
-                                                    )                                                
-                                                } else {
-                                                    Try {
-                                                        $hmsAVmName = $hmsAFqdn.Split(".")[0]
-                                                        $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
-                                                        if ($numEthAdaptersA -gt 1) {
-                                                            Try {
-                                                                $managementIpA = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
-                                                                Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $managementIpA -ErrorAction SilentlyContinue | Out-Null
-                                                                $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
-                                                                if (!($incomingStorageTrafficHmsA.filterIp -match $managementIpA)) {                                                
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
-                                                                            'Set-vSRIncomingStorageTraffic',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            if ($VDPortGroupSiteA.Count -gt 1) {
-                                                                $VDPortGroupSiteA = $VDPortGRoupSiteA | Where-Object {$_.Name -match "vrms"}  
-                                                            }
-                                                            $hmsAVmPowerState = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName).PowerState
-                                                            if ($hmsAVmPowerState -eq "PoweredOn") {
-                                                                Stop-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                Do {
-                                                                    Start-Sleep -Seconds 1
-                                                                    $hmsAVmState = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName
-                                                                }
-                                                                Until ($hmsAVmState.PowerState -eq "PoweredOff")
-                                                            }
-                                                            Try {
-                                                                Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA.Name} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            $validateRemovedEth1SiteA = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA}
-                                                            if ($validateRemovedEth1SiteA) {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.SetValueException]"Remove ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
-                                                                        'Remove-NetworkAdapter',
-                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                                        ""
-                                                                    )
-                                                                )       
-                                                            } else {
-                                                                Try {
-                                                                    Start-VM -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            }
-                                                            Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsAVmName): SUCCESSFUL"
-                                                        } else {
-                                                            Write-Warning "vSphere Replication appliance ($hmsAVmName) only has one ethernet adapter: SKIPPING"
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                }
-                                                $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
-                                                $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $siteBVLAN}
-                                                if (!$VDPortGroupSiteB) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($siteBVLAN) exists: PRE_VALIDATION_FAILED"),
-                                                            'Get-VDPortGroup',
-                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                                            ""
-                                                        )
-                                                    )                                                
-                                                } else {
-                                                    Try {
-                                                        $hmsBVmName = $hmsBFqdn.Split(".")[0]
-                                                        $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
-                                                        if ($numEthAdaptersB -gt 1) {
-                                                            Try {
-                                                                $managementIpB = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
-                                                                Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $managementIpB -ErrorAction SilentlyContinue | Out-Null
-                                                                $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
-                                                                if (!($incomingStorageTrafficHmsB.filterIp -match $managementIpB)) {                                                
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
-                                                                            'Set-vSRIncomingStorageTraffic',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            if ($VDPortGroupSiteB.Count -gt 1) {
-                                                                $VDPortGroupSiteB = $VDPortGRoupSiteB | Where-Object {$_.Name -match "vrms"}  
-                                                            }
-                                                            $hmsBVmPowerState = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName).PowerState
-                                                            if ($hmsBVmPowerState -eq "PoweredOn") {
-                                                                Stop-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                Do {
-                                                                    Start-Sleep -Seconds 1
-                                                                    $hmsBVmState = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName
-                                                                }
-                                                                Until ($hmsBVmState.PowerState -eq "PoweredOff")
-                                                            }
-                                                            Try {
-                                                                Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            $validateRemovedEth1SiteB = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB}
-                                                            if ($validateRemovedEth1SiteB) {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.SetValueException]"Remove ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
-                                                                        'Remove-NetworkAdapter',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
-                                                                    )
-                                                                )       
-                                                            } else {
-                                                                Try {
-                                                                    Start-VM -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
-                                                                } Catch {
-                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                                }
-                                                            }
-                                                            Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsBVmName): SUCCESSFUL"
-                                                        } else {
-                                                            Write-Warning "vSphere Replication appliance ($hmsBVmName) only has one ethernet adapter: SKIPPING"
-                                                        }
-                                                    } Catch {
-                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Undo-vSRNetworkConfig
-
-Function New-vSRVMkernelPort {
-    <#
-		.SYNOPSIS
-        Create VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
-
-        .DESCRIPTION
-        The New-vSRVMKernelPort cmdlet creates VMkernel ports on ESXi hosts for vSphere Replication traffic in the 
-        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
-        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
-        -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Creates VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
-        defined in -siteAVLAN, -siteBVLAN, -siteANetMask, -siteBNetMask, -siteAIpAddresses, and -siteBIpAddresses
-        paramters.
-
-        .EXAMPLE
-        New-vSRVMkernelPort -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteANetMask 255.255.255.0 -siteBNetMask 255.255.255.0 -siteAIpAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104") -siteBIpAddresses @("172.28.15.101","172.28.15.102","172.28.15.103","172.28.15.104")
-        This example creates a VMkernel port on VLAN ID 2715 for each ESXi host in the protected site VCF management domain and a VMkernel port on VLAN ID 2815 for each ESXi host in the recovery site VCF management domain
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteANetMask,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBNetMask,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$siteAIpAddresses,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$siteBIpAddresses
-    )
-
-    Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
-                            $existingVDSwitchSiteA = Get-VDSwitch -Server $siteAvCenterDetails.fqdn -Name $existingPortGroupSiteA.VDSwitch
-                            if (!$existingPortGroupSiteA) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteA.Count -gt 1) {
-                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteAVMhost in $siteAVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if (!$existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteAVMhost.fqdn
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
-                                } else {
-                                    if ($vmHostsToConfigure.Count -ne $siteAIpAddresses.Count) {
-                                        $PSCmdlet.ThrowTerminatingError(
-                                            [System.Management.Automation.ErrorRecord]::new(
-                                                ([System.Management.Automation.SetValueException]"The number of IP addresses supplied for VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) and the number of ESXi hosts to be configured do not match: PRE_VALIDATION_FAILED"),
-                                                'Add-vSRVMkernelPort',
-                                                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                                                ""
-                                            )
-                                        )
-                                    } else {
-                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                            Try {
-                                                New-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteAIpAddresses[$i] -SubnetMask $siteANetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
-                                            } Catch {
-                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                            }
-                                        }
-                                        $validateVMkernelCreated = @()
-                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
-                                        if ($validateVMkernelCreated.Count -ne $vmHostsToConfigure.Count) {
-                                            $PSCmdlet.ThrowTerminatingError(
-                                                [System.Management.Automation.ErrorRecord]::new(
-                                                    ([System.Management.Automation.GetValueException]"Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
-                                                    'Add-vSRVMkernelPort',
-                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                    ""
-                                                )
-                                            )
+                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                        if ($validateVMkernelCreated.Count -eq $esxiHosts.Count) {
+                                            Write-Output "Creating VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain): SUCCESSFUL"
                                         } else {
-                                            Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                            Write-Error "Creating VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain): POST_VALIDATED_FAILED"
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (Test-VCFConnection -server $sddcManagerBFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
-                            $existingVDSwitchSiteB = Get-VDSwitch -Server $siteBvCenterDetails.fqdn -Name $existingPortGroupSiteB.VDSwitch
-                            if (!$existingPortGroupSiteB) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteB.Count -gt 1) {
-                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteBVMhost in $siteBVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if (!$existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteBVMhost.fqdn
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
-                                } else {
-                                    if ($vmHostsToConfigure.Count -ne $siteBIpAddresses.Count) {
-                                        $PSCmdlet.ThrowTerminatingError(
-                                            [System.Management.Automation.ErrorRecord]::new(
-                                                ([System.Management.Automation.SetValueException]"The number of IP addresses supplied for VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) and the number of ESXi hosts to be configured do not match: PRE_VALIDATION_FAILED"),
-                                                'Add-vSRVMkernelPort',
-                                                [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                                                ""
-                                            )
-                                        )
                                     } else {
-                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                            Try {
-                                                New-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteBIpAddresses[$i] -SubnetMask $siteBNetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
-                                            } Catch {
-                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                            }
-                                        }
-                                        $validateVMkernelCreated = @()
-                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
-                                        if ($validateVMkernelCreated.Count -ne $vmHostsToConfigure.Count) {
-                                            $PSCmdlet.ThrowTerminatingError(
-                                                [System.Management.Automation.ErrorRecord]::new(
-                                                    ([System.Management.Automation.GetValueException]"Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
-                                                    'Add-vSRVMkernelPort',
-                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                    ""
-                                                )
-                                            )
-                                        } else {
-                                            Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
-                                        }
+                                        Write-Warning "Creating VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain), already created: SKIPPED"
                                     }
+                                } else {
+                                    Write-Error "The number of IP addresses supplied do not match the number if ESXi hosts in Workload Domain ($domain): PRE_VALIDATION_FAILED"
                                 }
+                            } else {
+                                Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -6114,154 +5262,60 @@ Function New-vSRVMkernelPort {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function New-vSRVMKernelPort
+Export-ModuleMember -Function Add-EsxiVMkernelPort
 
-Function Undo-vSRVMkernelPort {
+Function Undo-EsxiVrmsVMkernelPort {
     <#
 		.SYNOPSIS
-        Remove VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        Create a VMkernel port on ESXi hosts
 
         .DESCRIPTION
-        The Undo-vSRVMKernelPort cmdlet removes VMkernel ports on ESXi hosts for vSphere Replication traffic in the 
-        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
-        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
-        -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites that
-        match the VLAN IDs defined in -siteAVLAN and -siteBVLAN paramters.
+        The Undo-EsxiVrmsVMkernelPort cmdlet removes the VMkernel port on each ESXi host for vSphere Replication traffic. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Removes a VMkernel port on each ESXi host for vSphere Replication traffic
 
         .EXAMPLE
-        Undo-vSRVMkernelPort -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815
-        This example removes VMkernel ports on VLAN ID 2715 in the protected site VCF management domain and VMkernel ports on VLAN ID 2815 in the recovery site VCF management domain
+        Undo-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
+        This example removes a VMkernel from each ESXi host Management Domain
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
-                            $existingVDSwitchSiteA = Get-VDSwitch -Server $siteAvCenterDetails.fqdn -Name $existingPortGroupSiteA.VDSwitch
-                            if (!$existingPortGroupSiteA) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteA.Count -gt 1) {
-                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                foreach ($siteAVMhost in $siteAVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if ($existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteAVMhost.fqdn
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteAVLAN): SKIPPING"
-                                } else {
-                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        Try {
-                                            Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteA -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
-                                        } Catch {
-                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
+                                $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
+                                $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
+                                
+                                if (!(Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}) -ne $esxiHosts.Count) {
+                                    For ($i=0; $i -lt $esxiHosts.Count; $i++) {
+                                        if (Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] | Where-Object {$_.vSphereReplicationEnabled -eq $true}) {
+                                            Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] -PortGroup $portgroup -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
                                         }
                                     }
-                                    $validateVMkernelRemoved = @()
-                                    $validateVMkernelRemoved = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -PortGroup $existingPortGroupSiteA | Where-Object {$_.VSphereReplicationEnabled -eq $true -or $_.VSphereReplicationNfcEnabled -eq $true}
-                                    if ($validateVMkernelRemoved.Count -gt 0) {
-                                        $PSCmdlet.ThrowTerminatingError(
-                                            [System.Management.Automation.ErrorRecord]::new(
-                                                ([System.Management.Automation.GetValueException]"Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
-                                                'Undo-vSRVMkernelPort',
-                                                [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                ""
-                                            )
-                                        )
+                                    $validateVMkernel = Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                    if ($validateVMkernel.Count -eq 0) {
+                                        Write-Output "Removing VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain): SUCCESSFUL"
                                     } else {
-                                        Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                        Write-Error "Removing VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain): POST_VALIDATED_FAILED"
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (Test-VCFConnection -server $sddcManagerBFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
-                            if (!$existingPortGroupSiteB) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteB.Count -gt 1) {
-                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteBVMhost in $siteBVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if ($existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteBVMhost.fqdn
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteBVLAN): SKIPPING"
                                 } else {
-                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        Try {
-                                            Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteB -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
-                                        } Catch {
-                                            $PSCmdlet.ThrowTerminatingError($PSItem)
-                                        }
-                                    }
-                                    $validateVMkernelRemoved = @()
-                                    $validateVMkernelRemoved = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -PortGroup $existingPortGroupSiteB | Where-Object {$_.VSphereReplicationEnabled -eq $true -or $_.VSphereReplicationNfcEnabled -eq $true}
-                                    if ($validateVMkernelRemoved.Count -gt 0) {
-                                        $PSCmdlet.ThrowTerminatingError(
-                                            [System.Management.Automation.ErrorRecord]::new(
-                                                ([System.Management.Automation.GetValueException]"Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
-                                                'Undo-vSRVMkernelPort',
-                                                [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                ""
-                                            )
-                                        )
-                                    } else {
-                                        Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
-                                    }
+                                    Write-Warning "Removing VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain), do not exist: SKIPPED"
                                 }
+                            } else {
+                                Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -6272,7 +5326,7 @@ Function Undo-vSRVMkernelPort {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Undo-vSRVMKernelPort
+Export-ModuleMember -Function Undo-EsxiVrmsVMkernelPort
 
 Function New-vSREsxiStaticRoute {
     <#
@@ -34858,6 +33912,1093 @@ Function Register-DRSolutionTovCenter {
     }
 }
 Export-ModuleMember -Function Register-DRSolutionTovCenter
+
+Function New-vSRPortGroup {
+    <#
+		.SYNOPSIS
+        Create port groups for vSphere Replication appliances in the protected and recovery sites
+
+        .DESCRIPTION
+        The New-vSRPortGroup cmdlet creates port groups for vSphere Replication appliances in the protected and
+        recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the 
+        -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and 
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Creates port groups for vSphere Replication appliances in the protected and recovery sites defined in
+        -siteAVLAN, -siteBVLAN, and suffix paramters.
+
+        .EXAMPLE
+        New-vSRPortGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -suffix "vrms"
+        This example creates a port group for VLAN ID 2715 named sfo-m01-cl01-vds01-pg-vrms in the protected vCenter Server instance and a port group for VLAN ID 2815 named lax-m01-cl01-vds01-pg-vrms in the recovery vCenter Server instance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$suffix
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $VDSwitchSiteA = Get-VDSwitch -Server $SiteAvCenterDetails.fqdn
+                                                $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN) -or ($_.Name -match "$($VDSwitchSiteA)-pg-$suffix")}
+                                                if ($existingPortGroupSiteA) {
+                                                    Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteA.Name)) or VLAN ID ($siteAVLAN) already exists: SKIPPING"
+                                                } else {
+                                                    Try {
+                                                        $createVDPortGroupSiteA = New-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name "$($VDSwitchSiteA)-pg-$suffix" -VlanId $siteAVLAN -ErrorAction Stop
+                                                        $createVDPortGroupSiteA | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
+                                                        Try {
+                                                            $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
+                                                        } Catch {
+                                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                        }
+                                                        if (!$validateVDPortGroupSiteA) {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.GetValueException]"Create distributed virtual port group with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
+                                                                    'Get-VDPortGroup',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        } else {
+                                                            if ($validateVDPortGroupSiteA.VlanConfiguration.VlanId -eq $siteAVLAN) {
+                                                                Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
+                                                            } else {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.GetValueException]"Create virtual port group ($($createVDPortGroupSiteA.Name)) with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
+                                                                        'Get-VDPortGroup',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                                $VDSwitchSiteB = Get-VDSwitch -Server $SiteBvCenterDetails.fqdn
+                                                $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN) -or ($_.Name -match "$($VDSwitchSiteB)-pg-$suffix")}
+                                                if ($existingPortGroupSiteB) {
+                                                    Write-Warning "Distributed virtual port group name ($($existingPortGroupSiteB.Name)) or VLAN ID ($siteBVLAN) already exists: SKIPPING"
+                                                } else {
+                                                    Try {
+                                                        $createVDPortgroupSiteB = New-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name "$($VDSwitchSiteB)-pg-$suffix" -VlanId $siteBVLAN -ErrorAction Stop
+                                                        $createVDPortGroupSiteB | Get-VDUplinkTeamingPolicy | Set-VDUplinkTeamingPolicy -LoadBalancingPolicy LoadBalanceLoadBased | Out-Null
+                                                        Try {
+                                                            $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
+                                                        } Catch {
+                                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                        }
+                                                        if (!$validateVDPortGroupSiteB) {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.GetValueException]"Create distributed virtual port group with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
+                                                                    'Get-VDPortGroup',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                    )
+                                                                )
+                                                        } else {
+                                                            if ($validateVDPortGroupSiteB.VlanConfiguration.VlanId -eq $siteBVLAN) {
+                                                                Write-Output "Create distributed virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
+                                                            } else {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.GetValueException]"Create virtual port group ($($validateVDPortGroupSiteB.Name)) with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
+                                                                        'Get-VDPortGroup',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vSRPortGroup
+
+Function Undo-vSRPortGroup {
+    <#
+		.SYNOPSIS
+        Removes port groups for vSphere Replication appliances in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSRPortGroup cmdlet removes port groups for vSphere Replication appliances in the protected and
+        recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the 
+        -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and 
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes port groups for vSphere Replication appliances in the protected and recovery sites defined in
+        -siteAVLAN and -siteBVLAN paramters.
+
+        .EXAMPLE
+        Undo-vSRPortGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -SiteAVLAN 2715 -SiteBVLAN 2815
+        This example removes a port group for VLAN ID 2715 in the protected vCenter Server instance and a port group for VLAN ID 2815 in the recovery vCenter Server instance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteAVLAN}
+                                                if (!$existingPortGroupSiteA) {
+                                                    Write-Warning "A distributed virtual port group with VLAN ID ($siteAVLAN) does not exist: SKIPPING"
+                                                } else {
+                                                    Try {
+                                                        $VDSwitchSiteA = Get-VDSwitch -Server $SiteAvCenterDetails.fqdn
+                                                        $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -ErrorAction Stop
+                                                        Foreach ($portGroup in $VDPortGroupSiteA) {
+                                                            if ($portGroup.VlanConfiguration.VlanId -eq $SiteAVlan) {
+                                                                Try {
+                                                                    $VDPortGroupSiteAName = $portGroup.Name
+                                                                    Remove-VDPortGroup -Server $SiteAvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+                                                                    Try {
+                                                                        $validateVDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn -VDSwitch $VDSwitchSiteA -Name $portGroup.Name -ErrorAction SilentlyContinue
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    if ($validateVDPortGroupSiteA) {
+                                                                        $PSCmdlet.ThrowTerminatingError(
+                                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                                ([System.Management.Automation.GetValueException]"Remove virtual port group $($VDPortGroupSiteAName) with VLAN ID ($siteAVLAN): POST_VALIDATION_FAILED"),
+                                                                                'Remove-VDPortGroup',
+                                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                                ""
+                                                                            )
+                                                                        )
+                                                                    } else {
+                                                                        Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteAVLAN): SUCCESSFUL"
+                                                                    }
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                                $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $SiteBVLAN}
+                                                if (!$existingPortGroupSiteB) {
+                                                    Write-Warning "A distributed virtual port group with VLAN ID ($siteBVLAN) does not exist: SKIPPING"
+                                                } else {
+                                                    Try {
+                                                        $VDSwitchSiteB = Get-VDSwitch -Server $SiteBvCenterDetails.fqdn
+                                                        $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -ErrorAction Stop
+                                                        Foreach ($portGroup in $VDPortGroupSiteB) {
+                                                            if ($portGroup.VlanConfiguration.VlanId -eq $SiteBVlan) {
+                                                                Try {
+                                                                    $VDPortGroupSiteBName = $portGroup.Name
+                                                                    Remove-VDPortGroup -Server $SiteBvCenterDetails.fqdn -VDPortGroup $portGroup.Name -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+                                                                    Try {
+                                                                        $validateVDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn -VDSwitch $VDSwitchSiteB -Name $portGroup.Name -ErrorAction SilentlyContinue
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    if ($validateVDPortGroupSiteB) {
+                                                                        $PSCmdlet.ThrowTerminatingError(
+                                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                                ([System.Management.Automation.GetValueException]"Remove virtual port group ($($VDPortGroupSiteBName)) with VLAN ID ($siteBVLAN): POST_VALIDATION_FAILED"),
+                                                                                'Remove-VDPortGroup',
+                                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                                ""
+                                                                            )
+                                                                        )
+                                                                    } else {
+                                                                        Write-Output "Remove distributed virtual port group ($($VDPortGroupSiteAName)) with VLAN ID ($siteBVLAN): SUCCESSFUL"
+                                                                    }
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSRPortGroup
+
+Function Set-vSRNetworkConfig {
+    <#
+		.SYNOPSIS
+        Configure the secondary ethernet adapter and configures the required routing for vSphere Replication appliances
+        in the protected and recovery sites
+
+        .DESCRIPTION
+        The Set-vSRNetworkConfig cmdlet configures the secondary ethernet adapter and configures the required routing 
+        for vSphere Replication appliances in the protected and recovery sites. The cmdlet connects to SDDC Manager in 
+        both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, 
+        -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Configures the secondary ethernet adapter and configures the required routing for vSphere Replication
+        appliances in the protected and recovery sites
+
+        .EXAMPLE
+        Set-vSRNetworkConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -eth1VLANSiteA 2715 -eth1SubnetSiteA 172.27.15.0/24 -eth1IpAddressSiteA 172.27.15.123 -eth1GatewaySiteA 172.27.15.1 -vSRApplianceRootPassSiteA VMw@re1! -vSRApplianceAdminPassSiteA VMw@re1! -eth1VLANSiteB 2815 -eth1SubnetSiteB 172.28.15.0/24 -eth1IpAddressSiteB 172.28.15.123 -eth1GatewaySiteB 172.28.15.1 -vSRApplianceRootPassSiteB VMw@re1! -vSRApplianceAdminPassSiteB VMw@re1!
+        This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$eth1VLANSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1SubnetSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1IpAddressSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1GatewaySiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceRootPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceAdminPassSiteA,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$eth1VLANSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1SubnetSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1IpAddressSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$eth1GatewaySiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceRootPassSiteB,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vSRApplianceAdminPassSiteB
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $hmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $eth1VLANSiteA}
+                                                if (!$VDPortGroupSiteA) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($eth1VLANSiteA) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                }
+                                                if ($VDPortGroupSiteA.Count -gt 1) {
+                                                    $VDPortGroupSiteA = $VDPortGRoupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                                }
+                                                $hmsAVmName = $hmsAFqdn.Split(".")[0]
+                                                $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
+                                                if ($numEthAdaptersA -le 1) {
+                                                    $addEth1 = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | New-NetworkAdapter -Server $siteAvCenterDetails.fqdn -NetworkName $VDPortGroupSiteA.Name -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop
+                                                    if (!$addEth1) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Create ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                'New-NetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )       
+                                                    }
+                                                    [int]$hmsACidr = $eth1SubnetSiteA.Split("/")[1]
+                                                    Set-DRSolutionNetworkAdapter -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA -interfaceName eth1 -defaultGateway $eth1GatewaySiteA -cidrPrefix $hmsACidr -ipAddress $eth1IpAddressSiteA -ErrorAction Stop | Out-Null
+                                                    Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Restart-VMGuest -Confirm:$False | Out-Null                                                
+                                                    Do {
+                                                        Start-Sleep -Seconds 1
+                                                        $vmRestart = Get-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName
+                                                        $vamiStatus = Test-VAMIAuthentication -server $hmsAFqdn -user admin -pass $vSRApplianceAdminPassSiteA -ErrorAction SilentlyContinue
+                                                    }
+                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    $hmsANetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -user admin -password $vSRApplianceAdminPassSiteA).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
+                                                    if (($hmsANetConfig.defaultGateway -ne $eth1GatewaySiteA) -or ($hmsANetConfig.prefix -ne $hmsACidr) -or ($hmsANetConfig.address -ne $eth1IpAddressSiteA) -or ($trySetHmsANetConfig.successful -eq $false)) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Configure second ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-DRSolutionNetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )     
+                                                    }
+                                                    Try {
+                                                        $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Try {
+                                                        $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteA\nDestination=$eth1SubnetSiteB' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn    
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Try {
+                                                        $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsAVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteA -Server $siteAVcenterDetails.fqdn
+                                                        if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteA") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteB")) {                                                
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.SetValueException]"Set static route for remote vSphere Replication network ($eth1SubnetSiteB): POST_VALIDATION_FAILED"),
+                                                                    'Set-vSRNetworkConfig',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        } 
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $eth1IpAddressSiteA -ErrorAction SilentlyContinue | Out-Null
+                                                    $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
+                                                    if (!($incomingStorageTrafficHmsA.filterIp -match $eth1IpAddressSiteA)) {                                                
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-vSRIncomingStorageTraffic',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )
+                                                    } else {
+                                                        Write-Output "Configure vSphere Replication appliance ($hmsAVmName) secondary ethernet adapter: SUCCESSFUL"
+                                                    }
+                                                } else {
+                                                    Write-Warning "vSphere Replication appliance ($hmsAVmName) has more than one ethernet adapter: SKIPPING"
+                                                }
+                                                $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $eth1VLANSiteB}
+                                                if (!$VDPortGroupSiteB) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($eth1VLANSiteB) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                }
+                                                if ($VDPortGroupSiteB.Count -gt 1) {
+                                                    $VDPortGroupSiteB = $VDPortGRoupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                                }
+                                                $hmsBVmName = $hmsBFqdn.Split(".")[0]
+                                                $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
+                                                if ($numEthAdaptersB -le 1) {
+                                                    $addEth1 = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | New-NetworkAdapter -Server $siteBvCenterDetails.fqdn -NetworkName $VDPortGroupSiteB.Name -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue
+                                                    if (!$addEth1) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Create ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                'New-NetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )       
+                                                    }
+                                                    [int]$hmsBCidr = $eth1SubnetSiteB.Split("/")[1]
+                                                    Set-DRSolutionNetworkAdapter -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB -interfaceName eth1 -defaultGateway $eth1GatewaySiteB -cidrPrefix $hmsBCidr -ipAddress $eth1IpAddressSiteB -ErrorAction Stop | Out-Null
+                                                    Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Restart-VMGuest -Confirm:$False | Out-Null
+                                                    Do {
+                                                        Start-Sleep -Seconds 1
+                                                        $vmRestart = Get-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName
+                                                        $vamiStatus = Test-VAMIAuthentication -server $hmsBFqdn -user admin -pass $vSRApplianceAdminPassSiteB -ErrorAction SilentlyContinue
+                                                    }
+                                                    Until (($vmRestart.State -eq "Running") -and ($vamiStatus -eq $true))
+                                                    $hmsBNetConfig = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -user admin -password $vSRApplianceAdminPassSiteB).Interfaces | Where-Object {$_.Name -eq "eth1"}).ipv4
+                                                    if (($hmsBNetConfig.defaultGateway -ne $eth1GatewaySiteB) -or ($hmsBNetConfig.prefix -ne $hmsBCidr) -or ($hmsBNetConfig.address -ne $eth1IpAddressSiteB) -or ($trySetHmsBNetConfig.successful -eq $false)) {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Configure second ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-DRSolutionNetworkAdapter',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )     
+                                                    }
+                                                    Try {
+                                                        $scriptCommand = "sed -i '/Gateway.*/a Metric=1024' /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn  
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Try {
+                                                        $scriptCommand = "echo -e '[Route]\nGateway=$eth1GatewaySiteB\nDestination=$eth1SubnetSiteA' >> /etc/systemd/network/10-eth1.network | systemctl restart systemd-networkd"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Try {
+                                                        $scriptCommand = "cat /etc/systemd/network/10-eth1.network"
+                                                        $output = Invoke-VMScript -ScriptType bash -VM $hmsBVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vSRApplianceRootPassSiteB -Server $siteBVcenterDetails.fqdn
+                                                        if (!($output.ScriptOutput -match "Gateway=$eth1GatewaySiteB") -or !($output.ScriptOutput -match "Destination=$ethSubnetSiteA")) {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.SetValueException]"Set static route for remote vSphere Replication network ($($eth1SubnetSiteA)): POST_VALIDATION_FAILED"),
+                                                                    'Set-vSRNetworkConfig',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                    Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $eth1IpAddressSiteB -ErrorAction SilentlyContinue | Out-Null
+                                                    $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
+                                                    if (!($incomingStorageTrafficHmsB.filterIp -match $eth1IpAddressSiteB)) {                                                
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                'Set-vSRIncomingStorageTraffic',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
+                                                            )
+                                                        )
+                                                    } else {
+                                                        Write-Output "Configure vSphere Replication appliance ($hmsBVmName) secondary ethernet adapter: SUCCESSFUL"
+                                                    }
+                                                } else {
+                                                    Write-Warning "vSphere Replication appliance ($hmsBVmName) has more than one ethernet adapter: SKIPPING"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-vSRNetworkConfig
+
+Function Undo-vSRNetworkConfig {
+    <#
+		.SYNOPSIS
+        Removes the secondary ethernet adapter and configures the required routing for vSphere Replication appliances
+        in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSRNetworkConfig cmdlet configures the secondary ethernet adapter and configures the required routing 
+        for vSphere Replication appliances in the protected and recovery sites. The cmdlet connects to SDDC Manager in 
+        both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, 
+        -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both vSphere Replication instances
+        - Removes the secondary ethernet adapter and static routes for vSphere Replication appliances in the protected
+        and recovery sites
+
+        .EXAMPLE
+        Undo-vSRNetworkConfig -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815
+        This example removes the secondary ethernet adapter and static routes for vSphere Replication appliances in the protected and recovery sites
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $hmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $siteAVLAN}
+                                                if (!$VDPortGroupSiteA) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($siteAVLAN) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                } else {
+                                                    Try {
+                                                        $hmsAVmName = $hmsAFqdn.Split(".")[0]
+                                                        $numEthAdaptersA = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter).Count
+                                                        if ($numEthAdaptersA -gt 1) {
+                                                            Try {
+                                                                $managementIpA = ((Get-DRSolutionNetworkConfig -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
+                                                                Set-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA -ipAddress $managementIpA -ErrorAction SilentlyContinue | Out-Null
+                                                                $incomingStorageTrafficHmsA = Get-vSRIncomingStorageTraffic -fqdn $hmsAFqdn -username admin -password $vSRApplianceAdminPassSiteA
+                                                                if (!($incomingStorageTrafficHmsA.filterIp -match $managementIpA)) {                                                
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                            'Set-vSRIncomingStorageTraffic',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            if ($VDPortGroupSiteA.Count -gt 1) {
+                                                                $VDPortGroupSiteA = $VDPortGRoupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                                            }
+                                                            $hmsAVmPowerState = (Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName).PowerState
+                                                            if ($hmsAVmPowerState -eq "PoweredOn") {
+                                                                Stop-VMGuest -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                Do {
+                                                                    Start-Sleep -Seconds 1
+                                                                    $hmsAVmState = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName
+                                                                }
+                                                                Until ($hmsAVmState.PowerState -eq "PoweredOff")
+                                                            }
+                                                            Try {
+                                                                Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA.Name} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            $validateRemovedEth1SiteA = Get-VM -Server $siteAvCenterDetails.fqdn -Name $hmsAVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteA}
+                                                            if ($validateRemovedEth1SiteA) {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.SetValueException]"Remove ethernet adapter on vSphere Replication appliance ($hmsAVmName): POST_VALIDATION_FAILED"),
+                                                                        'Remove-NetworkAdapter',
+                                                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                                        ""
+                                                                    )
+                                                                )       
+                                                            } else {
+                                                                Try {
+                                                                    Start-VM -Server $siteAvCenterDetails.fqdn -VM $hmsAVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                            Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsAVmName): SUCCESSFUL"
+                                                        } else {
+                                                            Write-Warning "vSphere Replication appliance ($hmsAVmName) only has one ethernet adapter: SKIPPING"
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                                $hmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                $VDPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {$_.VlanConfiguration.VlanId -eq $siteBVLAN}
+                                                if (!$VDPortGroupSiteB) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"No distributed virtual port group with VLAN ID ($siteBVLAN) exists: PRE_VALIDATION_FAILED"),
+                                                            'Get-VDPortGroup',
+                                                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                                            ""
+                                                        )
+                                                    )                                                
+                                                } else {
+                                                    Try {
+                                                        $hmsBVmName = $hmsBFqdn.Split(".")[0]
+                                                        $numEthAdaptersB = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter).Count
+                                                        if ($numEthAdaptersB -gt 1) {
+                                                            Try {
+                                                                $managementIpB = ((Get-DRSolutionNetworkConfig -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB).Interfaces.Ipv4 | Where-Object {$_.InterfaceName -eq "eth0"}).address
+                                                                Set-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB -ipAddress $managementIpB -ErrorAction SilentlyContinue | Out-Null
+                                                                $incomingStorageTrafficHmsB = Get-vSRIncomingStorageTraffic -fqdn $hmsBFqdn -username admin -password $vSRApplianceAdminPassSiteB
+                                                                if (!($incomingStorageTrafficHmsB.filterIp -match $managementIpB)) {                                                
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.SetValueException]"Set incoming storage traffic IP address for vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                            'Set-vSRIncomingStorageTraffic',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            if ($VDPortGroupSiteB.Count -gt 1) {
+                                                                $VDPortGroupSiteB = $VDPortGRoupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                                            }
+                                                            $hmsBVmPowerState = (Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName).PowerState
+                                                            if ($hmsBVmPowerState -eq "PoweredOn") {
+                                                                Stop-VMGuest -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                Do {
+                                                                    Start-Sleep -Seconds 1
+                                                                    $hmsBVmState = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName
+                                                                }
+                                                                Until ($hmsBVmState.PowerState -eq "PoweredOff")
+                                                            }
+                                                            Try {
+                                                                Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB} | Remove-NetworkAdapter -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                                            } Catch {
+                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            }
+                                                            $validateRemovedEth1SiteB = Get-VM -Server $siteBvCenterDetails.fqdn -Name $hmsBVmName | Get-NetworkAdapter | Where-Object {$_.NetworkName -eq $VDPortGroupSiteB}
+                                                            if ($validateRemovedEth1SiteB) {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.SetValueException]"Remove ethernet adapter on vSphere Replication appliance ($hmsBVmName): POST_VALIDATION_FAILED"),
+                                                                        'Remove-NetworkAdapter',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
+                                                                    )
+                                                                )       
+                                                            } else {
+                                                                Try {
+                                                                    Start-VM -Server $siteBvCenterDetails.fqdn -VM $hmsBVmName -Confirm:$false -ErrorAction Stop | Out-Null
+                                                                } Catch {
+                                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                }
+                                                            }
+                                                            Write-Output "Remove secondary ethernet adapter from vSphere Replication appliance ($hmsBVmName): SUCCESSFUL"
+                                                        } else {
+                                                            Write-Warning "vSphere Replication appliance ($hmsBVmName) only has one ethernet adapter: SKIPPING"
+                                                        }
+                                                    } Catch {
+                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSRNetworkConfig
+
+Function New-vSRVMkernelPort {
+    <#
+		.SYNOPSIS
+        Create VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The New-vSRVMKernelPort cmdlet creates VMkernel ports on ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Creates VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        defined in -siteAVLAN, -siteBVLAN, -siteANetMask, -siteBNetMask, -siteAIpAddresses, and -siteBIpAddresses
+        paramters.
+
+        .EXAMPLE
+        New-vSRVMkernelPort -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteANetMask 255.255.255.0 -siteBNetMask 255.255.255.0 -siteAIpAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104") -siteBIpAddresses @("172.28.15.101","172.28.15.102","172.28.15.103","172.28.15.104")
+        This example creates a VMkernel port on VLAN ID 2715 for each ESXi host in the protected site VCF management domain and a VMkernel port on VLAN ID 2815 for each ESXi host in the recovery site VCF management domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteANetMask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBNetMask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$siteAIpAddresses,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$siteBIpAddresses
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $existingVDSwitchSiteA = Get-VDSwitch -Server $siteAvCenterDetails.fqdn -Name $existingPortGroupSiteA.VDSwitch
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if (!$existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
+                                } else {
+                                    if ($vmHostsToConfigure.Count -ne $siteAIpAddresses.Count) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.SetValueException]"The number of IP addresses supplied for VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) and the number of ESXi hosts to be configured do not match: PRE_VALIDATION_FAILED"),
+                                                'Add-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                                                ""
+                                            )
+                                        )
+                                    } else {
+                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            Try {
+                                                New-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteAIpAddresses[$i] -SubnetMask $siteANetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
+                                            } Catch {
+                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                            }
+                                        }
+                                        $validateVMkernelCreated = @()
+                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VirtualSwitch $existingVDSwitchSiteA.Name -PortGroup $existingPortGroupSiteA.Name | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                        if ($validateVMkernelCreated.Count -ne $vmHostsToConfigure.Count) {
+                                            $PSCmdlet.ThrowTerminatingError(
+                                                [System.Management.Automation.ErrorRecord]::new(
+                                                    ([System.Management.Automation.GetValueException]"Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                    'Add-vSRVMkernelPort',
+                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                    ""
+                                                )
+                                            )
+                                        } else {
+                                            Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            $existingVDSwitchSiteB = Get-VDSwitch -Server $siteBvCenterDetails.fqdn -Name $existingPortGroupSiteB.VDSwitch
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if (!$existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "All ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) already configured with VMkernel port for vSphere Replication traffic: SKIPPING"
+                                } else {
+                                    if ($vmHostsToConfigure.Count -ne $siteBIpAddresses.Count) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.SetValueException]"The number of IP addresses supplied for VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) and the number of ESXi hosts to be configured do not match: PRE_VALIDATION_FAILED"),
+                                                'Add-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                                                ""
+                                            )
+                                        )
+                                    } else {
+                                        For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                            Try {
+                                                New-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $siteBIpAddresses[$i] -SubnetMask $siteBNetMask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
+                                            } Catch {
+                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                            }
+                                        }
+                                        $validateVMkernelCreated = @()
+                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VirtualSwitch $existingVDSwitchSiteB.Name -PortGroup $existingPortGroupSiteB.Name | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                        if ($validateVMkernelCreated.Count -ne $vmHostsToConfigure.Count) {
+                                            $PSCmdlet.ThrowTerminatingError(
+                                                [System.Management.Automation.ErrorRecord]::new(
+                                                    ([System.Management.Automation.GetValueException]"Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                    'Add-vSRVMkernelPort',
+                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                    ""
+                                                )
+                                            )
+                                        } else {
+                                            Write-Output "Create VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vSRVMKernelPort
+
+Function Undo-vSRVMkernelPort {
+    <#
+		.SYNOPSIS
+        Remove VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSRVMKernelPort cmdlet removes VMkernel ports on ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes VMkernel ports on ESXi hosts for vSphere Replication traffic in the protected and recovery sites that
+        match the VLAN IDs defined in -siteAVLAN and -siteBVLAN paramters.
+
+        .EXAMPLE
+        Undo-vSRVMkernelPort -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815
+        This example removes VMkernel ports on VLAN ID 2715 in the protected site VCF management domain and VMkernel ports on VLAN ID 2815 in the recovery site VCF management domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $existingVDSwitchSiteA = Get-VDSwitch -Server $siteAvCenterDetails.fqdn -Name $existingPortGroupSiteA.VDSwitch
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteAVLAN): SKIPPING"
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
+                                            Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteA -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
+                                        } Catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                    $validateVMkernelRemoved = @()
+                                    $validateVMkernelRemoved = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -PortGroup $existingPortGroupSiteA | Where-Object {$_.VSphereReplicationEnabled -eq $true -or $_.VSphereReplicationNfcEnabled -eq $true}
+                                    if ($validateVMkernelRemoved.Count -gt 0) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.GetValueException]"Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                'Undo-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                ""
+                                            )
+                                        )
+                                    } else {
+                                        Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $siteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost.fqdn
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) do not have a VMkernel port configured for vSphere Replication traffic on VLAN ID ($siteBVLAN): SKIPPING"
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
+                                            Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i] -PortGroup $existingPortGroupSiteB -ErrorAction Stop | Remove-VMHostNetworkAdapter -Confirm:$false -ErrorAction Stop
+                                        } Catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                    $validateVMkernelRemoved = @()
+                                    $validateVMkernelRemoved = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -PortGroup $existingPortGroupSiteB | Where-Object {$_.VSphereReplicationEnabled -eq $true -or $_.VSphereReplicationNfcEnabled -eq $true}
+                                    if ($validateVMkernelRemoved.Count -gt 0) {
+                                        $PSCmdlet.ThrowTerminatingError(
+                                            [System.Management.Automation.ErrorRecord]::new(
+                                                ([System.Management.Automation.GetValueException]"Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: POST_VALIDATION_FAILED"),
+                                                'Undo-vSRVMkernelPort',
+                                                [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                ""
+                                            )
+                                        )
+                                    } else {
+                                        Write-Output "Remove VMkernel ports for ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) for vSphere Replication traffic: SUCCESSFUL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSRVMKernelPort
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
