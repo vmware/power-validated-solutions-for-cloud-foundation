@@ -2043,6 +2043,9 @@ Function Install-SiteRecoveryManager {
                                     Write-Error "Failed to get a Response from Site Recovery Manager Instance ($srmFqdn): POST_VALIDATION_FAILURE"
                                 } Finally {
                                     $timer.Stop()  ## Stop the timer
+                                    Do {
+                                        $vamiStatus = Test-SrmVamiAuthentication -server $srmFqdn -user admin -pass $srmVaAdminPassword -ErrorAction SilentlyContinue
+                                    } Until (($vamiStatus -eq $true))
                                     Write-Output "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
                                 }
                             }
@@ -2097,7 +2100,7 @@ Function Undo-SiteRecoveryManager {
                                         Break
                                     }
                                 }
-                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-null
+                                Remove-VM $srmHostname -DeletePermanently -Confirm:$false | Out-null
                                 if (!(Get-VM -Name $srmHostname -ErrorAction Ignore)) {
                                     Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($srmHostname): SUCCESSFUL"
                                 } else {
@@ -2333,8 +2336,13 @@ Function Connect-DRSolutionTovCenter {
                                 if (Test-VrmsVamiConnection -server $applianceFqdn) {
                                     if (Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
                                         if (!((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
-                                            Set-VrmsConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName  | Out-Null
-                                            if ((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                            $configTask = Set-VrmsConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName
+                                            Do {
+                                                Start-Sleep 2
+                                                $vamiStatus = Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword -ErrorAction SilentlyContinue
+                                                $taskStatus = Get-VrmsTask -taskId $configTask.id
+                                            } Until (($taskStatus.Status -ne "RUNNING") -and ($vamiStatus -eq $true))
+                                            if ($taskStatus.Status -eq "SUCCESS") {
                                                 Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
@@ -2348,8 +2356,13 @@ Function Connect-DRSolutionTovCenter {
                                 if (Test-SrmVamiConnection -server $applianceFqdn) {
                                     if (Test-SrmVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
                                         if (!((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
-                                            Set-SrmConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName  | Out-Null
-                                            if ((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid)) {
+                                            $configTask = Set-SrmConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName
+                                            Do {
+                                                Start-Sleep 2
+                                                $vamiStatus = Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword -ErrorAction SilentlyContinue
+                                                $taskStatus = Get-VrmsTask -taskId $configTask.id
+                                            } Until (($taskStatus.Status -ne "RUNNING") -and ($vamiStatus -eq $true))
+                                            if ($taskStatus.Status -eq "SUCCESS") {
                                                 Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                             } else {
                                                 Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
@@ -2422,7 +2435,7 @@ Function Undo-DRSolutionTovCenter {
                                                 Write-Error "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), not registered: SKIPPED"
                                         }
                                     }
                                 }
@@ -2437,7 +2450,7 @@ Function Undo-DRSolutionTovCenter {
                                                 Write-Error "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), already registered: SKIPPED"
+                                            Write-Warning "Removing registration for $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)), not registered: SKIPPED"
                                         }
                                     }
                                 }
@@ -6726,7 +6739,7 @@ Function Add-SrmLicenseKey {
         - Assigns the license to Site Recovery Manager
 
         .EXAMPLE
-        Add-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -password VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
+        Add-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
         This example adds a license key to the Site Recovery Manager instance
     #>
 
@@ -6779,6 +6792,7 @@ Function Add-SrmLicenseKey {
                                             }
                                         }
                                     }
+                                    Disconnect-SrmServer -Server $srmFqdn -Force -Confirm:$false
                                 }
                             } else {
                                 Write-Error "No Site Recovery Manager Appliance Registered with vCenter Server ($($vcfVcenterDetails.fqdn))"
@@ -32208,13 +32222,15 @@ Function Set-VrmsConfiguration {
     )
 
     Try {
-        $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
-        $webRequest.GetResponse() | Out-Null
-        $certificate = $webRequest.ServicePoint.Certificate
-        $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
-        Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
-        $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
-        $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+        # $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
+        # $webRequest.GetResponse()
+        # $certificate = $webRequest.ServicePoint.Certificate
+        # $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+        # Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
+        # $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
+        # $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+        $command = 'openssl s_client -connect ' + $vcenterFQDN + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
+        $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
 
         $connectionObject = New-Object -TypeName psobject
         $connectionObject | Add-Member -notepropertyname 'psc_thumbprint' -notepropertyvalue $thumbprint
@@ -32784,13 +32800,15 @@ Function Set-SrmConfiguration {
     )
 
     Try {
-        $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
-        $webRequest.GetResponse() | Out-Null
-        $certificate = $webRequest.ServicePoint.Certificate
-        $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
-        Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
-        $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
-        $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+        # $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
+        # $webRequest.GetResponse() | Out-Null
+        # $certificate = $webRequest.ServicePoint.Certificate
+        # $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+        # Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
+        # $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
+        # $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
+        $command = 'openssl s_client -connect ' + $vcenterFQDN + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
+        $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
 
         $connectionObject = New-Object -TypeName psobject
         $connectionObject | Add-Member -notepropertyname 'psc_thumbprint' -notepropertyvalue $thumbprint
@@ -32909,7 +32927,7 @@ Function Set-SrmVamiCertificate {
         $body = $body | ConvertTo-Json
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
         Invoke-RestMethod -Method POST -Uri $uri -Headers $srmHeader -Body $body
-        Set-VrmsApplianceState -action restart | Out-Null
+        Set-SrmApplianceState -action restart | Out-Null
     } Catch {
         # Do Nothing
     }
