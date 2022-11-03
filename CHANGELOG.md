@@ -52,6 +52,8 @@
 - Added `Set-SrmVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a Site Recovery Manager appliance.
 - Added `Undo-SiteRecoveryManager` to remove the Site Recovery Manager virtual appliance.
 - Added `Undo-vSphereReplicationManager` to remove the vSphere Replication virtual appliance.
+- Added `Add-EsxiVMkernelPort` cmdlet to create ESXi VMKernel port for vSphere Replication Traffic.
+- Added `Undo-EsxiVMkernelPort` cmdlet to remove ESXi VMKernel port for vSphere Replication Traffic.
 
 ## v1.9.0 (2022-25-10)
 
