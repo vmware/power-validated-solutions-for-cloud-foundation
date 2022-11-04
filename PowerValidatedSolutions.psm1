@@ -5195,20 +5195,20 @@ Function Undo-SRMSitePair {
 }
 Export-ModuleMember -Function Undo-SRMSitePair
 
-Function Add-EsxiVMkernelPort {
+Function Add-EsxiVrmsVMkernelPort {
     <#
 		.SYNOPSIS
         Create a VMkernel port on ESXi hosts
 
         .DESCRIPTION
-        The Add-EsxiVMkernelPort cmdlet creates a VMkernel port on each ESXi host for vSphere Replication traffic. The
+        The Add-EsxiVrmsVMkernelPort cmdlet creates a VMkernel port on each ESXi host for vSphere Replication traffic. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the vCenter Server instance
         - Creates a VMkernel port on each ESXi host for vSphere Replication traffic
 
         .EXAMPLE
-        Add-EsxiVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
+        Add-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
         This example creates a VMkernel port for each ESXi host Management Domain
     #>
 
@@ -5263,7 +5263,7 @@ Function Add-EsxiVMkernelPort {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Add-EsxiVMkernelPort
+Export-ModuleMember -Function Add-EsxiVrmsVMkernelPort
 
 Function Undo-EsxiVrmsVMkernelPort {
     <#
@@ -5430,31 +5430,19 @@ Function Undo-EsxiVrmsStaticRoute {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            # $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
                             $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
-                            # if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
-                                # if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}).Count -eq $esxiHosts.Count) {
-                                    [IPAddress]$network = $subnet.Split("/")[0]
-                                    [Int32]$prefixLength = $subnet.Split("/")[1]
-                                    Foreach ($esxiHost in $esxiHosts) {
-                                        if (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString}) {
-                                            Remove-VMHostRoute -VMHostRoute (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString}) -Confirm:$false
-                
-                                            if (!(Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString})) {
-                                                Write-Output "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): POST_VALIDATION_FAILED"
-                                            }
-                                        } else {
-                                            Write-Warning "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)), already exists: SKIPPED"
-                                        }
+                            Foreach ($esxiHost in $esxiHosts) {
+                                if (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString}) {
+                                    Remove-VMHostRoute -VMHostRoute (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString}) -Confirm:$false
+                                    if (!(Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString})) {
+                                        Write-Output "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): POST_VALIDATION_FAILED"
                                     }
-                                # } else {
-                                #     Write-Error "Found ESXi hosts in Workload Domain ($domain) without a VMkernel port connected to ($portgroup) for vSphere Replication traffic: PRE_VALIDATION_FAILED"
-                                # }
-                            # } else {
-                            #     Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
-                            # }
+                                } else {
+                                    Write-Warning "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)), already exists: SKIPPED"
+                                }
+                            }
                         }
                         Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
