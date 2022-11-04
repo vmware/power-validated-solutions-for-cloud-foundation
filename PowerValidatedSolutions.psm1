@@ -5254,6 +5254,7 @@ Function Add-EsxiVMkernelPort {
                                 Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -5267,7 +5268,7 @@ Export-ModuleMember -Function Add-EsxiVMkernelPort
 Function Undo-EsxiVrmsVMkernelPort {
     <#
 		.SYNOPSIS
-        Create a VMkernel port on ESXi hosts
+        Removes VMkernel ports on ESXi hosts
 
         .DESCRIPTION
         The Undo-EsxiVrmsVMkernelPort cmdlet removes the VMkernel port on each ESXi host for vSphere Replication traffic. The
@@ -5318,6 +5319,7 @@ Function Undo-EsxiVrmsVMkernelPort {
                                 Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -5328,220 +5330,65 @@ Function Undo-EsxiVrmsVMkernelPort {
 }
 Export-ModuleMember -Function Undo-EsxiVrmsVMkernelPort
 
-Function New-vSREsxiStaticRoute {
+Function Add-EsxiVrmsStaticRoute {
     <#
 		.SYNOPSIS
-        Create a static route on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        Create a static route on ESXi hosts for vSphere Replication traffic
 
         .DESCRIPTION
-        The New-vSREsxiStaticRoute cmdlet creates a static route on ESXi hosts for vSphere Replication traffic in the 
-        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
-        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
-        -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Creates static routes on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
-        defined in -siteAVLAN, -siteBVLAN, -siteASubnet, -siteBSubnet, -siteAGateway, and -siteBGateway paramters.
+        The Add-EsxiVrmsStaticRoute cmdlet creates a static route on each ESXi hosts for vSphere Replication traffic. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Creates static routes on ESXi hosts for vSphere Replication traffic
 
         .EXAMPLE
-        New-vSREsxiStaticRoute -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteASubnet 172.27.15.0/24 -siteBSubnet 172.28.15.0/24 -siteAGateway 172.27.15.1 -siteBGateway 172.28.15.1
-        This example adds a static route to each ESXi host in the protected site VCF Management Domain to the recovery site vSphere Replication subnet (172.28.15.0/24) via the protected site vSphere Replication network gateway (172.27.15.1).
-        This example also adds a static route to each ESXi host in the recovery site VCF Management Domain to the protected site vSphere Replication subnet (172.27.15.0/24) via the recovery site vSphere Replication network gateway (172.28.15.1).
+        Add-EsxiVrmsStaticRoute -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -subnet 172.27.15.0/24 -gateway 172.27.15.1 -portgroup sfo-sfo-m01-cl01-vds01-pg-vrms
+        This example adds a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteASubnet,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBSubnet,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteAGateway,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBGateway
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$subnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [IPAddress]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
-                            $siteANetwork = $siteASubnet.Split("/")[0]
-                            $siteACidr = $siteASubnet.Split("/")[1]
-                            [ipaddress] $siteANetmaskStub = 0
-                            $siteANetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteACidr) -shr (32 - $siteACidr)
-                            $siteANetmask = $siteANetmaskStub.IPAddressToString
-                            $siteBNetwork = $siteBSubnet.Split("/")[0]
-                            $siteBCidr = $siteBSubnet.Split("/")[1]
-                            [ipaddress] $siteBNetmaskStub = 0
-                            $siteBNetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteBCidr) -shr (32 - $siteBCidr)
-                            $siteBNetmask = $siteBNetmaskStub.IPAddressToString
-                            if (!$existingPortGroupSiteA) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteA.Count -gt 1) {
-                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteAVMhost in $siteAVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if ($existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteAVMhost
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                } else {
-                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        Try {
-                                            $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
-                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                            $skipAdd = $null
-                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
-                                                    $skipAdd = $true
-                                                    $skipCountSiteA++
-                                                }
-                                            }
-                                            if (!$skipAdd) {
-                                                Try {
-                                                    $newStaticRouteArgs = $null
-                                                    $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
-                                                    $newStaticRouteArgs.gateway = $siteAGateway
-                                                    $newStaticRouteArgs.network = $siteBSubnet
-                                                    $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
-                                                } Catch {
-                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                }
-                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                                $staticRouteValidated = $null
-                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                    if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
-                                                        $staticRouteValidated = $true
-                                                    }
-                                                }
-                                                if (!$staticRouteValidated) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been added to ESXi host ($($vmHostsToConfigure[$i].fqdn)): POST_VALIDATION_FAILED"),
-                                                            'New-vSREsxiStaticRoute',
-                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                            ""
-                                                        )
-                                                    )
-                                                } else {
-                                                    Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
-                                                }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
+                            $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
+                            if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
+                                if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}).Count -eq $esxiHosts.Count) {
+                                    [IPAddress]$network = $subnet.Split("/")[0]
+                                    [Int32]$prefixLength = $subnet.Split("/")[1]
+                                    Foreach ($esxiHost in $esxiHosts) {
+                                        if (!(Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {($_.ExtensionData.Network -eq $network) -and ($_.ExtensionData.Gateway -eq $gateway)})) {
+                                            Get-VMHost -Name $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | New-VMHostRoute -Destination $network -Gateway $gateway -PrefixLength $prefixLength -Confirm:$false | Out-Null
+                                            if (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {($_.ExtensionData.Network -eq $network) -and ($_.ExtensionData.Gateway -eq $gateway)}) {
+                                                Write-Output "Adding static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): SUCCESSFUL"
                                             } else {
-                                                Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                                Write-Error "Adding static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): POST_VALIDATION_FAILED"
                                             }
-                                        }
-                                        Catch {
-                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        } else {
+                                            Write-Warning "Adding static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)), already exists: SKIPPED"
                                         }
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (Test-VCFConnection -server $sddcManagerBFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
-                            if (!$existingPortGroupSiteB) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteB.Count -gt 1) {
-                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteBVMhost in $siteBVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if ($existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteBVMhost
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
                                 } else {
-                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        Try {
-                                            $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
-                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                            $skipAdd = $null
-                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
-                                                    $skipAdd = $true
-                                                }
-                                            }
-                                            if (!$skipAdd) {
-                                                Try {
-                                                    $newStaticRouteArgs = $null
-                                                    $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
-                                                    $newStaticRouteArgs.gateway = $siteBGateway
-                                                    $newStaticRouteArgs.network = $siteASubnet
-                                                    $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
-                                                } Catch {
-                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                }
-                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                                $staticRouteValidated = $null
-                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                    if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
-                                                        $staticRouteValidated = $true
-                                                    }
-                                                }
-                                                if (!$staticRouteValidated) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been added to ESXi host ($($vmHostsToConfigure[$i])): POST_VALIDATION_FAILED"),
-                                                            'New-vSREsxiStaticRoute',
-                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                            ""
-                                                        )
-                                                    )
-                                                } else {
-                                                    Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
-                                                }
-                                            } else {
-                                                Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
-                                            }
-                                        } Catch {
-                                            $PSCmdlet.ThrowTerminatingError($PSItem)
-                                        } 
-                                    }
+                                    Write-Error "Found ESXi hosts in Workload Domain ($domain) without a VMkernel port connected to ($portgroup) for vSphere Replication traffic: PRE_VALIDATION_FAILED"
                                 }
+                            } else {
+                                Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -5550,220 +5397,66 @@ Function New-vSREsxiStaticRoute {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function New-vSREsxiStaticRoute
+Export-ModuleMember -Function Add-EsxiVrmsStaticRoute
 
-Function Undo-vSREsxiStaticRoute {
+Function Undo-EsxiVrmsStaticRoute {
     <#
 		.SYNOPSIS
-        Remove a static route from ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        Removes a static route from ESXi hosts for vSphere Replication traffic
 
         .DESCRIPTION
-        The Undo-vSREsxiStaticRoute cmdlet removes a static route from ESXi hosts for vSphere Replication traffic in the 
-        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
-        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
-        -sddcManagerBPass values:
-        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
-        - Validates that network connectivity and authentication is possible to both vCenter Server instances
-        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes a static route on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
-        defined in -siteAVLAN, -siteBVLAN, -siteASubnet, -siteBSubnet, -siteAGateway, and -siteBGateway paramters.
+        The Undo-EsxiVrmsStaticRoute cmdlet removes a static route on each ESXi hosts for vSphere Replication traffic. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Removes the static routes on ESXi hosts for vSphere Replication traffic
 
         .EXAMPLE
-        Undo-vSREsxiStaticRoute -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteASubnet 172.27.15.0/24 -siteBSubnet 172.28.15.0/24 -siteAGateway 172.27.15.1 -siteBGateway 172.28.15.1
-        This example removes a static route, if present, from each ESXi host in the protected site VCF Management Domain from the protected site to the recovery site vSphere Replication subnet (172.28.15.0/24) via the protected site vSphere Replication network gateway (172.27.15.1).
-        This example also removes a static route, if present, from each ESXi host in the recovery site VCF Management Domain from the recovery site to the protected site vSphere Replication subnet (172.27.15.0/24) via the recovery site vSphere Replication network gateway (172.28.15.1).
+        Undo-EsxiVrmsStaticRoute -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -network 172.27.15.0
+        This example removes a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteASubnet,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBSubnet,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteAGateway,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBGateway
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [IPAddress]$network
     )
 
     Try {
-        if (Test-VCFConnection -server $sddcManagerAFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
-                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
-                            $siteANetwork = $siteASubnet.Split("/")[0]
-                            $siteACidr = $siteASubnet.Split("/")[1]
-                            [ipaddress] $siteANetmaskStub = 0
-                            $siteANetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteACidr) -shr (32 - $siteACidr)
-                            $siteANetmask = $siteANetmaskStub.IPAddressToString
-                            $siteBNetwork = $siteBSubnet.Split("/")[0]
-                            $siteBCidr = $siteBSubnet.Split("/")[1]
-                            [ipaddress] $siteBNetmaskStub = 0
-                            $siteBNetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteBCidr) -shr (32 - $siteBCidr)
-                            $siteBNetmask = $siteBNetmaskStub.IPAddressToString
-                            if (!$existingPortGroupSiteA) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteA.Count -gt 1) {
-                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteAVMhost in $siteAVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if ($existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteAVMhost
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                } else {
-                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        Try {
-                                            $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
-                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                            $existingRouteToRemove = $null
-                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
-                                                    $existingRouteToRemove = $true
-                                                }
-                                            }
-                                            if ($existingRouteToRemove) {
-                                                Try {
-                                                    $removeStaticRouteArgs = $null
-                                                    $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
-                                                    $removeStaticRouteArgs.gateway = $siteAGateway
-                                                    $removeStaticRouteArgs.network = $siteBSubnet
-                                                    $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
-                                                } Catch {
-                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                }
-                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                                $staticRouteStillExists = $null
-                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                    if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
-                                                        $staticRouteStillExists = $true
-                                                    }
-                                                }
-                                                if ($staticRouteStillExists) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been removed from ESXi host ($($vmHostsToConfigure[$i].fqdn)): POST_VALIDATION_FAILED"),
-                                                            'Undo-vSREsxiStaticRoute',
-                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                            ""
-                                                        )
-                                                    )
-                                                } else {
-                                                    Write-Output "Remove static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
-                                                }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            # $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
+                            $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
+                            # if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
+                                # if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}).Count -eq $esxiHosts.Count) {
+                                    [IPAddress]$network = $subnet.Split("/")[0]
+                                    [Int32]$prefixLength = $subnet.Split("/")[1]
+                                    Foreach ($esxiHost in $esxiHosts) {
+                                        if (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString}) {
+                                            Remove-VMHostRoute -VMHostRoute (Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString}) -Confirm:$false
+                
+                                            if (!(Get-VMHostRoute -VMHost $esxiHost.fqdn -Server $vcfVcenterDetails.fqdn | Where-Object {$network -contains $_.Destination.IPAddressToString})) {
+                                                Write-Output "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): SUCCESSFUL"
                                             } else {
-                                                Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                                Write-Error "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)): POST_VALIDATION_FAILED"
                                             }
-                                        } Catch {
-                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        } else {
+                                            Write-Warning "Removing static route for vSphere Replication traffic to ESXi Host ($($esxiHost.fqdn)), already exists: SKIPPED"
                                         }
                                     }
-                                }
-                            }
+                                # } else {
+                                #     Write-Error "Found ESXi hosts in Workload Domain ($domain) without a VMkernel port connected to ($portgroup) for vSphere Replication traffic: PRE_VALIDATION_FAILED"
+                                # }
+                            # } else {
+                            #     Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
+                            # }
                         }
-                    }
-                }
-            }
-        }
-        if (Test-VCFConnection -server $sddcManagerBFqdn) {
-            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
-                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
-                            if (!$existingPortGroupSiteB) {
-                                $PSCmdlet.ThrowTerminatingError(
-                                    [System.Management.Automation.ErrorRecord]::new(
-                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
-                                        'Get-VDPortGroup',
-                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                        ""
-                                    )
-                                )                                                
-                            } else {
-                                if ($existingPortGroupSiteB.Count -gt 1) {
-                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
-                                }
-                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
-                                $vmHostsToConfigure = @()
-                                Foreach ($siteBVMhost in $siteBVMhosts) {
-                                    $existingvSrVmkernel = $null
-                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
-                                    if ($existingvSrVmkernel) {
-                                        $vmHostsToConfigure += $siteBVMhost
-                                    }
-                                }
-                                if ($vmHostsToConfigure.Count -eq 0) {
-                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
-                                } else {
-                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
-                                        Try {
-                                            $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
-                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                            $existingRouteToRemove = $null
-                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
-                                                    $existingRouteToRemove = $true
-                                                }
-                                            }
-                                            if ($existingRouteToRemove) {
-                                                Try {
-                                                    $removeStaticRouteArgs = $null
-                                                    $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
-                                                    $removeStaticRouteArgs.gateway = $siteBGateway
-                                                    $removeStaticRouteArgs.network = $siteASubnet
-                                                    $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
-                                                } Catch {
-                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                }
-                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
-                                                $staticRouteStillExists = $null
-                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
-                                                    if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
-                                                        $staticRouteStillExists = $true
-                                                    }
-                                                }
-                                                if ($staticRouteStillExists) {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been removed from ESXi host ($($vmHostsToConfigure[$i])): POST_VALIDATION_FAILED"),
-                                                            'Undo-vSREsxiStaticRoute',
-                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                            ""
-                                                        )
-                                                    )
-                                                } else {
-                                                    Write-Output "Remove static route vSphere Replication traffic from ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
-                                                }
-                                            } else {
-                                                Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
-                                            }
-                                        } Catch {
-                                            $PSCmdlet.ThrowTerminatingError($PSItem)
-                                        } 
-                                    }
-                                }
-                            }
-                        }
+                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -5772,7 +5465,7 @@ Function Undo-vSREsxiStaticRoute {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Undo-vSREsxiStaticRoute
+Export-ModuleMember -Function Undo-EsxiVrmsStaticRoute
 
 Function Add-SrmLicenseKey {
     <#
@@ -34999,6 +34692,452 @@ Function Undo-vSRVMkernelPort {
     }
 }
 Export-ModuleMember -Function Undo-vSRVMKernelPort
+
+Function New-vSREsxiStaticRoute {
+    <#
+		.SYNOPSIS
+        Create a static route on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The New-vSREsxiStaticRoute cmdlet creates a static route on ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Creates static routes on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        defined in -siteAVLAN, -siteBVLAN, -siteASubnet, -siteBSubnet, -siteAGateway, and -siteBGateway paramters.
+
+        .EXAMPLE
+        New-vSREsxiStaticRoute -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteASubnet 172.27.15.0/24 -siteBSubnet 172.28.15.0/24 -siteAGateway 172.27.15.1 -siteBGateway 172.28.15.1
+        This example adds a static route to each ESXi host in the protected site VCF Management Domain to the recovery site vSphere Replication subnet (172.28.15.0/24) via the protected site vSphere Replication network gateway (172.27.15.1).
+        This example also adds a static route to each ESXi host in the recovery site VCF Management Domain to the protected site vSphere Replication subnet (172.27.15.0/24) via the recovery site vSphere Replication network gateway (172.28.15.1).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteASubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBSubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteAGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBGateway
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $siteANetwork = $siteASubnet.Split("/")[0]
+                            $siteACidr = $siteASubnet.Split("/")[1]
+                            [ipaddress] $siteANetmaskStub = 0
+                            $siteANetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteACidr) -shr (32 - $siteACidr)
+                            $siteANetmask = $siteANetmaskStub.IPAddressToString
+                            $siteBNetwork = $siteBSubnet.Split("/")[0]
+                            $siteBCidr = $siteBSubnet.Split("/")[1]
+                            [ipaddress] $siteBNetmaskStub = 0
+                            $siteBNetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteBCidr) -shr (32 - $siteBCidr)
+                            $siteBNetmask = $siteBNetmaskStub.IPAddressToString
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
+                                            $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $skipAdd = $null
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                    $skipAdd = $true
+                                                    $skipCountSiteA++
+                                                }
+                                            }
+                                            if (!$skipAdd) {
+                                                Try {
+                                                    $newStaticRouteArgs = $null
+                                                    $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
+                                                    $newStaticRouteArgs.gateway = $siteAGateway
+                                                    $newStaticRouteArgs.network = $siteBSubnet
+                                                    $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
+                                                } Catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteValidated = $null
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                        $staticRouteValidated = $true
+                                                    }
+                                                }
+                                                if (!$staticRouteValidated) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been added to ESXi host ($($vmHostsToConfigure[$i].fqdn)): POST_VALIDATION_FAILED"),
+                                                            'New-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                } else {
+                                                    Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        }
+                                        Catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
+                                            $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $skipAdd = $null
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                    $skipAdd = $true
+                                                }
+                                            }
+                                            if (!$skipAdd) {
+                                                Try {
+                                                    $newStaticRouteArgs = $null
+                                                    $newStaticRouteArgs = $esxcli.network.ip.route.ipv4.add.CreateArgs()
+                                                    $newStaticRouteArgs.gateway = $siteBGateway
+                                                    $newStaticRouteArgs.network = $siteASubnet
+                                                    $esxcli.network.ip.route.ipv4.add.Invoke($newStaticRouteArgs) | Out-Null
+                                                } Catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteValidated = $null
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                        $staticRouteValidated = $true
+                                                    }
+                                                }
+                                                if (!$staticRouteValidated) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been added to ESXi host ($($vmHostsToConfigure[$i])): POST_VALIDATION_FAILED"),
+                                                            'New-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                } else {
+                                                    Write-Output "Add static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Warning "Static route for vSphere Replication traffic already exists on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        } Catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-vSREsxiStaticRoute
+
+Function Undo-vSREsxiStaticRoute {
+    <#
+		.SYNOPSIS
+        Remove a static route from ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+
+        .DESCRIPTION
+        The Undo-vSREsxiStaticRoute cmdlet removes a static route from ESXi hosts for vSphere Replication traffic in the 
+        protected and recovery sites. The cmdlet connects to SDDC Manager in both the protected and recovery sites
+        using the -sddcManagerAFqdn, -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and
+        -sddcManagerBPass values:
+        - Validates that network connectivity and authentication is possible to both SDDC Manager instances
+        - Validates that network connectivity and authentication is possible to both vCenter Server instances
+        - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
+        - Removes a static route on ESXi hosts for vSphere Replication traffic in the protected and recovery sites
+        defined in -siteAVLAN, -siteBVLAN, -siteASubnet, -siteBSubnet, -siteAGateway, and -siteBGateway paramters.
+
+        .EXAMPLE
+        Undo-vSREsxiStaticRoute -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -siteAVLAN 2715 -siteBVLAN 2815 -siteASubnet 172.27.15.0/24 -siteBSubnet 172.28.15.0/24 -siteAGateway 172.27.15.1 -siteBGateway 172.28.15.1
+        This example removes a static route, if present, from each ESXi host in the protected site VCF Management Domain from the protected site to the recovery site vSphere Replication subnet (172.28.15.0/24) via the protected site vSphere Replication network gateway (172.27.15.1).
+        This example also removes a static route, if present, from each ESXi host in the recovery site VCF Management Domain from the recovery site to the protected site vSphere Replication subnet (172.27.15.0/24) via the recovery site vSphere Replication network gateway (172.28.15.1).
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteAVLAN,
+        [Parameter (Mandatory = $true)] [ValidateRange(0,4094)] [Int]$siteBVLAN,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteASubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBSubnet,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteAGateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$siteBGateway
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteA = Get-VDPortGroup -Server $siteAvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteAVLAN)}
+                            $siteANetwork = $siteASubnet.Split("/")[0]
+                            $siteACidr = $siteASubnet.Split("/")[1]
+                            [ipaddress] $siteANetmaskStub = 0
+                            $siteANetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteACidr) -shr (32 - $siteACidr)
+                            $siteANetmask = $siteANetmaskStub.IPAddressToString
+                            $siteBNetwork = $siteBSubnet.Split("/")[0]
+                            $siteBCidr = $siteBSubnet.Split("/")[1]
+                            [ipaddress] $siteBNetmaskStub = 0
+                            $siteBNetmaskStub.Address = ([UInt32]::MaxValue) -shl (32 - $siteBCidr) -shr (32 - $siteBCidr)
+                            $siteBNetmask = $siteBNetmaskStub.IPAddressToString
+                            if (!$existingPortGroupSiteA) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteAVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteA.Count -gt 1) {
+                                    $existingPortGroupSiteA = $existingPortGroupSiteA | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteAVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteAVMhost in $siteAVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteAvCenterDetails.fqdn -VMHost $siteAVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteAVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteAvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
+                                            $esxcli = Get-EsxCli -Server $SiteAvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $existingRouteToRemove = $null
+                                            foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                    $existingRouteToRemove = $true
+                                                }
+                                            }
+                                            if ($existingRouteToRemove) {
+                                                Try {
+                                                    $removeStaticRouteArgs = $null
+                                                    $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
+                                                    $removeStaticRouteArgs.gateway = $siteAGateway
+                                                    $removeStaticRouteArgs.network = $siteBSubnet
+                                                    $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
+                                                } Catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteStillExists = $null
+                                                foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteAGateway) -and ($existingStaticRoute.network -eq $siteBNetwork) -and ($existingStaticRoute.netmask -eq $siteBNetmask)) {
+                                                        $staticRouteStillExists = $true
+                                                    }
+                                                }
+                                                if ($staticRouteStillExists) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been removed from ESXi host ($($vmHostsToConfigure[$i].fqdn)): POST_VALIDATION_FAILED"),
+                                                            'Undo-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                } else {
+                                                    Write-Output "Remove static route vSphere Replication traffic on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        } Catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (Test-VCFConnection -server $sddcManagerBFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                            $existingPortGroupSiteB = Get-VDPortGroup -Server $siteBvCenterDetails.fqdn | Where-Object {($_.VlanConfiguration.VlanId -eq $SiteBVLAN)}
+                            if (!$existingPortGroupSiteB) {
+                                $PSCmdlet.ThrowTerminatingError(
+                                    [System.Management.Automation.ErrorRecord]::new(
+                                        ([System.Management.Automation.GetValueException]"No Distributed Virtual PortGroup with the defined VLAN ID ($SiteBVLAN) found: PRE_VALIDATION_FAILED"),
+                                        'Get-VDPortGroup',
+                                        [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                                        ""
+                                    )
+                                )                                                
+                            } else {
+                                if ($existingPortGroupSiteB.Count -gt 1) {
+                                    $existingPortGroupSiteB = $existingPortGroupSiteB | Where-Object {$_.Name -match "vrms"}  
+                                }
+                                $siteBVMhosts =  Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).clusters.id)}
+                                $vmHostsToConfigure = @()
+                                Foreach ($siteBVMhost in $siteBVMhosts) {
+                                    $existingvSrVmkernel = $null
+                                    $existingvSrVmkernel = Get-VMHostNetworkAdapter -Server $SiteBvCenterDetails.fqdn -VMHost $siteBVMhost.fqdn | Where-Object {$_.vSphereReplicationEnabled -eq $true}
+                                    if ($existingvSrVmkernel) {
+                                        $vmHostsToConfigure += $siteBVMhost
+                                    }
+                                }
+                                if ($vmHostsToConfigure.Count -eq 0) {
+                                    Write-Warning "ESXi hosts in VCF Management Domain ($((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT" -and $_.vcenters.fqdn -eq $siteBvCenterDetails.fqdn}).name)) are not configured with a VMkernel port for vSphere Replication traffic: SKIPPING"
+                                } else {
+                                    For ($i=0; $i -lt $vmHostsToConfigure.Count; $i++) {
+                                        Try {
+                                            $esxcli = Get-EsxCli -Server $SiteBvCenterDetails.fqdn -VMHost $vmHostsToConfigure[$i].fqdn -V2 -ErrorAction Stop
+                                            $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                            $existingRouteToRemove = $null
+                                            Foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                    $existingRouteToRemove = $true
+                                                }
+                                            }
+                                            if ($existingRouteToRemove) {
+                                                Try {
+                                                    $removeStaticRouteArgs = $null
+                                                    $removeStaticRouteArgs = $esxcli.network.ip.route.ipv4.remove.CreateArgs()
+                                                    $removeStaticRouteArgs.gateway = $siteBGateway
+                                                    $removeStaticRouteArgs.network = $siteASubnet
+                                                    $esxcli.network.ip.route.ipv4.remove.Invoke($removeStaticRouteArgs) | Out-Null
+                                                } Catch {
+                                                    $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                }
+                                                $existingStaticRoutes = $esxcli.network.ip.route.ipv4.list.Invoke()
+                                                $staticRouteStillExists = $null
+                                                Foreach ($existingStaticRoute in $existingStaticRoutes) {
+                                                    if (($existingStaticRoute.gateway -eq $siteBGateway) -and ($existingStaticRoute.network -eq $siteANetwork) -and ($existingStaticRoute.netmask -eq $siteANetmask)) {
+                                                        $staticRouteStillExists = $true
+                                                    }
+                                                }
+                                                if ($staticRouteStillExists) {
+                                                    $PSCmdlet.ThrowTerminatingError(
+                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                            ([System.Management.Automation.GetValueException]"Unable to validate static route for vSphere Replication has been removed from ESXi host ($($vmHostsToConfigure[$i])): POST_VALIDATION_FAILED"),
+                                                            'Undo-vSREsxiStaticRoute',
+                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
+                                                            ""
+                                                        )
+                                                    )
+                                                } else {
+                                                    Write-Output "Remove static route vSphere Replication traffic from ESXi host ($($vmHostsToConfigure[$i].fqdn)): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Warning "Static route for vSphere Replication traffic does not exist on ESXi host ($($vmHostsToConfigure[$i].fqdn)): SKIPPING"
+                                            }
+                                        } Catch {
+                                            $PSCmdlet.ThrowTerminatingError($PSItem)
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSREsxiStaticRoute
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
