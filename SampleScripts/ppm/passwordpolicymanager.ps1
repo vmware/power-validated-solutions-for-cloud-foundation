@@ -5,7 +5,7 @@
 
 <#
     .SYNOPSIS
-    Generate Password Policy Report and configure Password Policies 
+    Generate Password Policy Report and Configure Password Policies 
 
     .DESCRIPTION
     The passwordPolicyManager.ps1 provides a single script to generate a Password Policy Report for audit purposes and to 
@@ -51,231 +51,57 @@ Param (
 	[Parameter (mandatory = $false)] [Switch]$applyPasswordPolicy = $false
 )
 
+Clear-Host; Write-Host ""
+
 ################ Perform Prerequisite Check ####################
 
-Function checkingRequireModules {
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$moduleName,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$moduleVersion
-	)
-	
-	if (-Not (Get-module | Where-Object { $_.Name -eq $moduleName -And [version]$_.Version -ge [version]$moduleVersion })) {
-		if (-Not (Get-InstalledModule -Name $moduleName -MinimumVersion $moduleVersion -ErrorAction Ignore)) {
-			if (-Not (Get-InstalledModule -Name $moduleName -ErrorAction Ignore)) {
-				Write-Output "$moduleName module not installed."
-				Write-Output "Use the command 'Install-Module -Name $moduleName -MinimumVersion $moduleVersion' to install from the PS Gallery"
-				return $false
-			} else {
-				Write-Output "$moduleName does not meet the minimum version required: $moduleVersion"
-				Write-Output "Use the command 'Update-Module -Name $moduleName' to update module to the latest version from the PS Gallery."
-				return $false
-			}
-		} else {
-			Write-Output "$moduleName module with minimum version $moduleVersion available, but not imported."
-			Write-Output "Importing $moduleName version $moduleVersion ..."
-			Import-Module $moduleName
-			if (-Not (Get-module | Where-Object { $_.Name -eq $moduleName -And [version]$_.Version -ge [version]$moduleVersion })) {
-				Write-Output "Error: importing $moduleName"
-				Write-Output "Use the command 'Import-Module $moduleName' to manually import the module."
-				return $false
-			} else {
-				Write-Output "$moduleName $moduleVersion successfully imported."
-				return $true
-			}
-		}
-	} else {
-		Write-Output "Minimum required version of $moduleName found."
-		return $true
-	}
-}
+Function Test-PasswordPolicyManagerPrereq {
+    <#
+		.SYNOPSIS
+        Validate prerequisites to run the PowerShell module.
 
-# PowerShell modules required to run the script
-$requireModuleList = @(
-    [pscustomobject]@{ Module='PowerValidatedSolutions';Version='1.8.0' }
-	[pscustomobject]@{ Module='PowerVCF';Version='2.2.0' }
-)
+        .DESCRIPTION
+        The Test-PasswordPolicyManagerPrereq cmdlet checks that all the prerequisites have been met to run the PowerShell module.
 
-# Check if required modules have been imported
+        .EXAMPLE
+        Test-PasswordPolicyManagerPrereq
+        This example runs the prerequisite validation.
+    #>
 
-$errorModule = $false
-
-Write-Output "Checking Required Modules"
-foreach ($moduleItem in $requireModuleList) {
-	$result = checkingRequireModules -moduleName $moduleItem.Module -moduleVersion $moduleItem.Version
-	foreach ($line in $result) {
-		if ($line -eq $false) {
-			$errorModule = $true
-		} elseif ($line -eq $true) {
-		} else {
-		Write-Output $line
-		}
-	}
-}
-if ($errorModule) {
-	Write-Warning "Required PowerShell modules not found. Review messages messages and resolve before proceeding."
-	Exit
-}
-
-################ Perform Initialization ####################
-
-# Initialize Script Variables
-$ppmVariables = New-Object -TypeName psobject
-$ppmVariables | Add-Member -notepropertyname "sddcManagerFqdn" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "sddcManagerUser" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "sddcManagerPass" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "sddcDomainName" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "esxiCluster" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "ssoServerFqdn" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "ssoServerUser" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "ssoServerPass" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "skipWSA" -notepropertyvalue $false
-$ppmVariables | Add-Member -notepropertyname "wsaFqdn" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "wsaAdminUser" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "wsaAdminPass" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "skipDocComparison" -notepropertyvalue $false
-$ppmVariables | Add-Member -notepropertyname "commonPolicyFilePath" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "outputFilePath" -notepropertyvalue ""
-$ppmVariables | Add-Member -notepropertyname "standardConfiguration" -notepropertyvalue "null"
-$ppmVariables | Add-Member -notepropertyname "isEnvDetailSet" -notepropertyvalue $false
-
-$ppmStandardConfigValues = New-Object System.Collections.Generic.List[System.Object]
-$ppmEnvironmentalDetails = New-Object System.Collections.Generic.List[System.Object]
-
-# Initialize Script Log File
-Start-SetupLogFile -Path $PSScriptRoot -ScriptName $MyInvocation.MyCommand.Name
-
-################ Perform Parameters variable Check ####################
-
-Try {
-	# Test SDDC Manager connection
-	Write-LogMessage -Type INFO -Message "Testing connection to SDDC Manager server." -Colour Yellow
-	$checkServer = Test-Connection -ComputerName $sddcFqdn -Quiet -Count 1
-	if ($checkServer -eq "True") {
-		$testConnection = Request-VCFToken -fqdn $sddcFqdn -username $sddcUser -password $sddcPass -WarningVariable WarnMsg -ErrorVariable testError
-		if ($testError) {
-			Write-LogMessage -Type ERROR -Message "Testing a connection to server $sddcFqdn failed. Please check your details and try again." -Colour Red
-			Exit
-		} else {
-			# Test SDDC workload domain exists
-			$workloadDomainExists = Get-VCFWorkloadDomain -name $sddcDomain
-			if ($workloadDomainExists) {
-				Write-LogMessage -Type INFO -Message "Testing Completed Successfully" -Colour Yellow
-			} else {
-				Write-LogMessage -Type ERROR -Message "Workload Domain $sddcDomain not found. Please check your details and try again." -Colour Red
-				Exit
-			}
-		}
-	} else {
-		Write-LogMessage -Type ERROR -Message "Testing a connection to server $server failed. Please check your details and try again." -Colour Red
-		Exit
-	}
-	
-	# Setting variable
-	$ppmVariables.sddcManagerFqdn = $sddcFqdn
-	$ppmVariables.sddcManagerUser = $sddcUser
-	$ppmVariables.sddcManagerPass = $sddcPass
-	$ppmVariables.sddcDomainName = $sddcDomain
-	
-	# Retrieving vCenter SSO details 
-	if ($ssoFqdn -and $ssoUser -and $ssoPass) {
-		$ppmVariables.ssoServerFqdn = $ssoFqdn
-		$ppmVariables.ssoServerUser = $ssoUser
-		$ppmVariables.ssoServerPass = $ssoPass
-	} else {
-		# Retrieving vCenter SSO details from SDDC Manager
-		$vcenter = Get-vCenterServerDetail -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
-		$ppmVariables.ssoServerFqdn = $vcenter.fqdn
-		$ppmVariables.ssoServerUser = $vcenter.ssoAdmin
-		$ppmVariables.ssoServerPass = $vcenter.ssoAdminPass
-	}
-	
-	# Retrieving Workspace ONE Access details 
-	if ($wsaFqdn -and $wsaUser -and $wsaPass) {
-		$ppmVariables.wsaFqdn = $wsaFqdn
-		$ppmVariables.wsaAdminUser = $wsaUser
-		$ppmVariables.wsaAdminPass = $wsaPass
-	} else {
-		Write-LogMessage -Type INFO -Message "Workspace ONE Access server details not provided. Workspace ONE Access will be skipped." -Colour Cyan
-		$ppmVariables.skipWSA = $true
-	}
-	
-	if ($commonPolicyFile) {
-		$commonPolicyFile = Resolve-Path $commonPolicyFile
-		if (Test-Path $commonPolicyFile) {
-			Write-LogMessage -Type INFO -Message "$commonPolicyFile file found" -Colour Yellow
-			$ppmVariables.commonPolicyFilePath = $commonPolicyFile
-		} else {
-			Write-LogMessage -Type ERROR -Message "$commonPolicyFile file not found" -Colour Red
-			Exit
-		}
-	} else {
-		Write-LogMessage -Type INFO -Message "Standard Configuration file not provided. Comparison reporting will be skipped." -Colour Cyan
-		$ppmVariables.skipDocComparison = $true
-	}
-	if ($outputFilePath) {
-		if ($driftOnly) {
-			if (Split-Path -Path $outputFilePath -eq "") {
-				$outputFilePathTimeStampDir = "."
-			} else {
-				$outputFilePathTimeStampDir = Split-Path -Path $outputFilePath
-			}
-			$outputFilePathTimeStampFile = Split-Path -Path $outputFilePath -Leaf
-			if ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishHTML -eq $true)) {
-				Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .html file." -Colour Yellow
-				$outputFileExtension = ".html"
-			} elseif (-Not((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".html") -or (([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".htm")) -and ($publishHTML -eq $true)) {
-				$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
-				Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match HTML file type; save output file as a .html file." -Colour Yellow
-				$outputFileExtension = ".html"
-			} elseif ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishJSON -eq $true)) {
-				Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .json file." -Colour Yellow
-				$outputFileExtension = ".json"
-			} elseif (-Not(([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".json") -and ($publishJSON -eq $true)) {
-				$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
-				Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match JSON file type; save output file as a .json file." -Colour Yellow
-				$outputFileExtension = ".json"
-			} else {
-				$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
-			}
-			$outputFilePathTimeStampFile = ([System.IO.Path]::GetFileNameWithoutExtension($outputFilePathTimeStampFile)) + "_" + (Get-Date -format yyyyMMdd_HHmmss) + "driftOnly" + $outputFileExtension
-			$outputFilePathTimeStamp = Join-Path -Path $outputFilePathTimeStampDir -ChildPath $outputFilePathTimeStampFile
-		} else {
-			if ({ Split-Path -Path $outputFilePath } -eq "") {
-				$outputFilePathTimeStampDir = "."
-			} else {
-				$outputFilePathTimeStampDir = Split-Path -Path $outputFilePath
-			}
-			$outputFilePathTimeStampFile = Split-Path -Path $outputFilePath -Leaf
-			if ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishHTML -eq $true)) {
-				Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .html file." -Colour Yellow
-				$outputFileExtension = ".html"
-			} elseif (-Not((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".html") -or (([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".htm")) -and ($publishHTML -eq $true)) {
-				$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
-				Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match HTML file type; save output file as a .html file." -Colour Yellow
-				$outputFileExtension = ".html"
-			} elseif ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishJSON -eq $true)) {
-				Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .json file." -Colour Yellow
-				$outputFileExtension = ".json"
-			} elseif (-Not(([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".json") -and ($publishJSON -eq $true)) {
-				$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
-				Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match JSON file type; save output file as a .json file." -Colour Yellow
-				$outputFileExtension = ".json"
-			} else {
-				$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
-			}
-			$outputFilePathTimeStampFile = ([System.IO.Path]::GetFileNameWithoutExtension($outputFilePathTimeStampFile)) + "_" + (Get-Date -format yyyyMMdd_HHmmss) + $outputFileExtension
-			$outputFilePathTimeStamp = Join-Path -Path $outputFilePathTimeStampDir -ChildPath $outputFilePathTimeStampFile
-		}
-		if (Test-Path $outputFilePathTimeStamp) {
-			Write-LogMessage -Type ERROR -Message "$outputFilePathTimeStamp file exists." -Colour Red
-			Exit
-		} else {
-			$ppmVariables.outputFilePath = $outputFilePathTimeStamp
-		}
-	}
-}
-Catch {
-	Debug-ExceptionWriter -object $_
+    Try {
+        $modules = @(
+            @{ Name=("PowerVCF"); Version=("2.2.0")}
+            @{ Name=("PowerValidatedSolutions"); Version=("1.8.0")}
+            @{ Name=("VMware.PowerCLI"); Version=("12.4.1")}
+            @{ Name=("VMware.vSphere.SsoAdmin"); Version=("1.3.8")}
+        )
+        foreach ($module in $modules ) {
+            if ($PSEdition -eq "Desktop") {
+                if ((Get-InstalledModule -Name $module.Name).Version -lt $module.Version) {
+                    $message = "PowerShell Module: $($module.Name) Version: $($module.Version) Not Installed, Please update before proceeding."
+                    Write-Warning $message; Write-Host ""
+					Exit
+                } else {
+                    $message = "PowerShell Module: $($module.Name) Version: $($module.Version) Found, Supports the minimum required version."
+                    $message
+                }
+            } else {
+                if (!$module -eq "VMware.PowerCLI") {
+                    if ((Get-Module -Name $module.Name).Version -lt $module.Version) {
+                        $message = "PowerShell Module: $($module.Name) Version: $($module.Version) Not Installed, Please update before proceeding."
+                        Write-Warning $message; Write-Host ""
+                        Exit
+                    } else {
+                        $message = "PowerShell Module: $($module.Name) Version: $($module.Version) Found, Supports the minimum required version."
+                        $message
+                    }
+                }
+            }
+        }
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 
 ##################################################################################
@@ -1306,6 +1132,7 @@ Function exportReportJSON {
 ####   Configure environment password policies settings from the 			####
 ####   standard configuration file. 										####
 ################################################################################
+
 Function setEnvironmentPasswordPolicy {
 
 	Param (
@@ -1467,39 +1294,187 @@ Function setEnvironmentPasswordPolicy {
 	}
 }
 
-# MAIN FUNCTION
 Try {
-	if ((($publishHTML -or $publishJSON) -and $applyPasswordPolicy) -or ($publishHTML -and $publishJSON)) {
-		Write-LogMessage -Type ERROR -Message "Error multiple options triggered.  Please request only one option -publishJSON, -publishHTML or -applyPasswordPolicy." -Colour Red
-		Exit
-	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly) {
-		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		Exit
-	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly -eq $false) {
-		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -docCompare
-		Exit
-	} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $false) {
-		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -docCompare
-		Exit
-	} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $true) {
-		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		Exit
-	} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $true) {
-		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		Exit
-	} elseif ($applyPasswordPolicy) {
-		importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		setEnvironmentPasswordPolicy -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
-		Exit
+
+	################ Perform Initialization ####################
+
+	# Initialize Script Variables
+	$ppmVariables = New-Object -TypeName psobject
+	$ppmVariables | Add-Member -notepropertyname "sddcManagerFqdn" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "sddcManagerUser" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "sddcManagerPass" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "sddcDomainName" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "esxiCluster" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "ssoServerFqdn" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "ssoServerUser" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "ssoServerPass" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "skipWSA" -notepropertyvalue $false
+	$ppmVariables | Add-Member -notepropertyname "wsaFqdn" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "wsaAdminUser" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "wsaAdminPass" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "skipDocComparison" -notepropertyvalue $false
+	$ppmVariables | Add-Member -notepropertyname "commonPolicyFilePath" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "outputFilePath" -notepropertyvalue ""
+	$ppmVariables | Add-Member -notepropertyname "standardConfiguration" -notepropertyvalue "null"
+	$ppmVariables | Add-Member -notepropertyname "isEnvDetailSet" -notepropertyvalue $false
+
+	$ppmStandardConfigValues = New-Object System.Collections.Generic.List[System.Object]
+	$ppmEnvironmentalDetails = New-Object System.Collections.Generic.List[System.Object]
+
+	# Initialize Script Log File
+	Test-PasswordPolicyManagerPrereq
+	Start-SetupLogFile -Path $PSScriptRoot -ScriptName $MyInvocation.MyCommand.Name
+
+	################ Perform Parameters variable Check ####################
+
+	if (Test-VCFConnection -server $sddcFqdn) {
+		if (Test-VCFAuthentication -server $sddcFqdn -user $sddcUser -pass $sddcPass) {
+			if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $sddcDomain}) {
+				# Setting variable
+				$ppmVariables.sddcManagerFqdn = $sddcFqdn
+				$ppmVariables.sddcManagerUser = $sddcUser
+				$ppmVariables.sddcManagerPass = $sddcPass
+				$ppmVariables.sddcDomainName = $sddcDomain
+				
+				# Retrieving vCenter SSO details 
+				if ($ssoFqdn -and $ssoUser -and $ssoPass) {
+					$ppmVariables.ssoServerFqdn = $ssoFqdn
+					$ppmVariables.ssoServerUser = $ssoUser
+					$ppmVariables.ssoServerPass = $ssoPass
+				} else {
+					# Retrieving vCenter SSO details from SDDC Manager
+					$vcenter = Get-vCenterServerDetail -server $ppmVariables.sddcManagerFqdn -user $ppmVariables.sddcManagerUser -pass $ppmVariables.sddcManagerPass -domain $ppmVariables.sddcDomainName
+					$ppmVariables.ssoServerFqdn = $vcenter.fqdn
+					$ppmVariables.ssoServerUser = $vcenter.ssoAdmin
+					$ppmVariables.ssoServerPass = $vcenter.ssoAdminPass
+				}
+				
+				# Retrieving Workspace ONE Access details 
+				if ($wsaFqdn -and $wsaUser -and $wsaPass) {
+					$ppmVariables.wsaFqdn = $wsaFqdn
+					$ppmVariables.wsaAdminUser = $wsaUser
+					$ppmVariables.wsaAdminPass = $wsaPass
+				} else {
+					Write-LogMessage -Type INFO -Message "Workspace ONE Access server details not provided. Workspace ONE Access will be skipped." -Colour Cyan
+					$ppmVariables.skipWSA = $true
+				}
+				
+				if ($commonPolicyFile) {
+					$commonPolicyFile = Resolve-Path $commonPolicyFile
+					if (Test-Path $commonPolicyFile) {
+						Write-LogMessage -Type INFO -Message "$commonPolicyFile file found" -Colour Yellow
+						$ppmVariables.commonPolicyFilePath = $commonPolicyFile
+					} else {
+						Write-LogMessage -Type ERROR -Message "$commonPolicyFile file not found" -Colour Red
+						Exit
+					}
+				} else {
+					Write-LogMessage -Type INFO -Message "Standard Configuration file not provided. Comparison reporting will be skipped." -Colour Cyan
+					$ppmVariables.skipDocComparison = $true
+				}
+				if ($outputFilePath) {
+					if ($driftOnly) {
+						if (Split-Path -Path $outputFilePath -eq "") {
+							$outputFilePathTimeStampDir = "."
+						} else {
+							$outputFilePathTimeStampDir = Split-Path -Path $outputFilePath
+						}
+						$outputFilePathTimeStampFile = Split-Path -Path $outputFilePath -Leaf
+						if ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishHTML -eq $true)) {
+							Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .html file." -Colour Yellow
+							$outputFileExtension = ".html"
+						} elseif (-Not((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".html") -or (([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".htm")) -and ($publishHTML -eq $true)) {
+							$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
+							Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match HTML file type; save output file as a .html file." -Colour Yellow
+							$outputFileExtension = ".html"
+						} elseif ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishJSON -eq $true)) {
+							Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .json file." -Colour Yellow
+							$outputFileExtension = ".json"
+						} elseif (-Not(([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".json") -and ($publishJSON -eq $true)) {
+							$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
+							Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match JSON file type; save output file as a .json file." -Colour Yellow
+							$outputFileExtension = ".json"
+						} else {
+							$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
+						}
+						$outputFilePathTimeStampFile = ([System.IO.Path]::GetFileNameWithoutExtension($outputFilePathTimeStampFile)) + "_" + (Get-Date -format yyyyMMdd_HHmmss) + "driftOnly" + $outputFileExtension
+						$outputFilePathTimeStamp = Join-Path -Path $outputFilePathTimeStampDir -ChildPath $outputFilePathTimeStampFile
+					} else {
+						if ({ Split-Path -Path $outputFilePath } -eq "") {
+							$outputFilePathTimeStampDir = "."
+						} else {
+							$outputFilePathTimeStampDir = Split-Path -Path $outputFilePath
+						}
+						$outputFilePathTimeStampFile = Split-Path -Path $outputFilePath -Leaf
+						if ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishHTML -eq $true)) {
+							Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .html file." -Colour Yellow
+							$outputFileExtension = ".html"
+						} elseif (-Not((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".html") -or (([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".htm")) -and ($publishHTML -eq $true)) {
+							$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
+							Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match HTML file type; save output file as a .html file." -Colour Yellow
+							$outputFileExtension = ".html"
+						} elseif ((([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq "") -and ($publishJSON -eq $true)) {
+							Write-LogMessage -Type INFO -Message "The file extension was not provided; save output file as a .json file." -Colour Yellow
+							$outputFileExtension = ".json"
+						} elseif (-Not(([System.IO.Path]::GetExtension($outputFilePathTimeStampFile)) -eq ".json") -and ($publishJSON -eq $true)) {
+							$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
+							Write-LogMessage -Type INFO -Message "The file extension ($outputFileExtension) does not match JSON file type; save output file as a .json file." -Colour Yellow
+							$outputFileExtension = ".json"
+						} else {
+							$outputFileExtension = [System.IO.Path]::GetExtension($outputFilePathTimeStampFile)
+						}
+						$outputFilePathTimeStampFile = ([System.IO.Path]::GetFileNameWithoutExtension($outputFilePathTimeStampFile)) + "_" + (Get-Date -format yyyyMMdd_HHmmss) + $outputFileExtension
+						$outputFilePathTimeStamp = Join-Path -Path $outputFilePathTimeStampDir -ChildPath $outputFilePathTimeStampFile
+					}
+					if (Test-Path $outputFilePathTimeStamp) {
+						Write-LogMessage -Type ERROR -Message "$outputFilePathTimeStamp file exists." -Colour Red
+						Exit
+					} else {
+						$ppmVariables.outputFilePath = $outputFilePathTimeStamp
+					}
+
+					# MAIN FUNCTION
+					Try {
+						if ((($publishHTML -or $publishJSON) -and $applyPasswordPolicy) -or ($publishHTML -and $publishJSON)) {
+							Write-LogMessage -Type ERROR -Message "Error multiple options triggered.  Please request only one option -publishJSON, -publishHTML or -applyPasswordPolicy." -Colour Red
+							Exit
+						} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly) {
+							importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							Exit
+						} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $false -and $driftOnly -eq $false) {
+							importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails  -docCompare
+							Exit
+						} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $false) {
+							importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails -docCompare
+							Exit
+						} elseif ($publishJSON -and $ppmVariables.skipDocComparison -eq $true) {
+							getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							exportReportJSON -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							Exit
+						} elseif ($publishHTML -and $ppmVariables.skipDocComparison -eq $true) {
+							getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							exportReportHTML -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							Exit
+						} elseif ($applyPasswordPolicy) {
+							importStandardConfigurations -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							getEnvironmentPasswordPolicyDetail -ppmVariables $ppmVariables -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							setEnvironmentPasswordPolicy -ppmVariables $ppmVariables -ppmStandardConfigValues $ppmStandardConfigValues -ppmEnvironmentalDetails $ppmEnvironmentalDetails
+							Exit
+						}
+					} Catch {
+						Debug-ExceptionWriter -object $_
+					}
+				}
+			} else {
+				Write-Error "Unable to locate workload domain $domainSddc in $sddcFqdn SDDC Manager Server: PRE_VALIDATION_FAILED"
+			}
+		}
 	}
 } Catch {
 	Debug-ExceptionWriter -object $_

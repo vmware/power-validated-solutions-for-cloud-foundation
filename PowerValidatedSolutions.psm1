@@ -31844,20 +31844,15 @@ Function Test-VCFAuthentication {
 
     Remove-Item variable:accessToken -Force -Confirm:$false -ErrorAction Ignore
 
-    Try {
-        Request-VCFToken -fqdn $server -Username $user -Password $pass -skipCertificateCheck -ErrorAction Ignore -ErrorVariable ErrMsg | Out-Null
-        if ($accessToken) {
-            $vcfAuthentication = $True
-            Return $vcfAuthentication
-        }   
-        else {
-            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials: PRE_VALIDATION_FAILED"
-            $vcfAuthentication = $False
-            Return $vcfAuthentication
-        }
-    }
-    Catch {
-        # Do Nothing
+    Request-VCFToken -fqdn $server -Username $user -Password $pass -skipCertificateCheck -ErrorAction SilentlyContinue -ErrorVariable ErrMsg | Out-Null
+    if ($accessToken) {
+        $vcfAuthentication = $True
+        Return $vcfAuthentication
+    }   
+    else {
+        Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials: PRE_VALIDATION_FAILED"
+        $vcfAuthentication = $False
+        Return $vcfAuthentication
     }
 }
 Export-ModuleMember -Function Test-VCFAuthentication
