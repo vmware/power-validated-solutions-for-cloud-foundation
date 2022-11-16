@@ -30,55 +30,55 @@ The `passwordPolicyManager.ps1` PowerShell script has been tested with the follo
 
 2. Navigate to the Password Policy Manager folder contained within the SampleScripts folder under the PowerValidatedSolutions install folder.
 
-``` bash
- cd "C:\Program Files\WindowsPowerShell\Modules\PowerValidatedSolutions\<PowerValidatedSolutions-version>\SampleScripts\ppm"
-```
+    ```shell
+    cd "C:\Program Files\WindowsPowerShell\Modules\PowerValidatedSolutions\<PowerValidatedSolutions-version>\SampleScripts\ppm"
+    ```
 
 3. Duplicate the `sampleConfigurationFull.json` or `sampleConfigurationFull.json` file to `myConfiguration.json` in the directory.
 
-``` bash
- copy sampleConfigurationSimple.json myConfiguration.json
-```
+    ```shell
+    copy sampleConfigurationSimple.json myConfiguration.json
+    ```
 
-or
+    or
 
-``` bash
- copy sampleConfigurationFull.json myConfiguration.json
-```
+    ```shell
+    copy sampleConfigurationFull.json myConfiguration.json
+    ```
 
 4. Open the `myConfiguration.json` file, update the values based on your password policy requirements using the [Sample Configuration Guidance](#sample-configuration-guidance) section for guidance, and save the file.
 
 5. Replace the values in the sample code with your values and run the commands in the PowerShell console.
 
-``` powerShell
- $sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io"
- $sddcManagerUser = "administrator@vsphere.local"
- $sddcManagerPass = "VMw@re1!"
- $sddcManagerDomain = “sfo-m01”
- $wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io"
- $wsaServerUser= "admin"
- $wsaServerPass = "VMw@re1!"
- $configurationFile = ".\myConfiguration.json"
- $outputFile = ".\passwordPolicyReport"
-```
+    ```powerShell
+    $sddcManagerFqdn = "sfo-vcf01.sfo.rainpole.io"
+    $sddcManagerUser = "administrator@vsphere.local"
+    $sddcManagerPass = "VMw@re1!"
+    $sddcManagerDomain = “sfo-m01”
+    $wsaServerFqdn = "sfo-wsa01.sfo.rainpole.io"
+    $wsaServerUser= "admin"
+    $wsaServerPass = "VMw@re1!"
+    $configurationFile = ".\myConfiguration.json"
+    $outputFile = ".\passwordPolicyReport"
+    ```
 
 6. Generate the Password Policy Report by running the command in the PowerShell console.
 
-``` powerShell
- .\passwordPolicyManager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $configurationFile -outputFile $outputFile -publishHTML
-```
+    ```powerShell
+    .\passwordPolicyManager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $configurationFile -outputFile $outputFile -publishHTML
+    ```
 
 7. Export the existing Password Policy configuration for a Workload Domain to a JSON.
 
-``` powerShell
- .\passwordPolicyManager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $configurationFile -outputFile $outputFile -publishJSON
-```
+    ```powerShell
+    .\passwordPolicyManager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $configurationFile -outputFile $outputFile -publishJSON
+    ```
 
 8. Apply the Password Policy configuration to a Workload Domain
 
-```powershell
- .\passwordPolicyManager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $configurationFile -applyPasswordPolicy
-```
+    ```powershell
+    .\passwordPolicyManager.ps1 -sddcFqdn $sddcManagerFqdn -sddcUser $sddcManagerUser -sddcPass $sddcManagerPass -sddcDomain $sddcManagerDomain -wsaFqdn $wsaServerFqdn -wsaUser $wsaServerUser -wsaPass $wsaServerPass -commonPolicyFile $configurationFile -applyPasswordPolicy
+    ```+
 
 ## Sample Configuration Guidance
 
