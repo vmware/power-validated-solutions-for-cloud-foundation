@@ -1,18 +1,15 @@
 # `passwordPolicyManager`
 
-## Table of Contents
-
 - [`passwordPolicyManager`](#passwordpolicymanager)
-	- [Table of Contents](#table-of-contents)
-	- [Introduction](#introduction)
-	- [Requirements](#requirements)
-	- [Getting Started](#getting-started)
-	- [Sample Configuration Guidance](#sample-configuration-guidance)
-	- [Known Issues](#known-issues)
+  - [Introduction](#introduction)
+  - [Requirements](#requirements)
+  - [Getting Started](#getting-started)
+  - [Sample Configuration Guidance](#sample-configuration-guidance)
+  - [Known Issues](#known-issues)
 
 ## Introduction
 
-The `passwordPolicyManager.ps1` PowerShell script is used to retrieve and configure password policy settings for ESXi, vCenter Server, vCenter Single Sign On, NSX, and Workspace ONE Access.
+The `passwordPolicyManager.ps1` PowerShell script is used to retrieve and configure password policy settings for ESXi, vCenter Server, vCenter Single Sign-On, NSX, and Workspace ONE Access.
 
 You can configure the existing `sampleConfigurationSimple.json` file with a set of password policy requirements and use the file to generate a report with the current password settings or directly configure the password settings for each product.
 
