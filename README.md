@@ -24,8 +24,8 @@ This infrastructure-as-code model enables you to use the module "out-of-the-box"
 
 ### PowerShell Modules
 
-* [`VMware.PowerCLI`][module-vmware-powercli] 12.4.1 or higher
-* [`VMware.vSphere.SsoAdmin`][module-vmware-vsphere-ssoadmin] 1.3.7 or higher
+* [`VMware.PowerCLI`][module-vmware-powercli] 12.7.0 or higher
+* [`VMware.vSphere.SsoAdmin`][module-vmware-vsphere-ssoadmin] 1.3.8 or higher
 * [`PowerVCF`][module-powervcf] 2.2.0 or higher
 * [`ImportExcel`][module-importexcel] 7.1.1 or higher
 
@@ -39,11 +39,11 @@ Install the supporting PowerShell modules from the PowerShell Gallery by running
 
 ```powershell
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Install-Module -Name VMware.PowerCLI -MinimumVersion 12.4.1
-Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.7
+Install-Module -Name VMware.PowerCLI -MinimumVersion 12.7.0
+Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.8
 Install-Module -Name ImportExcel -MinimumVersion 7.1.1
 Install-Module -Name PowerVCF -MinimumVersion 2.2.0
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.9.0
+Install-Module -Name PowerValidatedSolutions -MinimumVersion 1.10.0
 ```
 
 To verify the modules are installed, run the following command in the PowerShell console.

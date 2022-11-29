@@ -1,6 +1,6 @@
 # Release History
 
-## v1.10.0 (Not Released)
+## v1.10.0 (2022-29-11)
 
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
 - Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
