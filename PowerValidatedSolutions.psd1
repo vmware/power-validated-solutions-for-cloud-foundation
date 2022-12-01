@@ -12,7 +12,7 @@
     RootModule = 'PowerValidatedSolutions.psm1'
     
     # Version number of this module.
-    ModuleVersion = '1.10.0.1003'
+    ModuleVersion = '2.0.0.1001'
     
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -27,7 +27,7 @@
     CompanyName = 'VMware Inc.'
     
     # Copyright statement for this module
-    Copyright = 'Copyright 2021-2022 VMware, Inc.'
+    Copyright = 'Copyright 2021-2023 VMware, Inc.'
     
     # Description of the functionality provided by this module
     Description = 'PowerShell Module for VMware Validated Solutions'
