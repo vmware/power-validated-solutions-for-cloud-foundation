@@ -396,136 +396,6 @@ Function Undo-SddcManagerRole {
 }
 Export-ModuleMember -Function Undo-SddcManagerRole
 
-Function Get-VCServerPasswordPolicy {
-	<#
-        .SYNOPSIS
-        Retrieves a vCenter servers' Password Policies
-
-        .DESCRIPTION
-        The Get-VCServerPasswordPolicy cmdlet returns the currently configured password expiration period
-		and the email for warning notification settings for the vCenter Server root account
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vCenter Server
-		- Retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
-
-        .EXAMPLE
-        Get-VCServerPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
-    #>
-
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
-	)
-
-	Try {
-		if (Test-Connection -server $server) {
-			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-								Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
-								$pwdExpirySettings = Get-VCPasswordExpiry
-								if ($pwdExpirySettings){
-									foreach ($configurationString in $pwdExpirySettings.PSObject.Properties) {
-										if ($configurationString.name -eq "email") {
-											$passwdNotifyEmail = $configurationString.value
-										}
-										if ($configurationString.name -eq "max_days_between_password_change") {
-											$passwdExpInDays = $configurationString.value
-										}
-									}
-									$vcPasswdPolicy = New-Object -TypeName psobject
-									$vcPasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $vcfVcenterDetails.fqdn
-									$vcPasswdPolicy | Add-Member -notepropertyname "email" -notepropertyvalue $passwdNotifyEmail
-									$vcPasswdPolicy | Add-Member -notepropertyname "max_days_between_password_change" -notepropertyvalue $passwdExpInDays
-									return $vcPasswdPolicy
-								} else {
-									Write-Error "Unable to retrieve password policy for vCenter server '$server'"
-								}
-							}
-						}
-					}
-				} else {
-                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
-                }
-			}
-		}
-	} Catch{
-		Debug-ExceptionWriter -object $_
-	}
-}
-Export-ModuleMember -Function Get-VCServerPasswordPolicy
-
-Function Set-vCenterPasswordExpiration {
-    <#
-		.SYNOPSIS
-		Set the password expiration for the root account
-
-        .DESCRIPTION
-        The Set-vCenterPasswordExpiration cmdlet configures password expiration settings for the vCenter Server root
-        account. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vCenter Server
-		- Configures the password expiration either to never expire or to expire in given number of days
-		- Sets the email for warning notification to given value
-
-        .EXAMPLE
-        Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $true -email "administrator@rainpole.io" -maxDaysBetweenPasswordChange 999
-        This example configures the password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
-
-        .EXAMPLE
-		Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $false
-        This example configures the password expiration settings for the vCenter Server root account to never expire
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-		[Parameter (Mandatory = $false, ParameterSetName = 'neverexpire')]
-		[Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [Bool]$passwordExpires,
-        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
-        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$maxDaysBetweenPasswordChange
-	)
-
-	Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                            Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoadmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
-                            $pwdExpirySettings = Get-VCPasswordExpiry
-                            if ($passwordExpires) {
-                                Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
-                            } else {
-                                Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
-                            }
-                            $pwdExpirySettings = Get-VCPasswordExpiry
-                            if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
-                                Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to (Never Expire): SUCCESSFUL"
-                            } else {
-                                Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to ($($pwdExpirySettings.max_days_between_password_change) days) and Email Notification to ($($pwdExpirySettings.email)): SUCCESSFUL"
-                            }
-                        }
-                    }
-                } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                }
-            }
-        }
-	} Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-vCenterPasswordExpiration
-
 Function Install-WorkspaceOne {
     <#
 		.SYNOPSIS
@@ -16373,6 +16243,256 @@ Function Update-EsxiAccountLockout {
 }
 Export-ModuleMember -Function Update-EsxiAccountLockout
 
+Function Request-VcenterPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Retrieves the global password expiration policy
+
+        .DESCRIPTION
+        The Request-VcenterPasswordExpiration cmdlet retrieves the global password expiration policy for a vCenter
+        Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrives the global password expiration policy
+
+        .EXAMPLE
+        Request-VcenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the global password expiration policy for the vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if ($VcenterPasswordExpiration = Get-VcenterPasswordExpiration) {
+                                    $VcenterPasswordExpirationObject = New-Object -TypeName psobject
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Server"
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Password Expiration"
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterPasswordExpiration.min_days
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterPasswordExpiration.max_days
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterPasswordExpiration.warn_days
+                                } else {
+                                    Write-Error "Unable to retrieve password expiration policy from vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                                return $VcenterPasswordExpirationObject
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-VcenterPasswordExpiration
+
+Function Request-VcenterRootPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Retrieves the root user password expiration policy
+
+        .DESCRIPTION
+        The Request-VcenterRootPasswordExpiration cmdlet retrieves the root user password expiration policy for a
+        vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrives the root user password expiration policy
+
+        .EXAMPLE
+        Request-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the root user password expiration policy for the vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if ($VcenterRootPasswordExpiration = Get-VcenterRootPasswordExpiration) {
+                                    $VcenterRootPasswordExpirationObject = New-Object -TypeName psobject
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Server"
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Root Password Expiration"
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterRootPasswordExpiration.min_days_between_password_change
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterRootPasswordExpiration.max_days_between_password_change
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterRootPasswordExpiration.warn_days_before_password_expiration
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Email" -notepropertyvalue $VcenterRootPasswordExpiration.email
+                                } else {
+                                    Write-Error "Unable to retrieve root password expiration policy from vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                                return $VcenterRootPasswordExpirationObject
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-VcenterRootPasswordExpiration
+
+Function Update-VcenterPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Update the global password expiration policy
+
+        .DESCRIPTION
+        The Update-VcenterPasswordExpiration cmdlet configures the global password expiration policy of a vCenter Server.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the global password expiration policy
+
+        .EXAMPLE
+        Update-VcenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -maxDays 999 -minDays 0 -warnDays 14
+        This example configures the password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$maxDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$warnDays
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                # $pwdExpirySettings = Get-VcenterPasswordExpiration
+                                if ((Get-VcenterPasswordExpiration).max_days -ne $maxDays -or (Get-VcenterPasswordExpiration).min_days -ne $minDays -or (Get-VcenterPasswordExpiration).warn_days -ne $warnDays) {
+                                    Set-VcenterPasswordExpiration -maxDays $maxDays -minDays $minDays -warnDays $warnDays | Out-Null
+                                    if ((Get-VcenterPasswordExpiration).max_days -eq $maxDays -and (Get-VcenterPasswordExpiration).min_days -eq $minDays -and (Get-VcenterPasswordExpiration).warn_days -eq $warnDays) {
+                                        Write-Output "Update Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Update Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Update Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-VcenterPasswordExpiration
+
+Function Update-VcenterRootPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Update the root user password expiration policy
+
+        .DESCRIPTION
+        The Update-VcenterRootPasswordExpiration cmdlet configures the root user password expiration policy of a
+        vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the root user password expiration policy
+
+        .EXAMPLE
+        Update-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -email "admin@rainpole.io" -maxDays 999 -warnDays 14
+        This example configures the configures password expiration settings for the vCenter Server root account
+
+        .EXAMPLE
+        Update-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -neverexpire
+        This example configures the configures password expiration settings for the vCenter Server root account to never expire
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
+        [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$maxDays,
+        [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$warnDays,
+        [Parameter (Mandatory = $false, ParameterSetName = 'neverexpire')] [ValidateNotNullOrEmpty()] [Switch]$neverexpire
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if ($PsBoundParameters.ContainsKey("neverexpire")) { 
+                                    if ((Get-VcenterRootPasswordExpiration).max_days_between_password_change -ne -1) {
+                                        Set-VcenterRootPasswordExpiration -neverexpire | Out-Null
+                                        if ((Get-VcenterRootPasswordExpiration).max_days_between_password_change -ne -1) {
+                                            Write-Output "Update Root Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Update Root Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Update Root Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
+                                    }
+                                } else {
+                                    if ((Get-VcenterRootPasswordExpiration).max_days_between_password_change -ne $maxDays -or (Get-VcenterRootPasswordExpiration).email -ne $email -or (Get-VcenterRootPasswordExpiration).warn_days_before_password_expiration -ne $warnDays) {
+                                        Set-VcenterRootPasswordExpiration -email $email -maxDays $maxDays -warnDays $warnDays | Out-Null
+                                        if ((Get-VcenterRootPasswordExpiration).max_days_between_password_change -eq $maxDays -or (Get-VcenterRootPasswordExpiration).min_days_between_password_change -eq $minDays -or (Get-VcenterRootPasswordExpiration).warn_days_before_password_expiration -eq $warnDays) {
+                                            Write-Output "Update Root Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Update Root Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Update Root Password Expiration Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
+
 #EndRegion  End ESXi Password Management Functions             ######
 #####################################################################
 
@@ -17288,40 +17408,38 @@ Function Get-VCConfigurationDNS {
 }
 Export-ModuleMember -Function Get-VCConfigurationDNS
 
-Function Get-VCPasswordPolicy {
+Function Get-VcenterPasswordExpiration {
     <#
     .SYNOPSIS
-        Get the global password policy.
+        Retrive the global password expiration policy
 
         .DESCRIPTION
-        The Get-VCPasswordPolicy cmdlet gets global password policy for the vCenter Server
+        The Get-VcenterPasswordExpiration cmdlet retrives the global password expiration policy for local users of vCenter Server
 
         .EXAMPLE
-        Get-VCPasswordPolicy
-        This example gets the global password policy of the vCenter Server
+        Get-VcenterPasswordExpiration
+        This example gets the global password expiration policy of the vCenter Server
     #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-VCPasswordPolicy
+Export-ModuleMember -Function Get-VcenterPasswordExpiration
 
-Function Set-VCPasswordPolicy {
+Function Set-VcenterPasswordExpiration {
     <#
         .SYNOPSIS
-        Set the global password policy
+        Configure the global password expiration policy
 
         .DESCRIPTION
-        The Set-VCPasswordPolicy cmdlet configures the global password policy for the vCenter Server
+        The Set-VCPasswordPolicy cmdlet configures the global password expiration policy for the vCenter Server
 
         .EXAMPLE
-        Set-VCPasswordPolicy -maxDays 120 -minDays 1 -warnDays 14
+        Set-VcenterPasswordExpiration -maxDays 999 -minDays 0 -warnDays 14
         This example configures the global password policy of the vCenter Server
     #>
 
@@ -17334,103 +17452,75 @@ Function Set-VCPasswordPolicy {
     Try {
         $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
         $body = '{ "max_days": '+$maxDays+', "min_days": '+$minDays+', "warn_days": '+$warnDays+' }'
-        $response = Invoke-RestMethod -Method PUT -Uri $uri -Headers $vcApiHeaders -Body $body
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method PUT -Uri $uri -Headers $vcApiHeaders -Body $body
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Set-VCPasswordPolicy
+Export-ModuleMember -Function Set-VcenterPasswordExpiration
 
-Function Get-VCRootPasswordExpiry {
+Function Get-VcenterRootPasswordExpiration {
     <#
     .SYNOPSIS
-		Get the vCenter Servver root user password expiry date.
+		Retrive the root user password expiration policy
 
         .DESCRIPTION
-        The Get-VCRootPasswordExpiry cmdlet gets password expiration settings for the vCenter Server root account
+        The Get-VcenterRootPasswordExpiration cmdlet retrives the root user password expiration policy from vCenter Server
 
         .EXAMPLE
-        Get-VCRootPasswordExpiry
-        This example gets the password policy of the vCenter Server root account
+        Get-VcenterRootPasswordExpiration
+        This example gets the root user password expiration policy from vCenter Server
     #>
 
     Try {
-        if ($vcenterApiHeaders) {
-            $uri = "https://$vcenterApiServer/rest/appliance/local-accounts/root"
-            (Invoke-RestMethod -Method GET -Uri $uri -Headers $vcenterApiHeaders).Value
+        if ($vcApiHeaders) {
+            $uri = "https://$vcApiServer/rest/appliance/local-accounts/root"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders).Value
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-VCRootPasswordExpiry
+Export-ModuleMember -Function Get-VcenterRootPasswordExpiration
 
-Function Get-VCPasswordExpiry {
-    <#
-    .SYNOPSIS
-		Get the vcenter password expiry date.
-
-        .DESCRIPTION
-        The Get-VCPasswordPolicy cmdlet gets password expiration settings for the vCenter Server root account
-
-        .EXAMPLE
-        Get-VCPasswordExpiry
-        This example gets the password policy of the vCenter Server
-    #>
-
-    Try {
-        $uri = "https://$vcApiAdminServer/rest/appliance/local-accounts/root"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiAdminHeaders
-        $response
-    }
-    Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-VCPasswordExpiry
-
-Function Set-VCPasswordExpiry {
+Function Set-VcenterRootPasswordExpiration {
     <#
         .SYNOPSIS
         Set the vcenter password expiry date
 
         .DESCRIPTION
-        The Set-VCPasswordExpiry cmdlet configures password expiration settings for the vCenter Server root account
+        The Set-VcenterRootPasswordExpiration cmdlet configures password expiration settings for the vCenter Server root account
 
         .EXAMPLE
-        Set-VCPasswordExpiry -passwordExpires $true -email "admin@rainpole.io" -maxDaysBetweenPasswordChange 91
+        Set-VcenterRootPasswordExpiration -email "admin@rainpole.io" -maxDays 999 -warnDays 14
         This example configures the configures password expiration settings for the vCenter Server root account
 
-		Set-VCPasswordExpiry -passwordExpires $false
+        .EXAMPLE
+        Set-VcenterRootPasswordExpiration -neverexpire
         This example configures the configures password expiration settings for the vCenter Server root account to never expire
     #>
 
     Param (
-        [Parameter (Mandatory = $false, ParameterSetName = 'neverexpire')] [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [Bool]$passwordExpires,
-        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
-        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$maxDaysBetweenPasswordChange
+        [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
+        [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$maxDays,
+        [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$warnDays,
+        [Parameter (Mandatory = $false, ParameterSetName = 'neverexpire')] [ValidateNotNullOrEmpty()] [Switch]$neverexpire
     )
 
     Try {
-        $uri = "https://$vcApiAdminServer/rest/appliance/local-accounts/root"
-
-		if ($passwordExpires) {
-			$body = '{"config":{"password_expires": "'+ $passwordExpires +'", "email": "'+ $email+ '", "max_days_between_password_change": "' + $maxDaysBetweenPasswordChange + '" }}'
-		}
-        else {
-			$body = '{"config":{"password_expires": "'+ $passwordExpires + '"}}'
-		}
-        $response = Invoke-RestMethod -Method PATCH -Uri $uri -Headers $vcApiAdminHeaders -Body $body
-        $response
-    }
-    Catch {
+        if ($PsBoundParameters.ContainsKey("neverexpire")) {
+            $body = '{"config":{"password_expires": false}}'
+        } else {
+            
+            $body = '{"config":{"password_expires": true, "email": "'+ $email+ '", "max_days_between_password_change": "' + $maxDays + '", "warn_days_before_password_expiration": "' + $warnDays + '"}}'
+        }
+        $uri = "https://$vcApiServer/rest/appliance/local-accounts/root"
+        Invoke-RestMethod -Method PATCH -Uri $uri -Headers $vcApiHeaders -Body $body
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Set-VCPasswordExpiry
+Export-ModuleMember -Function Set-VcenterRootPasswordExpiration
 
 Function Get-GlobalPermission {
     <#
@@ -35639,6 +35729,136 @@ Function Set-EsxiPasswordPolicy {
     }
 }
 Export-ModuleMember -Function Set-EsxiPasswordPolicy
+
+Function Get-VCServerPasswordPolicy {
+	<#
+        .SYNOPSIS
+        Retrieves a vCenter servers' Password Policies
+
+        .DESCRIPTION
+        The Get-VCServerPasswordPolicy cmdlet returns the currently configured password expiration period
+		and the email for warning notification settings for the vCenter Server root account
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
+
+        .EXAMPLE
+        Get-VCServerPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password expiration period and the email for warning notification settings for the vCenter Server root account
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoAdmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
+								$pwdExpirySettings = Get-VCPasswordExpiry
+								if ($pwdExpirySettings){
+									foreach ($configurationString in $pwdExpirySettings.PSObject.Properties) {
+										if ($configurationString.name -eq "email") {
+											$passwdNotifyEmail = $configurationString.value
+										}
+										if ($configurationString.name -eq "max_days_between_password_change") {
+											$passwdExpInDays = $configurationString.value
+										}
+									}
+									$vcPasswdPolicy = New-Object -TypeName psobject
+									$vcPasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $vcfVcenterDetails.fqdn
+									$vcPasswdPolicy | Add-Member -notepropertyname "email" -notepropertyvalue $passwdNotifyEmail
+									$vcPasswdPolicy | Add-Member -notepropertyname "max_days_between_password_change" -notepropertyvalue $passwdExpInDays
+									return $vcPasswdPolicy
+								} else {
+									Write-Error "Unable to retrieve password policy for vCenter server '$server'"
+								}
+							}
+						}
+					}
+				} else {
+                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch{
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Get-VCServerPasswordPolicy
+
+Function Set-vCenterPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Set the password expiration for the root account
+
+        .DESCRIPTION
+        The Set-vCenterPasswordExpiration cmdlet configures password expiration settings for the vCenter Server root
+        account. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the password expiration either to never expire or to expire in given number of days
+		- Sets the email for warning notification to given value
+
+        .EXAMPLE
+        Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $true -email "administrator@rainpole.io" -maxDaysBetweenPasswordChange 999
+        This example configures the password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
+
+        .EXAMPLE
+		Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $false
+        This example configures the password expiration settings for the vCenter Server root account to never expire
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $false, ParameterSetName = 'neverexpire')]
+		[Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [Bool]$passwordExpires,
+        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
+        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$maxDaysBetweenPasswordChange
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoadmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
+                            $pwdExpirySettings = Get-VCPasswordExpiry
+                            if ($passwordExpires) {
+                                Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
+                            } else {
+                                Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
+                            }
+                            $pwdExpirySettings = Get-VCPasswordExpiry
+                            if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
+                                Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to (Never Expire): SUCCESSFUL"
+                            } else {
+                                Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to ($($pwdExpirySettings.max_days_between_password_change) days) and Email Notification to ($($pwdExpirySettings.email)): SUCCESSFUL"
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-vCenterPasswordExpiration
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
