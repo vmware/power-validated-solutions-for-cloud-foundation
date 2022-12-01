@@ -396,85 +396,6 @@ Function Undo-SddcManagerRole {
 }
 Export-ModuleMember -Function Undo-SddcManagerRole
 
-Function Get-EsxiPasswordPolicy {
-	<#
-        .SYNOPSIS
-        Retrieves ESXi Host Password Policies
-
-        .DESCRIPTION
-        The Get-EsxiPasswordPolicy cmdlet retrieves a list of ESXi hosts displaying the currently
-        configured password policy nested within a vSphere cluster  
-		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that the workload domain exists in the SDDC Manager inventory
-        - Validates that network connectivity and authentication is possible to vCenter Server
-        - Gathers the ESXi hosts for the cluster specificed
-        - Retrieve all ESXi hosts password policies
-
-        .EXAMPLE
-        Get-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl0l
-        This example retrieves all ESXi hosts password policies within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
-    #>
-
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
-	)
-	
-	# Create the ESXi Host object
-	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
-	
-	Try {
-		if (Test-Connection -server $server) {
-			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
-									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
-									if ($esxiHosts) {
-										Foreach ($esxiHost in $esxiHosts) {
-											# retreving ESXi password policy string
-											$passwordPolicy = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
-											# retreving ESXi password Expiration Period
-											$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
-											if ($passwordPolicy -and $passwordExpire) {
-												# parsing ESXi password policy string
-												$nodePasswdPolicy = New-Object -TypeName psobject
-												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
-												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordMaxDays" -notepropertyvalue $passwordExpire.Value
-												$nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordPolicy.Value
-												$esxiPasswdPolicy.Add($nodePasswdPolicy)
-												Remove-Variable -Name nodePasswdPolicy
-											} else {
-												Write-Error "Unable to retrieve password policy from ESXi host '$esxiHost.Name'"
-											}
-										}
-										return $esxiPasswdPolicy
-									} else {
-										Write-Warning "No ESXi hosts found within $cluster cluster."
-									}
-								} else {
-                                    Write-Error "Unable to locate Cluster $cluster in $vcfVcenterDetails.fqdn vCenter Server: PRE_VALIDATION_FAILED"
-								}
-							}
-						}
-					}
-				} else {
-                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
-                }
-			}
-		}
-	} Catch {
-		Debug-ExceptionWriter -object $_
-	}
-}
-Export-ModuleMember -Function Get-EsxiPasswordPolicy
-
 Function Get-VCServerPasswordPolicy {
 	<#
         .SYNOPSIS
@@ -604,152 +525,6 @@ Function Set-vCenterPasswordExpiration {
     }
 }
 Export-ModuleMember -Function Set-vCenterPasswordExpiration
-
-Function Set-EsxiPasswordExpirationPeriod {
-	<#
-		.SYNOPSIS
-        Set ESXi password expiration period in days
-
-        .DESCRIPTION
-		The Set-EsxiPasswordExpirationPeriod cmdlet configures the password expiration period policies on ESXi. 
-		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that the workload domain exists in the SDDC Manager inventory
-        - Validates that network connectivity and authentication is possible to vCenter Server
-        - Gathers the ESXi hosts for the cluster specificed
-        - Configured all ESXi hosts in he provided cluster
-
-        EXAMPLE
-        Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
-        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
-    #>
-
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ExpirationInDays,
-        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
-	)
-	
-	Try {
-		if (Test-Connection -server $server) {
-			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-				if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-								if (Get-Cluster | Where-Object { $_.Name -eq $cluster }) {
-									$esxiHosts = Get-Cluster $cluster | Get-VMHost
-									Foreach ($esxiHost in $esxiHosts) {
-										$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
-										if ($passwordExpire) {
-											Set-AdvancedSetting -AdvancedSetting $passwordExpire -Value $ExpirationInDays -Confirm:$false | Out-Null
-											$checkSetting = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
-                                            if ($checkSetting -match $ExpirationInDays) {
-                                                if ($detail -eq "true") {
-                                                    Write-Output "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): SUCCESSFUL"
-                                                }
-                                            } else {
-                                                Write-Error "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
-                                            }
-										} else {
-											Write-Error "Error applying Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
-										}
-									}
-									if ($detail -eq "false") {
-                                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-								} else {
-                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($vcfVcenterDetails.fqdn), check details and retry: PRE_VALIDATION_FAILED"
-                                }
-							}
-						}
-					}
-				}
-			}
-		}
-	} Catch {
-		Debug-ExceptionWriter -object $_
-	}
-}
-Export-ModuleMember -Function Set-EsxiPasswordExpirationPeriod
-
-Function Set-EsxiPasswordPolicy {
-    <#
-		.SYNOPSIS
-        Set ESXi password polciies
-
-        .DESCRIPTION
-        The Set-EsxiPasswordPolicy cmdlet configures the password and lockout policies on ESXi. The cmdlet connects to
-        SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that the workload domain exists in the SDDC Manager inventory
-        - Validates that network connectivity and authentication is possible to vCenter Server
-        - Gathers the ESXi hosts for the cluster specificed
-        - Configured all ESXi hosts in he provided cluster
-
-        EXAMPLE
-        Set-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -policy "retry=5 min=disabled,disabled,disabled,disabled,15"
-        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policy,
-        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
-                                    $esxiHosts = Get-Cluster $cluster | Get-VMHost
-                                    $count = 0
-                                    Foreach ($esxiHost in $esxiHosts) {
-                                        if (($advancedSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" })) {
-                                            Set-AdvancedSetting -AdvancedSetting $advancedSetting -Value $policy -Confirm:$false | Out-Null
-                                            $checkSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
-                                            if ($checkSetting -match $policy) {
-                                                if ($detail -eq "true") {
-                                                    Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): SUCCESSFUL"
-                                                }
-                                            } else {
-                                                Write-Error "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
-                                            }
-                                        }
-                                        $count = $count + 1
-                                    }
-                                    if ($detail -eq "false") {
-                                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-                                } else {
-                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), check details and retry: PRE_VALIDATION_FOUND"
-                                }
-                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                            }
-                        }
-                    }    
-                } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-EsxiPasswordPolicy
 
 Function Install-WorkspaceOne {
     <#
@@ -16082,6 +15857,524 @@ Function Update-SddcDeployedFlavor {
     }
 }
 Export-ModuleMember -Function Update-SddcDeployedFlavor
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
+#Region                       P A S S W O R D   M A N A G E M E N T   F U N C T I O N S                     ###########
+
+#####################################################################
+#Region     Begin ESXi Password Management Functions           ######
+
+Function Request-EsxiPasswordExpiration {
+	<#
+        .SYNOPSIS
+        Retrieves ESXi host password expiration
+
+        .DESCRIPTION
+        The Request-EsxiPasswordExpiration cmdlet retrieves a list of ESXi hosts for a cluster displaying the currently
+        configured password expiration policy (Advanced Setting Security.PasswordMaxDays). The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Retrieve all ESXi hosts password expiration policy
+
+        .EXAMPLE
+        Request-EsxiPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01
+        This example retrieves all ESXi hosts password expiration policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+	)
+	
+	# Create the ESXi Host object
+	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
+									if ($esxiHosts) {
+										Foreach ($esxiHost in $esxiHosts) {
+											$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+											if ($passwordExpire) {
+												# parsing ESXi password policy string
+												$nodePasswdPolicy = New-Object -TypeName psobject
+												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordMaxDays" -notepropertyvalue $passwordExpire.Value
+												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+												Remove-Variable -Name nodePasswdPolicy
+											} else {
+												Write-Error "Unable to retrieve password expiration policy from ESXi host ($esxiHost.Name): PRE_VALIDATION_FAILED"
+											}
+										}
+										return $esxiPasswdPolicy
+									} else {
+										Write-Warning "No ESXi hosts found within cluster named ($cluster): PRE_VALIDATION_FAILED"
+									}
+								} else {
+                                    Write-Error "Unable to locate Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+								}
+							}
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+						}
+					}
+				} else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Request-EsxiPasswordExpiration
+
+Function Request-EsxiPasswordComplexity {
+	<#
+        .SYNOPSIS
+        Retrieves ESXi host password complexity
+
+        .DESCRIPTION
+        The Request-EsxiPasswordComplexity cmdlet retrieves a list of ESXi hosts for a cluster displaying the currently
+        configured password complexity policy (Advanced Settings Security.PasswordHistory and
+        Security.PasswordQualityControl). The cmdlet connects to SDDC Manager using the -server, -user, and -password
+        values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Retrieve all ESXi hosts password complexity policy
+
+        .EXAMPLE
+        Request-EsxiPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01
+        This example retrieves all ESXi hosts password complexity policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+	)
+	
+	# Create the ESXi Host object
+	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
+									if ($esxiHosts) {
+										Foreach ($esxiHost in $esxiHosts) {
+											# retreving ESXi Advanced Setting: Security.PasswordHistory
+											$passwordHistory = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordHistory" }
+											# retreving ESXi password Expiration Period
+											$passwordQualityControl = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+											if ($passwordHistory -and $passwordQualityControl) {
+												# parsing ESXi password policy string
+												$nodePasswdPolicy = New-Object -TypeName psobject
+												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordHistory" -notepropertyvalue $passwordHistory.Value
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordQualityControl.value
+												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+												Remove-Variable -Name nodePasswdPolicy
+											} else {
+												Write-Error "Unable to retrieve password complexity policy from ESXi host ($esxiHost.Name): PRE_VALIDATION_FAILED"
+											}
+										}
+										return $esxiPasswdPolicy
+									} else {
+										Write-Warning "No ESXi hosts found within cluster named ($cluster): PRE_VALIDATION_FAILED"
+									}
+								} else {
+                                    Write-Error "Unable to locate Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+								}
+							}
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+						}
+					}
+				} else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Request-EsxiPasswordComplexity
+
+Function Request-EsxiAccountLockout {
+	<#
+        .SYNOPSIS
+        Retrieves ESXi host account lockout
+
+        .DESCRIPTION
+        The Request-EsxiAccountLockout cmdlet retrieves a list of ESXi hosts for a cluster displaying the currently
+        configured account lockout policy (Advanced Settings Security.AccountLockFailures and
+        Security.AccountUnlockTime). The cmdlet connects to SDDC Manager using the -server, -user, and -password
+        values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Retrieve all ESXi hosts account lockout policy
+
+        .EXAMPLE
+        Request-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01
+        This example retrieves all ESXi hosts account lockout policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+	)
+	
+	# Create the ESXi Host object
+	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
+									if ($esxiHosts) {
+										Foreach ($esxiHost in $esxiHosts) {
+											# retreving ESXi Advanced Setting: Security.PasswordHistory
+											$lockFailues = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountLockFailures" }
+											# retreving ESXi Advanced Setting: Security.PasswordQualityControl
+											$unlockTime = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountUnlockTime" }
+											if ($lockFailues -and $unlockTime) {
+												# parsing ESXi password policy string
+												$nodePasswdPolicy = New-Object -TypeName psobject
+												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "AccountLockFailures" -notepropertyvalue $lockFailues.Value
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "AccountUnlockTime" -notepropertyvalue $unlockTime.value
+												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+												Remove-Variable -Name nodePasswdPolicy
+											} else {
+												Write-Error "Unable to retrieve account lockout policy from ESXi host ($esxiHost.Name): PRE_VALIDATION_FAILED"
+											}
+										}
+										return $esxiPasswdPolicy
+									} else {
+										Write-Warning "No ESXi hosts found within cluster named ($cluster): PRE_VALIDATION_FAILED"
+									}
+								} else {
+                                    Write-Error "Unable to locate Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+								}
+							}
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+						}
+					}
+				} else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Request-EsxiAccountLockout
+
+Function Update-EsxiPasswordExpiration {
+	<#
+		.SYNOPSIS
+        Update ESXi password expiration period in days
+
+        .DESCRIPTION
+		The Update-EsxiPasswordExpiration cmdlet configures the password expiration policy on ESXi. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configures the password expiration policy for all ESXi hosts in the cluster
+
+        .EXAMPLE
+        Update-EsxiPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -maxDays 999
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
+
+        .EXAMPLE
+        Update-EsxiPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -maxDays 999 -detail false
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01 but does not show the detail per host
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxDays,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+	)
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object { $_.Name -eq $cluster }) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost
+									Foreach ($esxiHost in $esxiHosts) {
+										# $passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+										if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }).value -ne $maxDays) {
+											Set-AdvancedSetting -AdvancedSetting (Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }) -Value $maxDays -Confirm:$false | Out-Null
+                                            if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }) -match $maxDays) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Advanced System Setting (Security.PasswordMaxDays) to ($maxDays) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Advanced System Setting (Security.PasswordMaxDays) to ($maxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+										} else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Advanced System Setting (Security.PasswordMaxDays) to ($maxDays) on ESXi Host ($esxiHost), already set: SKIPPED"										
+                                            }
+                                        }
+									}
+									if ($detail -eq "false") {
+                                        Write-Output "Update Advanced System Setting (Security.PasswordQualityControl) to ($maxDays) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+								} else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($vcfVcenterDetails.fqdn), check details and retry: PRE_VALIDATION_FAILED"
+                                }
+							}
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+						}
+					}
+				} else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Update-EsxiPasswordExpiration
+
+Function Update-EsxiPasswordComplexity {
+    <#
+		.SYNOPSIS
+        Update ESXi password complexity policy
+
+        .DESCRIPTION
+        The Update-EsxiPasswordComplexity cmdlet configures the password complexity policy on ESXi. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configures the password complexity policy for all ESXi hosts in the cluster
+
+        .EXAMPLE
+        Update-EsxiPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -policy "retry=5 min=disabled,disabled,disabled,disabled,15" -history 5
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
+
+        .EXAMPLE
+        Update-EsxiPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -policy "retry=5 min=disabled,disabled,disabled,disabled,15" -history 5 -detail false
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01 but does not show the detail per host
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policy,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$history,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+                                    $esxiHosts = Get-Cluster $cluster | Get-VMHost
+                                    Foreach ($esxiHost in $esxiHosts) {
+                                        if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }).value -ne $policy) {
+                                            Set-AdvancedSetting -AdvancedSetting (Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }) -Value $policy -Confirm:$false | Out-Null
+                                            if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }).value -match $policy) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Password Complexity Policy (Security.PasswordQualityControl) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Password Complexity Policy (Security.PasswordQualityControl) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Password Complexity Policy (Security.PasswordQualityControl) on ESXi Host ($esxiHost), already set: SKIPPED"
+                                            }
+                                        }
+                                        if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordHistory" }).value -ne $history) {
+                                            Set-AdvancedSetting -AdvancedSetting (Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordHistory" }) -Value $history -Confirm:$false | Out-Null
+                                            if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordHistory" }) -match $history) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Password Complexity Policy (Security.PasswordHistory) to ($history) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Password Complexity Policy (Security.PasswordHistory) to ($history) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Password Complexity Policy (Security.PasswordHistory) to ($history) on ESXi Host ($esxiHost), already set: SKIPPED"
+                                            }
+                                        }
+                                    }
+                                    if ($detail -eq "false") {
+                                        Write-Output "Update Password Complexity Policy (Security.PasswordQualityControl and Security.PasswordHistory) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+                                } else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), check details and retry: PRE_VALIDATION_FOUND"
+                                }
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }    
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-EsxiPasswordComplexity
+
+Function Update-EsxiAccountLockout {
+    <#
+		.SYNOPSIS
+        Update ESXi account lockout policy
+
+        .DESCRIPTION
+        The Update-EsxiAccountLockout cmdlet configures the account lockout policy on ESXi. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configures the account lockout policy for all ESXi hosts in the cluster
+
+        .EXAMPLE
+        Update-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -failures 5 -unlockTime 900
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
+
+        .EXAMPLE
+        Update-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -failures 5 -unlockTime 900 -detail false
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01 but does not show the detail per host
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$unlockTime,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+                                    $esxiHosts = Get-Cluster $cluster | Get-VMHost
+                                    Foreach ($esxiHost in $esxiHosts) {
+                                        if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountLockFailures" }).value -ne $failures) {
+                                            Set-AdvancedSetting -AdvancedSetting (Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountLockFailures" }) -Value $failures -Confirm:$false | Out-Null
+                                            if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountLockFailures" }).value -match $failures) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Password Complexity Policy (Security.AccountLockFailures) to ($failures) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Password Complexity Policy (Security.AccountLockFailures) to ($failures) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Password Complexity Policy (Security.AccountLockFailures) to ($failures) on ESXi Host ($esxiHost), already set: SKIPPED"
+                                            }
+                                        }
+                                        if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountUnlockTime" }).value -ne $unlockTime) {
+                                            Set-AdvancedSetting -AdvancedSetting (Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountUnlockTime" }) -Value $unlockTime -Confirm:$false | Out-Null
+                                            if ((Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountUnlockTime" }) -match $unlockTime) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Password Complexity Policy (Security.AccountUnlockTime) to ($unlockTime) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Password Complexity Policy (Security.AccountUnlockTime) to ($unlockTime) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Password Complexity Policy (Security.AccountUnlockTime) to ($unlockTime) on ESXi Host ($esxiHost), already set: SKIPPED"
+                                            }
+                                        }
+                                    }
+                                    if ($detail -eq "false") {
+                                        Write-Output "Update Password Complexity Policy (Security.AccountLockFailures and Security.AccountUnlockTime) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+                                } else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), check details and retry: PRE_VALIDATION_FOUND"
+                                }
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }    
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-EsxiAccountLockout
+
+#EndRegion  End ESXi Password Management Functions             ######
+#####################################################################
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -35121,6 +35414,231 @@ Function Undo-vSREsxiStaticRoute {
     }
 }
 Export-ModuleMember -Function Undo-vSREsxiStaticRoute
+
+Function Get-EsxiPasswordPolicy {
+	<#
+        .SYNOPSIS
+        Retrieves ESXi Host Password Policies
+
+        .DESCRIPTION
+        The Get-EsxiPasswordPolicy cmdlet retrieves a list of ESXi hosts displaying the currently
+        configured password policy nested within a vSphere cluster  
+		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Retrieve all ESXi hosts password policies
+
+        .EXAMPLE
+        Get-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl0l
+        This example retrieves all ESXi hosts password policies within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+	)
+	
+	# Create the ESXi Host object
+	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost | Sort-Object -Property Name
+									if ($esxiHosts) {
+										Foreach ($esxiHost in $esxiHosts) {
+											# retreving ESXi password policy string
+											$passwordPolicy = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+											# retreving ESXi password Expiration Period
+											$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+											if ($passwordPolicy -and $passwordExpire) {
+												# parsing ESXi password policy string
+												$nodePasswdPolicy = New-Object -TypeName psobject
+												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordMaxDays" -notepropertyvalue $passwordExpire.Value
+												$nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordPolicy.Value
+												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+												Remove-Variable -Name nodePasswdPolicy
+											} else {
+												Write-Error "Unable to retrieve password policy from ESXi host '$esxiHost.Name'"
+											}
+										}
+										return $esxiPasswdPolicy
+									} else {
+										Write-Warning "No ESXi hosts found within $cluster cluster."
+									}
+								} else {
+                                    Write-Error "Unable to locate Cluster $cluster in $vcfVcenterDetails.fqdn vCenter Server: PRE_VALIDATION_FAILED"
+								}
+							}
+						}
+					}
+				} else {
+                    Write-Error "Unable to locate workload domain $domain in $server SDDC Manager Server: PRE_VALIDATION_FAILED"
+                }
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Get-EsxiPasswordPolicy
+
+Function Set-EsxiPasswordExpirationPeriod {
+	<#
+		.SYNOPSIS
+        Set ESXi password expiration period in days
+
+        .DESCRIPTION
+		The Set-EsxiPasswordExpirationPeriod cmdlet configures the password expiration period policies on ESXi. 
+		The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configured all ESXi hosts in he provided cluster
+
+        EXAMPLE
+        Set-EsxiPasswordExpirationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -ExpirationInDays 60
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 for the workload domain sfo-m01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ExpirationInDays,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+	)
+	
+	Try {
+		if (Test-Connection -server $server) {
+			if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+				if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+					if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+								if (Get-Cluster | Where-Object { $_.Name -eq $cluster }) {
+									$esxiHosts = Get-Cluster $cluster | Get-VMHost
+									Foreach ($esxiHost in $esxiHosts) {
+										$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+										if ($passwordExpire) {
+											Set-AdvancedSetting -AdvancedSetting $passwordExpire -Value $ExpirationInDays -Confirm:$false | Out-Null
+											$checkSetting = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
+                                            if ($checkSetting -match $ExpirationInDays) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Updating Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+										} else {
+											Write-Error "Error applying Advanced System Setting (Security.PasswordMaxDays) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+										}
+									}
+									if ($detail -eq "false") {
+                                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+								} else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($vcfVcenterDetails.fqdn), check details and retry: PRE_VALIDATION_FAILED"
+                                }
+							}
+						}
+					}
+				}
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Set-EsxiPasswordExpirationPeriod
+
+Function Set-EsxiPasswordPolicy {
+    <#
+		.SYNOPSIS
+        Set ESXi password polciies
+
+        .DESCRIPTION
+        The Set-EsxiPasswordPolicy cmdlet configures the password and lockout policies on ESXi. The cmdlet connects to
+        SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that the workload domain exists in the SDDC Manager inventory
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Gathers the ESXi hosts for the cluster specificed
+        - Configured all ESXi hosts in he provided cluster
+
+        EXAMPLE
+        Set-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -policy "retry=5 min=disabled,disabled,disabled,disabled,15"
+        This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policy,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Get-Cluster | Where-Object {$_.Name -eq $cluster}) {
+                                    $esxiHosts = Get-Cluster $cluster | Get-VMHost
+                                    $count = 0
+                                    Foreach ($esxiHost in $esxiHosts) {
+                                        if (($advancedSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" })) {
+                                            Set-AdvancedSetting -AdvancedSetting $advancedSetting -Value $policy -Confirm:$false | Out-Null
+                                            $checkSetting = Get-VMHost | Where-Object { $_.ConnectionState -eq "Connected" } | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
+                                            if ($checkSetting -match $policy) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Updating Advanced System Setting (Security.PasswordQualityControl) on ESXi Host ($esxiHost): POST_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        $count = $count + 1
+                                    }
+                                    if ($detail -eq "false") {
+                                        Write-Output "Updating Advanced System Setting (Security.PasswordQualityControl) on all ESXi Hosts for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+                                } else {
+                                    Write-Error "Unable to find Cluster ($cluster) in vCenter Server ($($vcfVcenterDetails.fqdn)), check details and retry: PRE_VALIDATION_FOUND"
+                                }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                            }
+                        }
+                    }    
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-EsxiPasswordPolicy
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################

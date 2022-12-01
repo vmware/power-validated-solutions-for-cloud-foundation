@@ -1,5 +1,14 @@
 # Release History
 
+## v2.0.0 (Not Released)
+
+- Added `Request-EsxiPasswordExpiration` cmdlet to retrieve the password expiration policy for all ESXi hosts in a cluster.
+- Added `Request-EsxiPasswordComplexity` cmdlet to retrieve the password complexity policy for all ESXi hosts in a cluster.
+- Added `Request-EsxiAccountLockout` cmdlet to retrieve the account lockout policy for all ESXi hosts in a cluster.
+- Added `Update-EsxiPasswordExpiration` cmdlet to update the password expiration policy for all ESXi hosts in a cluster.
+- Added `Update-EsxiPasswordComplexity` cmdlet to update the password complexity policy for all ESXi hosts in a cluster.
+- Added `Update-EsxiAccountLockout` cmdlet to update the account lockout policy for all ESXi hosts in a cluster.
+
 ## v1.10.0 (2022-29-11)
 
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
