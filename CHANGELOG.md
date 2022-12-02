@@ -18,6 +18,10 @@
 - Added `Request-VcenterRootPasswordExpiration` cmdlet to retrieve the root user password expiration policy for vCenter Server.
 - Added `Update-VcenterPasswordExpiration` cmdlet to update the global password expiration policy for vCenter Server.
 - Added `Update-VcenterRootPasswordExpiration` cmdlet to update the root user password expiration policy for vCenter Server.
+- Added `Get-LocalUserPasswordExpiration` cmdlet to retrieve the password expiration policy for a local user.
+- Added `Set-LocalUserPasswordExpiration` cmdlet to configure the password expiration policy for a local user.
+- Added `Request-LocalUserPasswordExpiration` cmdlet to retrieve the password expiration policy for a local user from any virtual machine.
+- Added `Update-LocalUserPasswordExpiration` cmdlet to configure the password expiration policy for a local user from any virtual machine.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
