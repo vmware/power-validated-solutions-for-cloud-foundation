@@ -18091,7 +18091,7 @@ Function Get-LocalUserPasswordExpiration {
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser
-        This example retrieves the password expiration policy for the vcf user on Workspace ONE Access sfo-sfo01
+        This example retrieves the password expiration policy for the sshuser user on Workspace ONE Access sfo-sfo01
     #>
 
     Param (
@@ -18134,7 +18134,7 @@ Function Set-LocalUserPasswordExpiration {
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01
+        This example configures the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf -minDays 0 -maxDays 999 -warnDays 14
@@ -18142,7 +18142,7 @@ Function Set-LocalUserPasswordExpiration {
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the vcf user on Workspace ONE Access sfo-wsa01
+        This example configures the password expiration policy for the sshuser user on Workspace ONE Access sfo-wsa01
     #>
 
     Param (
