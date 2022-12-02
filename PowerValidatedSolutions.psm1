@@ -15781,10 +15781,11 @@ Function Request-EsxiPasswordExpiration {
 										Foreach ($esxiHost in $esxiHosts) {
 											$passwordExpire = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordMaxDays" }
 											if ($passwordExpire) {
-												# parsing ESXi password policy string
 												$nodePasswdPolicy = New-Object -TypeName psobject
-												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
-												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordMaxDays" -notepropertyvalue $passwordExpire.Value
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "FQDN" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "Max Days" -notepropertyvalue $passwordExpire.Value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
 											} else {
@@ -15858,14 +15859,15 @@ Function Request-EsxiPasswordComplexity {
 										Foreach ($esxiHost in $esxiHosts) {
 											# retreving ESXi Advanced Setting: Security.PasswordHistory
 											$passwordHistory = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordHistory" }
-											# retreving ESXi password Expiration Period
+											# retreving ESXi Advanced Setting: Security.PasswordQualityControl
 											$passwordQualityControl = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.PasswordQualityControl" }
 											if ($passwordHistory -and $passwordQualityControl) {
-												# parsing ESXi password policy string
 												$nodePasswdPolicy = New-Object -TypeName psobject
-												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
-												$nodePasswdPolicy | Add-Member -notepropertyname "PaswordHistory" -notepropertyvalue $passwordHistory.Value
-                                                $nodePasswdPolicy | Add-Member -notepropertyname "PasswordQualityControl" -notepropertyvalue $passwordQualityControl.value
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
+												$nodePasswdPolicy | Add-Member -notepropertyname "FQDN" -notepropertyvalue $esxiHost.Name
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Policy" -notepropertyvalue $passwordQualityControl.value
+												$nodePasswdPolicy | Add-Member -notepropertyname "History" -notepropertyvalue $passwordHistory.Value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
 											} else {
@@ -15942,9 +15944,10 @@ Function Request-EsxiAccountLockout {
 											# retreving ESXi Advanced Setting: Security.PasswordQualityControl
 											$unlockTime = Get-VMHost -name $esxiHost | Where-Object { $_.ConnectionState -eq "Connected" -or $_.ConnectionState -eq "Maintenance"} | Get-AdvancedSetting | Where-Object { $_.Name -eq "Security.AccountUnlockTime" }
 											if ($lockFailues -and $unlockTime) {
-												# parsing ESXi password policy string
 												$nodePasswdPolicy = New-Object -TypeName psobject
-												$nodePasswdPolicy | Add-Member -notepropertyname "fqdn" -notepropertyvalue $esxiHost.Name
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
+												$nodePasswdPolicy | Add-Member -notepropertyname "FQDN" -notepropertyvalue $esxiHost.Name
 												$nodePasswdPolicy | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $lockFailues.Value
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $unlockTime.value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
@@ -16276,9 +16279,8 @@ Function Request-SsoPasswordExpiration {
                             if (Test-SsoAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if ($SsoPasswordExpiration = Get-SsoPasswordPolicy) {
                                     $SsoPasswordExpirationObject = New-Object -TypeName psobject
-                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Single Sign-On"
-                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Password Expiration"
+                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $SsoPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $SsoPasswordExpiration.PasswordLifetimeDays
                                 } else {
                                     Write-Error "Unable to retrieve password expiration policy from vCenter Single Sign-On ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -16333,9 +16335,8 @@ Function Request-SsoPasswordComplexity {
                             if (Test-SsoAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if ($SsoPasswordComplexity = Get-SsoPasswordPolicy) {
                                     $SsoPasswordComplexityObject = New-Object -TypeName psobject
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Single Sign-On"
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Password Complexity"
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $SsoPasswordComplexity.MinLength
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Max Length" -notepropertyvalue $SsoPasswordComplexity.MaxLength
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Alphabetic" -notepropertyvalue $SsoPasswordComplexity.MinAlphabeticCount
@@ -16398,9 +16399,8 @@ Function Request-SsoAccountLockout {
                             if (Test-SsoAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if ($SsoAccountLockout = Get-SsoLockoutPolicy) {
                                     $SsoAccountLockoutObject = New-Object -TypeName psobject
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Single Sign-On"
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Account Lockout"
+                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $SsoAccountLockout.MaxFailedAttempts
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $SsoAccountLockout.AutoUnlockIntervalSec
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (sec)" -notepropertyvalue $SsoAccountLockout.FailedAttemptIntervalSec                   
@@ -16543,6 +16543,7 @@ Function Update-SsoPasswordComplexity {
         Debug-ExceptionWriter -object $_
     }
 }
+Export-ModuleMember -Function Update-SsoPasswordComplexity
 
 Function Update-SsoAccountLockout {
     <#
@@ -16637,9 +16638,8 @@ Function Request-VcenterPasswordExpiration {
                             if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if ($VcenterPasswordExpiration = Get-VcenterPasswordExpiration) {
                                     $VcenterPasswordExpirationObject = New-Object -TypeName psobject
-                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Server"
-                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Password Expiration"
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterPasswordExpiration.min_days
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterPasswordExpiration.max_days
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterPasswordExpiration.warn_days
@@ -16694,9 +16694,8 @@ Function Request-VcenterRootPasswordExpiration {
                             if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if ($VcenterRootPasswordExpiration = Get-VcenterRootPasswordExpiration) {
                                     $VcenterRootPasswordExpirationObject = New-Object -TypeName psobject
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Component" -notepropertyvalue "vCenter Server"
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Hostname" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Policy" -notepropertyvalue "Root Password Expiration"
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterRootPasswordExpiration.min_days_between_password_change
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterRootPasswordExpiration.max_days_between_password_change
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterRootPasswordExpiration.warn_days_before_password_expiration
