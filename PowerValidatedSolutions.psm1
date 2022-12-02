@@ -16973,7 +16973,7 @@ Function Update-LocalUserPasswordExpiration {
 
         .EXAMPLE
         Update-LocalUserPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser "root","sshuser" -minDays 0 -maxDays 999 -warnDays 14
-        This example retrieves the global password expiration policy for the vCenter Server
+        This example updates the global password expiration policy for the vCenter Server
     #>
 
     Param (
@@ -18083,15 +18083,15 @@ Function Get-LocalUserPasswordExpiration {
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin
-        This example retrieves the password expiration policy for the admin user on vCenter Server sfo-w01-nsx01
+        This example retrieves the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf
-        This example retrieves the password expiration policy for the vcf user on vCenter Server sfo-vcf01
+        This example retrieves the password expiration policy for the vcf user on SDDC Manager sfo-vcf01
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser
-        This example retrieves the password expiration policy for the vcf user on vCenter Server sfo-vcf01
+        This example retrieves the password expiration policy for the vcf user on Workspace ONE Access sfo-sfo01
     #>
 
     Param (
@@ -18134,15 +18134,15 @@ Function Set-LocalUserPasswordExpiration {
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the admin user on vCenter Server sfo-w01-nsx01
+        This example configures the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the vcf user on vCenter Server sfo-vcf01
+        This example configures the password expiration policy for the vcf user on SDDC Manager sfo-vcf01
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the vcf user on vCenter Server sfo-vcf01
+        This example configures the password expiration policy for the vcf user on Workspace ONE Access sfo-wsa01
     #>
 
     Param (
