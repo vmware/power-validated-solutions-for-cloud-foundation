@@ -16246,7 +16246,7 @@ Export-ModuleMember -Function Update-EsxiAccountLockout
 Function Request-VcenterPasswordExpiration {
     <#
 		.SYNOPSIS
-		Retrieves the global password expiration policy
+		Retrieve the global password expiration policy
 
         .DESCRIPTION
         The Request-VcenterPasswordExpiration cmdlet retrieves the global password expiration policy for a vCenter
@@ -16372,7 +16372,7 @@ Function Update-VcenterPasswordExpiration {
 
         .EXAMPLE
         Update-VcenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -maxDays 999 -minDays 0 -warnDays 14
-        This example configures the password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
+        This example configures the global password expiration policy for the vCenter Server
     #>
 
     Param (
@@ -16392,7 +16392,6 @@ Function Update-VcenterPasswordExpiration {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                         if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                # $pwdExpirySettings = Get-VcenterPasswordExpiration
                                 if ((Get-VcenterPasswordExpiration).max_days -ne $maxDays -or (Get-VcenterPasswordExpiration).min_days -ne $minDays -or (Get-VcenterPasswordExpiration).warn_days -ne $warnDays) {
                                     Set-VcenterPasswordExpiration -maxDays $maxDays -minDays $minDays -warnDays $warnDays | Out-Null
                                     if ((Get-VcenterPasswordExpiration).max_days -eq $maxDays -and (Get-VcenterPasswordExpiration).min_days -eq $minDays -and (Get-VcenterPasswordExpiration).warn_days -eq $warnDays) {
@@ -16431,7 +16430,7 @@ Function Update-VcenterRootPasswordExpiration {
 
         .EXAMPLE
         Update-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -email "admin@rainpole.io" -maxDays 999 -warnDays 14
-        This example configures the configures password expiration settings for the vCenter Server root account
+        This example configures the configures password expiration settings for the vCenter Server root account to expire after 999 days with email for warning set to "admin@rainpole.io"
 
         .EXAMPLE
         Update-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -neverexpire
@@ -17411,14 +17410,14 @@ Export-ModuleMember -Function Get-VCConfigurationDNS
 Function Get-VcenterPasswordExpiration {
     <#
     .SYNOPSIS
-        Retrive the global password expiration policy
+        Retrieve the global password expiration policy
 
         .DESCRIPTION
-        The Get-VcenterPasswordExpiration cmdlet retrives the global password expiration policy for local users of vCenter Server
+        The Get-VcenterPasswordExpiration cmdlet retrieves the global password expiration policy for local users of vCenter Server
 
         .EXAMPLE
         Get-VcenterPasswordExpiration
-        This example gets the global password expiration policy of the vCenter Server
+        This example retrieves the global password expiration policy of the vCenter Server
     #>
 
     Try {
@@ -17462,14 +17461,14 @@ Export-ModuleMember -Function Set-VcenterPasswordExpiration
 Function Get-VcenterRootPasswordExpiration {
     <#
     .SYNOPSIS
-		Retrive the root user password expiration policy
+		Retrieve the root user password expiration policy
 
         .DESCRIPTION
-        The Get-VcenterRootPasswordExpiration cmdlet retrives the root user password expiration policy from vCenter Server
+        The Get-VcenterRootPasswordExpiration cmdlet retrieves the root user password expiration policy from vCenter Server
 
         .EXAMPLE
         Get-VcenterRootPasswordExpiration
-        This example gets the root user password expiration policy from vCenter Server
+        This example retrieves the root user password expiration policy from vCenter Server
     #>
 
     Try {
