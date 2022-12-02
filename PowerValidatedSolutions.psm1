@@ -15734,8 +15734,8 @@ Export-ModuleMember -Function Update-SddcDeployedFlavor
 #######################################################################################################################
 #Region                       P A S S W O R D   M A N A G E M E N T   F U N C T I O N S                     ###########
 
-#####################################################################
-#Region     Begin ESXi Password Management Functions           ######
+##########################################################################
+#Region     Begin ESXi Password Management Functions                ######
 
 Function Request-EsxiPasswordExpiration {
 	<#
@@ -16246,6 +16246,11 @@ Function Update-EsxiAccountLockout {
 }
 Export-ModuleMember -Function Update-EsxiAccountLockout
 
+#EndRegion  End ESXi Password Management Functions                  ######
+##########################################################################
+
+##########################################################################
+#Region     Begin SSO Password Management Functions                 ######
 Function Request-SsoPasswordExpiration {
     <#
 		.SYNOPSIS
@@ -16605,6 +16610,12 @@ Function Update-SsoAccountLockout {
 }
 Export-ModuleMember -Function Update-SsoAccountLockout
 
+#EndRegion  End SSO Password Management Functions                   ######
+##########################################################################
+
+##########################################################################
+#Region     Begin vCenter Password Management Function              ######
+
 Function Request-VcenterPasswordExpiration {
     <#
 		.SYNOPSIS
@@ -16852,8 +16863,185 @@ Function Update-VcenterRootPasswordExpiration {
 }
 Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 
-#EndRegion  End ESXi Password Management Functions             ######
-#####################################################################
+#EndRegion  End vCenter Password Management Functions               ######
+##########################################################################
+
+##########################################################################
+#Region     Begin NSX Manager Password Management Function          ######
+
+#EndRegion  End NSX Manager Password Management Functions           ######
+##########################################################################
+
+##########################################################################
+#Region     Begin NSX Edge Password Management Function             ######
+
+#EndRegion  End NSX Edge Password Management Functions              ######
+##########################################################################
+
+##########################################################################
+#Region     Begin SDDC Manager Password Management Function         ######
+
+#EndRegion  End SDDC Manager Password Management Functions          ######
+##########################################################################
+
+##########################################################################
+#Region     Begin Workspace ONE Access Password Management Function ######
+
+#EndRegion  End Workspace ONE Access Password Management Functions  ######
+##########################################################################
+
+##########################################################################
+#Region     Begin Shard Password Management Function                ######
+
+Function Request-LocalUserPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Retrieve local user password expiration policy
+
+        .DESCRIPTION
+        The Request-LocalUserPasswordExpiration cmdlet retrieves a local user password expiration policy. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrives the local user password expiration policy
+
+        .EXAMPLE
+        Request-LocalUserPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser "root","sshuser"
+        This example retrieves the global password expiration policy for the vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$localUser
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $allLocalUserExpirationObject = New-Object System.Collections.ArrayList
+                                foreach ($user in $localUser) {
+                                    if ($localUserPasswordExpiration = Get-LocalUserPasswordExpiration -vmName $vmName -guestUser $guestUser -guestPassword $guestPassword -localUser $user) {
+                                        $localUserExpirationObject = New-Object -TypeName psobject
+                                        $localUserExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                        $localUserExpirationObject | Add-Member -notepropertyname "Virtual Machine" -notepropertyvalue $vmName
+                                        $localUserExpirationObject | Add-Member -notepropertyname "Local User" -notepropertyvalue $user
+                                        $localUserExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue ($localUserPasswordExpiration | Where-Object {$_.Setting -match "Minimum number of days between password change"}).Value.Trim()
+                                        $localUserExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue ($localUserPasswordExpiration | Where-Object {$_.Setting -match "Maximum number of days between password change"}).Value.Trim()
+                                        $localUserExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue ($localUserPasswordExpiration | Where-Object {$_.Setting -match "Number of days of warning before password expires"}).Value.Trim()
+                                        $allLocalUserExpirationObject += $localUserExpirationObject
+                                    } else {
+                                        Write-Error "Unable to retrieve password expiration policy for local user ($user) from Virtual Machine ($vmName): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                return $allLocalUserExpirationObject
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-LocalUserPasswordExpiration
+
+Function Update-LocalUserPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Configure a local user password expiration policy
+
+        .DESCRIPTION
+        The Update-LocalUserPasswordExpiration cmdlet configures a local user password expiration policy. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the local user password expiration policy
+
+        .EXAMPLE
+        Update-LocalUserPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser "root","sshuser" -minDays 0 -maxDays 999 -warnDays 14
+        This example updates the global password expiration policy for the vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$localUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$minDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$warnDays,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                foreach ($user in $localUser) {
+                                    $existingConfiguration = Get-LocalUserPasswordExpiration -vmName $vmName -guestUser $guestUser -guestPassword $guestPassword -localUser $user
+                                    $currentMinDays = ($existingConfiguration | Where-Object {$_.Setting -match "Minimum number of days between password change"}).Value.Trim()
+                                    $currentMaxDays = ($existingConfiguration | Where-Object {$_.Setting -match "Maximum number of days between password change"}).Value.Trim()
+                                    $currentWarnDays = ($existingConfiguration | Where-Object {$_.Setting -match "Number of days of warning before password expires"}).Value.Trim()
+                                    if ($currentMinDays -ne $minDays -or $currentMaxDays -ne $maxDays -or $currentWarnDays -ne $warnDays) {
+                                        Set-LocalUserPasswordExpiration -vmName $vmName -guestUser $guestUser -guestPassword $guestPassword -localUser $user -minDays $minDays -maxDays $maxDays -warnDays $warnDays
+                                        $updatedConfiguration = Get-LocalUserPasswordExpiration -vmName $vmName -guestUser $guestUser -guestPassword $guestPassword -localUser $user
+                                        $updatedMinDays = ($updatedConfiguration | Where-Object {$_.Setting -match "Minimum number of days between password change"}).Value.Trim()
+                                        $updatedMaxDays = ($updatedConfiguration | Where-Object {$_.Setting -match "Maximum number of days between password change"}).Value.Trim()
+                                        $updatedWarnDays = ($updatedConfiguration | Where-Object {$_.Setting -match "Number of days of warning before password expires"}).Value.Trim()
+                                        if ($updatedMinDays -eq $minDays -or $updatedMaxDays -eq $maxDays -or $updatedWarnDays -eq $warnDays) {
+                                            if ($detail -eq "true") {
+                                                Write-Output "Update Local User ($user) Password Expiration Policy on Virtual Machine ($vmName): SUCCESSFUL"
+                                            }
+                                        } else {
+                                            Write-Error "Update Local User ($user) Password Expiration Policy on Virtual Machine ($vmName): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        if ($detail -eq "true") {
+                                            Write-Warning "Update Local User ($user) Password Expiration Policy on Virtual Machine ($vmName), already set: SKIPPED"
+                                        }
+                                    }
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Update Local Users to Max Days ($maxDays), Min Days ($minDays) and Warn Days ($warnDays) on Virtual Machine ($vmName): SUCCESSFUL"
+                                }
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-LocalUserPasswordExpiration
+
+#EndRegion  End Shared Password Management Functions  ######
+##########################################################################
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -17880,6 +18068,110 @@ Function Set-VcenterRootPasswordExpiration {
     }
 }
 Export-ModuleMember -Function Set-VcenterRootPasswordExpiration
+
+Function Get-LocalUserPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Retrieve the password expiration policy for a local user
+
+        .DESCRIPTION
+        The Get-LocalUserPasswordExpiration cmdlets retrieves the password expiration policy for a local user
+
+        .EXAMPLE
+        Get-LocalUserPasswordExpiration -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -localUser root
+        This example retrieves the password expiration policy for the root user on vCenter Server sfo-w01-vc01
+
+        .EXAMPLE
+        Get-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin
+        This example retrieves the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a
+
+        .EXAMPLE
+        Get-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf
+        This example retrieves the password expiration policy for the vcf user on SDDC Manager sfo-vcf01
+
+        .EXAMPLE
+        Get-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser
+        This example retrieves the password expiration policy for the sshuser user on Workspace ONE Access sfo-sfo01
+    #>
+
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser
+        )
+
+    Try {
+        $passwordExpirationObject = New-Object System.Collections.ArrayList
+        $scriptCommand = 'chage --list ' + $localUser
+        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword
+        $formatOutput = ($output.ScriptOutput -split '\r?\n').Trim()
+        $formatOutput = $formatOutput -replace '(^\s+|\s+$)', '' -replace '\s+', ' '
+        foreach ($line in $formatOutput) {
+            $settingObject = New-Object -TypeName psobject
+            $settingObject | Add-Member -notepropertyname "Setting" -notepropertyvalue ($line -Split (':').Trim())[-0]
+            $settingObject | Add-Member -notepropertyname "Value" -notepropertyvalue ($line -Split (':').Trim())[-1]
+            $passwordExpirationObject += $settingObject
+        }
+        Return $passwordExpirationObject
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-LocalUserPasswordExpiration
+
+Function Set-LocalUserPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Configure the password expiration policy for a local user
+
+        .DESCRIPTION
+        The Set-LocalUserPasswordExpiration cmdlets retrieves the password expiration policy for a local user
+
+        .EXAMPLE
+        Set-LocalUserPasswordExpiration -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -localUser root -minDays 0 -maxDays 999 -warnDays 14
+        This example configures the password expiration policy for the root user on vCenter Server sfo-w01-vc01
+
+        .EXAMPLE
+        Set-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin -minDays 0 -maxDays 999 -warnDays 14
+        This example configures the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a
+
+        .EXAMPLE
+        Set-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf -minDays 0 -maxDays 999 -warnDays 14
+        This example configures the password expiration policy for the vcf user on SDDC Manager sfo-vcf01
+
+        .EXAMPLE
+        Set-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser -minDays 0 -maxDays 999 -warnDays 14
+        This example configures the password expiration policy for the sshuser user on Workspace ONE Access sfo-wsa01
+    #>
+
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$minDays,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxDays,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$warnDays
+        )
+
+    Try {
+        $scriptCommand = "chage --maxdays $maxDays "
+        if ($PsBoundParameters.ContainsKey("minDays")) {
+            $minDaysCommand = "--mindays $minDays "
+            $scriptCommand += $minDaysCommand
+        }
+        if ($PsBoundParameters.ContainsKey("minDays")) {
+            $warnDaysCommand = "--warndays $warnDays "
+            $scriptCommand += $warnDaysCommand
+        }
+        $scriptCommand += "$localUser"
+        Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword | Out-Null
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-LocalUserPasswordExpiration
 
 Function Get-GlobalPermission {
     <#
