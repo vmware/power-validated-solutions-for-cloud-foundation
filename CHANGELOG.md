@@ -8,6 +8,24 @@
 - Added `Update-EsxiPasswordExpiration` cmdlet to update the password expiration policy for all ESXi hosts in a cluster.
 - Added `Update-EsxiPasswordComplexity` cmdlet to update the password complexity policy for all ESXi hosts in a cluster.
 - Added `Update-EsxiAccountLockout` cmdlet to update the account lockout policy for all ESXi hosts in a cluster.
+- Added `Request-SsoPasswordExpiration` cmdlet to retrieve the password expiration policy for vCenter Single Sign-On domain.
+- Added `Request-SsoPasswordComplexity` cmdlet to retrieve the password complexity policy for vCenter Single Sign-On domain.
+- Added `Request-SsoAccountLockout` cmdlet to retrieve the account lockout policy for vCenter Single Sign-On domain.
+- Added `Update-SsoPasswordExpiration` cmdlet to update the password expiration policy for vCenter Single Sign-On domain.
+- Added `Update-SsoPasswordComplexity` cmdlet to update the password complexity policy for vCenter Single Sign-On domain.
+- Added `Update-SsoAccountLockout` cmdlet to update the account lockout policy for vCenter Single Sign-On domain.
+- Added `Request-VcenterPasswordExpiration` cmdlet to retrieve the global password expiration policy for vCenter Server.
+- Added `Request-VcenterRootPasswordExpiration` cmdlet to retrieve the root user password expiration policy for vCenter Server.
+- Added `Update-VcenterPasswordExpiration` cmdlet to update the global password expiration policy for vCenter Server.
+- Added `Update-VcenterRootPasswordExpiration` cmdlet to update the root user password expiration policy for vCenter Server.
+- Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
+- Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
+- Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
+- Renamed `Set-VCPasswordExpiry` to `Set-VcenterRootPasswordExpiration` to support better naming for password expiration.
+
+### Deprecation
+
+- Removed `Get-VCPasswordExpiry` cmdlet duplicated cmdlet.
 
 ## v1.10.0 (2022-29-11)
 
