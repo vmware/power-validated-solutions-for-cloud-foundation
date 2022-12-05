@@ -16251,6 +16251,7 @@ Export-ModuleMember -Function Update-EsxiAccountLockout
 
 ##########################################################################
 #Region     Begin SSO Password Management Functions                 ######
+
 Function Request-SsoPasswordExpiration {
     <#
 		.SYNOPSIS
@@ -16586,7 +16587,7 @@ Function Update-SsoAccountLockout {
                         if (Test-SsoConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-SsoAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if ((Get-SsoLockoutPolicy).MaxFailedAttempts -ne $failures -or (Get-SsoLockoutPolicy).FailedAttemptIntervalSec -ne $failureInterval -or (Get-SsoLockoutPolicy).AutoUnlockIntervalSec -ne $unlockInterval) {
-                                    Get-SsoLockoutPolicy | Set-SsoLockoutPolicy  -AutoUnlockIntervalSec $unlockInterval -FailedAttemptIntervalSec $failureInterval -MaxFailedAttempts $failures | Out-Nul
+                                    Get-SsoLockoutPolicy | Set-SsoLockoutPolicy  -AutoUnlockIntervalSec $unlockInterval -FailedAttemptIntervalSec $failureInterval -MaxFailedAttempts $failures | Out-Null
                                     if ((Get-SsoLockoutPolicy).MaxFailedAttempts -eq $failures -and (Get-SsoLockoutPolicy).FailedAttemptIntervalSec -eq $failureInterval -and (Get-SsoLockoutPolicy).AutoUnlockIntervalSec -eq $unlockInterval) {
                                         Write-Output "Update Single Sign-On Account Lockout Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                     } else {
@@ -16869,11 +16870,299 @@ Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 ##########################################################################
 #Region     Begin NSX Manager Password Management Function          ######
 
+Function Request-NsxtManagerAccountLockout {
+    <#
+		.SYNOPSIS
+        Retrieve account lockout policy from NSX Manager Nodes
+
+        .DESCRIPTION
+        The Request-NsxtManagerAccountLockout cmdlet retrieves the account lockout policy for each NSX Manager node for
+        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Retrieves the account lockpout policy
+        
+        .EXAMPLE
+        Request-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the account lockout policy for the NSX Manager nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        $nsxtAccountLockoutPolicy = New-Object System.Collections.ArrayList
+                        foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                            if (Test-NSXTConnection -server $nsxtManagerNode.fqdn) {
+                                if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                    if ($NsxtManagerAccountLockout = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn) {
+                                        $NsxtManagerAccountLockoutObject = New-Object -TypeName psobject
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($nsxtManagerNode.fqdn)
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.cli_max_auth_failures
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.cli_failed_auth_lockout_period
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.api_max_auth_failures
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_lockout_period
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Rest Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_reset_period
+                                        $nsxtAccountLockoutPolicy += $NsxtManagerAccountLockoutObject
+                                    } else {
+                                        Write-Error "Unable to retrieve account lockout policy from NSX Manager node  ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                            }
+                        }
+                        return $nsxtAccountLockoutPolicy
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxtManagerAccountLockout
+
+Function Update-NsxtManagerAccountLockout {
+    <#
+		.SYNOPSIS
+        Configure account lockout policy NSX Manager Nodes
+
+        .DESCRIPTION
+        The Update-NsxtManagerAccountLockout cmdlet configures the account lockout policy for NSX Manager nodes within
+        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Configure the account lockout policy
+
+        .EXAMPLE
+        Update-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliFailures 5 -cliUnlockInterval 900 -apiFailures 5 -apiFailureInterval 120 -apiUnlockInterval 900
+        This example configures the account lockout policy in NSX Manager nodes in the sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliFailures,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliUnlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiFailures,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiFailureInterval,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiUnlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                                    if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.AdminPass) {
+                                        $existingConfiguration = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                                        if (($existingConfiguration).cli_max_auth_failures -ne $cliFailures -or ($existingConfiguration).cli_failed_auth_lockout_period -ne $cliUnlockInterval -or ($existingConfiguration).api_max_auth_failures -ne $apiFailures -or ($existingConfiguration).api_failed_auth_reset_period -ne $apiFailureInterval -or ($existingConfiguration).api_failed_auth_lockout_period -ne $apiUnlockInterval ) {
+                                            if (!$PsBoundParameters.ContainsKey("cliFailures")){
+                                                $cliFailures = [int]$existingConfiguration.cli_max_auth_failures
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("cliUnlockInterval")){
+                                                $cliUnlockInterval = [int]$existingConfiguration.cli_failed_auth_lockout_period
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("apiFailures")){
+                                                $apiFailures = [int]$existingConfiguration.api_max_auth_failures
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("apiFailureInterval")){
+                                                $apiFailureInterval = [int]$existingConfiguration.api_failed_auth_reset_period
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("apiUnlockInterval")){
+                                                $apiUnlockInterval = [int]$existingConfiguration.api_failed_auth_lockout_period
+                                            }
+                                            Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -cli_max_attempt $cliFailures -cli_lockout_period $cliUnlockInterval -api_max_attempt $apiFailures -api_reset_period $apiFailureInterval -api_lockout_period $apiUnlockInterval | Out-Null
+                                            $updatedConfiguration = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                                            if (($updatedConfiguration).cli_max_auth_failures -eq $cliFailures -and ($updatedConfiguration).cli_failed_auth_lockout_period -eq $cliUnlockInterval -and ($updatedConfiguration).api_max_auth_failures -eq $apiFailures -and ($updatedConfiguration).api_failed_auth_reset_period -eq $apiFailureInterval -and ($updatedConfiguration).api_failed_auth_lockout_period -eq $apiUnlockInterval ) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain):, already set: SKIPPED"
+                                            }
+                                        }
+                                    }
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Update Account Lockout Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtManagerAccountLockout
+
 #EndRegion  End NSX Manager Password Management Functions           ######
 ##########################################################################
 
 ##########################################################################
 #Region     Begin NSX Edge Password Management Function             ######
+
+Function Request-NsxtEdgeAccountLockout {
+    <#
+		.SYNOPSIS
+        Retrieve account lockout policy from NSX Edge Nodes
+
+        .DESCRIPTION
+        The Request-NsxtEdgeAccountLockout cmdlet retrieves the account lockout policy from NSX Edge nodes within a
+        workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Retrieves the account lockpout policy
+
+        .EXAMPLE
+        Request-NsxtEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieving the account lockout policy for NSX Edge nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtAccountLockoutPolicy = New-Object System.Collections.ArrayList
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    if ($NsxtEdgeAccountLockout = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id) {
+                                        $NsxtEdgeAccountLockoutObject = New-Object -TypeName psobject
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNode.display_name
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtEdgeAccountLockout.cli_max_auth_failures
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtEdgeAccountLockout.cli_failed_auth_lockout_period
+                                        $nsxtAccountLockoutPolicy += $NsxtEdgeAccountLockoutObject
+                                    } else {
+                                        Write-Error "Unable to retrieve account lockout policy from NSX Edge node ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                return $nsxtAccountLockoutPolicy
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }   
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxtEdgeAccountLockout
+
+Function Update-NsxtEdgeAccountLockout {
+    <#
+		.SYNOPSIS
+        Configure account lockout policy for NSX Edge Nodes
+
+        .DESCRIPTION
+        The Update-NsxtEdgeAccountLockout cmdlet configures the account lockout policy for NSX Edge nodes.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Configure the account lockout policy
+
+        .EXAMPLE
+        Update-NsxtEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliFailures 5 -cliUnlockInterval 900 
+        This example configures the account lockout policy of the NSX Edges nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliFailures,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliUnlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    $existingConfiguration = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                                    if (($existingConfiguration).cli_max_auth_failures -ne $cliFailures -or ($existingConfiguration).cli_failed_auth_lockout_period -ne $cliUnlockInterval) {
+                                        if (!$PsBoundParameters.ContainsKey("cliFailures")){
+                                            $cliFailures = [int]$existingConfiguration.cli_max_auth_failures
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("cliUnlockInterval")){
+                                            $cliUnlockInterval = [int]$existingConfiguration.cli_failed_auth_lockout_period
+                                        }
+                                        Set-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id -cli_max_attempt $cliFailures -cli_lockout_period $cliUnlockInterval | Out-Null
+                                        $updatedConfiguration = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                                        if (($updatedConfiguration).cli_max_auth_failures -eq $cliFailures -and ($updatedConfiguration).cli_failed_auth_lockout_period -eq $cliUnlockInterval) {
+                                            if ($detail -eq "true") {
+                                                Write-Output "Update Account Lockout Policy on NSX Edge ($($nsxtEdgeNode.display_name)) for Workload Domain ($domain): SUCCESSFUL"
+                                            }
+                                        } else {
+                                            Write-Error "Update Account Lockout Policy on NSX Edge ($($nsxtEdgeNode.display_name)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        if ($detail -eq "true") {
+                                            Write-Warning "Update Account Lockout Policy on NSX Edge ($($nsxtEdgeNode.display_name)) for Workload Domain ($domain):, already set: SKIPPED"
+                                        }
+                                    }
+
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Update Account Lockout Policy for all NSX Edge Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtEdgeAccountLockout
 
 #EndRegion  End NSX Edge Password Management Functions              ######
 ##########################################################################
@@ -16886,6 +17175,290 @@ Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 
 ##########################################################################
 #Region     Begin Workspace ONE Access Password Management Function ######
+
+Function Request-WsaPasswordExpiration {
+	<#
+        .SYNOPSIS
+        Retrieves Workspace ONE Access password expiration
+
+        .DESCRIPTION
+        The Request-WsaPasswordExpiration cmdlet retrieves the Workspace ONE Access password expiration policy.
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+        - Retrieve the password expiration policy
+
+        .EXAMPLE
+        Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
+        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+	)
+	
+	Try {
+		if (Test-WsaConnection -server $server) {
+			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
+                if ($WsaPasswordExpiration = Get-WsaPasswordPolicy) {
+                    $WsaPasswordExpirationObject = New-Object -TypeName psobject
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $server
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Lifetime (days)" -notepropertyvalue ($WsaPasswordExpiration.passwordTtlInHours / 24)
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder (days)" -notepropertyvalue ($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000)
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Temporary Password (hours)" -notepropertyvalue $WsaPasswordExpiration.tempPasswordTtl
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder Frequency (days)" -notepropertyvalue ($WsaPasswordExpiration.notificationInterval / 24 / 3600 / 1000)
+                } else {
+                    Write-Error "Unable to retrieve password expiration policy from Workspace ONE Access instance ($server): PRE_VALIDATION_FAILED"
+                }
+                return $WsaPasswordExpirationObject
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Request-WsaPasswordExpiration
+
+Function Request-WsaPasswordComplexity {
+	<#
+        .SYNOPSIS
+        Retrieves Workspace ONE Access password complexity
+
+        .DESCRIPTION
+        The Request-WsaPasswordComplexity cmdlet retrieves the Workspace ONE Access password complexity policy.
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+        - Retrieve the password complexity policy
+
+        .EXAMPLE
+        Request-WsaPasswordComplexity -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
+        This example retrieves the password complexity policy for Workspace ONE Access instance sfo-wsa01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+	)
+	
+	Try {
+		if (Test-WsaConnection -server $server) {
+			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
+                if ($WsaPasswordComplexity = Get-WsaPasswordPolicy) {
+                    $WsaPasswordComplexityObject = New-Object -TypeName psobject
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $server
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $WsaPasswordComplexity.minLen
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $WsaPasswordComplexity.minLower
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $WsaPasswordComplexity.minUpper
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Numberic" -notepropertyvalue $WsaPasswordComplexity.minDigit
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $WsaPasswordComplexity.minSpecial
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Max Identical Adjacent" -notepropertyvalue $WsaPasswordComplexity.maxConsecutiveIdenticalCharacters
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $WsaPasswordComplexity.History
+                } else {
+                    Write-Error "Unable to retrieve password complexity policy from Workspace ONE Access instance ($server): PRE_VALIDATION_FAILED"
+                }
+                return $WsaPasswordComplexityObject
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Request-WsaPasswordComplexity
+
+Function Request-WsaAccountLockout {
+	<#
+        .SYNOPSIS
+        Retrieves Workspace ONE Access account lockout
+
+        .DESCRIPTION
+        The Request-WsaAccountLockout cmdlet retrieves the Workspace ONE Access account lockout policy.
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+        - Retrieve the account lockout policy
+
+        .EXAMPLE
+        Request-WsaAccountLockout -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
+        This example retrieves the account lockout policy for Workspace ONE Access instance sfo-wsa01
+    #>
+
+	Param (
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+	)
+	
+	Try {
+		if (Test-WsaConnection -server $server) {
+			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
+                if ($WsaAccountLockout = Get-WsaAccountLockout) {
+                    $WsaAccountLockoutObject = New-Object -TypeName psobject
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $server
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $WsaAccountLockout.numAttempts
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (min)" -notepropertyvalue $WsaAccountLockout.unlockInterval
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (min)" -notepropertyvalue $WsaAccountLockout.attemptInterval                   
+                } else {
+                    Write-Error "Unable to retrieve account lockout policy from Workspace ONE Access instance ($server): PRE_VALIDATION_FAILED"
+                }
+                return $WsaAccountLockoutObject
+			}
+		}
+	} Catch {
+		Debug-ExceptionWriter -object $_
+	}
+}
+Export-ModuleMember -Function Request-WsaAccountLockout
+
+Function Update-WsaPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Update the Workspace ONE Access password expiration policy
+
+        .DESCRIPTION
+        The Update-WsaPasswordExpiration cmdlet configures the password expiration policy for a Workspace ONE Access
+        instance.
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+		- Configures the Workspace ONE Access password expiration policy
+
+        .EXAMPLE
+        Update-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -maxDays 999 -warnDays 14 -reminderDays 7 -tempPasswordHours 24
+        This example configures the password expiration policy for a Workspace ONE Access
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$maxDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$warnDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$reminderDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$tempPasswordHours
+	)
+
+	Try {
+        if (Test-WsaConnection -server $server) {
+            if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
+                $newMaxDays = ($maxDays * 24)
+                $newWarnDays = ($warnDays * 24 * 3600 * 1000)
+                $newReminderDays = ($reminderDays * 24 * 3600 * 1000)
+                if ((Get-WsaPasswordPolicy).passwordTtlInHours -ne $newMaxDays -or (Get-WsaPasswordPolicy).notificationThreshold -ne $newWarnDays -or (Get-WsaPasswordPolicy).notificationInterval -ne $newReminderDays -or (Get-WsaPasswordPolicy).tempPasswordTtl -ne $tempPasswordHours) {
+                    Set-WsaPasswordPolicy -minLen (Get-WsaPasswordPolicy).minLen -minLower (Get-WsaPasswordPolicy).minLower -minUpper (Get-WsaPasswordPolicy).minUpper -minDigit (Get-WsaPasswordPolicy).minDigit -minSpecial (Get-WsaPasswordPolicy).minSpecial -history (Get-WsaPasswordPolicy).history -maxConsecutiveIdenticalCharacters (Get-WsaPasswordPolicy).maxConsecutiveIdenticalCharacters -maxPreviousPasswordCharactersReused (Get-WsaPasswordPolicy).maxPreviousPasswordCharactersReused -tempPasswordTtlInHrs $tempPasswordHours -passwordTtlInDays $maxDays -notificationThresholdInDays $warnDays -notificationIntervalInDays $reminderDays | Out-Null
+                    if ((Get-WsaPasswordPolicy).passwordTtlInHours -eq $newMaxDays -and (Get-WsaPasswordPolicy).notificationThreshold -eq $newWarnDays -and (Get-WsaPasswordPolicy).notificationInterval -eq $newReminderDays -and (Get-WsaPasswordPolicy).tempPasswordTtl -eq $tempPasswordHours) {
+                        Write-Output "Update Workspace ONE Access Password Expiration Policy on server ($server): SUCCESSFUL"
+                    } else {
+                        Write-Error "Update Workspace ONE Access Password Expiration Policy on server ($server): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Update Workspace ONE Access Password Expiration Policy on server ($server), already set: SKIPPED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-WsaPasswordExpiration
+
+Function Update-WsaPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Update the Workspace ONE Access password complexity policy
+
+        .DESCRIPTION
+        The Update-WsaPasswordComplexity cmdlet configures the password complexity policy for a Workspace ONE Access
+        instance.
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+		- Configures the Workspace ONE Access password complexity policy
+
+        .EXAMPLE
+        Update-WsaPasswordComplexity -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -minLength 15 -minLowercase 1 -minUppercase 1 -minNumeric 1 -minSpecial 1 -maxIdenticalAdjacent 1 -maxPreviousCharacters 0 -history 5
+        This example configures the password complexity policy for a Workspace ONE Access
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLowercase,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minUppercase,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minNumeric,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$maxIdenticalAdjacent,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$maxPreviousCharacters,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$history
+	)
+
+	Try {
+        if (Test-WsaConnection -server $server) {
+            if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
+                $currentPasswordPolicy = Get-WsaPasswordPolicy
+                $currentMaxDays = (($currentPasswordPolicy).passwordTtlInHours / 24)
+                $currentWarnDays = (($currentPasswordPolicy).notificationThreshold / 24 / 3600 / 1000)
+                $currentReminderDays = (($currentPasswordPolicy).notificationInterval / 24 / 3600 / 1000)
+                if ((Get-WsaPasswordPolicy).minLen -ne $minLength  -or (Get-WsaPasswordPolicy).minLower -ne $minLowercase  -or (Get-WsaPasswordPolicy).minUpper -ne $minUppercase  -or (Get-WsaPasswordPolicy).minDigit -ne $minNumeric -or (Get-WsaPasswordPolicy).minSpecial -ne $minSpecial -or (Get-WsaPasswordPolicy).maxConsecutiveIdenticalCharacters -ne $maxIdenticalAdjacent -or (Get-WsaPasswordPolicy).maxPreviousPasswordCharactersReused -ne $maxPreviousCharacters -or (Get-WsaPasswordPolicy).history -ne $history) {
+                    Set-WsaPasswordPolicy -minLen $minLength -minLower $minLowercase -minUpper $minUppercase -minDigit $minNumeric -minSpecial $minSpecial -history $history -maxConsecutiveIdenticalCharacters $maxIdenticalAdjacent -maxPreviousPasswordCharactersReused $maxPreviousCharacters -tempPasswordTtlInHrs (Get-WsaPasswordPolicy).tempPasswordTtl -passwordTtlInDays $currentMaxDays -notificationThresholdInDays $currentWarnDays -notificationIntervalInDays $currentReminderDays | Out-Null
+                    if ((Get-WsaPasswordPolicy).minLen -eq $minLength  -and (Get-WsaPasswordPolicy).minLower -eq $minLowercase -and (Get-WsaPasswordPolicy).minUpper -eq $minUppercase  -and (Get-WsaPasswordPolicy).minDigit -eq $minNumeric -and (Get-WsaPasswordPolicy).minSpecial -eq $minSpecial -and (Get-WsaPasswordPolicy).maxConsecutiveIdenticalCharacters -eq $maxIdenticalAdjacent -and (Get-WsaPasswordPolicy).maxPreviousPasswordCharactersReused -eq $maxPreviousCharacters -and (Get-WsaPasswordPolicy).history -eq $history) {
+                        Write-Output "Updated Workspace ONE Access Password Complexity on Server ($server): SUCCESSFUL"
+                    } else {
+                        Write-Error "Update Workspace ONE Access Password Complexity Policy on server ($server): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Update Workspace ONE Access Password Complexity Policy on server ($server), already set: SKIPPED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-WsaPasswordComplexity
+
+Function Update-WsaAccountLockout {
+    <#
+		.SYNOPSIS
+		Update the Workspace ONE Access account lockout policy
+
+        .DESCRIPTION
+        The Update-WsaAccountLockout cmdlet configures the account lockout policy for Workspace ONE Access.
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+		- Configures the Workspace ONE Access account lockout policy
+
+        .EXAMPLE
+        Update-WsaAccountLockout -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -failures 5 -failureInterval 180 -unlockInterval 900
+        This example configures the account lockout policy for a Workspace ONE Access instance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failureInterval,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval
+
+	)
+
+	Try {
+        if (Test-WsaConnection -server $server) {
+            if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
+                $failureInterval = ($failureInterval / 60)
+                $unlockInterval = ($unlockInterval / 60)
+                if ((Get-WsaAccountLockout).numAttempts -ne $failures -or (Get-WsaAccountLockout).attemptInterval -ne $failureInterval -or (Get-WsaAccountLockout).unlockInterval -ne $unlockInterval) {
+                    Set-WsaAccountLockout  -numAttempts $failures -attemptInterval $failureInterval -unlockInterval $unlockInterval | Out-Null
+                    if ((Get-WsaAccountLockout).numAttempts -eq $failures -and (Get-WsaAccountLockout).attemptInterval -eq $failureInterval -and (Get-WsaAccountLockout).unlockInterval -eq $unlockInterval) {
+                        Write-Output "Update Workspace ONE Access Account Lockout Policy on instance ($server): SUCCESSFUL"
+                    } else {
+                        Write-Error "Update Workspace ONE Access Account Lockout Policy on instance ($server): POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Update Workspace ONE Access Account Lockout Policy on instance ($server), already set: SKIPPED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-WsaAccountLockout
 
 #EndRegion  End Workspace ONE Access Password Management Functions  ######
 ##########################################################################
@@ -19682,41 +20255,39 @@ Function Get-WSARoleAssociation {
 }
 Export-ModuleMember -Function Get-WSARoleAssociation
 
-Function Get-WSAPasswordLockout {
+Function Get-WsaAccountLockout {
     <#
         .SYNOPSIS
-        Get password lockout policy
+        Get account lockout policy
 
         .DESCRIPTION
-        Get details of the password lockout policy for Workspace ONE Access
+        Get details of the account lockout policy for Workspace ONE Access
 
         .EXAMPLE
-        Get-WSAPasswordLockout
+        Get-WsaAccountLockout
     #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.password.lockout+json" }
         $wsaHeaders.Add("Authorization", "$sessionToken")
-        $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/passwordlockoutconfig"
-        $response = Invoke-RestMethod $uri -Headers $wsaHeaders
-        $response
-    }
-    Catch {
+        $uri = "https://$workspaceOne/SAAS/jersey/manager/api/passwordlockoutconfig"
+        Invoke-RestMethod $uri -Headers $wsaHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-WSAPasswordLockout
+Export-ModuleMember -Function Get-WsaAccountLockout
 
-Function Set-WSAPasswordLockout {
+Function Set-WsaAccountLockout {
     <#
         .SYNOPSIS
-        Set password lockout policy
+        Set account lockout policy
 
         .DESCRIPTION
-        Set details of the password lockout policy for Workspace ONE Access
+        Set configuration of the account lockout policy for Workspace ONE Access
 
         .EXAMPLE
-        Set-WSAPasswordLockout
+        Set-WsaAccountLockout -numAttempts 5 -attemptInterval 15 -unlockInterval 15 
     #>
 
     Param (
@@ -19731,16 +20302,14 @@ Function Set-WSAPasswordLockout {
         $wsaHeaders.Add("Content-Type", "application/vnd.vmware.horizon.manager.password.lockout+json")
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/passwordlockoutconfig"
         $body = '{"numAttempts":'+$numAttempts+',"attemptInterval":'+$attemptInterval+',"unlockInterval":'+$unlockInterval+'}'
-        $response = Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body
-        $response
-    }
-    Catch {
+        Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Set-WSAPasswordLockout
+Export-ModuleMember -Function Set-WsaAccountLockout
 
-Function Get-WSAPasswordPolicy {
+Function Get-WsaPasswordPolicy {
     <#
         .SYNOPSIS
         Get password policy
@@ -19749,32 +20318,31 @@ Function Get-WSAPasswordPolicy {
         Get details of the password policy for Workspace ONE Access
 
         .EXAMPLE
-        Get-WSAPasswordPolicy
+        Get-WsaPasswordPolicy
     #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.tenants.tenant.passwordpolicy+json" }
         $wsaHeaders.Add("Authorization", "$sessionToken")
-        $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/tenants/tenant/passwordpolicy"
-        $response = Invoke-RestMethod $uri -Headers $wsaHeaders
-        $response
+        $uri = "https://$workspaceOne/SAAS/jersey/manager/api/tenants/tenant/passwordpolicy"
+        Invoke-RestMethod $uri -Headers $wsaHeaders
     }
     Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-WSAPasswordPolicy
+Export-ModuleMember -Function Get-WsaPasswordPolicy
 
-Function Set-WSAPasswordPolicy {
+Function Set-WsaPasswordPolicy {
     <#
         .SYNOPSIS
-        Set password lockout policy
+        Set password complexity and expiration policies
 
         .DESCRIPTION
-        Set details of the password lockout policy for Workspace ONE Access
+        Set configuration of the password complexity and expiration policies for Workspace ONE Access
 
         .EXAMPLE
-        Set-WSAPasswordPolicy -minLen 6 -minLower 0 -minUpper 0 -minDigit 0 -minSpecial 0 -history 0 -maxConsecutiveIdenticalCharacters 3 -maxPreviousPasswordCharactersReused 2 -tempPasswordTtlInHrs 167 -passwordTtlInDays 81 -notificationThresholdInDays 16 -notificationIntervalInDays 11
+        Set-WsaPasswordPolicy -minLen 15 -minLower 1 -minUpper 1 -minDigit 1 -minSpecial 1 -history 5 -maxConsecutiveIdenticalCharacters 1 -maxPreviousPasswordCharactersReused 0 -tempPasswordTtlInHrs 24 -passwordTtlInDays 999 -notificationThresholdInDays 14 -notificationIntervalInDays 7
     #>
 
     Param (
@@ -19815,14 +20383,13 @@ Function Set-WSAPasswordPolicy {
             "notificationThreshold":'+$notificationThresholdInMilliSec+',
             "notificationInterval":'+$notificationIntervalInMilliSec+'
         }'
-		Write-OutPut $body
-        $response = Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body
-    }
-    Catch {
+        Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body | Out-Null
+        Get-WsaPasswordPolicy
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Set-WSAPasswordPolicy
+Export-ModuleMember -Function Set-WsaPasswordPolicy
 
 #EndRegion  End Workspace ONE Access Functions                 ######
 #####################################################################
@@ -21305,7 +21872,7 @@ Function Set-NsxtManagerAuthPolicy {
 
 	$authPolicyBody = @{}
 	if ($PsBoundParameters.ContainsKey("api_lockout_period")) {
-		$authPolicyBody+= @{api_failed_auth_lockout_period = $api_lockout_period}
+		$authPolicyBody += @{api_failed_auth_lockout_period = $api_lockout_period}
 	}
 	if ($PsBoundParameters.ContainsKey("api_reset_period")) {
 		$authPolicyBody += @{api_failed_auth_reset_period = $api_reset_period}

@@ -22,10 +22,23 @@
 - Added `Set-LocalUserPasswordExpiration` cmdlet to configure the password expiration policy for a local user.
 - Added `Request-LocalUserPasswordExpiration` cmdlet to retrieve the password expiration policy for a local user from any virtual machine.
 - Added `Update-LocalUserPasswordExpiration` cmdlet to configure the password expiration policy for a local user from any virtual machine.
+- Added `Request-WsaPasswordExpiration` cmdlet to retrieve the password expiration policy for Workspace ONE Access.
+- Added `Request-WsaPasswordComplexity` cmdlet to retrieve the password complexity policy for Workspace ONE Access.
+- Added `Request-WsaAccountLockout` cmdlet to retrieve the account lockout policy for Workspace ONE Access.
+- Added `Update-WsaPasswordExpiration` cmdlet to update the password expiration policy for Workspace ONE Access.
+- Added `Update-WsaPasswordComplexity` cmdlet to update the password complexity policy for Workspace ONE Access.
+- Added `Update-WsaAccountLockout` cmdlet to update the account lockout policy for Workspace ONE Access.
+- Added `Request-NsxtManagerAccountLockout` cmdlet to retrieve the account lockout policy for NSX Manager nodes.
+- Added `Update-NsxtManagerAccountLockout` cmdlet to update the account lockout policy for NSX Manager nodes.
+- Added `Request-NsxtEdgeAccountLockout` cmdlet to retrieve the account lockout policy for NSX Edge nodes.
+- Added `Update-NsxtEdgeAccountLockout` cmdlet to update the account lockout policy for NSX Edge nodes.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordExpiry` to `Set-VcenterRootPasswordExpiration` to support better naming for password expiration.
+- Renamed `Get-WSAPasswordLockout` to Get-WsaAccountLockout to support better naming for account lockout.
+- Renamed `Set-WSAPasswordLockout` to Set-WsaAccountLockout to support better naming for account lockout.
+- Enhanced `Set-WsaPasswordPolicy` cmdlet to improve the output from the API.
 
 ### Deprecation
 
