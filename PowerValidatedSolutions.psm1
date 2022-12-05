@@ -16251,6 +16251,7 @@ Export-ModuleMember -Function Update-EsxiAccountLockout
 
 ##########################################################################
 #Region     Begin SSO Password Management Functions                 ######
+
 Function Request-SsoPasswordExpiration {
     <#
 		.SYNOPSIS
@@ -16869,11 +16870,299 @@ Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 ##########################################################################
 #Region     Begin NSX Manager Password Management Function          ######
 
+Function Request-NsxtManagerAccountLockout {
+    <#
+		.SYNOPSIS
+        Retrieve account lockout policy from NSX Manager Nodes
+
+        .DESCRIPTION
+        The Request-NsxtManagerAccountLockout cmdlet retrieves the account lockout policy for each NSX Manager node for
+        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Retrieves the account lockpout policy
+        
+        .EXAMPLE
+        Request-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the account lockout policy for the NSX Manager nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        $nsxtAccountLockoutPolicy = New-Object System.Collections.ArrayList
+                        foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                            if (Test-NSXTConnection -server $nsxtManagerNode.fqdn) {
+                                if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                    if ($NsxtManagerAccountLockout = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn) {
+                                        $NsxtManagerAccountLockoutObject = New-Object -TypeName psobject
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($nsxtManagerNode.fqdn)
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.cli_max_auth_failures
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.cli_failed_auth_lockout_period
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.api_max_auth_failures
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_lockout_period
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Rest Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_reset_period
+                                        $nsxtAccountLockoutPolicy += $NsxtManagerAccountLockoutObject
+                                    } else {
+                                        Write-Error "Unable to retrieve account lockout policy from NSX Manager node  ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                            }
+                        }
+                        return $nsxtAccountLockoutPolicy
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxtManagerAccountLockout
+
+Function Update-NsxtManagerAccountLockout {
+    <#
+		.SYNOPSIS
+        Configure account lockout policy NSX Manager Nodes
+
+        .DESCRIPTION
+        The Update-NsxtManagerAccountLockout cmdlet configures the account lockout policy for NSX Manager nodes within
+        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Configure the account lockout policy
+
+        .EXAMPLE
+        Update-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliFailures 5 -cliUnlockInterval 900 -apiFailures 5 -apiFailureInterval 120 -apiUnlockInterval 900
+        This example configures the account lockout policy in NSX Manager nodes in the sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliFailures,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliUnlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiFailures,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiFailureInterval,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiUnlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                                    if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.AdminPass) {
+                                        $existingConfiguration = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                                        if (($existingConfiguration).cli_max_auth_failures -ne $cliFailures -or ($existingConfiguration).cli_failed_auth_lockout_period -ne $cliUnlockInterval -or ($existingConfiguration).api_max_auth_failures -ne $apiFailures -or ($existingConfiguration).api_failed_auth_reset_period -ne $apiFailureInterval -or ($existingConfiguration).api_failed_auth_lockout_period -ne $apiUnlockInterval ) {
+                                            if (!$PsBoundParameters.ContainsKey("cliFailures")){
+                                                $cliFailures = [int]$existingConfiguration.cli_max_auth_failures
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("cliUnlockInterval")){
+                                                $cliUnlockInterval = [int]$existingConfiguration.cli_failed_auth_lockout_period
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("apiFailures")){
+                                                $apiFailures = [int]$existingConfiguration.api_max_auth_failures
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("apiFailureInterval")){
+                                                $apiFailureInterval = [int]$existingConfiguration.api_failed_auth_reset_period
+                                            }
+                                            if (!$PsBoundParameters.ContainsKey("apiUnlockInterval")){
+                                                $apiUnlockInterval = [int]$existingConfiguration.api_failed_auth_lockout_period
+                                            }
+                                            Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -cli_max_attempt $cliFailures -cli_lockout_period $cliUnlockInterval -api_max_attempt $apiFailures -api_reset_period $apiFailureInterval -api_lockout_period $apiUnlockInterval | Out-Null
+                                            $updatedConfiguration = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                                            if (($updatedConfiguration).cli_max_auth_failures -eq $cliFailures -and ($updatedConfiguration).cli_failed_auth_lockout_period -eq $cliUnlockInterval -and ($updatedConfiguration).api_max_auth_failures -eq $apiFailures -and ($updatedConfiguration).api_failed_auth_reset_period -eq $apiFailureInterval -and ($updatedConfiguration).api_failed_auth_lockout_period -eq $apiUnlockInterval ) {
+                                                if ($detail -eq "true") {
+                                                    Write-Output "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                                }
+                                            } else {
+                                                Write-Error "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            if ($detail -eq "true") {
+                                                Write-Warning "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain):, already set: SKIPPED"
+                                            }
+                                        }
+                                    }
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Update Account Lockout Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtManagerAccountLockout
+
 #EndRegion  End NSX Manager Password Management Functions           ######
 ##########################################################################
 
 ##########################################################################
 #Region     Begin NSX Edge Password Management Function             ######
+
+Function Request-NsxtEdgeAccountLockout {
+    <#
+		.SYNOPSIS
+        Retrieve account lockout policy from NSX Edge Nodes
+
+        .DESCRIPTION
+        The Request-NsxtEdgeAccountLockout cmdlet retrieves the account lockout policy from NSX Edge nodes within a
+        workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Retrieves the account lockpout policy
+
+        .EXAMPLE
+        Request-NsxtEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieving the account lockout policy for NSX Edge nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtAccountLockoutPolicy = New-Object System.Collections.ArrayList
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    if ($NsxtEdgeAccountLockout = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id) {
+                                        $NsxtEdgeAccountLockoutObject = New-Object -TypeName psobject
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNode.display_name
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtEdgeAccountLockout.cli_max_auth_failures
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtEdgeAccountLockout.cli_failed_auth_lockout_period
+                                        $nsxtAccountLockoutPolicy += $NsxtEdgeAccountLockoutObject
+                                    } else {
+                                        Write-Error "Unable to retrieve account lockout policy from NSX Edge node ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
+                                    }
+                                }
+                                return $nsxtAccountLockoutPolicy
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }   
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxtEdgeAccountLockout
+
+Function Update-NsxtEdgeAccountLockout {
+    <#
+		.SYNOPSIS
+        Configure account lockout policy for NSX Edge Nodes
+
+        .DESCRIPTION
+        The Update-NsxtEdgeAccountLockout cmdlet configures the account lockout policy for NSX Edge nodes.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Configure the account lockout policy
+
+        .EXAMPLE
+        Update-NsxtEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliFailures 5 -cliUnlockInterval 900 
+        This example configures the account lockout policy of the NSX Edges nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliFailures,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliUnlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    $existingConfiguration = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                                    if (($existingConfiguration).cli_max_auth_failures -ne $cliFailures -or ($existingConfiguration).cli_failed_auth_lockout_period -ne $cliUnlockInterval) {
+                                        if (!$PsBoundParameters.ContainsKey("cliFailures")){
+                                            $cliFailures = [int]$existingConfiguration.cli_max_auth_failures
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("cliUnlockInterval")){
+                                            $cliUnlockInterval = [int]$existingConfiguration.cli_failed_auth_lockout_period
+                                        }
+                                        Set-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id -cli_max_attempt $cliFailures -cli_lockout_period $cliUnlockInterval | Out-Null
+                                        $updatedConfiguration = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                                        if (($updatedConfiguration).cli_max_auth_failures -eq $cliFailures -and ($updatedConfiguration).cli_failed_auth_lockout_period -eq $cliUnlockInterval) {
+                                            if ($detail -eq "true") {
+                                                Write-Output "Update Account Lockout Policy on NSX Edge ($($nsxtEdgeNode.display_name)) for Workload Domain ($domain): SUCCESSFUL"
+                                            }
+                                        } else {
+                                            Write-Error "Update Account Lockout Policy on NSX Edge ($($nsxtEdgeNode.display_name)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        if ($detail -eq "true") {
+                                            Write-Warning "Update Account Lockout Policy on NSX Edge ($($nsxtEdgeNode.display_name)) for Workload Domain ($domain):, already set: SKIPPED"
+                                        }
+                                    }
+
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Update Account Lockout Policy for all NSX Edge Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtEdgeAccountLockout
 
 #EndRegion  End NSX Edge Password Management Functions              ######
 ##########################################################################
@@ -21583,7 +21872,7 @@ Function Set-NsxtManagerAuthPolicy {
 
 	$authPolicyBody = @{}
 	if ($PsBoundParameters.ContainsKey("api_lockout_period")) {
-		$authPolicyBody+= @{api_failed_auth_lockout_period = $api_lockout_period}
+		$authPolicyBody += @{api_failed_auth_lockout_period = $api_lockout_period}
 	}
 	if ($PsBoundParameters.ContainsKey("api_reset_period")) {
 		$authPolicyBody += @{api_failed_auth_reset_period = $api_reset_period}

@@ -28,6 +28,10 @@
 - Added `Update-WsaPasswordExpiration` cmdlet to update the password expiration policy for Workspace ONE Access.
 - Added `Update-WsaPasswordComplexity` cmdlet to update the password complexity policy for Workspace ONE Access.
 - Added `Update-WsaAccountLockout` cmdlet to update the account lockout policy for Workspace ONE Access.
+- Added `Request-NsxtManagerAccountLockout` cmdlet to retrieve the account lockout policy for NSX Manager nodes.
+- Added `Update-NsxtManagerAccountLockout` cmdlet to update the account lockout policy for NSX Manager nodes.
+- Added `Request-NsxtEdgeAccountLockout` cmdlet to retrieve the account lockout policy for NSX Edge nodes.
+- Added `Update-NsxtEdgeAccountLockout` cmdlet to update the account lockout policy for NSX Edge nodes.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
