@@ -16829,7 +16829,7 @@ Function Request-NsxtManagerAccountLockout {
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Rest Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_reset_period
                                         $nsxtAccountLockoutPolicy += $NsxtManagerAccountLockoutObject
                                     } else {
-                                        Write-Error "Unable to retrieve account lockout policy from NSX Manager node  ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to retrieve account lockout policy from NSX Manager node ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 }
                             }
