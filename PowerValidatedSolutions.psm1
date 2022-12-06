@@ -1326,272 +1326,6 @@ Function Add-WorkspaceOneRole {
 }
 Export-ModuleMember -Function Add-WorkspaceOneRole
 
-Function Get-NsxtManagerAuthenticationPolicy {
-    <#
-		.SYNOPSIS
-        Retrieve the current Authentication Policy from NSX Manager Nodes
-
-        .DESCRIPTION
-        The Get-NsxtManagerAuthenticationPolicy cmdlet retrieves the current Authentication policy from each NSX
-        manager nodes for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and
-        -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Manager
-        - Output the following Authentication policy on each NSX manager node.
-			a) api_failed_auth_lockout_period (in sec)
-			b) api_failed_auth_reset_period (in sec)
-			c) api_max_auth_failures (in attempt)
-			d) cli_failed_auth_lockout_period (in sec)
-			e) cli_max_auth_failures (in attempt)
-			f) minimum_password_length (in characters)
-        
-            .EXAMPLE
-        Get-NsxtManagerAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the current Authentication policy from NSX manager nodes in sfo-m01 workload domain
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
-                        foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
-                            if (Test-NSXTConnection -server $nsxtManagerNode.fqdn) {
-                                if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                                    $response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
-                                    Write-Output "Showing $($nsxtManagerNode.fqdn), results: $response"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Get-NsxtManagerAuthenticationPolicy
-
-Function Set-NsxtManagerAuthenticationPolicy {
-    <#
-		.SYNOPSIS
-        Configure Authentication Password Policy NSX Manager Nodes
-
-        .DESCRIPTION
-        The Set-NsxtManagerAuthenticationPolicy cmdlet configures Authentication policy within NSX manager nodes within
-        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Configure the following Authentication password policy on each NSX manager.
-			a) api_failed_auth_lockout_period (in sec)
-			b) api_failed_auth_reset_period (in sec)
-			c) api_max_auth_failures (in attempt)
-			d) cli_failed_auth_lockout_period (in sec)
-			e) cli_max_auth_failures (in attempt)
-			f) minimum_password_length (in characters)
-
-        .EXAMPLE
-        Set-NsxtManagerAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -apiLockoutPeriod 900 -apiResetPeriod 120 -apiMaxAttempt 5 -cliLockoutPeriod 900 -cliMaxAttempt 5 -minPasswdLength 15
-        This example configures the Authentication password policy in NSX manager nodes in sfo-m01 workload domain
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiLockoutPeriod,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiResetPeriod,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiMaxAttempt,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliLockoutPeriod,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliMaxAttempt,
-        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$minPasswdLength,
-        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
-                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
-                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                                foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
-                                    if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.AdminPass) {
-                                        $response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
-                                        if (!$PsBoundParameters.ContainsKey("apiLockoutPeriod")){
-                                            $apiLockoutPeriod = [int]$response.api_failed_auth_lockout_period
-                                        }
-                                        if (!$PsBoundParameters.ContainsKey("apiResetPeriod")){
-                                            $apiResetPeriod = [int]$response.api_failed_auth_reset_period
-                                        }
-                                        if (!$PsBoundParameters.ContainsKey("apiMaxAttempt")){
-                                            $apiMaxAttempt = [int]$response.api_max_auth_failures
-                                        }
-                                        if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
-                                            $cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
-                                        }
-                                        if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
-                                            $cliMaxAttempt = [int]$response.cli_max_auth_failures
-                                        }
-                                        if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
-                                            $minPasswdLength = [int]$response.minimum_password_length
-                                        }
-                                        $response = Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -api_lockout_period $apiLockoutPeriod -api_reset_period $apiResetPeriod -api_max_attempt $apiMaxAttempt -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
-                                        if ($detail -eq "true") {
-                                            Write-Output "Configuring Authentication Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
-                                        }
-                                    }
-                                }
-                                if ($detail -eq "false") {
-                                    Write-Output "Configuring Authentication Password Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-NsxtManagerAuthenticationPolicy
-
-Function Get-NsxtEdgeNodeAuthenticationPolicy {
-    <#
-		.SYNOPSIS
-        Retrieve Authentication Policy from NSX Edge Nodes
-
-        .DESCRIPTION
-        The Get-NsxtEdgeNodeAuthenticationPolicy cmdlet retrieves the current Authentication policy from NSX Edge
-        nodes within a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password
-        values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Output the following Authentication policy on each NSX Edge Nodes.
-			a) cli_failed_auth_lockout_period (in sec)
-			b) cli_max_auth_failures (in attempt)
-			c) minimum_password_length (in characters)
-
-        .EXAMPLE
-        Get-NsxtEdgeNodeAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieving the Authentication policy for NSX Edge nodes in sfo-m01 workload domain
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
-                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
-                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
-                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-                                    $response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
-                                    Write-Output "Retrieving $($nsxtEdgeNode.transport_node_id), results: $response"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }   
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Get-NsxtEdgeNodeAuthenticationPolicy
-
-Function Set-NsxtEdgeNodeAuthenticationPolicy {
-    <#
-		.SYNOPSIS
-        Configure Authentication Policy NSX Edge Nodes
-
-        .DESCRIPTION
-        The Set-NsxtEdgeNodeAuthenticationPolicy cmdlet configures the Authentication policy within NSX Edge nodes.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Configure the following Authentication policy on each NSX Edge Node.
-			a) cli_failed_auth_lockout_period (in sec)
-			b) cli_max_auth_failures (in attempt)
-			c) minimum_password_length (in characters)
-
-        .EXAMPLE
-        Set-NsxtEdgeNodeAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliLockoutPeriod 900 -cliMaxAttempt 5 -minPasswdLength 15
-        This example configures the Authentication policy of the NSX Edges nodes in sfo-m01 workload domain
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliLockoutPeriod,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliMaxAttempt,
-        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$minPasswdLength,
-        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
-    )
-
-	Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
-                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
-                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
-                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-                                    $response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
-                                    if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
-                                        $cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
-                                    }
-                                    if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
-                                        $cliMaxAttempt = [int]$response.cli_max_auth_failures
-                                    }
-                                    if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
-                                        $minPasswdLength = [int]$response.minimum_password_length
-                                    }
-                                    $response = Set-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
-                                    if ($detail -eq "true") {
-                                        Write-Output "Configuring Authentication Policy on NSX Edge Node ($nsxtEdgeNode) for Workload Domain ($domain): SUCCESSFUL"
-                                    }
-                                }
-                                if ($detail -eq "false") {
-                                    Write-Output "Configuring Authentication Password Policy on all NSX Edge Nodes for Workload Domain ($domain): SUCCESSFUL"
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-NsxtEdgeNodeAuthenticationPolicy
-
 #EndRegion                                  E N D  O F  F U N C T I O N S                                   ########### 
 #######################################################################################################################
 
@@ -16673,21 +16407,21 @@ Function Request-VcenterPasswordExpiration {
 }
 Export-ModuleMember -Function Request-VcenterPasswordExpiration
 
-Function Request-VcenterRootPasswordExpiration {
+Function Request-VcenterPasswordComplexity {
     <#
 		.SYNOPSIS
-		Retrieves the root user password expiration policy
+		Retrieve the password complexity policy
 
         .DESCRIPTION
-        The Request-VcenterRootPasswordExpiration cmdlet retrieves the root user password expiration policy for a
-        vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The Request-VcenterPasswordComplexity cmdlet retrieves the password complexity policy of a vCenter Server.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-		- Retrives the root user password expiration policy
+		- Retrieves the password complexity policy
 
         .EXAMPLE
-        Request-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the root user password expiration policy for the vCenter Server
+        Request-VcenterPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password complexity policy for the vCenter Server based on the workload domain
     #>
 
     Param (
@@ -16696,26 +16430,15 @@ Function Request-VcenterRootPasswordExpiration {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
 	)
-
+    
 	Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                        if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if ($VcenterRootPasswordExpiration = Get-VcenterRootPasswordExpiration) {
-                                    $VcenterRootPasswordExpirationObject = New-Object -TypeName psobject
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterRootPasswordExpiration.min_days_between_password_change
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterRootPasswordExpiration.max_days_between_password_change
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterRootPasswordExpiration.warn_days_before_password_expiration
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Email" -notepropertyvalue $VcenterRootPasswordExpiration.email
-                                } else {
-                                    Write-Error "Unable to retrieve root password expiration policy from vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
-                                }
-                                return $VcenterRootPasswordExpirationObject
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                Get-LocalPasswordComplexity -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
                             }
                         }
                     }
@@ -16728,7 +16451,7 @@ Function Request-VcenterRootPasswordExpiration {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Request-VcenterRootPasswordExpiration
+Export-ModuleMember -Function Request-VcenterPasswordComplexity
 
 Function Update-VcenterPasswordExpiration {
     <#
@@ -16787,6 +16510,127 @@ Function Update-VcenterPasswordExpiration {
     }
 }
 Export-ModuleMember -Function Update-VcenterPasswordExpiration
+
+Function Update-VcenterPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Update the password complexity policy
+
+        .DESCRIPTION
+        The Update-VcenterPasswordComplexity cmdlet configures the password complexity policy of a vCenter Server.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the password complexity policy
+
+        .EXAMPLE
+        Update-VcenterPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -minLength 6 -minLowercase -1 -minUppercase -1  -minNumerical -1 -minSpecial -1 -minUnique 4 -history 5
+        This example configures the password complexity policy for the vCenter Server based on the workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minLowercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUppercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minNumerical,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUnique,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$history
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $existingConfiguration = Get-LocalPasswordComplexity -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                if ($existingConfiguration.'Min Length' -ne $minLength  -or $existingConfiguration.'Min Lowercase' -ne $minLowercase -or $existingConfiguration.'Min Uppercase' -ne $minUppercase -or $existingConfiguration.'Min Numerical' -ne $minNumerical -or $existingConfiguration.'Min Special' -ne $minSpecial -or $existingConfiguration.'Min Unique' -ne $minUnique -or $existingConfiguration.'History' -ne $history) {
+                                    Set-LocalPasswordComplexity -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -history $history | Out-Null
+                                    $updatedConfiguration = Get-LocalPasswordComplexity -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                    if ($updatedConfiguration.'Min Length' -eq $minLength  -and $updatedConfiguration.'Min Lowercase' -eq $minLowercase -and $updatedConfiguration.'Min Uppercase' -eq $minUppercase -and $updatedConfiguration.'Min Numerical' -eq $minNumerical -and $updatedConfiguration.'Min Special' -eq $minSpecial -and $updatedConfiguration.'Min Unique' -eq $minUnique -and $updatedConfiguration.'History' -eq $history) {
+                                        Write-Output "Update Password Complexity Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Update Password Complexity Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Update Password Complexity Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-VcenterPasswordComplexity
+
+Function Request-VcenterRootPasswordExpiration {
+    <#
+		.SYNOPSIS
+		Retrieves the root user password expiration policy
+
+        .DESCRIPTION
+        The Request-VcenterRootPasswordExpiration cmdlet retrieves the root user password expiration policy for a
+        vCenter Server. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrives the root user password expiration policy
+
+        .EXAMPLE
+        Request-VcenterRootPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the root user password expiration policy for the vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereApiConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereApiAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if ($VcenterRootPasswordExpiration = Get-VcenterRootPasswordExpiration) {
+                                    $VcenterRootPasswordExpirationObject = New-Object -TypeName psobject
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterRootPasswordExpiration.min_days_between_password_change
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterRootPasswordExpiration.max_days_between_password_change
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterRootPasswordExpiration.warn_days_before_password_expiration
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Email" -notepropertyvalue $VcenterRootPasswordExpiration.email
+                                } else {
+                                    Write-Error "Unable to retrieve root password expiration policy from vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                }
+                                return $VcenterRootPasswordExpirationObject
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-VcenterRootPasswordExpiration
 
 Function Update-VcenterRootPasswordExpiration {
     <#
@@ -16870,6 +16714,77 @@ Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 ##########################################################################
 #Region     Begin NSX Manager Password Management Function          ######
 
+Function Request-NsxtManagerPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Retrieve the password complexity policy
+
+        .DESCRIPTION
+        The Request-NsxtManagerPasswordComplexity cmdlet retrieves the password complexity policy for each NSX Manager
+        node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+		- Retrieves the password complexity policy
+
+        .EXAMPLE
+        Request-NsxtManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password complexity policy for each NSX Manager node for a workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                                    $nsxtPasswordComplexityPolicy = New-Object System.Collections.ArrayList
+                                    foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                                        if (Test-NSXTConnection -server $nsxtManagerNode.fqdn) {
+                                            if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                                if ($nsxtManagerNodePolicy = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
+                                                    $NsxtManagerPasswordComplexityObject = New-Object -TypeName psobject
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($nsxtManagerNode.fqdn)
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $nsxtManagerNodePolicy.'Min Length'
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $nsxtManagerNodePolicy.'Min Lowercase'
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $nsxtManagerNodePolicy.'Min Uppercase'
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $nsxtManagerNodePolicy.'Min Numerical'
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $nsxtManagerNodePolicy.'Min Special'
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $nsxtManagerNodePolicy.'Min Unique'
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $nsxtManagerNodePolicy.'Max Retries'
+
+                                                    $nsxtPasswordComplexityPolicy += $NsxtManagerPasswordComplexityObject
+                                                } else {
+                                                    Write-Error "Unable to retrieve account lockout policy from NSX Manager node  ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return $nsxtPasswordComplexityPolicy
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxtManagerPasswordComplexity
+
 Function Request-NsxtManagerAccountLockout {
     <#
 		.SYNOPSIS
@@ -16931,6 +16846,78 @@ Function Request-NsxtManagerAccountLockout {
     }
 }
 Export-ModuleMember -Function Request-NsxtManagerAccountLockout
+
+Function Update-NsxtManagerPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Update the password complexity policy
+
+        .DESCRIPTION
+        The Update-NsxtManagerPasswordComplexity cmdlet updates the password complexity policy for each NSX Manager
+        node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+		- Updates the password complexity policy
+
+        .EXAMPLE
+        Update-NsxtManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -minLength 15 -minLowercase -1 -minUppercase -1  -minNumerical -1 -minSpecial -1 -minUnique 4 -maxRetry 3
+        This example updates the password complexity policy for each NSX Manager node for a workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minLowercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUppercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minNumerical,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUnique,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                                    foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                                        if (Test-NSXTConnection -server $nsxtManagerNode.fqdn) {
+                                            if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                                $existingConfiguration = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
+                                                if ($existingConfiguration.'Min Length' -ne $minLength  -or $existingConfiguration.'Min Lowercase' -ne $minLowercase -or $existingConfiguration.'Min Uppercase' -ne $minUppercase -or $existingConfiguration.'Min Numerical' -ne $minNumerical -or $existingConfiguration.'Min Special' -ne $minSpecial -or $existingConfiguration.'Min Unique' -ne $minUnique -or $existingConfiguration.'Max Retries' -ne $maxRetry) {
+                                                    Set-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -retry $maxRetry| Out-Null
+                                                    $updatedConfiguration = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
+                                                    if ($updatedConfiguration.'Min Length' -eq $minLength -and $updatedConfiguration.'Min Lowercase' -eq $minLowercase -and $updatedConfiguration.'Min Uppercase' -eq $minUppercase -and $updatedConfiguration.'Min Numerical' -eq $minNumerical -and $updatedConfiguration.'Min Special' -eq $minSpecial -and $updatedConfiguration.'Min Unique' -eq $minUnique -and $updatedConfiguration.'Max Retries' -eq $maxRetry) {
+                                                        Write-Output "Update Password Complexity Policy on NSX Manager Node ($($nsxtManagerNode.fqdn)): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Update Password Complexity Policy on NSX Manager Node ($($nsxtManagerNode.fqdn)): POST_VALIDATION_FAILED"
+                                                    }
+                                                } else {
+                                                    Write-Warning "Update Password Complexity Policy on NSX Manager Node ($($nsxtManagerNode.fqdn)), already set: SKIPPED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtManagerPasswordComplexity
 
 Function Update-NsxtManagerAccountLockout {
     <#
@@ -17027,6 +17014,77 @@ Export-ModuleMember -Function Update-NsxtManagerAccountLockout
 ##########################################################################
 #Region     Begin NSX Edge Password Management Function             ######
 
+Function Request-NsxtManagerPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Retrieve the password complexity policy
+
+        .DESCRIPTION
+        The Request-NsxtManagerPasswordComplexity cmdlet retrieves the password complexity policy for each NSX Manager
+        node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+		- Retrieves the password complexity policy
+
+        .EXAMPLE
+        Request-NsxtManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password complexity policy for each NSX Manager node for a workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                            $nsxtPasswordComplexityPolicy = New-Object System.Collections.ArrayList
+                                            $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                            foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                                if ($nsxtEdgeNodePolicy = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
+                                                    $NsxtEdgePasswordComplexityObject = New-Object -TypeName psobject
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNode.display_name
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Length'
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Lowercase'
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Uppercase'
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Numerical'
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Special'
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Unique'
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $nsxtEdgeNodePolicy.'Max Retries'
+                                                    $nsxtPasswordComplexityPolicy += $NsxtEdgePasswordComplexityObject
+                                                } else {
+                                                    Write-Error "Unable to retrieve account lockout policy from NSX Edge node  ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return $nsxtPasswordComplexityPolicy
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-NsxtManagerPasswordComplexity
+
 Function Request-NsxtEdgeAccountLockout {
     <#
 		.SYNOPSIS
@@ -17086,6 +17144,79 @@ Function Request-NsxtEdgeAccountLockout {
     }
 }
 Export-ModuleMember -Function Request-NsxtEdgeAccountLockout
+
+Function Update-NsxtEdgePasswordComplexity {
+    <#
+		.SYNOPSIS
+		Update the password complexity policy
+
+        .DESCRIPTION
+        The Update-NsxtEdgePasswordComplexity cmdlet updates the password complexity policy for each NSX Edge
+        node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+		- Updates the password complexity policy
+
+        .EXAMPLE
+        Update-NsxtEdgePasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -minLength 15 -minLowercase -1 -minUppercase -1  -minNumerical -1 -minSpecial -1 -minUnique 4 -maxRetry 3
+        This example updates the password complexity policy for each NSX Edge node for a workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minLowercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUppercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minNumerical,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUnique,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                            $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                            foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                                $existingConfiguration = Get-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
+                                                if ($existingConfiguration.'Min Length' -ne $minLength  -or $existingConfiguration.'Min Lowercase' -ne $minLowercase -or $existingConfiguration.'Min Uppercase' -ne $minUppercase -or $existingConfiguration.'Min Numerical' -ne $minNumerical -or $existingConfiguration.'Min Special' -ne $minSpecial -or $existingConfiguration.'Min Unique' -ne $minUnique -or $existingConfiguration.'Max Retries' -ne $maxRetry) {
+                                                    Set-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -retry $maxRetry| Out-Null
+                                                    $updatedConfiguration = Get-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
+                                                    if ($updatedConfiguration.'Min Length' -eq $minLength -and $updatedConfiguration.'Min Lowercase' -eq $minLowercase -and $updatedConfiguration.'Min Uppercase' -eq $minUppercase -and $updatedConfiguration.'Min Numerical' -eq $minNumerical -and $updatedConfiguration.'Min Special' -eq $minSpecial -and $updatedConfiguration.'Min Unique' -eq $minUnique -and $updatedConfiguration.'Max Retries' -eq $maxRetry) {
+                                                        Write-Output "Update Password Complexity Policy on NSX Manager Node ($($nsxtEdgeNode.display_name)): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Update Password Complexity Policy on NSX Manager Node ($($nsxtEdgeNode.display_name)): POST_VALIDATION_FAILED"
+                                                    }
+                                                } else {
+                                                    Write-Warning "Update Password Complexity Policy on NSX Manager Node ($($nsxtEdgeNode.display_name)), already set: SKIPPED"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-NsxtEdgePasswordComplexity
 
 Function Update-NsxtEdgeAccountLockout {
     <#
@@ -17464,7 +17595,7 @@ Export-ModuleMember -Function Update-WsaAccountLockout
 ##########################################################################
 
 ##########################################################################
-#Region     Begin Shard Password Management Function                ######
+#Region     Begin Shared Password Management Function               ######
 
 Function Request-LocalUserPasswordExpiration {
     <#
@@ -17613,7 +17744,7 @@ Function Update-LocalUserPasswordExpiration {
 }
 Export-ModuleMember -Function Update-LocalUserPasswordExpiration
 
-#EndRegion  End Shared Password Management Functions  ######
+#EndRegion  End Shared Password Management Functions                ######
 ##########################################################################
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
@@ -18745,6 +18876,177 @@ Function Set-LocalUserPasswordExpiration {
     }
 }
 Export-ModuleMember -Function Set-LocalUserPasswordExpiration
+
+Function Get-LocalPasswordComplexity {
+    <#
+		.SYNOPSIS
+        Get password complexity for local users
+
+        .DESCRIPTION
+        The Get-LocalPasswordComplexity cmdlets retrieves the password complexity for local users
+
+        .EXAMPLE
+        Get-LocalPasswordComplexity -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1!
+        This example retrieves the vCenter Server sfo-w01-vc01 password complexity
+
+        .EXAMPLE
+        Get-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx
+        This example retrieves the NSX Manager sfo-w01-nsx01a password complexity
+
+        .EXAMPLE
+        Get-LocalPasswordComplexity -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1!
+        This example retrieves the SDDC Manager sfo-vcf01 password complexity
+
+        .EXAMPLE
+        Get-LocalPasswordComplexity -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1!
+        This example retrieves the Workspace ONE Access sfo-wsa01 password complexity
+    #>
+
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx
+        )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("nsx")) {
+            $scriptCommand = "cat /etc/pam.d/common-password"
+        } else {
+            $scriptCommand = "cat /etc/pam.d/system-password"
+        }
+        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
+        if ([regex]::Matches($output.ScriptOutput, 'minlen=[-]?[0-9]+')) { $minLen = (([regex]::Matches($output.ScriptOutput, 'minlen=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'lcredit=[-]?[0-9]+')) { $minLowercase = (([regex]::Matches($output.ScriptOutput, 'lcredit=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'ucredit=[-]?[0-9]+')) { $minUppercase = (([regex]::Matches($output.ScriptOutput, 'ucredit=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'dcredit=[-]?[0-9]+')) { $minNumerical = (([regex]::Matches($output.ScriptOutput, 'dcredit=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'ocredit=[-]?[0-9]+')) { $minSpecial = (([regex]::Matches($output.ScriptOutput, 'ocredit=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'minclass=[-]?[0-9]+')) { $minClass = (([regex]::Matches($output.ScriptOutput, 'minclass=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'difok=[-]?[0-9]+')) { $minUnique = (([regex]::Matches($output.ScriptOutput, 'difok=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'maxsequence=[-]?[0-9]+')) { $maxSequence = (([regex]::Matches($output.ScriptOutput, 'maxsequence=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'remember=[-]?[0-9]+')) { $history = (([regex]::Matches($output.ScriptOutput, 'remember=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'retry=[-]?[0-9]+')) { $retry = (([regex]::Matches($output.ScriptOutput, 'retry=[-]?[0-9]+').Value) -Split ('='))[-1] }
+
+        $passwordComplexityObject = New-Object -TypeName psobject
+        $passwordComplexityObject | Add-Member -notepropertyname "Virtual Machine" -notepropertyvalue $vmName
+        if ($minLen) { $passwordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $minLen}
+        if ($minLowercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $minLowercase}
+        if ($minUppercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $minUppercase}
+        if ($minNumerical) {$passwordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $minNumerical}
+        if ($minSpecial) {$passwordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $minSpecial}
+        if ($minUnique) {$passwordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $minUnique}
+        if ($minClass) { $passwordComplexityObject | Add-Member -notepropertyname "Min Classes" -notepropertyvalue $minClass}
+        if ($maxSequence) { $passwordComplexityObject | Add-Member -notepropertyname "Max Sequence" -notepropertyvalue $maxSequence}
+        if ($history) { $passwordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $history}
+        if ($retry) { $passwordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $retry}
+        Return $passwordComplexityObject
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-LocalPasswordComplexity
+
+Function Set-LocalPasswordComplexity {
+    <#
+		.SYNOPSIS
+        Configure password complexity for local users
+
+        .DESCRIPTION
+        The Set-LocalPasswordComplexity cmdlets configures the password complexity local users
+
+        .EXAMPLE
+        Set-LocalPasswordComplexity -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -minLength 7 -uppercase 1 -lowercase 1 -numerical 1 -special 1 -unique 5 -history 3
+        This example updates the vCenter Server sfo-w01-vc01 with new values for each element
+
+        .EXAMPLE
+        Set-LocalPasswordComplexity -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -minLength 6 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 4 -history 5
+        This example updates the vCenter Server sfo-w01-vc01 with the default values
+
+        .EXAMPLE
+        Set-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx -minLength 15 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 0 -history 5 
+        This example updates the NSX Manager sfo-w01-nsx01a with the values
+    #>
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$uppercase,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$lowercase,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$numerical,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$special,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unique,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$history,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$retry,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$class,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$sequence,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx
+        )
+
+    Try {
+        $scriptCommand = "sed -E -i.bak '"
+        if ($PsBoundParameters.ContainsKey("minLength")) {
+            # minlen = Minimum password length (default = 6)
+            $minLengthCommand = "s/minlen=[-]?[0-9]+/minlen=$minLength/"
+            $scriptCommand += $minLengthCommand
+        }
+        if ($PsBoundParameters.ContainsKey("uppercase")) {
+            # ucredit = Maximum number of uppercase characters that will generate a credit (default = -1)
+            $uppercaseCommand = ";s/ucredit=[-]?[0-9]+/ucredit=$uppercase/"
+            $scriptCommand += $uppercaseCommand
+        }
+        if ($PsBoundParameters.ContainsKey("lowercase")) {
+            # lcredit = Maximum number of lowercase characters that will generate a credit (default = -1)
+            $lowercaseCommand = ";s/lcredit=[-]?[0-9]+/lcredit=$lowercase/"
+            $scriptCommand += $lowercaseCommand
+        }
+        if ($PsBoundParameters.ContainsKey("numerical")) {
+            # dcredit = Maximum number of digits that will generate a credit (default = -1)
+            $numericalCommand = ";s/dcredit=[-]?[0-9]+/dcredit=$numerical/"
+            $scriptCommand += $numericalCommand
+        }
+        if ($PsBoundParameters.ContainsKey("special")) {
+            # ocredit = Maximum number of other characters that will generate a credit (default = -1)
+            $specialCommand = ";s/ocredit=[-]?[0-9]+/ocredit=$special/"
+            $scriptCommand += $specialCommand
+        }
+        if ($PsBoundParameters.ContainsKey("unique")) {
+            # difok = Minimum number of characters that must be different from the old password (default = 4)
+            $uniqueCommand = ";s/difok=[-]?[0-9]+/difok=$unique/"
+            $scriptCommand += $uniqueCommand
+        }
+        if ($PsBoundParameters.ContainsKey("history")) {
+            # remember = Maximum number of passwords the system remembers (default = 5)
+            $historyCommand = ";s/remember=[-]?[0-9]+/remember=$history/"
+            $scriptCommand += $historyCommand
+        }
+        if ($PsBoundParameters.ContainsKey("retry")) {
+            # retry = Maximum number of retries (default = 3)
+            $retryCommand = ";s/retry=[-]?[0-9]+/retry=$retry/"
+            $scriptCommand += $retryCommand
+        }
+        if ($PsBoundParameters.ContainsKey("class")) {
+            # minclass = Minimum number of character types that must be used (i.e., uppercase, lowercase, digits, other) (default = 4)
+            $minClassCommand = ";s/minclass=[-]?[0-9]+/minclass=$class/"
+            $scriptCommand += $minClassCommand
+        }
+        if ($PsBoundParameters.ContainsKey("sequence")) {
+            # maxsequence = Maximum number of times a single character may be repeated (default = 0)
+            $maxSequenceCommand = ";s/maxsequence=[-]?[0-9]+/maxsequence=$sequence/"
+            $scriptCommand += $maxSequenceCommand
+        }
+        if ($PsBoundParameters.ContainsKey("nsx")) {
+            $scriptCommand += "' /etc/pam.d/common-password"
+        } else {
+            $scriptCommand += "' /etc/pam.d/system-password"
+        }
+        Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false | Out-Null
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-LocalPasswordComplexity
 
 Function Get-GlobalPermission {
     <#
@@ -37077,6 +37379,272 @@ Function Get-SsoPasswordPolicies {
     }
 }
 Export-ModuleMember -Function Get-SsoPasswordPolicies
+
+Function Get-NsxtManagerAuthenticationPolicy {
+    <#
+		.SYNOPSIS
+        Retrieve the current Authentication Policy from NSX Manager Nodes
+
+        .DESCRIPTION
+        The Get-NsxtManagerAuthenticationPolicy cmdlet retrieves the current Authentication policy from each NSX
+        manager nodes for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and
+        -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Output the following Authentication policy on each NSX manager node.
+			a) api_failed_auth_lockout_period (in sec)
+			b) api_failed_auth_reset_period (in sec)
+			c) api_max_auth_failures (in attempt)
+			d) cli_failed_auth_lockout_period (in sec)
+			e) cli_max_auth_failures (in attempt)
+			f) minimum_password_length (in characters)
+        
+            .EXAMPLE
+        Get-NsxtManagerAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the current Authentication policy from NSX manager nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                            if (Test-NSXTConnection -server $nsxtManagerNode.fqdn) {
+                                if (Test-NSXTAuthentication -server $nsxtManagerNode.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                    $response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                                    Write-Output "Showing $($nsxtManagerNode.fqdn), results: $response"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-NsxtManagerAuthenticationPolicy
+
+Function Set-NsxtManagerAuthenticationPolicy {
+    <#
+		.SYNOPSIS
+        Configure Authentication Password Policy NSX Manager Nodes
+
+        .DESCRIPTION
+        The Set-NsxtManagerAuthenticationPolicy cmdlet configures Authentication policy within NSX manager nodes within
+        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Configure the following Authentication password policy on each NSX manager.
+			a) api_failed_auth_lockout_period (in sec)
+			b) api_failed_auth_reset_period (in sec)
+			c) api_max_auth_failures (in attempt)
+			d) cli_failed_auth_lockout_period (in sec)
+			e) cli_max_auth_failures (in attempt)
+			f) minimum_password_length (in characters)
+
+        .EXAMPLE
+        Set-NsxtManagerAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -apiLockoutPeriod 900 -apiResetPeriod 120 -apiMaxAttempt 5 -cliLockoutPeriod 900 -cliMaxAttempt 5 -minPasswdLength 15
+        This example configures the Authentication password policy in NSX manager nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiLockoutPeriod,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiResetPeriod,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$apiMaxAttempt,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliLockoutPeriod,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliMaxAttempt,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$minPasswdLength,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                                    if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.AdminPass) {
+                                        $response = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
+                                        if (!$PsBoundParameters.ContainsKey("apiLockoutPeriod")){
+                                            $apiLockoutPeriod = [int]$response.api_failed_auth_lockout_period
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("apiResetPeriod")){
+                                            $apiResetPeriod = [int]$response.api_failed_auth_reset_period
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("apiMaxAttempt")){
+                                            $apiMaxAttempt = [int]$response.api_max_auth_failures
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
+                                            $cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
+                                            $cliMaxAttempt = [int]$response.cli_max_auth_failures
+                                        }
+                                        if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
+                                            $minPasswdLength = [int]$response.minimum_password_length
+                                        }
+                                        $response = Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -api_lockout_period $apiLockoutPeriod -api_reset_period $apiResetPeriod -api_max_attempt $apiMaxAttempt -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
+                                        if ($detail -eq "true") {
+                                            Write-Output "Configuring Authentication Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Configuring Authentication Password Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-NsxtManagerAuthenticationPolicy
+
+Function Get-NsxtEdgeNodeAuthenticationPolicy {
+    <#
+		.SYNOPSIS
+        Retrieve Authentication Policy from NSX Edge Nodes
+
+        .DESCRIPTION
+        The Get-NsxtEdgeNodeAuthenticationPolicy cmdlet retrieves the current Authentication policy from NSX Edge
+        nodes within a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password
+        values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Output the following Authentication policy on each NSX Edge Nodes.
+			a) cli_failed_auth_lockout_period (in sec)
+			b) cli_max_auth_failures (in attempt)
+			c) minimum_password_length (in characters)
+
+        .EXAMPLE
+        Get-NsxtEdgeNodeAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieving the Authentication policy for NSX Edge nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    $response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                                    Write-Output "Retrieving $($nsxtEdgeNode.transport_node_id), results: $response"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }   
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Get-NsxtEdgeNodeAuthenticationPolicy
+
+Function Set-NsxtEdgeNodeAuthenticationPolicy {
+    <#
+		.SYNOPSIS
+        Configure Authentication Policy NSX Edge Nodes
+
+        .DESCRIPTION
+        The Set-NsxtEdgeNodeAuthenticationPolicy cmdlet configures the Authentication policy within NSX Edge nodes.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Configure the following Authentication policy on each NSX Edge Node.
+			a) cli_failed_auth_lockout_period (in sec)
+			b) cli_max_auth_failures (in attempt)
+			c) minimum_password_length (in characters)
+
+        .EXAMPLE
+        Set-NsxtEdgeNodeAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliLockoutPeriod 900 -cliMaxAttempt 5 -minPasswdLength 15
+        This example configures the Authentication policy of the NSX Edges nodes in sfo-m01 workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliLockoutPeriod,
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cliMaxAttempt,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$minPasswdLength,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
+    )
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    $response = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id
+                                    if (!$PsBoundParameters.ContainsKey("cliLockoutPeriod")){
+                                        $cliLockoutPeriod = [int]$response.cli_failed_auth_lockout_period
+                                    }
+                                    if (!$PsBoundParameters.ContainsKey("cliMaxAttempt")){
+                                        $cliMaxAttempt = [int]$response.cli_max_auth_failures
+                                    }
+                                    if (!$PsBoundParameters.ContainsKey("minPasswdLength")){
+                                        $minPasswdLength = [int]$response.minimum_password_length
+                                    }
+                                    $response = Set-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
+                                    if ($detail -eq "true") {
+                                        Write-Output "Configuring Authentication Policy on NSX Edge Node ($nsxtEdgeNode) for Workload Domain ($domain): SUCCESSFUL"
+                                    }
+                                }
+                                if ($detail -eq "false") {
+                                    Write-Output "Configuring Authentication Password Policy on all NSX Edge Nodes for Workload Domain ($domain): SUCCESSFUL"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Set-NsxtEdgeNodeAuthenticationPolicy
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
