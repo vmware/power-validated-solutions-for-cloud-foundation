@@ -32,6 +32,14 @@
 - Added `Update-NsxtManagerAccountLockout` cmdlet to update the account lockout policy for NSX Manager nodes.
 - Added `Request-NsxtEdgeAccountLockout` cmdlet to retrieve the account lockout policy for NSX Edge nodes.
 - Added `Update-NsxtEdgeAccountLockout` cmdlet to update the account lockout policy for NSX Edge nodes.
+- Added `Get-LocalPasswordComplexity` cmdlet to retrieve the password complexity in `/etc/pam.d/system-password`.
+- Added `Set-LocalPasswordComplexity` cmdlet to configure the password complexity in `/etc/pam.d/system-password`.
+- Added `Request-VcenterPasswordComplexity` cmdlet to retrieve the password complexity for a vCenter Server.
+- Added `Update-VcenterPasswordComplexity` cmdlet to update the password complexity for a vCenter Server.
+- Added `Request-NsxtManagerPasswordComplexity` cmdlet to retrieve the password complexity for NSX Local Manager nodes.
+- Added `Update-NsxtManagerPasswordComplexity` cmdlet to update the password complexity for NSX Local Manager nodes.
+- Added `Request-NsxtEdgePasswordComplexity` cmdlet to retrieve the password complexity for NSX Edge nodes.
+- Added `Update-NsxtEdgePasswordComplexity` cmdlet to update the password complexity for NSX Edge nodes.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
