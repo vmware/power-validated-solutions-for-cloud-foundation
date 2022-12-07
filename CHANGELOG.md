@@ -40,6 +40,18 @@
 - Added `Update-NsxtManagerPasswordComplexity` cmdlet to update the password complexity for NSX Local Manager nodes.
 - Added `Request-NsxtEdgePasswordComplexity` cmdlet to retrieve the password complexity for NSX Edge nodes.
 - Added `Update-NsxtEdgePasswordComplexity` cmdlet to update the password complexity for NSX Edge nodes.
+- Added `Request-SddcManagerPasswordComplexity` cmdlet to retrieve the password complexity for SDDC Manager.
+- Added `Update-SddcManagerPasswordComplexity` cmdlet to update the password complexity for SDDC Manager.
+- Added `Request-WsaLocalUserPasswordComplexity` cmdlet to retrieve the local user password complexity for Workspace ONE Access.
+- Added `Update-WsaLocalUserPasswordComplexity` cmdlet to update the local user password complexity for Workspace ONE Access.
+- Added `Get-LocalAccountLockout` cmdlet to retrieve the local user account lockout policy from a virtual machine.
+- Added `Set-LocalAccountLockout` cmdlet to update the local user account lockout policy from a virtual machine.
+- Added `Request-VcenterAccountLockout` cmdlet to retrieve the local user account lockout policy for vCenter Server.
+- Added `Update-VcenterAccountLockout` cmdlet to update  the local user account lockout policy for vCenter Server.
+- Added `Request-SddcManagerAccountLockout` cmdlet to retrieve the local user account lockout policy for SDDC Manager.
+- Added `Update-SddcManagerAccountLockout` cmdlet to update the local user account lockout policy for SDDC Manager.
+- Added `Request-WsaLocalUserAccountLockout` cmdlet to retrieve the local user account lockout policy for Workspace ONE Access.
+- Added `Update-WsaLocalUserAccountLockout` cmdlet to update the local user account lockout policy for Workspace ONE Access.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
