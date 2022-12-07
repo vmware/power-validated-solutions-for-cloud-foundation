@@ -16453,6 +16453,52 @@ Function Request-VcenterPasswordComplexity {
 }
 Export-ModuleMember -Function Request-VcenterPasswordComplexity
 
+Function Request-VcenterAccountLockout {
+    <#
+		.SYNOPSIS
+		Retrieve the account lockout policy for vCenter Server
+
+        .DESCRIPTION
+        The Request-VcenterAccountLockout cmdlet retrieves the account lockout policy of a vCenter Server.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrieves the account lockout policy
+
+        .EXAMPLE
+        Request-VcenterAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the account lockout policy for the vCenter Server based on the workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-VcenterAccountLockout
+
 Function Update-VcenterPasswordExpiration {
     <#
 		.SYNOPSIS
@@ -16574,6 +16620,66 @@ Function Update-VcenterPasswordComplexity {
     }
 }
 Export-ModuleMember -Function Update-VcenterPasswordComplexity
+
+Function Update-VcenterAccountLockout {
+    <#
+		.SYNOPSIS
+		Update the account lockout policy of vCenter Server
+
+        .DESCRIPTION
+        The Update-VcenterAccountLockout cmdlet configures the account lockout policy of a vCenter Server. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the account lockout policy
+
+        .EXAMPLE
+        Update-VcenterAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -failures 3 -unlockInterval 900 -rootUnlockInterval 300
+        This example configures the account lockout policy for the vCenter Server based on the workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$rootUnlockInterval
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                        if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $existingConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
+                                    Set-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
+                                    $updatedConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                    if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
+                                        Write-Output "Update Account Lockout Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Update Account Lockout Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Update Account Lockout Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-VcenterAccountLockout
 
 Function Request-VcenterRootPasswordExpiration {
     <#
@@ -17317,6 +17423,207 @@ Export-ModuleMember -Function Update-NsxtEdgeAccountLockout
 ##########################################################################
 #Region     Begin SDDC Manager Password Management Function         ######
 
+Function Request-SddcManagerPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Retrieve the password complexity policy for SDDC Manager
+
+        .DESCRIPTION
+        The Request-SddcManagerPasswordComplexity cmdlet retrieves the password complexity policy for SDDC Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+		- Retrieves the password complexity policy
+
+        .EXAMPLE
+        Request-SddcManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        This example retrieves the password complexity policy for SDDC Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            Get-LocalPasswordComplexity -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-SddcManagerPasswordComplexity
+
+Function Request-SddcManagerAccountLockout {
+    <#
+		.SYNOPSIS
+		Retrieve the account lockout policy for SDDC Manager
+
+        .DESCRIPTION
+        The Request-SddcManagerAccountLockout cmdlet retrieves the account lockout policy for SDDC Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrieves the account lockout policy of SDDC Manager
+
+        .EXAMPLE
+        Request-SddcManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        This example retrieves the account lockout policy for SDDC Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-SddcManagerAccountLockout
+
+Function Update-SddcManagerPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Update the password complexity policy for SDDC Manager
+
+        .DESCRIPTION
+        The Update-SddcManagerPasswordComplexity cmdlet configures the password complexity policy for SDDC Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+		- Configures the password complexity policy
+
+        .EXAMPLE
+        Update-SddcManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -minLength 6 -minLowercase -1 -minUppercase -1  -minNumerical -1 -minSpecial -1 -minUnique 4 -minClass 4 -maxSequence 0 -history 5 -maxRetry 3
+        This example configures the password complexity policy for SDDC Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minLowercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUppercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minNumerical,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUnique,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minClass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxSequence,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$history,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $existingConfiguration = Get-LocalPasswordComplexity -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                            if ($existingConfiguration.'Min Length' -ne $minLength -or $existingConfiguration.'Min Lowercase' -ne $minLowercase -or $existingConfiguration.'Min Uppercase' -ne $minUppercase -or $existingConfiguration.'Min Numerical' -ne $minNumerical -or $existingConfiguration.'Min Special' -ne $minSpecial -or $existingConfiguration.'Min Unique' -ne $minUnique -or $existingConfiguration.'Min Classes' -ne $minClass -or $existingConfiguration.'Max Sequence' -ne $maxSequence -or $existingConfiguration.'History' -ne $history -or $existingConfiguration.'Max Retries' -ne $maxRetry) {
+                                Set-LocalPasswordComplexity -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -class $minClass -sequence $maxSequence -history $history -retry $maxRetry | Out-Null
+                                $updatedConfiguration = Get-LocalPasswordComplexity -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                                if ($updatedConfiguration.'Min Length' -eq $minLength -and $updatedConfiguration.'Min Lowercase' -eq $minLowercase -and $updatedConfiguration.'Min Uppercase' -eq $minUppercase -and $updatedConfiguration.'Min Numerical' -eq $minNumerical -and $updatedConfiguration.'Min Special' -eq $minSpecial -and $updatedConfiguration.'Min Unique' -eq $minUnique -and $updatedConfiguration.'Min Classes' -eq $minClass -and $updatedConfiguration.'Max Sequence' -eq $maxSequence -and $updatedConfiguration.'History' -eq $history -and $updatedConfiguration.'Max Retries' -eq $maxRetry) {
+                                    Write-Output "Update Password Complexity Policy on SDDC Manager ($server): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Update Password Complexity Policy on SDDC Manager ($server): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Update Password Complexity Policy on SDDC Manager ($server), already set: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-VcenterPasswordComplexity
+
+Function Update-SddcManagerAccountLockout {
+    <#
+		.SYNOPSIS
+		Update the account lockout policy of SDDC Manager
+
+        .DESCRIPTION
+        The Update-SddcManagerAccountLockout cmdlet configures the account lockout policy of SDDC Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the account lockout policy
+
+        .EXAMPLE
+        Update-SddcManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -failures 3 -unlockInterval 86400 -rootUnlockInterval 300
+        This example configures the account lockout policy for SDDC Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$rootUnlockInterval
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $existingConfiguration = Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                            if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
+                                Set-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
+                                $updatedConfiguration = Get-LocalAccountLockout ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                                if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
+                                    Write-Output "Update Account Lockout Policy on SDDC Manager ($server): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Update Account Lockout Policy on SDDC Manager ($server): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Update Account Lockout Policy on SDDC Manager ($server), already set: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-SddcManagerAccountLockout
+
 #EndRegion  End SDDC Manager Password Management Functions          ######
 ##########################################################################
 
@@ -17411,6 +17718,91 @@ Function Request-WsaPasswordComplexity {
 	}
 }
 Export-ModuleMember -Function Request-WsaPasswordComplexity
+
+Function Request-WsaLocalUserPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Retrieve the local user password complexity policy for Workspace ONE Access
+
+        .DESCRIPTION
+        The Request-WsaLocalUserPasswordComplexity cmdlet retrieves the local user password complexity policy for
+        Workspace ONE Access. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Retrieves the local user password complexity policy
+
+        .EXAMPLE
+        Request-WsaLocalUserPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1!
+        This example retrieves the local user password complexity policy for Workspace ONE Access
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-WsaLocalUserPasswordComplexity
+
+Function Request-WsaLocalUserAccountLockout {
+    <#
+		.SYNOPSIS
+		Retrieve the account lockout policy for Workspace ONE Access
+
+        .DESCRIPTION
+        The Request-WsaLocalUserAccountLockout cmdlet retrieves the account lockout policy for SDDC Manager.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+		- Retrieves the account lockout policy of Workspace ONE Access
+
+        .EXAMPLE
+        Request-WsaLocalUserAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1!
+        This example retrieves the account lockout policy for Workspace ONE Access
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-WsaLocalUserAccountLockout
 
 Function Request-WsaAccountLockout {
 	<#
@@ -17559,6 +17951,63 @@ Function Update-WsaPasswordComplexity {
 }
 Export-ModuleMember -Function Update-WsaPasswordComplexity
 
+Function Update-WsaLocalUserPasswordComplexity {
+    <#
+		.SYNOPSIS
+		Update the local user password complexity policy for Workspace ONE Access
+
+        .DESCRIPTION
+        The Update-WsaLocalUserPasswordComplexity cmdlet configures the local user password complexity policy for
+        Workspace ONE Access. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the password complexity policy
+
+        .EXAMPLE
+        Update-WsaLocalUserPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -minLength 1 -history 5 -maxRetry 3
+        This example configures the local user password complexity policy for Workspace ONE Access
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$history,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry
+	)
+
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $existingConfiguration = Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                            if ($existingConfiguration.'Min Length' -ne $minLength -or $existingConfiguration.'History' -ne $history -or $existingConfiguration.'Max Retries' -ne $maxRetry) {
+                                Set-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -class $minClass -sequence $maxSequence -history $history -retry $maxRetry | Out-Null
+                                $updatedConfiguration = Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                                if ($updatedConfiguration.'Min Length' -eq $minLength -and $updatedConfiguration.'History' -eq $history -and $updatedConfiguration.'Max Retries' -eq $maxRetry) {
+                                    Write-Output "Update Local User Password Complexity Policy on Workspace ONE Access ($wsaFqdn): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Update Local User Password Complexity Policy on Workspace ONE Access ($wsaFqdn): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Update Local User Password Complexity Policy on Workspace ONE Access ($wsaFqdn), already set: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-WsaLocalUserPasswordComplexity
+
 Function Update-WsaAccountLockout {
     <#
 		.SYNOPSIS
@@ -17606,6 +18055,63 @@ Function Update-WsaAccountLockout {
     }
 }
 Export-ModuleMember -Function Update-WsaAccountLockout
+
+Function Update-WsaLocalUserAccountLockout {
+    <#
+		.SYNOPSIS
+		Update the account lockout policy of Workspace ONE Access
+
+        .DESCRIPTION
+        The Update-WsaLocalUserAccountLockout cmdlet configures the account lockout policy of Workspace ONE Access.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+		- Configures the account lockout policy
+
+        .EXAMPLE
+        Update-WsaLocalUserAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -failures 3 -unlockInterval 900 -rootUnlockInterval 900
+        This example configures the account lockout policy for Workspace ONE Access
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$rootUnlockInterval
+	)
+    
+	Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $existingConfiguration = Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                            if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
+                                Set-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
+                                $updatedConfiguration = Get-LocalAccountLockout ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                                if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
+                                    Write-Output "Update Account Lockout Policy on Workspace ONE Access ($wsaFqdn): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Update Account Lockout Policy on Workspace ONE Access ($wsaFqdn): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Update Account Lockout Policy on Workspace ONE Access ($wsaFqdn), already set: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+	} Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-WsaLocalUserAccountLockout
 
 #EndRegion  End Workspace ONE Access Password Management Functions  ######
 ##########################################################################
@@ -19063,6 +19569,105 @@ Function Set-LocalPasswordComplexity {
     }
 }
 Export-ModuleMember -Function Set-LocalPasswordComplexity
+
+Function Get-LocalAccountLockout {
+    <#
+		.SYNOPSIS
+        Get account lockout policy for local users
+
+        .DESCRIPTION
+        The Get-LocalAccountLockout cmdlets retrieves the account lockout for local users
+
+        .EXAMPLE
+        Get-LocalAccountLockout -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1!
+        This example retrieves the vCenter Server sfo-w01-vc01 account lockout policy
+
+        .EXAMPLE
+        Get-LocalAccountLockout -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1!
+        This example retrieves the SDDC Manager sfo-vcf01 account lockout policy
+
+        .EXAMPLE
+        Get-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1!
+        This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy
+    #>
+
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword
+        )
+
+    Try {
+
+        $scriptCommand = "cat /etc/pam.d/system-auth"
+        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
+        if ([regex]::Matches($output.ScriptOutput, 'deny=[-]?[0-9]+')) { $failures = (([regex]::Matches($output.ScriptOutput, 'deny=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+')) { $unlockInterval = (([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        if ([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+')) { $rootUnlockInterval = (([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        $accountLockoutObject = New-Object -TypeName psobject
+        $accountLockoutObject | Add-Member -notepropertyname "Virtual Machine" -notepropertyvalue $vmName
+        if ($failures) { $accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $failures}
+        if ($unlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $unlockInterval}
+        if ($rootUnlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Root Unlock Interval (sec)" -notepropertyvalue $rootUnlockInterval}
+        Return $accountLockoutObject
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-LocalAccountLockout
+
+Function Set-LocalAccountLockout {
+    <#
+		.SYNOPSIS
+        Configure account lockoput for local users
+
+        .DESCRIPTION
+        The Set-LocalAccountLockout cmdlets configures the account lockout policy local users
+
+        .EXAMPLE
+        Set-LocalAccountLockout -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 900 -rootUnlockInterval 300
+        This example updates the account lockout policy for vCenter Server
+
+        .EXAMPLE
+        Set-LocalAccountLockout -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 86400 -rootUnlockInterval 300
+        This example updates the account lockout policy for SDDC Manager
+
+        .EXAMPLE
+        Set-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 900 -rootUnlockInterval 900
+        This example updates the account lockout policy for Workspace ONE Access
+    #>
+    Param (
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$rootUnlockInterval
+        )
+
+    Try {
+        $scriptCommand = "sed -E -i.bak '"
+        if ($PsBoundParameters.ContainsKey("failures")) {
+            $failureCommand = "s/deny=[-]?[0-9]+/deny=$failures/"
+            $scriptCommand += $failureCommand
+        }
+        if ($PsBoundParameters.ContainsKey("unlockInterval")) {
+            $unlockIntervalCommand = ";s/ unlock_time=[-]?[0-9]+/ unlock_time=$unlockInterval/"
+            $scriptCommand += $unlockIntervalCommand
+        }
+        if ($PsBoundParameters.ContainsKey("rootUnlockInterval")) {
+            $rootUnlockIntervalCommand = ";s/root_unlock_time=[-]?[0-9]+/root_unlock_time=$rootUnlockInterval/"
+            $scriptCommand += $rootUnlockIntervalCommand
+        }
+
+        $scriptCommand += "' /etc/pam.d/system-auth"
+        Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false | Out-Null
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-LocalAccountLockout
 
 Function Get-GlobalPermission {
     <#
