@@ -16717,18 +16717,18 @@ Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 Function Request-NsxtManagerPasswordComplexity {
     <#
 		.SYNOPSIS
-		Retrieve the password complexity policy
+		Retrieve the password complexity policy for NSX Local Manager
 
         .DESCRIPTION
-        The Request-NsxtManagerPasswordComplexity cmdlet retrieves the password complexity policy for each NSX Manager
+        The Request-NsxtManagerPasswordComplexity cmdlet retrieves the password complexity policy for each NSX Local Manager
         node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
 		- Retrieves the password complexity policy
 
         .EXAMPLE
         Request-NsxtManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the password complexity policy for each NSX Manager node for a workload domain
+        This example retrieves the password complexity policy for each NSX Local Manager node for a workload domain
     #>
 
     Param (
@@ -16764,7 +16764,7 @@ Function Request-NsxtManagerPasswordComplexity {
 
                                                     $nsxtPasswordComplexityPolicy += $NsxtManagerPasswordComplexityObject
                                                 } else {
-                                                    Write-Error "Unable to retrieve account lockout policy from NSX Manager node  ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
+                                                    Write-Error "Unable to retrieve Password Complexity Policy from NSX Local Manager node ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
@@ -16788,18 +16788,18 @@ Export-ModuleMember -Function Request-NsxtManagerPasswordComplexity
 Function Request-NsxtManagerAccountLockout {
     <#
 		.SYNOPSIS
-        Retrieve account lockout policy from NSX Manager Nodes
+        Retrieve account lockout policy for NSX Local Manager
 
         .DESCRIPTION
-        The Request-NsxtManagerAccountLockout cmdlet retrieves the account lockout policy for each NSX Manager node for
+        The Request-NsxtManagerAccountLockout cmdlet retrieves the account lockout policy for each NSX Local Manager node for
         a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
         - Retrieves the account lockpout policy
         
         .EXAMPLE
         Request-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the account lockout policy for the NSX Manager nodes in sfo-m01 workload domain
+        This example retrieves the account lockout policy for the NSX Local Manager nodes in sfo-m01 workload domain
     #>
 
     Param (
@@ -16829,7 +16829,7 @@ Function Request-NsxtManagerAccountLockout {
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Rest Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_reset_period
                                         $nsxtAccountLockoutPolicy += $NsxtManagerAccountLockoutObject
                                     } else {
-                                        Write-Error "Unable to retrieve account lockout policy from NSX Manager node ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to retrieve Account Lockout Policy from NSX Local Manager node ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 }
                             }
@@ -16850,18 +16850,18 @@ Export-ModuleMember -Function Request-NsxtManagerAccountLockout
 Function Update-NsxtManagerPasswordComplexity {
     <#
 		.SYNOPSIS
-		Update the password complexity policy
+		Configure the password complexity policy for NSX Local Manager
 
         .DESCRIPTION
-        The Update-NsxtManagerPasswordComplexity cmdlet updates the password complexity policy for each NSX Manager
+        The Update-NsxtManagerPasswordComplexity cmdlet updates the password complexity policy for each NSX Local Manager
         node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
 		- Updates the password complexity policy
 
         .EXAMPLE
         Update-NsxtManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -minLength 15 -minLowercase -1 -minUppercase -1  -minNumerical -1 -minSpecial -1 -minUnique 4 -maxRetry 3
-        This example updates the password complexity policy for each NSX Manager node for a workload domain
+        This example updates the password complexity policy for each NSX Local Manager node for a workload domain
     #>
 
     Param (
@@ -16875,7 +16875,8 @@ Function Update-NsxtManagerPasswordComplexity {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minNumerical,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUnique,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
 	)
     
 	Try {
@@ -16894,15 +16895,22 @@ Function Update-NsxtManagerPasswordComplexity {
                                                     Set-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -retry $maxRetry| Out-Null
                                                     $updatedConfiguration = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
                                                     if ($updatedConfiguration.'Min Length' -eq $minLength -and $updatedConfiguration.'Min Lowercase' -eq $minLowercase -and $updatedConfiguration.'Min Uppercase' -eq $minUppercase -and $updatedConfiguration.'Min Numerical' -eq $minNumerical -and $updatedConfiguration.'Min Special' -eq $minSpecial -and $updatedConfiguration.'Min Unique' -eq $minUnique -and $updatedConfiguration.'Max Retries' -eq $maxRetry) {
-                                                        Write-Output "Update Password Complexity Policy on NSX Manager Node ($($nsxtManagerNode.fqdn)): SUCCESSFUL"
+                                                        if ($detail -eq "true") {
+                                                            Write-Output "Update Password Complexity Policy on NSX Local Manager Node ($($nsxtManagerNode.fqdn)): SUCCESSFUL"
+                                                        }
                                                     } else {
-                                                        Write-Error "Update Password Complexity Policy on NSX Manager Node ($($nsxtManagerNode.fqdn)): POST_VALIDATION_FAILED"
+                                                        Write-Error "Update Password Complexity Policy on NSX Local Manager Node ($($nsxtManagerNode.fqdn)): POST_VALIDATION_FAILED"
                                                     }
                                                 } else {
-                                                    Write-Warning "Update Password Complexity Policy on NSX Manager Node ($($nsxtManagerNode.fqdn)), already set: SKIPPED"
+                                                    if ($detail -eq "true") {
+                                                        Write-Warning "Update Password Complexity Policy on NSX Local Manager Node ($($nsxtManagerNode.fqdn)), already set: SKIPPED"
+                                                    }
                                                 }
                                             }
                                         }
+                                    }
+                                    if ($detail -eq "false") {
+                                        Write-Output "Update Password Complexity Policy for all NSX Local Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
                                     }
                                 }
                             }
@@ -16922,18 +16930,18 @@ Export-ModuleMember -Function Update-NsxtManagerPasswordComplexity
 Function Update-NsxtManagerAccountLockout {
     <#
 		.SYNOPSIS
-        Configure account lockout policy NSX Manager Nodes
+        Configure account lockout policy for NSX Local Manager
 
         .DESCRIPTION
-        The Update-NsxtManagerAccountLockout cmdlet configures the account lockout policy for NSX Manager nodes within
+        The Update-NsxtManagerAccountLockout cmdlet configures the account lockout policy for NSX Local Manager nodes within
         a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
         - Configure the account lockout policy
 
         .EXAMPLE
         Update-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cliFailures 5 -cliUnlockInterval 900 -apiFailures 5 -apiFailureInterval 120 -apiUnlockInterval 900
-        This example configures the account lockout policy in NSX Manager nodes in the sfo-m01 workload domain
+        This example configures the account lockout policy in NSX Local Manager nodes in the sfo-m01 workload domain
     #>
 
     Param (
@@ -16979,20 +16987,20 @@ Function Update-NsxtManagerAccountLockout {
                                             $updatedConfiguration = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn
                                             if (($updatedConfiguration).cli_max_auth_failures -eq $cliFailures -and ($updatedConfiguration).cli_failed_auth_lockout_period -eq $cliUnlockInterval -and ($updatedConfiguration).api_max_auth_failures -eq $apiFailures -and ($updatedConfiguration).api_failed_auth_reset_period -eq $apiFailureInterval -and ($updatedConfiguration).api_failed_auth_lockout_period -eq $apiUnlockInterval ) {
                                                 if ($detail -eq "true") {
-                                                    Write-Output "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                                    Write-Output "Update Account Lockout Policy on NSX Local Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
                                                 }
                                             } else {
-                                                Write-Error "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                                Write-Error "Update Account Lockout Policy on NSX Local Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                             }
                                         } else {
                                             if ($detail -eq "true") {
-                                                Write-Warning "Update Account Lockout Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain):, already set: SKIPPED"
+                                                Write-Warning "Update Account Lockout Policy on NSX Local Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain):, already set: SKIPPED"
                                             }
                                         }
                                     }
                                 }
                                 if ($detail -eq "false") {
-                                    Write-Output "Update Account Lockout Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                    Write-Output "Update Account Lockout Policy for all NSX Local Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
                                 }
                             }
                         }
@@ -17014,21 +17022,21 @@ Export-ModuleMember -Function Update-NsxtManagerAccountLockout
 ##########################################################################
 #Region     Begin NSX Edge Password Management Function             ######
 
-Function Request-NsxtManagerPasswordComplexity {
+Function Request-NsxtEdgePasswordComplexity {
     <#
 		.SYNOPSIS
-		Retrieve the password complexity policy
+		Retrieve the password complexity policy for NSX Edge
 
         .DESCRIPTION
-        The Request-NsxtManagerPasswordComplexity cmdlet retrieves the password complexity policy for each NSX Manager
-        node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The Request-NsxtEdgePasswordComplexity cmdlet retrieves the password complexity policy for each NSX Edge
+        nodes for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
 		- Retrieves the password complexity policy
 
         .EXAMPLE
-        Request-NsxtManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the password complexity policy for each NSX Manager node for a workload domain
+        Request-NsxtEdgePasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
+        This example retrieves the password complexity policy for each NSX Edge node for a workload domain
     #>
 
     Param (
@@ -17064,7 +17072,7 @@ Function Request-NsxtManagerPasswordComplexity {
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $nsxtEdgeNodePolicy.'Max Retries'
                                                     $nsxtPasswordComplexityPolicy += $NsxtEdgePasswordComplexityObject
                                                 } else {
-                                                    Write-Error "Unable to retrieve account lockout policy from NSX Edge node  ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
+                                                    Write-Error "Unable to retrieve Password Complexity Policy from NSX Edge node ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
@@ -17083,19 +17091,19 @@ Function Request-NsxtManagerPasswordComplexity {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Request-NsxtManagerPasswordComplexity
+Export-ModuleMember -Function Request-NsxtEdgePasswordComplexity
 
 Function Request-NsxtEdgeAccountLockout {
     <#
 		.SYNOPSIS
-        Retrieve account lockout policy from NSX Edge Nodes
+        Retrieve account lockout policy from NSX Edge
 
         .DESCRIPTION
         The Request-NsxtEdgeAccountLockout cmdlet retrieves the account lockout policy from NSX Edge nodes within a
         workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Retrieves the account lockpout policy
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
+        - Retrieves the account lockout policy
 
         .EXAMPLE
         Request-NsxtEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
@@ -17127,7 +17135,7 @@ Function Request-NsxtEdgeAccountLockout {
                                         $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtEdgeAccountLockout.cli_failed_auth_lockout_period
                                         $nsxtAccountLockoutPolicy += $NsxtEdgeAccountLockoutObject
                                     } else {
-                                        Write-Error "Unable to retrieve account lockout policy from NSX Edge node ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to retrieve Account Lockout Policy from NSX Edge node ($($nsxtEdgeNode.display_name)): PRE_VALIDATION_FAILED"
                                     }
                                 }
                                 return $nsxtAccountLockoutPolicy
@@ -17148,13 +17156,13 @@ Export-ModuleMember -Function Request-NsxtEdgeAccountLockout
 Function Update-NsxtEdgePasswordComplexity {
     <#
 		.SYNOPSIS
-		Update the password complexity policy
+		Configure the password complexity policy for NSX Edge
 
         .DESCRIPTION
         The Update-NsxtEdgePasswordComplexity cmdlet updates the password complexity policy for each NSX Edge
         node for a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
 		- Updates the password complexity policy
 
         .EXAMPLE
@@ -17173,7 +17181,8 @@ Function Update-NsxtEdgePasswordComplexity {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minNumerical,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minSpecial,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$minUnique,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$maxRetry,
+        [Parameter (Mandatory = $false)] [ValidateSet("true","false")] [String]$detail="true"
 	)
     
 	Try {
@@ -17193,13 +17202,20 @@ Function Update-NsxtEdgePasswordComplexity {
                                                     Set-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -retry $maxRetry| Out-Null
                                                     $updatedConfiguration = Get-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
                                                     if ($updatedConfiguration.'Min Length' -eq $minLength -and $updatedConfiguration.'Min Lowercase' -eq $minLowercase -and $updatedConfiguration.'Min Uppercase' -eq $minUppercase -and $updatedConfiguration.'Min Numerical' -eq $minNumerical -and $updatedConfiguration.'Min Special' -eq $minSpecial -and $updatedConfiguration.'Min Unique' -eq $minUnique -and $updatedConfiguration.'Max Retries' -eq $maxRetry) {
-                                                        Write-Output "Update Password Complexity Policy on NSX Manager Node ($($nsxtEdgeNode.display_name)): SUCCESSFUL"
+                                                        if ($detail -eq "true") {
+                                                            Write-Output "Update Password Complexity Policy on NSX Edge Node ($($nsxtEdgeNode.display_name)): SUCCESSFUL"
+                                                        }
                                                     } else {
-                                                        Write-Error "Update Password Complexity Policy on NSX Manager Node ($($nsxtEdgeNode.display_name)): POST_VALIDATION_FAILED"
+                                                        Write-Error "Update Password Complexity Policy on NSX Edge Node ($($nsxtEdgeNode.display_name)): POST_VALIDATION_FAILED"
                                                     }
                                                 } else {
-                                                    Write-Warning "Update Password Complexity Policy on NSX Manager Node ($($nsxtEdgeNode.display_name)), already set: SKIPPED"
+                                                    if ($detail -eq "true") {
+                                                        Write-Warning "Update Password Complexity Policy on NSX Edge Node ($($nsxtEdgeNode.display_name)), already set: SKIPPED"
+                                                    }
                                                 }
+                                            }
+                                            if ($detail -eq "false") {
+                                                Write-Output "Update Password Complexity for all NSX Edge Nodes in Workload Domain ($domain): SUCCESSFUL"
                                             }
                                         }
                                     }
@@ -17221,13 +17237,13 @@ Export-ModuleMember -Function Update-NsxtEdgePasswordComplexity
 Function Update-NsxtEdgeAccountLockout {
     <#
 		.SYNOPSIS
-        Configure account lockout policy for NSX Edge Nodes
+        Configure account lockout policy for NSX Edge
 
         .DESCRIPTION
         The Update-NsxtEdgeAccountLockout cmdlet configures the account lockout policy for NSX Edge nodes.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
         - Configure the account lockout policy
 
         .EXAMPLE
@@ -37383,7 +37399,7 @@ Export-ModuleMember -Function Get-SsoPasswordPolicies
 Function Get-NsxtManagerAuthenticationPolicy {
     <#
 		.SYNOPSIS
-        Retrieve the current Authentication Policy from NSX Manager Nodes
+        Retrieve the current Authentication Policy from NSX Local Manager Nodes
 
         .DESCRIPTION
         The Get-NsxtManagerAuthenticationPolicy cmdlet retrieves the current Authentication policy from each NSX
@@ -37391,7 +37407,7 @@ Function Get-NsxtManagerAuthenticationPolicy {
         -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Output the following Authentication policy on each NSX manager node.
+        - Output the following Authentication policy on each NSX Local Manager node.
 			a) api_failed_auth_lockout_period (in sec)
 			b) api_failed_auth_reset_period (in sec)
 			c) api_max_auth_failures (in attempt)
@@ -37399,9 +37415,9 @@ Function Get-NsxtManagerAuthenticationPolicy {
 			e) cli_max_auth_failures (in attempt)
 			f) minimum_password_length (in characters)
         
-            .EXAMPLE
+        .EXAMPLE
         Get-NsxtManagerAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example retrieves the current Authentication policy from NSX manager nodes in sfo-m01 workload domain
+        This example retrieves the current Authentication policy from NSX Local Manager nodes in sfo-m01 workload domain
     #>
 
     Param (
@@ -37437,14 +37453,14 @@ Export-ModuleMember -Function Get-NsxtManagerAuthenticationPolicy
 Function Set-NsxtManagerAuthenticationPolicy {
     <#
 		.SYNOPSIS
-        Configure Authentication Password Policy NSX Manager Nodes
+        Configure Authentication Password Policy NSX Local Manager Nodes
 
         .DESCRIPTION
-        The Set-NsxtManagerAuthenticationPolicy cmdlet configures Authentication policy within NSX manager nodes within
-        a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The Set-NsxtManagerAuthenticationPolicy cmdlet configures Authentication policy within NSX Local Manager nodes
+        within a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Configure the following Authentication password policy on each NSX manager.
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
+        - Configure the following Authentication password policy on each NSX Local Manager.
 			a) api_failed_auth_lockout_period (in sec)
 			b) api_failed_auth_reset_period (in sec)
 			c) api_max_auth_failures (in attempt)
@@ -37454,7 +37470,7 @@ Function Set-NsxtManagerAuthenticationPolicy {
 
         .EXAMPLE
         Set-NsxtManagerAuthenticationPolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -apiLockoutPeriod 900 -apiResetPeriod 120 -apiMaxAttempt 5 -cliLockoutPeriod 900 -cliMaxAttempt 5 -minPasswdLength 15
-        This example configures the Authentication password policy in NSX manager nodes in sfo-m01 workload domain
+        This example configures the Authentication password policy in NSX Local Manager nodes in sfo-m01 workload domain
     #>
 
     Param (
@@ -37501,12 +37517,12 @@ Function Set-NsxtManagerAuthenticationPolicy {
                                         }
                                         $response = Set-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn -api_lockout_period $apiLockoutPeriod -api_reset_period $apiResetPeriod -api_max_attempt $apiMaxAttempt -cli_lockout_period $cliLockoutPeriod -cli_max_attempt $cliMaxAttempt -min_passwd_length $minPasswdLength
                                         if ($detail -eq "true") {
-                                            Write-Output "Configuring Authentication Policy on NSX Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                            Write-Output "Configuring Authentication Policy on NSX Local Manager ($($nsxtManagerNode.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
                                         }
                                     }
                                 }
                                 if ($detail -eq "false") {
-                                    Write-Output "Configuring Authentication Password Policy for all NSX Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
+                                    Write-Output "Configuring Authentication Password Policy for all NSX Local Manager Nodes in Workload Domain ($domain): SUCCESSFUL"
                                 }
                             }
                         }
@@ -37532,7 +37548,7 @@ Function Get-NsxtEdgeNodeAuthenticationPolicy {
         nodes within a workload domain. The cmdlet connects to SDDC Manager using the -server, -user, and -password
         values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
         - Output the following Authentication policy on each NSX Edge Nodes.
 			a) cli_failed_auth_lockout_period (in sec)
 			b) cli_max_auth_failures (in attempt)
@@ -37583,7 +37599,7 @@ Function Set-NsxtEdgeNodeAuthenticationPolicy {
         The Set-NsxtEdgeNodeAuthenticationPolicy cmdlet configures the Authentication policy within NSX Edge nodes.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Local Manager
         - Configure the following Authentication policy on each NSX Edge Node.
 			a) cli_failed_auth_lockout_period (in sec)
 			b) cli_max_auth_failures (in attempt)
