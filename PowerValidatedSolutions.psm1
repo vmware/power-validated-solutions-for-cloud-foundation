@@ -16440,6 +16440,7 @@ Function Request-VcenterPasswordComplexity {
                             if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 Get-LocalPasswordComplexity -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -16486,6 +16487,7 @@ Function Request-VcenterAccountLockout {
                             if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -16608,6 +16610,7 @@ Function Update-VcenterPasswordComplexity {
                                     Write-Warning "Update Password Complexity Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
                                 }
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -16668,6 +16671,7 @@ Function Update-VcenterAccountLockout {
                                     Write-Warning "Update Account Lockout Policy on vCenter Server ($($vcfVcenterDetails.fqdn)), already set: SKIPPED"
                                 }
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -16878,6 +16882,7 @@ Function Request-NsxtManagerPasswordComplexity {
                                     return $nsxtPasswordComplexityPolicy
                                 }
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -17020,6 +17025,7 @@ Function Update-NsxtManagerPasswordComplexity {
                                     }
                                 }
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -17165,7 +17171,7 @@ Function Request-NsxtEdgePasswordComplexity {
                                             $nsxtPasswordComplexityPolicy = New-Object System.Collections.ArrayList
                                             $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
                                             foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-                                                if ($nsxtEdgeNodePolicy = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
+                                                if ($nsxtEdgeNodePolicy = Get-LocalPasswordComplexity -vmName $($nsxtEdgeNode.display_name) -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
                                                     $NsxtEdgePasswordComplexityObject = New-Object -TypeName psobject
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNode.display_name
@@ -17186,6 +17192,7 @@ Function Request-NsxtEdgePasswordComplexity {
                                     return $nsxtPasswordComplexityPolicy
                                 }
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -17327,6 +17334,7 @@ Function Update-NsxtEdgePasswordComplexity {
                                     }
                                 }
                             }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -17454,6 +17462,7 @@ Function Request-SddcManagerPasswordComplexity {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             Get-LocalPasswordComplexity -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -17496,6 +17505,7 @@ Function Request-SddcManagerAccountLockout {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -17558,6 +17568,7 @@ Function Update-SddcManagerPasswordComplexity {
                                 Write-Warning "Update Password Complexity Policy on SDDC Manager ($server), already set: SKIPPED"
                             }
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -17614,6 +17625,7 @@ Function Update-SddcManagerAccountLockout {
                                 Write-Warning "Update Account Lockout Policy on SDDC Manager ($server), already set: SKIPPED"
                             }
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -17752,6 +17764,7 @@ Function Request-WsaLocalUserPasswordComplexity {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -17794,6 +17807,7 @@ Function Request-WsaLocalUserAccountLockout {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -17998,6 +18012,7 @@ Function Update-WsaLocalUserPasswordComplexity {
                                 Write-Warning "Update Local User Password Complexity Policy on Workspace ONE Access ($wsaFqdn), already set: SKIPPED"
                             }
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -18103,6 +18118,7 @@ Function Update-WsaLocalUserAccountLockout {
                                 Write-Warning "Update Account Lockout Policy on Workspace ONE Access ($wsaFqdn), already set: SKIPPED"
                             }
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
