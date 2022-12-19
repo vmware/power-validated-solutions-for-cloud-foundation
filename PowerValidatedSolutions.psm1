@@ -16020,7 +16020,7 @@ Function Request-SsoPasswordExpiration {
                                 if ($SsoPasswordExpiration = Get-SsoPasswordPolicy) {
                                     $SsoPasswordExpirationObject = New-Object -TypeName psobject
                                     $SsoPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $SsoPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $SsoPasswordExpiration.PasswordLifetimeDays
                                 } else {
                                     Write-Error "Unable to retrieve password expiration policy from vCenter Single Sign-On ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -16076,7 +16076,7 @@ Function Request-SsoPasswordComplexity {
                                 if ($SsoPasswordComplexity = Get-SsoPasswordPolicy) {
                                     $SsoPasswordComplexityObject = New-Object -TypeName psobject
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $SsoPasswordComplexity.MinLength
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Max Length" -notepropertyvalue $SsoPasswordComplexity.MaxLength
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Alphabetic" -notepropertyvalue $SsoPasswordComplexity.MinAlphabeticCount
@@ -16140,7 +16140,7 @@ Function Request-SsoAccountLockout {
                                 if ($SsoAccountLockout = Get-SsoLockoutPolicy) {
                                     $SsoAccountLockoutObject = New-Object -TypeName psobject
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $SsoAccountLockout.MaxFailedAttempts
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $SsoAccountLockout.AutoUnlockIntervalSec
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (sec)" -notepropertyvalue $SsoAccountLockout.FailedAttemptIntervalSec                   
@@ -16385,7 +16385,7 @@ Function Request-VcenterPasswordExpiration {
                                 if ($VcenterPasswordExpiration = Get-VcenterPasswordExpiration) {
                                     $VcenterPasswordExpirationObject = New-Object -TypeName psobject
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $VcenterPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterPasswordExpiration.min_days
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterPasswordExpiration.max_days
                                     $VcenterPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterPasswordExpiration.warn_days
@@ -16719,7 +16719,7 @@ Function Request-VcenterRootPasswordExpiration {
                                 if ($VcenterRootPasswordExpiration = Get-VcenterRootPasswordExpiration) {
                                     $VcenterRootPasswordExpirationObject = New-Object -TypeName psobject
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterRootPasswordExpiration.min_days_between_password_change
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterRootPasswordExpiration.max_days_between_password_change
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterRootPasswordExpiration.warn_days_before_password_expiration
@@ -16863,7 +16863,7 @@ Function Request-NsxtManagerPasswordComplexity {
                                                 if ($nsxtManagerNodePolicy = Get-LocalPasswordComplexity -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
                                                     $NsxtManagerPasswordComplexityObject = New-Object -TypeName psobject
                                                     $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($nsxtManagerNode.fqdn)
+                                                    $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $($nsxtManagerNode.fqdn)
                                                     $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $nsxtManagerNodePolicy.'Min Length'
                                                     $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $nsxtManagerNodePolicy.'Min Lowercase'
                                                     $NsxtManagerPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $nsxtManagerNodePolicy.'Min Uppercase'
@@ -16932,7 +16932,7 @@ Function Request-NsxtManagerAccountLockout {
                                     if ($NsxtManagerAccountLockout = Get-NsxtManagerAuthPolicy -nsxtManagerNode $nsxtManagerNode.fqdn) {
                                         $NsxtManagerAccountLockoutObject = New-Object -TypeName psobject
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $($nsxtManagerNode.fqdn)
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $($nsxtManagerNode.fqdn)
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.cli_max_auth_failures
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.cli_failed_auth_lockout_period
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.api_max_auth_failures
@@ -17174,7 +17174,7 @@ Function Request-NsxtEdgePasswordComplexity {
                                                 if ($nsxtEdgeNodePolicy = Get-LocalPasswordComplexity -vmName $($nsxtEdgeNode.display_name) -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
                                                     $NsxtEdgePasswordComplexityObject = New-Object -TypeName psobject
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNode.display_name
+                                                    $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $nsxtEdgeNode.display_name
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Length'
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Lowercase'
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $nsxtEdgeNodePolicy.'Min Uppercase'
@@ -17243,7 +17243,7 @@ Function Request-NsxtEdgeAccountLockout {
                                     if ($NsxtEdgeAccountLockout = Get-NsxtEdgeNodeAuthPolicy -nsxtManager $vcfNsxDetails.fqdn -nsxtEdgeNodeID $nsxtEdgeNode.transport_node_id) {
                                         $NsxtEdgeAccountLockoutObject = New-Object -TypeName psobject
                                         $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $nsxtEdgeNode.display_name
+                                        $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $nsxtEdgeNode.display_name
                                         $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtEdgeAccountLockout.cli_max_auth_failures
                                         $NsxtEdgeAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtEdgeAccountLockout.cli_failed_auth_lockout_period
                                         $nsxtAccountLockoutPolicy += $NsxtEdgeAccountLockoutObject
@@ -17668,7 +17668,7 @@ Function Request-WsaPasswordExpiration {
 			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
                 if ($WsaPasswordExpiration = Get-WsaPasswordPolicy) {
                     $WsaPasswordExpirationObject = New-Object -TypeName psobject
-                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $server
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $server
                     $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Lifetime (days)" -notepropertyvalue ($WsaPasswordExpiration.passwordTtlInHours / 24)
                     $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder (days)" -notepropertyvalue ($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000)
                     $WsaPasswordExpirationObject | Add-Member -notepropertyname "Temporary Password (hours)" -notepropertyvalue $WsaPasswordExpiration.tempPasswordTtl
@@ -17711,7 +17711,7 @@ Function Request-WsaPasswordComplexity {
 			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
                 if ($WsaPasswordComplexity = Get-WsaPasswordPolicy) {
                     $WsaPasswordComplexityObject = New-Object -TypeName psobject
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $server
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $server
                     $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $WsaPasswordComplexity.minLen
                     $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $WsaPasswordComplexity.minLower
                     $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $WsaPasswordComplexity.minUpper
@@ -17844,7 +17844,7 @@ Function Request-WsaAccountLockout {
 			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
                 if ($WsaAccountLockout = Get-WsaAccountLockout) {
                     $WsaAccountLockoutObject = New-Object -TypeName psobject
-                    $WsaAccountLockoutObject | Add-Member -notepropertyname "FQDN" -notepropertyvalue $server
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $server
                     $WsaAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $WsaAccountLockout.numAttempts
                     $WsaAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (min)" -notepropertyvalue $WsaAccountLockout.unlockInterval
                     $WsaAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (min)" -notepropertyvalue $WsaAccountLockout.attemptInterval                   
@@ -18175,8 +18175,8 @@ Function Request-LocalUserPasswordExpiration {
                                     if ($localUserPasswordExpiration = Get-LocalUserPasswordExpiration -vmName $vmName -guestUser $guestUser -guestPassword $guestPassword -localUser $user) {
                                         $localUserExpirationObject = New-Object -TypeName psobject
                                         $localUserExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
-                                        $localUserExpirationObject | Add-Member -notepropertyname "Virtual Machine" -notepropertyvalue $vmName
-                                        $localUserExpirationObject | Add-Member -notepropertyname "Local User" -notepropertyvalue $user
+                                        $localUserExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
+                                        $localUserExpirationObject | Add-Member -notepropertyname "User" -notepropertyvalue $user
                                         $localUserExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue ($localUserPasswordExpiration | Where-Object {$_.Setting -match "Minimum number of days between password change"}).Value.Trim()
                                         $localUserExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue ($localUserPasswordExpiration | Where-Object {$_.Setting -match "Maximum number of days between password change"}).Value.Trim()
                                         $localUserExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue ($localUserPasswordExpiration | Where-Object {$_.Setting -match "Number of days of warning before password expires"}).Value.Trim()
