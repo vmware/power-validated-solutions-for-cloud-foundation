@@ -15518,7 +15518,7 @@ Function Request-EsxiPasswordExpiration {
 												$nodePasswdPolicy = New-Object -TypeName psobject
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
-                                                $nodePasswdPolicy | Add-Member -notepropertyname "FQDN" -notepropertyvalue $esxiHost.Name
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
 												$nodePasswdPolicy | Add-Member -notepropertyname "Max Days" -notepropertyvalue $passwordExpire.Value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
@@ -15599,7 +15599,7 @@ Function Request-EsxiPasswordComplexity {
 												$nodePasswdPolicy = New-Object -TypeName psobject
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
-												$nodePasswdPolicy | Add-Member -notepropertyname "FQDN" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Policy" -notepropertyvalue $passwordQualityControl.value
 												$nodePasswdPolicy | Add-Member -notepropertyname "History" -notepropertyvalue $passwordHistory.Value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
@@ -15681,7 +15681,7 @@ Function Request-EsxiAccountLockout {
 												$nodePasswdPolicy = New-Object -TypeName psobject
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
-												$nodePasswdPolicy | Add-Member -notepropertyname "FQDN" -notepropertyvalue $esxiHost.Name
+												$nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
 												$nodePasswdPolicy | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $lockFailues.Value
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $unlockTime.value
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
@@ -19466,7 +19466,7 @@ Function Get-LocalPasswordComplexity {
         if ([regex]::Matches($output.ScriptOutput, 'retry=[-]?[0-9]+')) { $retry = (([regex]::Matches($output.ScriptOutput, 'retry=[-]?[0-9]+').Value) -Split ('='))[-1] }
 
         $passwordComplexityObject = New-Object -TypeName psobject
-        $passwordComplexityObject | Add-Member -notepropertyname "Virtual Machine" -notepropertyvalue $vmName
+        $passwordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
         if ($minLen) { $passwordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $minLen}
         if ($minLowercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $minLowercase}
         if ($minUppercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $minUppercase}
