@@ -57,9 +57,7 @@
 - Added `Publish-SddcManagerPasswordExpiration` cmdlet to retrieve password expiration policy for SDDC Manager and output the details.
 - Added `Publish-SddcManagerPasswordComplexity` cmdlet to retrieve password complexity policy for SDDC Manager and output the details.
 - Added `Publish-SddcManagerAccountLockout` cmdlet to retrieve account lockout policy for SDDC Manager and output the details.
-- Added `Publish-SsoPasswordExpiration` cmdlet to retrieve password expiration policy for vCenter Single Sign-On and output the details.
-- Added `Publish-SsoPasswordComplexity` cmdlet to retrieve password complexity policy for vCenter Single Sign-On and output the details.
-- Added `Publish-SsoAccountLockout` cmdlet to retrieve account lockout policy for vCenter Single Sign-On and output the details.
+- Added `Publish-SsoPasswordPolicy` cmdlet to retrieve the requested password policy for vCenter Single Sign-On and output the details.
 - Added `Publish-VcenterPasswordExpiration` cmdlet to retrieve password expiration policy for vCenter Server and output the details.
 - Added `Publish-VcenterLocalPasswordExpiration` cmdlet to retrieve password expiration policy for Local Users of vCenter Server and output the details.
 - Added `Publish-VcenterLocalPasswordComplexity` cmdlet to retrieve password complexity policy for Local Users of vCenter Server and output the details.

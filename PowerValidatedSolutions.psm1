@@ -15492,7 +15492,7 @@ Function Request-EsxiPasswordExpiration {
 
         .EXAMPLE
         Request-EsxiPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
-        This example retrieves all ESXi hosts password expiration policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01 and check the configuration drift using the provided configuration JSON
+        This example retrieves all ESXi hosts password expiration policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01 and checks the configuration drift using the provided configuration JSON
     #>
 
 	Param (
@@ -15713,7 +15713,7 @@ Function Request-EsxiAccountLockout {
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
 												$nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
 												$nodePasswdPolicy | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($lockFailues.Value -ne $requiredConfig.maxFailures) { "$($lockFailues.Value) [ $($requiredConfig.maxFailures) ]" } else { "$($lockFailues.Value)" }} else { "$($lockFailues.Value)" })
-                                                $nodePasswdPolicy | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($unlockTime.value -ne $requiredConfig.maxFailures) { "$($unlockTime.value) [ $($requiredConfig.maxFailures) ]" } else { "$($unlockTime.value)" }} else { "$($unlockTime.value)" })
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($unlockTime.value -ne $requiredConfig.unlockInterval) { "$($unlockTime.value) [ $($requiredConfig.unlockInterval) ]" } else { "$($unlockTime.value)" }} else { "$($unlockTime.value)" })
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
 											} else {
@@ -16141,14 +16141,25 @@ Function Request-SsoPasswordExpiration {
         .EXAMPLE
         Request-SsoPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
         This example retrieves the password expiration policy for the vCenter Single Sign-On domain
+
+        .EXAMPLE
+        Request-SsoPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the password expiration policy for the vCenter Single Sign-On domain and checks the configuration drift using the provided configuration JSON
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
+
+    if ($drift) {
+        $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).sso.passwordExpiration
+    }
 
 	Try {
         if (Test-VCFConnection -server $server) {
@@ -16161,7 +16172,7 @@ Function Request-SsoPasswordExpiration {
                                     $SsoPasswordExpirationObject = New-Object -TypeName psobject
                                     $SsoPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                     $SsoPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $SsoPasswordExpiration.PasswordLifetimeDays
+                                    $SsoPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue  $(if ($drift) { if ($SsoPasswordExpiration.PasswordLifetimeDays -ne $requiredConfig.maxDays) { "$($SsoPasswordExpiration.PasswordLifetimeDays) [ $($requiredConfig.maxDays) ]" } else { "$($SsoPasswordExpiration.PasswordLifetimeDays)" }} else { "$($SsoPasswordExpiration.PasswordLifetimeDays)" })
                                 } else {
                                     Write-Error "Unable to retrieve password expiration policy from vCenter Single Sign-On ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
@@ -16197,14 +16208,25 @@ Function Request-SsoPasswordComplexity {
         .EXAMPLE
         Request-SsoPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
         This example retrieves the password complexity policy for vCenter Single Sign-On domain of workload domain sfo-m01
+
+        .EXAMPLE
+        Request-SsoPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the password complexity policy for vCenter Single Sign-On domain of workload domain sfo-m01 and checks the configuration drift using the provided configuration JSON
     #>
 
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
+
+    if ($drift) {
+        $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).sso.passwordComplexity
+    }
 	
 	Try {
 		if (Test-Connection -server $server) {
@@ -16217,15 +16239,15 @@ Function Request-SsoPasswordComplexity {
                                     $SsoPasswordComplexityObject = New-Object -TypeName psobject
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                     $SsoPasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $SsoPasswordComplexity.MinLength
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Max Length" -notepropertyvalue $SsoPasswordComplexity.MaxLength
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Alphabetic" -notepropertyvalue $SsoPasswordComplexity.MinAlphabeticCount
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $SsoPasswordComplexity.MinLowercaseCount
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $SsoPasswordComplexity.MinUppercaseCount
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Numberic" -notepropertyvalue $SsoPasswordComplexity.MinNumericCount
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $SsoPasswordComplexity.MinSpecialCharCount
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Max Identical Adjacent" -notepropertyvalue $SsoPasswordComplexity.MaxIdenticalAdjacentCharacters
-                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $SsoPasswordComplexity.ProhibitedPreviousPasswordsCount
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MinLength -ne $requiredConfig.minLength) { "$($SsoPasswordComplexity.MinLength) [ $($requiredConfig.minLength) ]" } else { "$($SsoPasswordComplexity.MinLength)" }} else { "$($SsoPasswordComplexity.MinLength)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Max Length" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MaxLength -ne $requiredConfig.maxLength) { "$($SsoPasswordComplexity.MaxLength) [ $($requiredConfig.maxLength) ]" } else { "$($SsoPasswordComplexity.MaxLength)" }} else { "$($SsoPasswordComplexity.MaxLength)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Alphabetic" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MinAlphabeticCount -ne $requiredConfig.minAlphabetic) { "$($SsoPasswordComplexity.MinAlphabeticCount) [ $($requiredConfig.minAlphabetic) ]" } else { "$($SsoPasswordComplexity.MinAlphabeticCount)" }} else { "$($SsoPasswordComplexity.MinAlphabeticCount)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MinLowercaseCount -ne $requiredConfig.minLowercase) { "$($SsoPasswordComplexity.MinLowercaseCount) [ $($requiredConfig.minLowercase) ]" } else { "$($SsoPasswordComplexity.MinLowercaseCount)" }} else { "$($SsoPasswordComplexity.MinLowercaseCount)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MinUppercaseCount -ne $requiredConfig.minUppercase) { "$($SsoPasswordComplexity.MinUppercaseCount) [ $($requiredConfig.minUppercase) ]" } else { "$($SsoPasswordComplexity.MinUppercaseCount)" }} else { "$($SsoPasswordComplexity.MinUppercaseCount)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Numberic" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MinNumericCount -ne $requiredConfig.minNumerical) { "$($SsoPasswordComplexity.MinNumericCount) [ $($requiredConfig.minNumerical) ]" } else { "$($SsoPasswordComplexity.MinNumericCount)" }} else { "$($SsoPasswordComplexity.MinNumericCount)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MinSpecialCharCount -ne $requiredConfig.minSpecial) { "$($SsoPasswordComplexity.MinSpecialCharCount) [ $($requiredConfig.minSpecial) ]" } else { "$($SsoPasswordComplexity.MinSpecialCharCount)" }} else { "$($SsoPasswordComplexity.MinSpecialCharCount)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "Max Identical Adjacent" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.MaxIdenticalAdjacentCharacters -ne $requiredConfig.maxIdenticalAdjacent) { "$($SsoPasswordComplexity.MaxIdenticalAdjacentCharacters) [ $($requiredConfig.maxIdenticalAdjacent) ]" } else { "$($SsoPasswordComplexity.MaxIdenticalAdjacentCharacters)" }} else { "$($SsoPasswordComplexity.MaxIdenticalAdjacentCharacters)" })
+                                    $SsoPasswordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $(if ($drift) { if ($SsoPasswordComplexity.ProhibitedPreviousPasswordsCount -ne $requiredConfig.history) { "$($SsoPasswordComplexity.ProhibitedPreviousPasswordsCount) [ $($requiredConfig.history) ]" } else { "$($SsoPasswordComplexity.ProhibitedPreviousPasswordsCount)" }} else { "$($SsoPasswordComplexity.ProhibitedPreviousPasswordsCount)" })
                                 } else {
                                     Write-Error "Unable to retrieve password complexity policy from vCenter Single Sign-On ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
@@ -16261,14 +16283,25 @@ Function Request-SsoAccountLockout {
         .EXAMPLE
         Request-SsoAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
         This example retrieves the account lockout policy for vCenter Single Sign-On domain of workload domain sfo-m01
+
+        .EXAMPLE
+        Request-SsoAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the account lockout policy for vCenter Single Sign-On domain of workload domain sfo-m01 and checks the configuration drift using the provided configuration JSON
     #>
 
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
+
+    if ($drift) {
+        $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).sso.accountLockout
+    }
 	
 	Try {
 		if (Test-Connection -server $server) {
@@ -16281,9 +16314,9 @@ Function Request-SsoAccountLockout {
                                     $SsoAccountLockoutObject = New-Object -TypeName psobject
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                     $SsoAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $SsoAccountLockout.MaxFailedAttempts
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $SsoAccountLockout.AutoUnlockIntervalSec
-                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (sec)" -notepropertyvalue $SsoAccountLockout.FailedAttemptIntervalSec                   
+                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($SsoAccountLockout.MaxFailedAttempts -ne $requiredConfig.maxFailures) { "$($SsoAccountLockout.MaxFailedAttempts) [ $($requiredConfig.maxFailures) ]" } else { "$($SsoAccountLockout.MaxFailedAttempts)" }} else { "$($SsoAccountLockout.MaxFailedAttempts)" })
+                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($SsoAccountLockout.AutoUnlockIntervalSec -ne $requiredConfig.unlockInterval) { "$($SsoAccountLockout.AutoUnlockIntervalSec) [ $($requiredConfig.unlockInterval) ]" } else { "$($SsoAccountLockout.AutoUnlockIntervalSec)" }} else { "$($SsoAccountLockout.AutoUnlockIntervalSec)" })
+                                    $SsoAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (sec)" -notepropertyvalue $(if ($drift) { if ($SsoAccountLockout.FailedAttemptIntervalSec -ne $requiredConfig.failedAttemptInterval) { "$($SsoAccountLockout.FailedAttemptIntervalSec) [ $($requiredConfig.failedAttemptInterval) ]" } else { "$($SsoAccountLockout.FailedAttemptIntervalSec)" }} else { "$($SsoAccountLockout.FailedAttemptIntervalSec)" })       
                                 } else {
                                     Write-Error "Unable to retrieve account lockout policy from vCenter Single Sign-On ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
@@ -16485,191 +16518,105 @@ Function Update-SsoAccountLockout {
 }
 Export-ModuleMember -Function Update-SsoAccountLockout
 
-Function Publish-SsoPasswordExpiration {
+Function Publish-SsoPasswordPolicy {
     <#
         .SYNOPSIS
-        Publish password expiration policy for vCenter Single Sign-On.
+        Publish password policies for ESXi Hosts
 
         .DESCRIPTION
-        The Publish-SsoPasswordExpiration cmdlet returns password expiration policy for vCenter Single Sign-On.
-        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        The Publish-EsxiPasswordPolicy cmdlet retrieves the requested password policy for vCenter Single Sign-On and
+        converts the output to HTML. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Collects password expiration policy for vCenter Single Sign-On
+        - Retrieves the requested password policy for vCenter Single Sign-On and converts to HTML
 
         .EXAMPLE
-        Publish-SsoPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
-        This example will return password expiration policy for vCenter Single Sign-On
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -allDomains
+        This example will return password expiration policy for vCenter Single Sign-On across all Workload Domains
 
         .EXAMPLE
-        Publish-SsoPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
-        This example will NOT return the password expiration policy vCenter Single Sign-On
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -workloadDomain sfo-w01
+        This example will return password expiration policy for vCenter Single Sign-On for a Workload Domain
+
+        .EXAMPLE
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordComplexity -allDomains
+        This example will return password complexity policy for vCenter Single Sign-On across all Workload Domains
+
+        .EXAMPLE
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordComplexity -workloadDomain sfo-w01
+        This example will return password complexity policy for vCenter Single Sign-On for a Workload Domain
+
+        .EXAMPLE
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy AccountLockout -allDomains
+        This example will return account lockout policy for vCenter Single Sign-On across all Workload Domains
+
+        .EXAMPLE
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy AccountLockout -workloadDomain sfo-w01
+        This example will return account lockout policy for vCenter Single Sign-On for a Workload Domain
+
+        .EXAMPLE
+        Publish-SsoPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -workloadDomain sfo-m01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example will return password expiration policy for vCenter Single Sign-On across for a Workload Domains and compare the configuration against the passwordPolicyConfig.json
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet('PasswordExpiration','PasswordComplexity','AccountLockout')] [String]$policy,
         [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
-        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
     )
+
+    if ($policy -eq "PasswordExpiration") { $pvsCmdlet = "Request-SsoPasswordExpiration"; $preHtmlContent = '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' }
+    if ($policy -eq "PasswordComplexity") { $pvsCmdlet = "Request-SsoPasswordComplexity"; $preHtmlContent = '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' }
+    if ($policy -eq "AccountLockout") { $pvsCmdlet = "Request-SsoAccountLockout"; $preHtmlContent = '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' }
 
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                $ssoPasswordExpirationObject = New-Object System.Collections.ArrayList
+                $ssoPasswordPolicyObject = New-Object System.Collections.ArrayList
                 if ($PsBoundParameters.ContainsKey('workloadDomain')) {
                     if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
-                        $ssoPasswordExpiration = Request-SsoPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain; $ssoPasswordExpirationObject += $ssoPasswordExpiration
+                        if ($PsBoundParameters.ContainsKey('drift')) {
+                            $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $workloadDomain -drift -reportPath '$reportPath' -policyFile '$policyFile'"
+                        } else {
+                            $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $workloadDomain"
+                        }
+                        $ssoPolicy = Invoke-Expression $command ; $ssoPasswordPolicyObject += $ssoPolicy
                     }
                 } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
                     $allWorkloadDomains = Get-VCFWorkloadDomain
                     foreach ($domain in $allWorkloadDomains ) {
                         if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
-                            $ssoPasswordExpiration = Request-SsoPasswordExpiration -server $server -user $user -pass $pass -domain $domain.name; $ssoPasswordExpirationObject += $ssoPasswordExpiration
+                            if ($PsBoundParameters.ContainsKey('drift')) {
+                                $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $($domain.name) -drift -reportPath '$reportPath' -policyFile '$policyFile'"
+                            } else {
+                                $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $($domain.name)"
+                            }
+                            $ssoPolicy = Invoke-Expression $command ; $ssoPasswordPolicyObject += $ssoPolicy
                         }
                     }
                 }
 
-                if ($ssoPasswordExpirationObject.Count -eq 0) { $notManagement = $true }
+                if ($ssoPasswordPolicyObject.Count -eq 0) { $notManagement = $true }
                 if ($notManagement) {
-                    $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                    $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | ConvertTo-Html -Fragment -PreContent $preHtmlContent -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -As Table
+                    $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
                 }
-                $ssoPasswordExpirationObject = Convert-CssClass -htmldata $ssoPasswordExpirationObject
-                $ssoPasswordExpirationObject
+                $ssoPasswordPolicyObject = Convert-CssClass -htmldata $ssoPasswordPolicyObject
+                $ssoPasswordPolicyObject
             }
         }
     } Catch {
         Debug-CatchWriter -object $_
     }
 }
-Export-ModuleMember -Function Publish-SsoPasswordExpiration
-
-Function Publish-SsoPasswordComplexity {
-    <#
-        .SYNOPSIS
-        Publish password complexity policy for vCenter Single Sign-On.
-
-        .DESCRIPTION
-        The Publish-SsoPasswordComplexity cmdlet returns password complexity policy for vCenter Single Sign-On.
-        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vCenter Server
-        - Collects password complexity policy for vCenter Single Sign-On
-
-        .EXAMPLE
-        Publish-SsoPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
-        This example will return password complexity policy for vCenter Single Sign-On
-
-        .EXAMPLE
-        Publish-SsoPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
-        This example will NOT return the password complexity policy vCenter Single Sign-On
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
-        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                $ssoPasswordComplexityObject = New-Object System.Collections.ArrayList
-                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
-                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
-                        $ssoPasswordComplexity = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $ssoPasswordComplexityObject += $ssoPasswordComplexity
-                    }
-                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
-                    $allWorkloadDomains = Get-VCFWorkloadDomain
-                    foreach ($domain in $allWorkloadDomains ) {
-                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
-                            $ssoPasswordComplexity = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $ssoPasswordComplexityObject += $ssoPasswordComplexity
-                        }
-                    }
-                }
-
-                if ($ssoPasswordComplexityObject.Count -eq 0) { $notManagement = $true }
-                if ($notManagement) {
-                    $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
-                } else {
-                    $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -As Table
-                }
-                $ssoPasswordComplexityObject = Convert-CssClass -htmldata $ssoPasswordComplexityObject
-                $ssoPasswordComplexityObject
-            }
-        }
-    } Catch {
-        Debug-CatchWriter -object $_
-    }
-}
-Export-ModuleMember -Function Publish-SsoPasswordComplexity
-
-Function Publish-SsoAccountLockout {
-    <#
-        .SYNOPSIS
-        Publish account lockout policy for vCenter Single Sign-On.
-
-        .DESCRIPTION
-        The Publish-SsoAccountLockout cmdlet returns account lockout policy for vCenter Single Sign-On.
-        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vCenter Server
-        - Collects account lockout policy for vCenter Single Sign-On
-
-        .EXAMPLE
-        Publish-SsoAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
-        This example will return account lockout policy for vCenter Single Sign-On
-
-        .EXAMPLE
-        Publish-SsoAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
-        This example will NOT return the account lockout policy vCenter Single Sign-On
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
-        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                $ssoAccountLockoutObject = New-Object System.Collections.ArrayList
-                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
-                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
-                        $ssoAccountLockout = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $ssoAccountLockoutObject += $ssoAccountLockout
-                    }
-                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
-                    $allWorkloadDomains = Get-VCFWorkloadDomain
-                    foreach ($domain in $allWorkloadDomains ) {
-                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
-                            $ssoAccountLockout = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $ssoAccountLockoutObject += $ssoAccountLockout
-                        }
-                    }
-                }
-
-                if ($ssoAccountLockoutObject.Count -eq 0) { $notManagement = $true }
-                if ($notManagement) {
-                    $ssoAccountLockoutObject = $ssoAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
-                } else {
-                    $ssoAccountLockoutObject = $ssoAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -As Table
-                }
-                $ssoAccountLockoutObject = Convert-CssClass -htmldata $ssoAccountLockoutObject
-                $ssoAccountLockoutObject
-            }
-        }
-    } Catch {
-        Debug-CatchWriter -object $_
-    }
-}
-Export-ModuleMember -Function Publish-SsoAccountLockout
+Export-ModuleMember -Function Publish-SsoPasswordPolicy
 
 #EndRegion  End SSO Password Management Functions                   ######
 ##########################################################################
@@ -19366,10 +19313,10 @@ Export-ModuleMember -Function Update-LocalUserPasswordExpiration
 Function Invoke-PasswordPolicyManager {
     <#
         .SYNOPSIS
-        Generate a password policy report
+        Generate the Password Policy Manager Report
 
         .DESCRIPTION
-        The Invoke-PasswordPolicyManager runs a password policy report for a Workload Domain
+        The Invoke-PasswordPolicyManager generates a Password Policy Manager Report for a VMware Cloud Foundation instance
 
         .EXAMPLE
         Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -allDomains
@@ -19388,7 +19335,9 @@ Function Invoke-PasswordPolicyManager {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$reportPath,
         [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
         [Parameter (ParameterSetName = 'Specific--WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$darkMode
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$darkMode,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
     )
 
     Try {
@@ -19412,9 +19361,12 @@ Function Invoke-PasswordPolicyManager {
                 Write-LogMessage -Type INFO -Message "Setting up report folder and report $reportName."
 
                 if ($PsBoundParameters.ContainsKey('allDomains')) {
-                    $commandSwitch = "-allDomains" 
+                    $commandSwitch = "-allDomains"
                 } else {
                     $commandSwitch = "-workloadDomain $workloadDomain"
+                }
+                if ($PsBoundParameters.ContainsKey('drift')) { 
+                    $commandSwitch = $commandSwitch + " -drift -reportPath '$reportPath' -policyFile '$policyFile'"
                 }
 
                 # Collect Password Policies
@@ -19483,7 +19435,7 @@ Function Invoke-PasswordPolicyManager {
                 } else {
                     $reportHeader = Save-ClarityReportHeader
                 }
-                $reportNavigation = Save-ClarityReportNavigation -reportType policyByProduct
+                $reportNavigation = Save-ClarityReportNavigation
                 $reportFooter = Save-ClarityReportFooter
 
                 $report = $reportHeader
