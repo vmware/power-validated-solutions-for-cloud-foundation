@@ -16109,7 +16109,7 @@ Function Publish-EsxiPasswordPolicy {
                         }
                     }
                 }
-                $esxiPasswordPolicyObject = $esxiPasswordPolicyObject | Sort-Object 'Workload Domain', 'Cluster', FQDN | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+                $esxiPasswordPolicyObject = $esxiPasswordPolicyObject | Sort-Object 'Workload Domain', 'Cluster', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
                 $esxiPasswordPolicyObject = Convert-CssClass -htmldata $esxiPasswordPolicyObject
                 $esxiPasswordPolicyObject
             }
@@ -16535,7 +16535,7 @@ Function Publish-SsoPasswordExpiration {
                 if ($notManagement) {
                     $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | Sort-Object 'Workload Domain' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -As Table
+                    $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -As Table
                 }
                 $ssoPasswordExpirationObject = Convert-CssClass -htmldata $ssoPasswordExpirationObject
                 $ssoPasswordExpirationObject
@@ -16597,7 +16597,7 @@ Function Publish-SsoPasswordComplexity {
                 if ($notManagement) {
                     $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | Sort-Object 'Workload Domain' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -As Table
+                    $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -As Table
                 }
                 $ssoPasswordComplexityObject = Convert-CssClass -htmldata $ssoPasswordComplexityObject
                 $ssoPasswordComplexityObject
@@ -16659,7 +16659,7 @@ Function Publish-SsoAccountLockout {
                 if ($notManagement) {
                     $ssoAccountLockoutObject = $ssoAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $ssoAccountLockoutObject = $ssoAccountLockoutObject | Sort-Object 'Workload Domain' | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -As Table
+                    $ssoAccountLockoutObject = $ssoAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -As Table
                 }
                 $ssoAccountLockoutObject = Convert-CssClass -htmldata $ssoAccountLockoutObject
                 $ssoAccountLockoutObject
@@ -17046,6 +17046,7 @@ Function Request-VcenterRootPasswordExpiration {
                                     $VcenterRootPasswordExpirationObject = New-Object -TypeName psobject
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $($vcfVcenterDetails.fqdn)
+                                    $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "User" -notepropertyvalue "root"
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Min Days" -notepropertyvalue $VcenterRootPasswordExpiration.min_days_between_password_change
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Max Days" -notepropertyvalue $VcenterRootPasswordExpiration.max_days_between_password_change
                                     $VcenterRootPasswordExpirationObject | Add-Member -notepropertyname "Warning Days" -notepropertyvalue $VcenterRootPasswordExpiration.warn_days_before_password_expiration
@@ -17186,7 +17187,7 @@ Function Publish-VcenterPasswordExpiration {
                     }
                 }
 
-                $vcenterPasswordExpirationObject = $vcenterPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration"></a><h3>vCenter Server - Password Expiration</h3>' -As Table
+                $vcenterPasswordExpirationObject = $vcenterPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration"></a><h3>vCenter Server - Password Expiration</h3>' -As Table
                 $vcenterPasswordExpirationObject = Convert-CssClass -htmldata $vcenterPasswordExpirationObject
                 $vcenterPasswordExpirationObject
             }
@@ -17239,7 +17240,7 @@ Function Publish-VcenterLocalPasswordExpiration {
                     }
                 }
 
-                $vcenterLocalPasswordExpirationObject = $vcenterLocalPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration-local"></a><h3>vCenter Server - Password Expiration (Local Users)</h3>' -As Table
+                $vcenterLocalPasswordExpirationObject = $vcenterLocalPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration-local"></a><h3>vCenter Server - Password Expiration (Local Users)</h3>' -As Table
                 $vcenterLocalPasswordExpirationObject = Convert-CssClass -htmldata $vcenterLocalPasswordExpirationObject
                 $vcenterLocalPasswordExpirationObject
             }
@@ -17292,7 +17293,7 @@ Function Publish-VcenterLocalPasswordComplexity {
                     }
                 }
 
-                $vcenterLocalPasswordComplexitynObject = $vcenterLocalPasswordComplexitynObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-complexity-local"></a><h3>vCenter Server - Password Complexity (Local Users)</h3>' -As Table
+                $vcenterLocalPasswordComplexitynObject = $vcenterLocalPasswordComplexitynObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-complexity-local"></a><h3>vCenter Server - Password Complexity (Local Users)</h3>' -As Table
                 $vcenterLocalPasswordComplexitynObject = Convert-CssClass -htmldata $vcenterLocalPasswordComplexitynObject
                 $vcenterLocalPasswordComplexitynObject
             }
@@ -17345,7 +17346,7 @@ Function Publish-VcenterLocalAccountLockout {
                     }
                 }
 
-                $vcenterLocalAccountLockoutObject = $vcenterLocalAccountLockoutObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-account-lockout-local"></a><h3>vCenter Server - Account Lockout (Local Users)</h3>' -As Table
+                $vcenterLocalAccountLockoutObject = $vcenterLocalAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-account-lockout-local"></a><h3>vCenter Server - Account Lockout (Local Users)</h3>' -As Table
                 $vcenterLocalAccountLockoutObject = Convert-CssClass -htmldata $vcenterLocalAccountLockoutObject
                 $vcenterLocalAccountLockoutObject
             }
@@ -17717,7 +17718,7 @@ Function Publish-NsxManagerPasswordExpiration {
                     }
                 }
                 
-                $nsxManagerPasswordExpirationObject = $nsxManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-expiration"></a><h3>NSX Manager - Password Expiration</h3>' -As Table
+                $nsxManagerPasswordExpirationObject = $nsxManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-expiration"></a><h3>NSX Manager - Password Expiration</h3>' -As Table
                 $nsxManagerPasswordExpirationObject = Convert-CssClass -htmldata $nsxManagerPasswordExpirationObject
                 $nsxManagerPasswordExpirationObject
             }
@@ -17770,7 +17771,7 @@ Function Publish-NsxManagerPasswordComplexity {
                     }
                 }
                 
-                $nsxManagerPasswordComplexityObject = $nsxManagerPasswordComplexityObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-complexity"></a><h3>NSX Manager - Password Complexity</h3>' -As Table
+                $nsxManagerPasswordComplexityObject = $nsxManagerPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-complexity"></a><h3>NSX Manager - Password Complexity</h3>' -As Table
                 $nsxManagerPasswordComplexityObject = Convert-CssClass -htmldata $nsxManagerPasswordComplexityObject
                 $nsxManagerPasswordComplexityObject
             }
@@ -17823,7 +17824,7 @@ Function Publish-NsxManagerAccountLockout {
                     }
                 }
                 
-                $nsxManagerAccountLockoutObject = $nsxManagerAccountLockoutObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-account-lockout"></a><h3>NSX Manager - Account Lockout</h3>' -As Table
+                $nsxManagerAccountLockoutObject = $nsxManagerAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-account-lockout"></a><h3>NSX Manager - Account Lockout</h3>' -As Table
                 $nsxManagerAccountLockoutObject = Convert-CssClass -htmldata $nsxManagerAccountLockoutObject
                 $nsxManagerAccountLockoutObject
             }
@@ -18192,7 +18193,7 @@ Function Publish-NsxEdgePasswordExpiration {
                     }
                 }
                 
-                $nsxEdgePasswordExpirationObject = $nsxEdgePasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-expiration"></a><h3>NSX Edge - Password Expiration</h3>' -As Table
+                $nsxEdgePasswordExpirationObject = $nsxEdgePasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-expiration"></a><h3>NSX Edge - Password Expiration</h3>' -As Table
                 $nsxEdgePasswordExpirationObject = Convert-CssClass -htmldata $nsxEdgePasswordExpirationObject
                 $nsxEdgePasswordExpirationObject
             }
@@ -18245,7 +18246,7 @@ Function Publish-NsxEdgePasswordComplexity {
                     }
                 }
                 
-                $nsxEdgePasswordComplexityObject = $nsxEdgePasswordComplexityObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-complexity"></a><h3>NSX Edge - Password Complexity</h3>' -As Table
+                $nsxEdgePasswordComplexityObject = $nsxEdgePasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-complexity"></a><h3>NSX Edge - Password Complexity</h3>' -As Table
                 $nsxEdgePasswordComplexityObject = Convert-CssClass -htmldata $nsxEdgePasswordComplexityObject
                 $nsxEdgePasswordComplexityObject
             }
@@ -18298,7 +18299,7 @@ Function Publish-NsxEdgeAccountLockout {
                     }
                 }
                 
-                $nsxEdgeAccountLockoutObject = $nsxEdgeAccountLockoutObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-account-lockout"></a><h3>NSX Edge - Account Lockout</h3>' -As Table
+                $nsxEdgeAccountLockoutObject = $nsxEdgeAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-account-lockout"></a><h3>NSX Edge - Account Lockout</h3>' -As Table
                 $nsxEdgeAccountLockoutObject = Convert-CssClass -htmldata $nsxEdgeAccountLockoutObject
                 $nsxEdgeAccountLockoutObject
             }
@@ -18572,7 +18573,7 @@ Function Publish-SddcManagerPasswordExpiration {
                 if ($notManagement) {
                     $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -As Table
+                    $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -As Table
                 }
                 $allSddcManagerPasswordExpirationObject = Convert-CssClass -htmldata $allSddcManagerPasswordExpirationObject
                 $allSddcManagerPasswordExpirationObject
@@ -18635,7 +18636,7 @@ Function Publish-SddcManagerPasswordComplexity {
                 if ($notManagement) {
                     $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | Sort-Object 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -As Table
+                    $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -As Table
                 }
                 $sddcManagerPasswordComplexityObject = Convert-CssClass -htmldata $sddcManagerPasswordComplexityObject
                 $sddcManagerPasswordComplexityObject
@@ -18698,7 +18699,7 @@ Function Publish-SddcManagerAccountLockout {
                 if ($notManagement) {
                     $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
                 } else {
-                    $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | Sort-Object 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -As Table
+                    $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -As Table
                 }
                 $sddcManagerAccountLockoutObject = Convert-CssClass -htmldata $sddcManagerAccountLockoutObject
                 $sddcManagerAccountLockoutObject
@@ -21150,7 +21151,7 @@ Function Get-LocalAccountLockout {
         if ([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+')) { $unlockInterval = (([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
         if ([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+')) { $rootUnlockInterval = (([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
         $accountLockoutObject = New-Object -TypeName psobject
-        $accountLockoutObject | Add-Member -notepropertyname "Virtual Machine" -notepropertyvalue $vmName
+        $accountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
         if ($failures) { $accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $failures}
         if ($unlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $unlockInterval}
         if ($rootUnlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Root Unlock Interval (sec)" -notepropertyvalue $rootUnlockInterval}
