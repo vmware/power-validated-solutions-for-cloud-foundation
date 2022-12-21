@@ -17397,14 +17397,25 @@ Function Request-NsxtManagerAccountLockout {
         .EXAMPLE
         Request-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
         This example retrieves the account lockout policy for the NSX Local Manager nodes in sfo-m01 workload domain
+
+        .EXAMPLE
+        Request-NsxtManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the account lockout policy for the NSX Local Manager nodes in sfo-m01 workload domain and checks the configuration drift using the provided configuration JSON
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
     )
+
+    if ($drift) {
+        $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).nsxManager.accountLockout
+    }
 
     Try {
         if (Test-VCFConnection -server $server) {
@@ -17419,11 +17430,11 @@ Function Request-NsxtManagerAccountLockout {
                                         $NsxtManagerAccountLockoutObject = New-Object -TypeName psobject
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                         $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $($nsxtManagerNode.fqdn)
-                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.cli_max_auth_failures
-                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.cli_failed_auth_lockout_period
-                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Max Failures" -notepropertyvalue $NsxtManagerAccountLockout.api_max_auth_failures
-                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Unlock Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_lockout_period
-                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Reset Interval (sec)" -notepropertyvalue $NsxtManagerAccountLockout.api_failed_auth_reset_period
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Max Failures" -notepropertyvalue $(if ($drift) { if ($NsxtManagerAccountLockout.cli_max_auth_failures -ne $requiredConfig.cliMaxFailures) { "$($NsxtManagerAccountLockout.cli_max_auth_failures) [ $($requiredConfig.cliMaxFailures) ]" } else { "$($NsxtManagerAccountLockout.cli_max_auth_failures)" }} else { "$($NsxtManagerAccountLockout.cli_max_auth_failures)" })
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "CLI Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($NsxtManagerAccountLockout.cli_failed_auth_lockout_period -ne $requiredConfig.cliUnlockInterval) { "$($NsxtManagerAccountLockout.cli_failed_auth_lockout_period) [ $($requiredConfig.cliUnlockInterval) ]" } else { "$($NsxtManagerAccountLockout.cli_failed_auth_lockout_period)" }} else { "$($NsxtManagerAccountLockout.cli_failed_auth_lockout_period)" })
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Max Failures" -notepropertyvalue $(if ($drift) { if ($NsxtManagerAccountLockout.api_max_auth_failures -ne $requiredConfig.apiMaxFailures) { "$($NsxtManagerAccountLockout.api_max_auth_failures) [ $($requiredConfig.apiMaxFailures) ]" } else { "$($NsxtManagerAccountLockout.api_max_auth_failures)" }} else { "$($NsxtManagerAccountLockout.api_max_auth_failures)" })
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($NsxtManagerAccountLockout.api_failed_auth_lockout_period -ne $requiredConfig.apiUnlockInterval) { "$($NsxtManagerAccountLockout.api_failed_auth_lockout_period) [ $($requiredConfig.apiUnlockInterval) ]" } else { "$($NsxtManagerAccountLockout.api_failed_auth_lockout_period)" }} else { "$($NsxtManagerAccountLockout.api_failed_auth_lockout_period)" })
+                                        $NsxtManagerAccountLockoutObject | Add-Member -notepropertyname "API Reset Interval (sec)" -notepropertyvalue $(if ($drift) { if ($NsxtManagerAccountLockout.api_failed_auth_reset_period -ne $requiredConfig.apiRestInterval) { "$($NsxtManagerAccountLockout.api_failed_auth_reset_period) [ $($requiredConfig.apiRestInterval) ]" } else { "$($NsxtManagerAccountLockout.api_failed_auth_reset_period)" }} else { "$($NsxtManagerAccountLockout.api_failed_auth_reset_period)" })
                                         $nsxtAccountLockoutPolicy += $NsxtManagerAccountLockoutObject
                                     } else {
                                         Write-Error "Unable to retrieve Account Lockout Policy from NSX Local Manager node ($($nsxtManagerNode.fqdn)): PRE_VALIDATION_FAILED"
@@ -17739,15 +17750,19 @@ Function Publish-NsxManagerAccountLockout {
         Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Collects account lockout policy for each local user of NSX Local Manager
+        - Collects account lockout policy for each NSX Local Manager
 
         .EXAMPLE
         Publish-NsxManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
-        This example will return account lockout policy for each local user of NSX Local Manager for all Workload Domains
+        This example will return account lockout policy for each NSX Local Manager for all Workload Domains
 
         .EXAMPLE
         Publish-NsxManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
-        This example will return account lockout policy for each local user of NSX Local Manager for a Workload Domain
+        This example will return account lockout policy for each NSX Local Manager for a Workload Domain
+
+        .EXAMPLE
+        Publish-NsxManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example will return account lockout policy for each NSX Local Manager for a Workload Domain and compare the configuration against the passwordPolicyConfig.json
     #>
 
     Param (
@@ -17755,7 +17770,10 @@ Function Publish-NsxManagerAccountLockout {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
-        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
     )
 
     Try {
@@ -17763,11 +17781,21 @@ Function Publish-NsxManagerAccountLockout {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 $nsxManagerAccountLockoutObject = New-Object System.Collections.ArrayList
                 if ($PsBoundParameters.ContainsKey('workloadDomain')) {
-                    $nsxAccountLockout = Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $workloadDomain; $nsxManagerAccountLockoutObject += $nsxAccountLockout
+                    if ($PsBoundParameters.ContainsKey('drift')) {
+                        $command = "Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $workloadDomain -drift -reportPath '$reportPath' -policyFile '$policyFile'"
+                    } else {
+                        $command = "Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $workloadDomain"
+                    }
+                    $nsxAccountLockout = Invoke-Expression $command ; $nsxManagerAccountLockoutObject += $nsxAccountLockout
                 } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
                     $allWorkloadDomains = Get-VCFWorkloadDomain
                     foreach ($domain in $allWorkloadDomains ) {
-                        $nsxAccountLockout = Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $domain.name; $nsxManagerAccountLockoutObject += $nsxAccountLockout
+                        if ($PsBoundParameters.ContainsKey('drift')) {
+                            $command = "Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $($domain.name) -drift -reportPath '$reportPath' -policyFile '$policyFile'"
+                        } else {
+                            $command = "Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $($domain.name)"
+                        }
+                        $nsxAccountLockout = Invoke-Expression $command ; $nsxManagerAccountLockoutObject += $nsxAccountLockout
                     }
                 }
                 
@@ -19319,12 +19347,16 @@ Function Invoke-PasswordPolicyManager {
         The Invoke-PasswordPolicyManager generates a Password Policy Manager Report for a VMware Cloud Foundation instance
 
         .EXAMPLE
-        Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -allDomains
+        Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting\ -allDomains
         This example runs a password policy report for all Workload Domain within an SDDC Manager instance.
 
         .EXAMPLE
-        Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -workloadDomain sfo-w01
+        Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting\ -workloadDomain sfo-w01
         This example runs a password policy report for a specific Workload Domain within an SDDC Manager instance.
+
+        .EXAMPLE
+        Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting\ -darkMode -allDomains -drift -policyFile "PasswordPolicyConfig.json"
+        This example runs a password policy report for all Workload Domain within an SDDC Manager instance.
     #>
 
     Param (
@@ -19375,10 +19407,10 @@ Function Invoke-PasswordPolicyManager {
                 # $sddcManagerPasswordComplexityHtml = Invoke-Expression "Publish-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
                 # $sddcManagerAccountLockoutHtml = Invoke-Expression "Publish-SddcManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
                 
-                # Write-LogMessage -Type INFO -Message "Collecting vCenter Single Sign-On Password Policies for $workflowMessage."
-                # $ssoPasswordExpirationHtml = Invoke-Expression "Publish-SsoPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                # $ssoPasswordComplexityHtml = Invoke-Expression "Publish-SsoPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                # $SsoAccountLockoutHtml = Invoke-Expression "Publish-SsoAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                Write-LogMessage -Type INFO -Message "Collecting vCenter Single Sign-On Password Policies for $workflowMessage."
+                $ssoPasswordExpirationHtml = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration $($commandSwitch)"
+                $ssoPasswordComplexityHtml = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity $($commandSwitch)"
+                $SsoAccountLockoutHtml = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout $($commandSwitch)"
 
                 # Write-LogMessage -Type INFO -Message "Collecting vCenter Server Password Expiration Policy for $workflowMessage."
                 # $vcenterPasswordExpirationHtml = Invoke-Expression "Publish-VcenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
@@ -19391,7 +19423,7 @@ Function Invoke-PasswordPolicyManager {
                 # Write-LogMessage -Type INFO -Message "Collecting NSX Manager Password Policies for $workflowMessage."
                 # $nsxManagerPasswordExpirationHtml = Invoke-Expression "Publish-NsxManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
                 # $nsxManagerPasswordComplexityHtml = Invoke-Expression "Publish-NsxManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                # $nsxMangerAccountLockoutHtml = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxMangerAccountLockoutHtml = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 # Write-LogMessage -Type INFO -Message "Collecting NSX Edge Password Policies for $workflowMessage."
                 # $nsxEdgePasswordExpirationHtml = Invoke-Expression "Publish-NsxEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
