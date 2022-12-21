@@ -15529,7 +15529,7 @@ Function Request-EsxiPasswordExpiration {
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
-                                                $nodePasswdPolicy | Add-Member -notepropertyname "Max Days" -notepropertyvalue $passwordExpire.Value
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Max Days" -notepropertyvalue $(if ($drift) { if ($passwordExpire.Value -ne $requiredConfig.maxdays) { "$($passwordExpire.Value) [ $($requiredConfig.maxdays) ]" } else { "$($passwordExpire.Value)" }} else { "$($passwordExpire.Value)" })
                                                 $esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
 											} else {
@@ -15577,6 +15577,10 @@ Function Request-EsxiPasswordComplexity {
         .EXAMPLE
         Request-EsxiPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01
         This example retrieves all ESXi hosts password complexity policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01
+
+        .EXAMPLE
+        Request-EsxiPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves all ESXi hosts password complexity policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01 and check the configuration drift using the provided configuration JSON
     #>
 
 	Param (
@@ -15584,9 +15588,15 @@ Function Request-EsxiPasswordComplexity {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
 	
+    if ($drift) {
+        $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).esxi.passwordComplexity
+    }
 	# Create the ESXi Host object
 	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
 	
@@ -15610,9 +15620,9 @@ Function Request-EsxiPasswordComplexity {
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
 												$nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
-                                                $nodePasswdPolicy | Add-Member -notepropertyname "Policy" -notepropertyvalue $passwordQualityControl.value
-												$nodePasswdPolicy | Add-Member -notepropertyname "History" -notepropertyvalue $passwordHistory.Value
-												$esxiPasswdPolicy.Add($nodePasswdPolicy)
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Policy" -notepropertyvalue $(if ($drift) { if ($passwordQualityControl.value -ne $requiredConfig.policy) { "$($passwordQualityControl.value) [ $($requiredConfig.policy) ]" } else { "$($passwordQualityControl.value)" }} else { "$($passwordQualityControl.value)" })
+												$nodePasswdPolicy | Add-Member -notepropertyname "History" -notepropertyvalue $(if ($drift) { if ($passwordHistory.Value -ne $requiredConfig.history) { "$($passwordHistory.Value) [ $($requiredConfig.history) ]" } else { "$($passwordHistory.Value)" }} else { "$($passwordHistory.Value)" })
+                                                $esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
 											} else {
 												Write-Error "Unable to retrieve password complexity policy from ESXi host ($esxiHost.Name): PRE_VALIDATION_FAILED"
@@ -15659,6 +15669,10 @@ Function Request-EsxiAccountLockout {
         .EXAMPLE
         Request-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01
         This example retrieves all ESXi hosts account lockout policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01
+
+        .EXAMPLE
+        Request-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves all ESXi hosts account lockout policy for the cluster named sfo-m01-cl01 in workload domain sfo-m01 and check the configuration drift using the provided configuration JSON
     #>
 
 	Param (
@@ -15666,9 +15680,15 @@ Function Request-EsxiAccountLockout {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
+		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
 	
+    if ($drift) {
+        $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).esxi.accountLockout
+    }
 	# Create the ESXi Host object
 	$esxiPasswdPolicy = New-Object System.Collections.Generic.List[System.Object]
 	
@@ -15692,8 +15712,8 @@ Function Request-EsxiAccountLockout {
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                 $nodePasswdPolicy | Add-Member -notepropertyname "Cluster" -notepropertyvalue $cluster
 												$nodePasswdPolicy | Add-Member -notepropertyname "System" -notepropertyvalue $esxiHost.Name
-												$nodePasswdPolicy | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $lockFailues.Value
-                                                $nodePasswdPolicy | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $unlockTime.value
+												$nodePasswdPolicy | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($lockFailues.Value -ne $requiredConfig.maxFailures) { "$($lockFailues.Value) [ $($requiredConfig.maxFailures) ]" } else { "$($lockFailues.Value)" }} else { "$($lockFailues.Value)" })
+                                                $nodePasswdPolicy | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($unlockTime.value -ne $requiredConfig.maxFailures) { "$($unlockTime.value) [ $($requiredConfig.maxFailures) ]" } else { "$($unlockTime.value)" }} else { "$($unlockTime.value)" })
 												$esxiPasswdPolicy.Add($nodePasswdPolicy)
 												Remove-Variable -Name nodePasswdPolicy
 											} else {
@@ -15989,6 +16009,116 @@ Function Update-EsxiAccountLockout {
     }
 }
 Export-ModuleMember -Function Update-EsxiAccountLockout
+
+Function Publish-EsxiPasswordPolicy {
+    <#
+        .SYNOPSIS
+        Publish password policies for ESXi Hosts
+
+        .DESCRIPTION
+        The Publish-EsxiPasswordPolicy cmdlet retrieves the requested password policy for all ESXi hosts and converts
+        the output to HTML. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Retrieves the requested password policy for all ESXi Hosts and converts to HTML
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -allDomains
+        This example will return password expiration policy for all ESXi Hosts across all Workload Domains
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -workloadDomain sfo-w01
+        This example will return password expiration policy for all ESXi Hosts for a Workload Domain
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordComplexity -allDomains
+        This example will return password complexity policy for all ESXi Hosts across all Workload Domains
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordComplexity -workloadDomain sfo-w01
+        This example will return password complexity policy for all ESXi Hosts for a Workload Domain
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy AccountLockout -allDomains
+        This example will return account lockout policy for all ESXi Hosts across all Workload Domains
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy AccountLockout -workloadDomain sfo-w01
+        This example will return account lockout policy for all ESXi Hosts for a Workload Domain
+
+        .EXAMPLE
+        Publish-EsxiPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -workloadDomain sfo-w01 -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example will return password expiration policy for all ESXi Hosts across all Workload Domains and compare the configuration against the passwordPolicyConfig.json
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet('PasswordExpiration','PasswordComplexity','AccountLockout')] [String]$policy,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+    )
+
+    if ($policy -eq "PasswordExpiration") { $pvsCmdlet = "Request-EsxiPasswordExpiration"; $preHtmlContent = '<a id="esxi-password-expiration"></a><h3>ESXi - Password Expiration</h3>' }
+    if ($policy -eq "PasswordComplexity") { $pvsCmdlet = "Request-EsxiPasswordComplexity"; $preHtmlContent = '<a id="esxi-password-complexity"></a><h3>ESXi - Password Complexity</h3>' }
+    if ($policy -eq "AccountLockout") { $pvsCmdlet = "Request-EsxiAccountLockout"; $preHtmlContent = '<a id="esxi-account-lockout"></a><h3>ESXi - Account Lockout</h3>' }
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $esxiPasswordPolicyObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $workloadDomain)) {
+						if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+							if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $clusters = Get-Cluster -Server $vcfVcenterDetails.fqdn
+                                foreach ($cluster in $clusters) {
+                                    if ($PsBoundParameters.ContainsKey('drift')) {
+                                        $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $workloadDomain -cluster $($cluster.name) -drift -reportPath '$reportPath' -policyFile '$policyFile'"
+                                    } else {
+                                        $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $workloadDomain -cluster $($cluster.name)"
+                                    }
+                                    $esxiPolicy = Invoke-Expression $command ; $esxiPasswordPolicyObject += $esxiPolicy
+                                }
+                            }
+                            Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                        }
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain.name)) {
+                            if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                    $clusters = Get-Cluster -Server $vcfVcenterDetails.fqdn
+                                    foreach ($cluster in $clusters) {
+                                        if ($PsBoundParameters.ContainsKey('drift')) {
+                                            $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $($domain.name) -cluster $($cluster.name) -drift -reportPath '$reportPath' -policyFile '$policyFile'"
+                                        } else {
+                                            $command = $pvsCmdlet + " -server $server -user $user -pass $pass -domain $($domain.name) -cluster $($cluster.name)"
+                                        }
+                                        $esxiPolicy = Invoke-Expression $command; $esxiPasswordPolicyObject += $esxiPolicy
+                                    }
+                                }
+                                Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
+                            }
+                        }
+                    }
+                }
+                $esxiPasswordPolicyObject = $esxiPasswordPolicyObject | Sort-Object 'Workload Domain', 'Cluster', FQDN | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+                $esxiPasswordPolicyObject = Convert-CssClass -htmldata $esxiPasswordPolicyObject
+                $esxiPasswordPolicyObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-EsxiPasswordPolicy
 
 #EndRegion  End ESXi Password Management Functions                  ######
 ##########################################################################
@@ -18353,33 +18483,33 @@ Function Invoke-PasswordPolicyManager {
                 }
 
                 # Collect Password Policies
-                Write-LogMessage -Type INFO -Message "Collecting SDDC Manager Password Policies for $workflowMessage."
-                $sddcManagerPasswordExpirationHtml = Invoke-Expression "Publish-SddcManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
-                $sddcManagerPasswordComplexityHtml = Invoke-Expression "Publish-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
-                $sddcManagerAccountLockoutHtml = Invoke-Expression "Publish-SddcManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
+                # Write-LogMessage -Type INFO -Message "Collecting SDDC Manager Password Policies for $workflowMessage."
+                # $sddcManagerPasswordExpirationHtml = Invoke-Expression "Publish-SddcManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
+                # $sddcManagerPasswordComplexityHtml = Invoke-Expression "Publish-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
+                # $sddcManagerAccountLockoutHtml = Invoke-Expression "Publish-SddcManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
                 
-                Write-LogMessage -Type INFO -Message "Collecting vCenter Single Sign-On Password Policies for $workflowMessage."
-                $ssoPasswordExpirationHtml = Invoke-Expression "Publish-SsoPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $ssoPasswordComplexityHtml = Invoke-Expression "Publish-SsoPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $SsoAccountLockoutHtml = Invoke-Expression "Publish-SsoAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # Write-LogMessage -Type INFO -Message "Collecting vCenter Single Sign-On Password Policies for $workflowMessage."
+                # $ssoPasswordExpirationHtml = Invoke-Expression "Publish-SsoPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $ssoPasswordComplexityHtml = Invoke-Expression "Publish-SsoPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $SsoAccountLockoutHtml = Invoke-Expression "Publish-SsoAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
-                Write-LogMessage -Type INFO -Message "Collecting vCenter Server Password Expiration Policy for $workflowMessage."
-                $vcenterPasswordExpirationHtml = Invoke-Expression "Publish-VcenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # Write-LogMessage -Type INFO -Message "Collecting vCenter Server Password Expiration Policy for $workflowMessage."
+                # $vcenterPasswordExpirationHtml = Invoke-Expression "Publish-VcenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
-                Write-LogMessage -Type INFO -Message "Collecting vCenter Server (Local User) Password Policies for $workflowMessage."
-                $vcenterLocalPasswordExpirationHtml = Invoke-Expression "Publish-VcenterLocalPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $vcenterLocalPasswordComplexityHtml = Invoke-Expression "Publish-VcenterLocalPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $vcenterLocalAccountLockoutHtml = Invoke-Expression "Publish-VcenterLocalAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # Write-LogMessage -Type INFO -Message "Collecting vCenter Server (Local User) Password Policies for $workflowMessage."
+                # $vcenterLocalPasswordExpirationHtml = Invoke-Expression "Publish-VcenterLocalPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $vcenterLocalPasswordComplexityHtml = Invoke-Expression "Publish-VcenterLocalPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $vcenterLocalAccountLockoutHtml = Invoke-Expression "Publish-VcenterLocalAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
-                Write-LogMessage -Type INFO -Message "Collecting NSX Manager Password Policies for $workflowMessage."
-                $nsxManagerPasswordExpirationHtml = Invoke-Expression "Publish-NsxManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxManagerPasswordComplexityHtml = Invoke-Expression "Publish-NsxManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxMangerAccountLockoutHtml = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # Write-LogMessage -Type INFO -Message "Collecting NSX Manager Password Policies for $workflowMessage."
+                # $nsxManagerPasswordExpirationHtml = Invoke-Expression "Publish-NsxManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $nsxManagerPasswordComplexityHtml = Invoke-Expression "Publish-NsxManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $nsxMangerAccountLockoutHtml = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
-                Write-LogMessage -Type INFO -Message "Collecting NSX Edge Password Policies for $workflowMessage."
-                $nsxEdgePasswordExpirationHtml = Invoke-Expression "Publish-NsxEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxEdgePasswordComplexityHtml = Invoke-Expression "Publish-NsxEdgePasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxEdgeAccountLockoutHtml = Invoke-Expression "Publish-NsxEdgeAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # Write-LogMessage -Type INFO -Message "Collecting NSX Edge Password Policies for $workflowMessage."
+                # $nsxEdgePasswordExpirationHtml = Invoke-Expression "Publish-NsxEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $nsxEdgePasswordComplexityHtml = Invoke-Expression "Publish-NsxEdgePasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                # $nsxEdgeAccountLockoutHtml = Invoke-Expression "Publish-NsxEdgeAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting ESXi Password Policies for $workflowMessage."
                 $esxiPasswordExpirationHtml = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration $($commandSwitch)"
@@ -18453,7 +18583,7 @@ Function Get-PasswordPolicyConfig {
         $policyFilePath = $reportPath + $policyFile
         if (Test-Path $policyFilePath) {
             Write-Output "Found the Password Policy Configuration File ($policyFilePath)."
-            $requiredConfig = Get-Content -Path $policyFilePath | ConvertFrom-Json
+            $customConfig = Get-Content -Path $policyFilePath | ConvertFrom-Json
         } else {
             Write-Error "Unable to Locate Password Policy Configuration File. Check the path ($policyFilePath)."
             Break
@@ -18461,6 +18591,7 @@ Function Get-PasswordPolicyConfig {
     } else {
         $requiredConfig
     }
+    $customConfig
 }
 
 Function Set-CreateReportDirectory {
