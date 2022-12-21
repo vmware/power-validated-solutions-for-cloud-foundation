@@ -19268,7 +19268,7 @@ Function Request-LocalUserPasswordExpiration {
 		- Retrives the local user password expiration policy
 
         .EXAMPLE
-        Request-LocalUserPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -product vcenter -vmName sfo-m01-vc01 -guestUser root -guestPassword VMw@re1! -localUser "root"
+        Request-LocalUserPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmName sfo-m01-vc01 -guestUser root -guestPassword VMw@re1! -localUser "root"
         This example retrieves the global password expiration policy for the vCenter Server
 
         .EXAMPLE
@@ -19285,7 +19285,7 @@ Function Request-LocalUserPasswordExpiration {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$localUser,
-        [Parameter (Mandatory = $true)] [ValidateSet('sddcManager', 'vcenter', 'nsxManager', 'nsxEdge', 'wsa')] [String]$product,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenter', 'nsxManager', 'nsxEdge', 'wsa')] [String]$product,
         [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
         [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
@@ -21044,14 +21044,36 @@ Function Get-LocalPasswordComplexity {
         .EXAMPLE
         Get-LocalPasswordComplexity -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1!
         This example retrieves the Workspace ONE Access sfo-wsa01 password complexity
+
+        .EXAMPLE
+        Get-LocalPasswordComplexity -product wsa -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the Workspace ONE Access sfo-wsa01 password complexity and checks the configuration drift using the provided configuration JSON
     #>
 
     Param (
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenter', 'nsxManager', 'nsxEdge', 'wsa')] [String]$product,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
         )
+
+        if ($drift) {
+            if ($product -eq "sddcManager") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).sddcManager.passwordComplexity
+            } elseif ($product -eq "vcenter") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).vcenterServer.passwordComplexity
+            } elseif ($product -eq "nsxManager") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).nsxManager.passwordComplexity
+            } elseif ($product -eq "nsxEdge") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).nsxEdge.passwordComplexity
+            } elseif ($product -eq "wsa") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).wsaLocal.passwordComplexity
+            }
+        }
 
     Try {
         if ($PsBoundParameters.ContainsKey("nsx")) {
@@ -21073,16 +21095,16 @@ Function Get-LocalPasswordComplexity {
 
         $passwordComplexityObject = New-Object -TypeName psobject
         $passwordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
-        if ($minLen) { $passwordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $minLen}
-        if ($minLowercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $minLowercase}
-        if ($minUppercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $minUppercase}
-        if ($minNumerical) {$passwordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $minNumerical}
-        if ($minSpecial) {$passwordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $minSpecial}
-        if ($minUnique) {$passwordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $minUnique}
-        if ($minClass) { $passwordComplexityObject | Add-Member -notepropertyname "Min Classes" -notepropertyvalue $minClass}
-        if ($maxSequence) { $passwordComplexityObject | Add-Member -notepropertyname "Max Sequence" -notepropertyvalue $maxSequence}
-        if ($history) { $passwordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $history}
-        if ($retry) { $passwordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $retry}
+        if ($minLen) { $passwordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $(if ($drift) { if ($minLen -ne $requiredConfig.minLength) { "$($minLen) [ $($requiredConfig.minLength) ]" } else { "$($minLen)" }} else { "$($minLen)" })}
+        if ($minLowercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $(if ($drift) { if ($minLowercase -ne $requiredConfig.minLowercase) { "$($minLowercase) [ $($requiredConfig.minLowercase) ]" } else { "$($minLowercase)" }} else { "$($minLowercase)" })}
+        if ($minUppercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $(if ($drift) { if ($minUppercase -ne $requiredConfig.minUppercase) { "$($minUppercase) [ $($requiredConfig.minUppercase) ]" } else { "$($minUppercase)" }} else { "$($minUppercase)" })}
+        if ($minNumerical) {$passwordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $(if ($drift) { if ($minNumerical -ne $requiredConfig.minNumerical) { "$($minNumerical) [ $($requiredConfig.minNumerical) ]" } else { "$($minNumerical)" }} else { "$($minNumerical)" })}
+        if ($minSpecial) {$passwordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $(if ($drift) { if ($minSpecial -ne $requiredConfig.minSpecial) { "$($minSpecial) [ $($requiredConfig.minSpecial) ]" } else { "$($minSpecial)" }} else { "$($minSpecial)" })}
+        if ($minUnique) {$passwordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $(if ($drift) { if ($minUnique -ne $requiredConfig.minUnique) { "$($minUnique) [ $($requiredConfig.minUnique) ]" } else { "$($minUnique)" }} else { "$($minUnique)" })}
+        if ($minClass) { $passwordComplexityObject | Add-Member -notepropertyname "Min Classes" -notepropertyvalue $(if ($drift) { if ($minClass -ne $requiredConfig.minClass) { "$($minClass) [ $($requiredConfig.minClass) ]" } else { "$($minClass)" }} else { "$($minClass)" })}
+        if ($maxSequence) { $passwordComplexityObject | Add-Member -notepropertyname "Max Sequence" -notepropertyvalue $(if ($drift) { if ($maxSequence -ne $requiredConfig.maxSequence) { "$($maxSequence) [ $($requiredConfig.maxSequence) ]" } else { "$($maxSequence)" }} else { "$($maxSequence)" })}
+        if ($history) { $passwordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $(if ($drift) { if ($history -ne $requiredConfig.history) { "$($history) [ $($requiredConfig.history) ]" } else { "$($history)" }} else { "$($history)" })}
+        if ($retry) { $passwordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $(if ($drift) { if ($retry -ne $requiredConfig.retries) { "$($retry) [ $($requiredConfig.retries) ]" } else { "$($retry)" }} else { "$($retry)" })}
         Return $passwordComplexityObject
     } Catch {
         Write-Error $_.Exception.Message
@@ -21211,13 +21233,35 @@ Function Get-LocalAccountLockout {
         .EXAMPLE
         Get-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1!
         This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy
+
+        .EXAMPLE
+        Get-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -product wsa -drift -reportPath "F:\Reporting\" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy and checks the configuration drift using the provided configuration JSON
     #>
 
     Param (
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenter', 'nsxManager', 'nsxEdge', 'wsa')] [String]$product,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$reportPath,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$policyFile
         )
+
+        if ($drift) {
+            if ($product -eq "sddcManager") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).sddcManager.accountlockout
+            } elseif ($product -eq "vcenter") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).vcenterServer.accountlockout
+            } elseif ($product -eq "nsxManager") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).nsxManager.accountlockout
+            } elseif ($product -eq "nsxEdge") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).nsxEdge.accountlockout
+            } elseif ($product -eq "wsa") {
+                $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).wsaLocal.accountlockout
+            }
+        }
 
     Try {
 
@@ -21228,9 +21272,9 @@ Function Get-LocalAccountLockout {
         if ([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+')) { $rootUnlockInterval = (([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
         $accountLockoutObject = New-Object -TypeName psobject
         $accountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
-        if ($failures) { $accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $failures}
-        if ($unlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $unlockInterval}
-        if ($rootUnlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Root Unlock Interval (sec)" -notepropertyvalue $rootUnlockInterval}
+        if ($failures) { $accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($failures -ne $requiredConfig.maxFailures) { "$($failures) [ $($requiredConfig.maxFailures) ]" } else { "$($failures)" }} else { "$($failures)" })}
+        if ($unlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($unlockInterval -ne $requiredConfig.unlockInterval) { "$($unlockInterval) [ $($requiredConfig.unlockInterval) ]" } else { "$($unlockInterval)" }} else { "$($unlockInterval)" })}
+        if ($rootUnlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Root Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($rootUnlockInterval -ne $requiredConfig.rootUnlockInterval) { "$($rootUnlockInterval) [ $($requiredConfig.rootUnlockInterval) ]" } else { "$($rootUnlockInterval)" }} else { "$($rootUnlockInterval)" })}
         Return $accountLockoutObject
     } Catch {
         Write-Error $_.Exception.Message
