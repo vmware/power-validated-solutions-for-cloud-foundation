@@ -16485,6 +16485,192 @@ Function Update-SsoAccountLockout {
 }
 Export-ModuleMember -Function Update-SsoAccountLockout
 
+Function Publish-SsoPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Publish password expiration policy for vCenter Single Sign-On.
+
+        .DESCRIPTION
+        The Publish-SsoPasswordExpiration cmdlet returns password expiration policy for vCenter Single Sign-On.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password expiration policy for vCenter Single Sign-On
+
+        .EXAMPLE
+        Publish-SsoPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password expiration policy for vCenter Single Sign-On
+
+        .EXAMPLE
+        Publish-SsoPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will NOT return the password expiration policy vCenter Single Sign-On
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $ssoPasswordExpirationObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
+                        $ssoPasswordExpiration = Request-SsoPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain; $ssoPasswordExpirationObject += $ssoPasswordExpiration
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                            $ssoPasswordExpiration = Request-SsoPasswordExpiration -server $server -user $user -pass $pass -domain $domain.name; $ssoPasswordExpirationObject += $ssoPasswordExpiration
+                        }
+                    }
+                }
+
+                if ($ssoPasswordExpirationObject.Count -eq 0) { $notManagement = $true }
+                if ($notManagement) {
+                    $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                } else {
+                    $ssoPasswordExpirationObject = $ssoPasswordExpirationObject | Sort-Object 'Workload Domain' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' -As Table
+                }
+                $ssoPasswordExpirationObject = Convert-CssClass -htmldata $ssoPasswordExpirationObject
+                $ssoPasswordExpirationObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-SsoPasswordExpiration
+
+Function Publish-SsoPasswordComplexity {
+    <#
+        .SYNOPSIS
+        Publish password complexity policy for vCenter Single Sign-On.
+
+        .DESCRIPTION
+        The Publish-SsoPasswordComplexity cmdlet returns password complexity policy for vCenter Single Sign-On.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password complexity policy for vCenter Single Sign-On
+
+        .EXAMPLE
+        Publish-SsoPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password complexity policy for vCenter Single Sign-On
+
+        .EXAMPLE
+        Publish-SsoPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will NOT return the password complexity policy vCenter Single Sign-On
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $ssoPasswordComplexityObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
+                        $ssoPasswordComplexity = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $ssoPasswordComplexityObject += $ssoPasswordComplexity
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                            $ssoPasswordComplexity = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $ssoPasswordComplexityObject += $ssoPasswordComplexity
+                        }
+                    }
+                }
+
+                if ($ssoPasswordComplexityObject.Count -eq 0) { $notManagement = $true }
+                if ($notManagement) {
+                    $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                } else {
+                    $ssoPasswordComplexityObject = $ssoPasswordComplexityObject | Sort-Object 'Workload Domain' | ConvertTo-Html -Fragment -PreContent '<a id="sso-password-complexity"></a><h3>vCenter Single Sign-On - Password Complexity</h3>' -As Table
+                }
+                $ssoPasswordComplexityObject = Convert-CssClass -htmldata $ssoPasswordComplexityObject
+                $ssoPasswordComplexityObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-SsoPasswordComplexity
+
+Function Publish-SsoAccountLockout {
+    <#
+        .SYNOPSIS
+        Publish account lockout policy for vCenter Single Sign-On.
+
+        .DESCRIPTION
+        The Publish-SsoAccountLockout cmdlet returns account lockout policy for vCenter Single Sign-On.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects account lockout policy for vCenter Single Sign-On
+
+        .EXAMPLE
+        Publish-SsoAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return account lockout policy for vCenter Single Sign-On
+
+        .EXAMPLE
+        Publish-SsoAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will NOT return the account lockout policy vCenter Single Sign-On
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $ssoAccountLockoutObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
+                        $ssoAccountLockout = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $ssoAccountLockoutObject += $ssoAccountLockout
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                            $ssoAccountLockout = Request-SsoPasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $ssoAccountLockoutObject += $ssoAccountLockout
+                        }
+                    }
+                }
+
+                if ($ssoAccountLockoutObject.Count -eq 0) { $notManagement = $true }
+                if ($notManagement) {
+                    $ssoAccountLockoutObject = $ssoAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                } else {
+                    $ssoAccountLockoutObject = $ssoAccountLockoutObject | Sort-Object 'Workload Domain' | ConvertTo-Html -Fragment -PreContent '<a id="sso-account-lockout"></a><h3>vCenter Single Sign-On - Account Lockout</h3>' -As Table
+                }
+                $ssoAccountLockoutObject = Convert-CssClass -htmldata $ssoAccountLockoutObject
+                $ssoAccountLockoutObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-SsoAccountLockout
+
 #EndRegion  End SSO Password Management Functions                   ######
 ##########################################################################
 
@@ -16958,6 +17144,218 @@ Function Update-VcenterRootPasswordExpiration {
 }
 Export-ModuleMember -Function Update-VcenterRootPasswordExpiration
 
+Function Publish-VcenterPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Publish password expiration policy for vCenter Server.
+
+        .DESCRIPTION
+        The Publish-VcenterPasswordExpiration cmdlet returns password expiration policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password expiration policy for vCenter Server
+
+        .EXAMPLE
+        Publish-VcenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password expiration policy for each vCenter Server
+
+        .EXAMPLE
+        Publish-VcenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password expiration policy for a vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $vcenterPasswordExpirationObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $vcenterPasswordExpiration = Request-VcenterPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain; $vcenterPasswordExpirationObject += $vcenterPasswordExpiration
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $vcenterPasswordExpiration = Request-VcenterPasswordExpiration -server $server -user $user -pass $pass -domain $domain.name; $vcenterPasswordExpirationObject += $vcenterPasswordExpiration
+                    }
+                }
+
+                $vcenterPasswordExpirationObject = $vcenterPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration"></a><h3>vCenter Server - Password Expiration</h3>' -As Table
+                $vcenterPasswordExpirationObject = Convert-CssClass -htmldata $vcenterPasswordExpirationObject
+                $vcenterPasswordExpirationObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-VcenterPasswordExpiration
+
+Function Publish-VcenterLocalPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Publish password expiration policy for each local user of vCenter Server.
+
+        .DESCRIPTION
+        The Publish-VcenterLocalPasswordExpiration cmdlet returns password expiration policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password expiration policy for each local user of vCenter Server
+
+        .EXAMPLE
+        Publish-VcenterLocalPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password expiration policy for each local user of vCenter Server for all Workload Domains
+
+        .EXAMPLE
+        Publish-VcenterLocalPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password expiration policy for each local user of vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $vcenterLocalPasswordExpirationObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $vcenterLocalPasswordExpiration = Request-VcenterRootPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain; $vcenterLocalPasswordExpirationObject += $vcenterLocalPasswordExpiration
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $vcenterLocalPasswordExpiration = Request-VcenterRootPasswordExpiration -server $server -user $user -pass $pass -domain $domain.name; $vcenterLocalPasswordExpirationObject += $vcenterLocalPasswordExpiration
+                    }
+                }
+
+                $vcenterLocalPasswordExpirationObject = $vcenterLocalPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration-local"></a><h3>vCenter Server - Password Expiration (Local Users)</h3>' -As Table
+                $vcenterLocalPasswordExpirationObject = Convert-CssClass -htmldata $vcenterLocalPasswordExpirationObject
+                $vcenterLocalPasswordExpirationObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-VcenterLocalPasswordExpiration
+
+Function Publish-VcenterLocalPasswordComplexity {
+    <#
+        .SYNOPSIS
+        Publish password complexity policy for each vCenter Server.
+
+        .DESCRIPTION
+        The Publish-VcenterLocalPasswordComplexity cmdlet returns password complexity policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password complexity policy for each vCenter Server
+
+        .EXAMPLE
+        Publish-VcenterLocalPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password complexity policy for each vCenter Server for all Workload Domains
+
+        .EXAMPLE
+        Publish-VcenterLocalPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password complexity policy for a vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $vcenterLocalPasswordComplexitynObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $vcenterLocalPasswordComplexity = Request-VcenterPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $vcenterLocalPasswordComplexitynObject += $vcenterLocalPasswordComplexity
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $vcenterLocalPasswordComplexity = Request-VcenterPasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $vcenterLocalPasswordComplexitynObject += $vcenterLocalPasswordComplexity
+                    }
+                }
+
+                $vcenterLocalPasswordComplexitynObject = $vcenterLocalPasswordComplexitynObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-complexity-local"></a><h3>vCenter Server - Password Complexity (Local Users)</h3>' -As Table
+                $vcenterLocalPasswordComplexitynObject = Convert-CssClass -htmldata $vcenterLocalPasswordComplexitynObject
+                $vcenterLocalPasswordComplexitynObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-VcenterLocalPasswordComplexity
+
+Function Publish-VcenterLocalAccountLockout {
+    <#
+        .SYNOPSIS
+        Publish account lockout policy for each vCenter Server.
+
+        .DESCRIPTION
+        The Publish-VcenterLocalAccountLockout cmdlet returns account lockout policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password account lockout for each vCenter Server
+
+        .EXAMPLE
+        Publish-VcenterLocalAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password account lockout for each vCenter Server for all Workload Domains
+
+        .EXAMPLE
+        Publish-VcenterLocalAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password account lockout for a vCenter Server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $vcenterLocalAccountLockoutObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $vcenterLocalAccountLockout = Request-VcenterAccountLockout -server $server -user $user -pass $pass -domain $workloadDomain; $vcenterLocalAccountLockoutObject += $vcenterLocalAccountLockout
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $vcenterLocalAccountLockout = Request-VcenterAccountLockout -server $server -user $user -pass $pass -domain $domain.name; $vcenterLocalAccountLockoutObject += $vcenterLocalAccountLockout
+                    }
+                }
+
+                $vcenterLocalAccountLockoutObject = $vcenterLocalAccountLockoutObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-account-lockout-local"></a><h3>vCenter Server - Account Lockout (Local Users)</h3>' -As Table
+                $vcenterLocalAccountLockoutObject = Convert-CssClass -htmldata $vcenterLocalAccountLockoutObject
+                $vcenterLocalAccountLockoutObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-VcenterLocalAccountLockout
+
 #EndRegion  End vCenter Password Management Functions               ######
 ##########################################################################
 
@@ -17268,6 +17666,174 @@ Function Update-NsxtManagerAccountLockout {
 }
 Export-ModuleMember -Function Update-NsxtManagerAccountLockout
 
+Function Publish-NsxManagerPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Publish password expiration policy for NSX Local Manager.
+
+        .DESCRIPTION
+        The Publish-NsxManagerPasswordExpiration cmdlet returns password expiration policy for local users of NSX Local
+        Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password expiration policy for each local user of NSX Local Manager
+
+        .EXAMPLE
+        Publish-NsxManagerPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password expiration policy for each local user of NSX Local Manager for all Workload Domains
+
+        .EXAMPLE
+        Publish-NsxManagerPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password expiration policy for each local user of NSX Local Manager for a Workload Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $localUsers = @("root","admin","audit","guestuser1","guestuser2")
+                $nsxManagerPasswordExpirationObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $workloadDomain -listNodes)) {
+                        foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                            $nsxPasswordExpiration = Request-LocalUserPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -localUser $localUsers; $nsxManagerPasswordExpirationObject += $nsxPasswordExpiration
+                        }
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain.name -listNodes)) {
+                            foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                                $nsxPasswordExpiration = Request-LocalUserPasswordExpiration -server $server -user $user -pass $pass -domain $domain.name -vmName ($nsxtManagerNode.fqdn.Split("."))[-0] -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -localUser $localUsers; $nsxManagerPasswordExpirationObject += $nsxPasswordExpiration
+                            }
+                        }
+                    }
+                }
+                
+                $nsxManagerPasswordExpirationObject = $nsxManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-expiration"></a><h3>NSX Manager - Password Expiration</h3>' -As Table
+                $nsxManagerPasswordExpirationObject = Convert-CssClass -htmldata $nsxManagerPasswordExpirationObject
+                $nsxManagerPasswordExpirationObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-NsxManagerPasswordExpiration
+
+Function Publish-NsxManagerPasswordComplexity {
+    <#
+        .SYNOPSIS
+        Publish password complexity policy for NSX Local Manager.
+
+        .DESCRIPTION
+        The Publish-NsxManagerPasswordComplexity cmdlet returns password complexity policy for local users of NSX Local
+        Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password complexity policy for each local user of NSX Local Manager
+
+        .EXAMPLE
+        Publish-NsxManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password complexity policy for each local user of NSX Local Manager for all Workload Domains
+
+        .EXAMPLE
+        Publish-NsxManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password complexity policy for each local user of NSX Local Manager for a Workload Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $nsxManagerPasswordComplexityObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $nsxPasswordComplexity = Request-NsxtManagerPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $nsxManagerPasswordComplexityObject += $nsxPasswordComplexity
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $nsxPasswordComplexity = Request-NsxtManagerPasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $nsxManagerPasswordComplexityObject += $nsxPasswordComplexity
+                    }
+                }
+                
+                $nsxManagerPasswordComplexityObject = $nsxManagerPasswordComplexityObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-complexity"></a><h3>NSX Manager - Password Complexity</h3>' -As Table
+                $nsxManagerPasswordComplexityObject = Convert-CssClass -htmldata $nsxManagerPasswordComplexityObject
+                $nsxManagerPasswordComplexityObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-NsxManagerPasswordComplexity
+
+Function Publish-NsxManagerAccountLockout {
+    <#
+        .SYNOPSIS
+        Publish account lockout policy for NSX Local Manager.
+
+        .DESCRIPTION
+        The Publish-NsxManagerAccountLockout cmdlet returns account lockout policy for local users of NSX Local
+        Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects account lockout policy for each local user of NSX Local Manager
+
+        .EXAMPLE
+        Publish-NsxManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return account lockout policy for each local user of NSX Local Manager for all Workload Domains
+
+        .EXAMPLE
+        Publish-NsxManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return account lockout policy for each local user of NSX Local Manager for a Workload Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $nsxManagerAccountLockoutObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $nsxAccountLockout = Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $workloadDomain; $nsxManagerAccountLockoutObject += $nsxAccountLockout
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $nsxAccountLockout = Request-NsxtManagerAccountLockout -server $server -user $user -pass $pass -domain $domain.name; $nsxManagerAccountLockoutObject += $nsxAccountLockout
+                    }
+                }
+                
+                $nsxManagerAccountLockoutObject = $nsxManagerAccountLockoutObject | Sort-Object 'Workload Domain', 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-account-lockout"></a><h3>NSX Manager - Account Lockout</h3>' -As Table
+                $nsxManagerAccountLockoutObject = Convert-CssClass -htmldata $nsxManagerAccountLockoutObject
+                $nsxManagerAccountLockoutObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-NsxManagerAccountLockout
+
 #EndRegion  End NSX Manager Password Management Functions           ######
 ##########################################################################
 
@@ -17565,6 +18131,184 @@ Function Update-NsxtEdgeAccountLockout {
 }
 Export-ModuleMember -Function Update-NsxtEdgeAccountLockout
 
+Function Publish-NsxEdgePasswordExpiration {
+    <#
+        .SYNOPSIS
+        Publish password expiration policy for NSX Edge.
+
+        .DESCRIPTION
+        The Publish-NsxEdgePasswordExpiration cmdlet returns password expiration policy for local users of NSX Local
+        Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password expiration policy for each local user of NSX Edge
+
+        .EXAMPLE
+        Publish-NsxEdgePasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password expiration policy for each local user of NSX Edge nodes for all Workload Domains
+
+        .EXAMPLE
+        Publish-NsxEdgePasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password expiration policy for each local user of NSX Edge nodes for a Workload Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $localUsers = @("root","admin","audit","guestuser1","guestuser2")
+                $nsxEdgePasswordExpirationObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $workloadDomain)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    $nsxEdgePasswordExpiration = Request-LocalUserPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -localUser $localUsers; $nsxEdgePasswordExpirationObject += $nsxEdgePasswordExpiration
+                                }
+                            }
+                        }
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain.name)) {
+                            if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                                if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                    $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                    foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                        $nsxEdgePasswordExpiration = Request-LocalUserPasswordExpiration -server $server -user $user -pass $pass -domain $domain.name -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -localUser $localUsers; $nsxEdgePasswordExpirationObject += $nsxEdgePasswordExpiration
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                $nsxEdgePasswordExpirationObject = $nsxEdgePasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-expiration"></a><h3>NSX Edge - Password Expiration</h3>' -As Table
+                $nsxEdgePasswordExpirationObject = Convert-CssClass -htmldata $nsxEdgePasswordExpirationObject
+                $nsxEdgePasswordExpirationObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-NsxEdgePasswordExpiration
+
+Function Publish-NsxEdgePasswordComplexity {
+    <#
+        .SYNOPSIS
+        Publish password complexity policy for NSX Edge.
+
+        .DESCRIPTION
+        The Publish-NsxEdgePasswordComplexity cmdlet returns password complexity policy for local users of NSX Local
+        Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password complexity policy for each local user of NSX Edge
+
+        .EXAMPLE
+        Publish-NsxEdgePasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return password complexity policy for each local user of NSX Edge nodes for all Workload Domains
+
+        .EXAMPLE
+        Publish-NsxEdgePasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return password complexity policy for each local user of NSX Edge nodes for a Workload Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $nsxEdgePasswordComplexityObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $nsxEdgePasswordComplexity = Request-NsxtEdgePasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain; $nsxEdgePasswordComplexityObject += $nsxEdgePasswordComplexity
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $nsxEdgePasswordComplexity = Request-NsxtEdgePasswordComplexity -server $server -user $user -pass $pass -domain $domain.name; $nsxEdgePasswordComplexityObject += $nsxEdgePasswordComplexity
+                    }
+                }
+                
+                $nsxEdgePasswordComplexityObject = $nsxEdgePasswordComplexityObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-complexity"></a><h3>NSX Edge - Password Complexity</h3>' -As Table
+                $nsxEdgePasswordComplexityObject = Convert-CssClass -htmldata $nsxEdgePasswordComplexityObject
+                $nsxEdgePasswordComplexityObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-NsxEdgePasswordComplexity
+
+Function Publish-NsxEdgeAccountLockout {
+    <#
+        .SYNOPSIS
+        Publish account lockout policy for NSX Edge.
+
+        .DESCRIPTION
+        The Publish-NsxEdgeAccountLockout cmdlet returns account lockout policy for local users of NSX Local
+        Manager. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects account lockout policy for NSX Edge node
+
+        .EXAMPLE
+        Publish-NsxEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -allDomains
+        This example will return account lockout policy for each NSX Edge nodes for all Workload Domains
+
+        .EXAMPLE
+        Publish-NsxEdgeAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -workloadDomain sfo-w01
+        This example will return account lockout policy for each NSX Edge nodes for a Workload Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $nsxEdgeAccountLockoutObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    $nsxEdgeAccountLockout = Request-NsxtEdgeAccountLockout -server $server -user $user -pass $pass -domain $workloadDomain; $nsxEdgeAccountLockoutObject += $nsxEdgeAccountLockout
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        $nsxEdgeAccountLockout = Request-NsxtEdgeAccountLockout -server $server -user $user -pass $pass -domain $domain.name; $nsxEdgeAccountLockoutObject += $nsxEdgeAccountLockout
+                    }
+                }
+                
+                $nsxEdgeAccountLockoutObject = $nsxEdgeAccountLockoutObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-account-lockout"></a><h3>NSX Edge - Account Lockout</h3>' -As Table
+                $nsxEdgeAccountLockoutObject = Convert-CssClass -htmldata $nsxEdgeAccountLockoutObject
+                $nsxEdgeAccountLockoutObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-NsxEdgeAccountLockout
+
 #EndRegion  End NSX Edge Password Management Functions              ######
 ##########################################################################
 
@@ -17775,6 +18519,196 @@ Function Update-SddcManagerAccountLockout {
     }
 }
 Export-ModuleMember -Function Update-SddcManagerAccountLockout
+
+Function Publish-SddcManagerPasswordExpiration {
+    <#
+        .SYNOPSIS
+        Publish password expiration policy for SDDC Manager.
+
+        .DESCRIPTION
+        The Publish-SddcManagerPasswordExpiration cmdlet returns password expiration policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password expiration policy for each local user of SDDC Manager
+
+        .EXAMPLE
+        Publish-SddcManagerPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -allDomains
+        This example will return password expiration policy for each local user of SDDC Manager
+
+        .EXAMPLE
+        Publish-SddcManagerPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -workloadDomain sfo-w01
+        This example will NOT return the password expiration policy for each local user of SDDC Manager as the Workload Domain provided is not the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcRootPass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $localUsers = @("root","vcf","backup")
+                $allSddcManagerPasswordExpirationObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
+                        $userPasswordExpiration = Request-LocalUserPasswordExpiration -server $server -user $user -pass $pass -domain (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $sddcRootPass -localUser $localUsers; $allSddcManagerPasswordExpirationObject += $userPasswordExpiration
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                            $userPasswordExpiration = Request-LocalUserPasswordExpiration -server $server -user $user -pass $pass -domain (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $sddcRootPass -localUser $localUsers; $allSddcManagerPasswordExpirationObject += $userPasswordExpiration
+                        }
+                    }
+                }
+
+                if ($allSddcManagerPasswordExpirationObject.Count -eq 0) { $notManagement = $true }
+                if ($notManagement) {
+                    $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                } else {
+                    $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'Virtual Machine', 'Local User' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -As Table
+                }
+                $allSddcManagerPasswordExpirationObject = Convert-CssClass -htmldata $allSddcManagerPasswordExpirationObject
+                $allSddcManagerPasswordExpirationObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-SddcManagerPasswordExpiration
+
+Function Publish-SddcManagerPasswordComplexity {
+    <#
+        .SYNOPSIS
+        Publish password complexity policy for SDDC Manager.
+
+        .DESCRIPTION
+        The Publish-SddcManagerPasswordComplexity cmdlet returns password complexity policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects password complexity policy for SDDC Manager
+
+        .EXAMPLE
+        Publish-SddcManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -allDomains
+        This example will return password complexity policy for SDDC Manager
+
+        .EXAMPLE
+        Publish-SddcManagerPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -workloadDomain sfo-w01
+        This example will NOT return the password complexity policy for SDDC Manager as the Workload Domain provided is not the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcRootPass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $sddcManagerPasswordComplexityObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
+                        $sddcManagerPasswordComplexity = Request-SddcManagerPasswordComplexity -server $server -user $user -pass $pass -rootPass $sddcRootPass; $sddcManagerPasswordComplexityObject += $sddcManagerPasswordComplexity
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                            $sddcManagerPasswordComplexity = Request-SddcManagerPasswordComplexity -server $server -user $user -pass $pass -rootPass $sddcRootPass; $sddcManagerPasswordComplexityObject += $sddcManagerPasswordComplexity
+                        }
+                    }
+                }
+
+                if ($sddcManagerPasswordComplexityObject.Count -eq 0) { $notManagement = $true }
+                if ($notManagement) {
+                    $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                } else {
+                    $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | Sort-Object 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -As Table
+                }
+                $sddcManagerPasswordComplexityObject = Convert-CssClass -htmldata $sddcManagerPasswordComplexityObject
+                $sddcManagerPasswordComplexityObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-SddcManagerPasswordComplexity
+
+Function Publish-SddcManagerAccountLockout {
+    <#
+        .SYNOPSIS
+        Publish password complexity policy for SDDC Manager.
+
+        .DESCRIPTION
+        The Publish-SddcManagerAccountLockout cmdlet returns account lockout policy for SDDC Manager.
+        The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Collects account lockout policy forSDDC Manager
+
+        .EXAMPLE
+        Publish-SddcManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -allDomains
+        This example will return account lockout policy for SDDC Manager
+
+        .EXAMPLE
+        Publish-SddcManagerAccountLockout -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -workloadDomain sfo-w01
+        This example will NOT return the account lockout policy for SDDC Manager as the Workload Domain provided is not the Management Domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcRootPass,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $sddcManagerAccountLockoutObject = New-Object System.Collections.ArrayList
+                if ($PsBoundParameters.ContainsKey('workloadDomain')) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $workloadDomain -and $_.type -eq "MANAGEMENT"}) {
+                        $sddcManagerAccountlockout = Request-SddcManagerAccountLockout -server $server -user $user -pass $pass -rootPass $sddcRootPass; $sddcManagerAccountLockoutObject += $sddcManagerAccountlockout
+                    }
+                } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    foreach ($domain in $allWorkloadDomains ) {
+                        if ($domain | Where-Object {$_.type -eq "MANAGEMENT"}) {
+                            $sddcManagerAccountlockout = Request-SddcManagerAccountLockout -server $server -user $user -pass $pass -rootPass $sddcRootPass; $sddcManagerAccountLockoutObject += $sddcManagerAccountlockout
+                        }
+                    }
+                }
+
+                if ($sddcManagerAccountLockoutObject.Count -eq 0) { $notManagement = $true }
+                if ($notManagement) {
+                    $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                } else {
+                    $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | Sort-Object 'Virtual Machine' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -As Table
+                }
+                $sddcManagerAccountLockoutObject = Convert-CssClass -htmldata $sddcManagerAccountLockoutObject
+                $sddcManagerAccountLockoutObject
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-SddcManagerAccountLockout
 
 #EndRegion  End SDDC Manager Password Management Functions          ######
 ##########################################################################
