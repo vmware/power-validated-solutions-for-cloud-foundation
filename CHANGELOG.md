@@ -68,6 +68,7 @@
 - Added `Publish-NsxEdgePasswordExpiration` cmdlet to retrieve password expiration policy for NSX Edge and output the details.
 - Added `Publish-NsxEdgePasswordComplexity` cmdlet to retrieve password complexity policy for NSX Edge and output the details.
 - Added `Publish-NsxEdgeAccountLockout` cmdlet to retrieve account lockout policy for NSX Edge and output the details.
+- Added `Get-PasswordPolicyDefault` cmdlet to retrieve the default password policy settings either to an output or JSON file.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
