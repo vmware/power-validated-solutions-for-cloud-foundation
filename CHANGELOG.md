@@ -79,7 +79,19 @@
 
 ### Deprecation
 
-- Removed `Get-VCPasswordExpiry` due to it being a duplicated cmdlet.
+- Removed `Get-VCPasswordExpiry`
+- Removed `Join-ESXiActiveDirectory`
+- Removed `Add-ESXiDomainUser`
+- Removed `Set-SRMLicenseConfig` replaced with `Add-SrmLicenseKey`.
+- Removed `Undo-SRMLicenseConfig` replaced with `Undo-SrmLicenseKey`.
+- Removed `New-vSRPortGroup` replaced with `Add-VdsPortGroup`.
+- Removed `Undo-vSRPortGroup` replaced with `Undo-VdsPortGroup`.
+- Removed `Set-vSRNetworkConfig` replaced with `Set-VrmsNetworkInterface`.
+- Removed `Undo-vSRNetworkConfig`.
+- Removed `New-vSRVMkernelPort` replaced with `Add-EsxiVMkernelPort`.
+- Removed `Undo-vSRVMkernelPort` replaced with `Undo-EsxiVMkernelPort`.
+- Removed `New-vSREsxiStaticRoute` replaced with `Add-EsxiVrmsStaticRoute`.
+- Removed `Undo-vSREsxiStaticRoute` replaced with `Undo-EsxiVrmsStaticRoute`
 
 ## v1.10.0 (2022-29-11)
 
