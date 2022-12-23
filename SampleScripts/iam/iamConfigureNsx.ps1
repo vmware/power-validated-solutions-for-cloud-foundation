@@ -8,13 +8,14 @@
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-09
-    Copyright 2021-2022 VMware, Inc.
+    Copyright 2021-2023 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
     - 1.0.001   (Gary Blake / 2022-01-04) - Improved the connection handling when starting the script
     - 1.0.002   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
     - 1.1.000   (Gary Blake / 2022-10-03) - Added Support for VCF 4.5.x Planning and Prep Workbook
+    - 1.2.000   (Gary Blake / 2022-12-23) - Removed Password Policy Procedures from Script
 
     ===================================================================================================================
 
@@ -76,12 +77,6 @@ Try {
             $nsxEnterpriseAdminGroup            = $pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value + "@" + $domainFqdn
             $nsxNetworkEngineerGroup            = $pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value + "@" + $domainFqdn
             $nsxAuditorGroup                    = $pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value + "@" + $domainFqdn
-            $apiLockoutPeriod                   = [Int]$pnpWorkbook.Workbook.Names["nsxt_password_api_lockout_period"].Value
-            $apiResetPeriod                     = [Int]$pnpWorkbook.Workbook.Names["nsxt_password_api_lockout_reset_period"].Value
-            $apiMaxAttempt                      = [Int]$pnpWorkbook.Workbook.Names["nsxt_password_api_max_auth_failures"].Value
-            $cliLockoutPeriod                   = [Int]$pnpWorkbook.Workbook.Names["nsxt_password_cli_lockout_period"].Value
-            $cliMaxAttempt                      = [Int]$pnpWorkbook.Workbook.Names["nsxt_password_cli_max_auth_failures"].Value
-            $minPasswordLength                  = [Int]$pnpWorkbook.Workbook.Names["nsxt_password_min_length"].Value
             $vsphereRoleName                    = $pnpWorkbook.Workbook.Names["nsxt_vsphere_role_name"].Value
             $ssoDomainFqdn                      = "vsphere.local"
             $mgmtServiceAccount                 = "svc-" + $pnpWorkbook.Workbook.Names["mgmt_nsxt_hostname"].Value + "-" + $pnpWorkbook.Workbook.Names["mgmt_vc_hostname"].Value
@@ -108,20 +103,6 @@ Try {
             $StatusMsg = Add-NsxtVidmRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -type group -principal $nsxNetworkEngineerGroup -role network_engineer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Add-NsxtVidmRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -type group -principal $nsxAuditorGroup -role auditor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-
-            # Attempting to Configure the Authentication Policy for NSX Managers
-            Write-LogMessage -Type INFO -Message "Attempting to Configure the Authentication Policy for NSX Managers"
-            $StatusMsg = Set-NsxtManagerAuthenticationPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $mgmtSddcDomainName -apiLockoutPeriod $apiLockoutPeriod -apiResetPeriod $apiResetPeriod -apiMaxAttempt $apiMaxAttempt -cliLockoutPeriod $cliLockoutPeriod -cliMaxAttempt $cliMaxAttempt -minPasswdLength $minPasswordLength -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Set-NsxtManagerAuthenticationPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -apiLockoutPeriod $apiLockoutPeriod -apiResetPeriod $apiResetPeriod -apiMaxAttempt $apiMaxAttempt -cliLockoutPeriod $cliLockoutPeriod -cliMaxAttempt $cliMaxAttempt -minPasswdLength $minPasswordLength -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-
-            # Attempting to Configure the Authentication Policy for NSX Edge Nodes
-            Write-LogMessage -Type INFO -Message "Attempting to Configure the Authentication Policy for NSX Edge Nodes"
-            $StatusMsg = Set-NsxtEdgeNodeAuthenticationPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $mgmtSddcDomainName -cliLockoutPeriod $cliLockoutPeriod -cliMaxAttempt $cliMaxAttempt -minPasswdLength $minPasswordLength -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Set-NsxtEdgeNodeAuthenticationPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cliLockoutPeriod $cliLockoutPeriod -cliMaxAttempt $cliMaxAttempt -minPasswdLength $minPasswordLength -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Define a Custom Role in vSphere for the NSX-T Data Center Service Accounts

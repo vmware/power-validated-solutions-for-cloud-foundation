@@ -8,13 +8,14 @@
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-09
-    Copyright 2021-2022 VMware, Inc.
+    Copyright 2021-2023 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
     - 1.0.001   (Gary Blake / 2022-01-04) - Improved the connection handling when starting the script
     - 1.0.002   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
     - 1.1.000   (Gary Blake / 2022-10-03) - Added Support for VCF 4.5.x Planning and Prep Workbook
+    - 1.2.000   (Gary Blake / 2022-12-23) - Removed Password Policy Procedures from Script
 
     ===================================================================================================================
     
@@ -80,27 +81,11 @@ Try {
             $ssoServerFqdn                      = (Get-VCFvCenter | Where-Object {$_.domain.id -eq (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).id}).fqdn
             $ssoServerUser                      = (Get-VCFCredential | Where-Object {$_.accountType -eq "SYSTEM" -and $_.credentialType -eq "SSO"}).username
             $ssoServerPass                      = (Get-VCFCredential | Where-Object {$_.accountType -eq "SYSTEM" -and $_.credentialType -eq "SSO"}).password
-            $emailNotification                  = $pnpWorkbook.Workbook.Names["vcenter_password_validity_email_address"].Value  
-            $maxDays                            = $pnpWorkbook.Workbook.Names["vcenter_password_validity"].Value
-            $passwordCount                      = $pnpWorkbook.Workbook.Names["sso_password_resuse"].Value
-            $minLength                          = $pnpWorkbook.Workbook.Names["sso_password_min_length"].Value
-            $maxLength                          = $pnpWorkbook.Workbook.Names["sso_password_max_length"].Value
-            $minNumericCount                    = $pnpWorkbook.Workbook.Names["sso_password_numeric_characters"].Value
-            $minSpecialCharCount                = $pnpWorkbook.Workbook.Names["sso_password_special_characters"].Value
-            $maxIdenticalAdjacentCharacters     = $pnpWorkbook.Workbook.Names["sso_password_indentical_adjacent_characters"].Value
-            $minAlphabeticCount                 = $pnpWorkbook.Workbook.Names["sso_password_alphabetic_characters"].Value
-            $minUppercaseCount                  = $pnpWorkbook.Workbook.Names["sso_password_uppercase_characters"].Value
-            $minLowercaseCount                  = $pnpWorkbook.Workbook.Names["sso_password_lowercase_characters"].Value
-            $passwordLifetimeDays               = $pnpWorkbook.Workbook.Names["sso_password_validity"].Value
-            $autoUnlockIntervalSec              = $pnpWorkbook.Workbook.Names["sso_unlock_time"].Value
-            $failedAttemptIntervalSec           = $pnpWorkbook.Workbook.Names["sso_logon_failure_interval"].Value
-            $maxFailedAttempts                  = $pnpWorkbook.Workbook.Names["sso_max_logon_attempts"].Value
             $vcfAdminGroup                      = $pnpWorkbook.Workbook.Names["group_gg_vcf_admins"].Value
             $vcfOperatorGroup                   = $pnpWorkbook.Workbook.Names["group_gg_vcf_operators"].Value
             $vcfViewerGroup                     = $pnpWorkbook.Workbook.Names["group_gg_vcf_viewers"].Value
             $mgmtCluster                        = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
             $wldCluster                         = $pnpWorkbook.Workbook.Names["wld_cluster"].Value
-            $policy                             = $pnpWorkbook.Workbook.Names["esxi_password_quality_control"].Value
 
             $rootCa                             = "Root64.cer"
             if (!(Test-Path ($filePath + "\" + $rootCa) )) { Write-LogMessage -Type ERROR -Message "Unable to Find Certificate File: $rootCa, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found Certificate File: $rootCa" }
@@ -122,27 +107,6 @@ Try {
             $StatusMsg = Add-SsoPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $mgmtSddcDomainName -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-            # Attempting to Configure the vCenter Server Appliance Password Expiration Date
-            Write-LogMessage -Type INFO -Message "Attempting to Configure the vCenter Server Appliance Password Expiration Date"
-            $StatusMsg = Set-vCenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $mgmtSddcDomainName -passwordExpires $true -email $emailNotification -maxDaysBetweenPasswordChange $maxDays -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Set-vCenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -passwordExpires $true -email $emailNotification -maxDaysBetweenPasswordChange $maxDays -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-
-            # Attempting to Configure the vCenter Single Sign-On Password Policy
-            Write-LogMessage -Type INFO -Message "Attempting to Configure the vCenter Single Sign-On Password Policy"
-            Connect-SsoAdminServer -Server $ssoServerFqdn -User $ssoServerUser -Password $ssoServerPass | Out-Null
-            Get-SsoPasswordPolicy | Set-SsoPasswordPolicy -ProhibitedPreviousPasswordsCount $passwordCount -MinLength $minLength -MaxLength $maxLength -MinNumericCount $minNumericCount -MinSpecialCharCount $minSpecialCharCount -MaxIdenticalAdjacentCharacters $maxIdenticalAdjacentCharacters -MinAlphabeticCount $minAlphabeticCount -MinUppercaseCount $minUppercaseCount -MinLowercaseCount $minLowercaseCount -PasswordLifetimeDays $passwordLifetimeDays | Out-Null
-            Disconnect-SsoAdminServer -Server $ssoServerFqdn | Out-Null
-            Write-LogMessage -Type INFO -Message "Configuring vCenter Single Sign-On Password Policy: SUCCESSFUL"
-
-            # Attempting to Configure the vCenter Single Sign-On Lockout Policy
-            Write-LogMessage -Type INFO -Message "Attempting to Configure the vCenter Single Sign-On Lockout Policy"
-            Connect-SsoAdminServer -Server $ssoServerFqdn -User $ssoServerUser -Password $ssoServerPass | Out-Null
-            Get-SsoLockoutPolicy | Set-SsoLockoutPolicy -AutoUnlockIntervalSec $autoUnlockIntervalSec -FailedAttemptIntervalSec $failedAttemptIntervalSec -MaxFailedAttempts $maxFailedAttempts | Out-Null
-            Disconnect-SsoAdminServer -Server $ssoServerFqdn | Out-Null
-            Write-LogMessage -Type INFO -Message "Configuring vCenter Single Sign-On Lockout Policy: SUCCESSFUL"
-
             # Attempting to Assign Active Directory Groups to Roles in SDDC Manager
             Write-LogMessage -Type INFO -Message "Attempting to Assign Active Directory Groups to Roles in SDDC Manager"
             $StatusMsg = Add-SddcManagerRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcfAdminGroup -role ADMIN -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -151,13 +115,6 @@ Try {
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Add-SddcManagerRole -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcfViewerGroup -role VIEWER -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-
-            # Attempting to Configure ESXi Hosts Password and Lockout Policies
-            Write-LogMessage -Type INFO -Message "Attempting to Configure ESXi Hosts Password and Lockout Policies"
-            $StatusMsg = Set-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $mgmtSddcDomainName -cluster $mgmtCluster -policy $policy -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Set-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wldCluster -policy $policy -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red } 
         }
     }
 }
