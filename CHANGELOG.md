@@ -54,6 +54,21 @@
 - Added `Update-WsaLocalUserAccountLockout` cmdlet to update the local user account lockout policy for Workspace ONE Access.
 - Added `Publish-EsxiPasswordPolicy` cmdlet to retrieve the requested password policy for all ESXi hosts and output the details.
 - Added `Invoke-PasswordPolicyManager` cmdlet to generate the Password Policy Manager report.
+- Added `Publish-SddcManagerPasswordExpiration` cmdlet to retrieve password expiration policy for SDDC Manager and output the details.
+- Added `Publish-SddcManagerPasswordComplexity` cmdlet to retrieve password complexity policy for SDDC Manager and output the details.
+- Added `Publish-SddcManagerAccountLockout` cmdlet to retrieve account lockout policy for SDDC Manager and output the details.
+- Added `Publish-SsoPasswordPolicy` cmdlet to retrieve the requested password policy for vCenter Single Sign-On and output the details.
+- Added `Publish-VcenterPasswordExpiration` cmdlet to retrieve password expiration policy for vCenter Server and output the details.
+- Added `Publish-VcenterLocalPasswordExpiration` cmdlet to retrieve password expiration policy for Local Users of vCenter Server and output the details.
+- Added `Publish-VcenterLocalPasswordComplexity` cmdlet to retrieve password complexity policy for Local Users of vCenter Server and output the details.
+- Added `Publish-VcenterLocalAccountLockout` cmdlet to retrieve account lockout policy for Local Users of vCenter Server and output the details.
+- Added `Publish-NsxManagerPasswordExpiration` cmdlet to retrieve password expiration policy for NSX Manager and output the details.
+- Added `Publish-NsxManagerPasswordComplexity` cmdlet to retrieve password complexity policy for NSX Manager and output the details.
+- Added `Publish-NsxManagerAccountLockout` cmdlet to retrieve account lockout policy for NSX Manager and output the details.
+- Added `Publish-NsxEdgePasswordExpiration` cmdlet to retrieve password expiration policy for NSX Edge and output the details.
+- Added `Publish-NsxEdgePasswordComplexity` cmdlet to retrieve password complexity policy for NSX Edge and output the details.
+- Added `Publish-NsxEdgeAccountLockout` cmdlet to retrieve account lockout policy for NSX Edge and output the details.
+- Added `Get-PasswordPolicyDefault` cmdlet to retrieve the default password policy settings either to an output or JSON file.
 - Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
 - Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
@@ -64,7 +79,7 @@
 
 ### Deprecation
 
-- Removed `Get-VCPasswordExpiry` cmdlet duplicated cmdlet.
+- Removed `Get-VCPasswordExpiry` due to it being a duplicated cmdlet.
 
 ## v1.10.0 (2022-29-11)
 
