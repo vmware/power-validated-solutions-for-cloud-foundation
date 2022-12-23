@@ -8,7 +8,7 @@
     ===================================================================================================================
     Created by:  Gary Blake - Senior Staff Solutions Architect
     Date:   2021-11-10
-    Copyright 2021-2022 VMware, Inc.
+    Copyright 2021-2023 VMware, Inc.
     ===================================================================================================================
     .CHANGE_LOG
 
@@ -16,6 +16,7 @@
     - 1.0.002   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
     - 1.0.003   (Gary Blake / 2022-03-01) - Updated input values to use latest VCF 4.4.x Planning and Prep Workbook
     - 1.1.000   (Gary Blake / 2022-10-03) - Added Support for VCF 4.5.x Planning and Prep Workbook
+    - 1.2.000   (Gary Blake / 2022-12-23) - Removed Password Policy Procedures from Script
 
     ===================================================================================================================
 
@@ -94,21 +95,6 @@ Try {
             $wsaDirAdminGroup                       = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
             $wsaReadOnlyGroup                       = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
             $adGroups                               = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)","$wsaSuperAdminGroup","$wsaDirAdminGroup","$wsaReadOnlyGroup"
-            $minLen                                 = $pnpWorkbook.Workbook.Names["standalone_wsa_password_min_length"].Value
-            $minLower                               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_lowercase_chars"].Value
-            $minUpper                               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_uppercase_chars"].Value
-            $minDigit                               = $pnpWorkbook.Workbook.Names["standalone_wsa_password_numerical_chars"].Value
-            $minSpecial                             = $pnpWorkbook.Workbook.Names["standalone_wsa_password_special_chars"].Value
-            $history                                = $pnpWorkbook.Workbook.Names["standalone_wsa_password_history"].Value
-            $maxConsecutiveIdenticalCharacters      = $pnpWorkbook.Workbook.Names["standalone_wsa_password_consecutive_identical_chars"].Value
-            $tempPasswordTtlInHrs                   = $pnpWorkbook.Workbook.Names["standalone_wsa_password_temp_lifetime"].Value
-            $maxPreviousPasswordCharactersReused    = "0"
-            $passwordTtlInDays                      = $pnpWorkbook.Workbook.Names["standalone_wsa_password_lifetime"].Value
-            $notificationThresholdInDays            = $pnpWorkbook.Workbook.Names["standalone_wsa_password_reminder"].Value
-            $notificationIntervalInDays             = $pnpWorkbook.Workbook.Names["standalone_wsa_password_reminder_notification_frequency"].Value
-            $numAttempts                            = $pnpWorkbook.Workbook.Names["standalone_wsa_password_failed_attempts"].Value
-            $attemptInterval                        = $pnpWorkbook.Workbook.Names["standalone_wsa_password_failed_auth_attempts_interval"].Value
-            $unlockInterval                         = $pnpWorkbook.Workbook.Names["standalone_wsa_password_account_lockdown_duration"].Value
 
             $rootCa                             = "Root64.cer"
             if (!(Test-Path ($filePath + "\" + $rootCa) )) { Write-LogMessage -Type ERROR -Message "Unable to Find Certificate File: $rootCa, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found Certificate File: $rootCa" }
@@ -161,14 +147,6 @@ Try {
             Write-LogMessage -Type INFO -Message "Attempting to Configure Identity Source for the Standalone Workspace ONE Access Instance"
             $StatusMsg = Add-WorkspaceOneDirectory -server $wsaFqdn -user admin -pass $wsaAdminPassword -domain $domainFqdn -baseDnUser $baseUserDn -baseDnGroup $baseGroupDn -bindUserDn $wsaBindUserDn -bindUserPass $wsaBindUserPassword -adGroups $adGroups -protocol ldaps -certificate ($filePath + "\" + $rootCa) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg"; Write-LogMessage -Type INFO -Message "Going to Sleep for 60 seconds to allow Workspace ONE Access to syncronize with Active Directory"; Start-Sleep 60 } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-
-            # Attempting to Configure Local Password Policy for the Standalone Workspace ONE Access Instance
-            Write-LogMessage -Type INFO -Message "Attempting to Configure Local Password Policy for the Standalone Workspace ONE Access Instance"
-            Request-WSAToken -fqdn $wsaFqdn -user admin -pass $wsaAdminPassword | Out-Null
-            $StatusMsg = Set-WSAPasswordPolicy -minLen $minLen -minLower $minLower -minUpper $minUpper -minDigit $minDigit -minSpecial $minSpecial -history $history -maxConsecutiveIdenticalCharacters $maxConsecutiveIdenticalCharacters -maxPreviousPasswordCharactersReused $maxPreviousPasswordCharactersReused -tempPasswordTtlInHrs $tempPasswordTtlInHrs -passwordTtlInDays $passwordTtlInDays -notificationThresholdInDays $notificationThresholdInDays -notificationIntervalInDays $notificationIntervalInDays | Get-WSAPasswordPolicy -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "Configure Password Policy on Workspace ONE Access Password ($wsaFqdn): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Set-WSAPasswordLockout -numAttempts $numAttempts -attemptInterval $attemptInterval -unlockInterval $unlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "Configure Lockout Policy on Workspace ONE Access Password ($wsaFqdn): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
             # Attempting to Assign Workspace ONE Access Roles to Active Directory Groups
             Write-LogMessage -Type INFO -Message "Attempting to Assign Workspace ONE Access Roles to Active Directory Groups"
