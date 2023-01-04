@@ -15751,7 +15751,8 @@ Function Publish-SddcManagerPasswordExpiration {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command to be Executed
@@ -15775,14 +15776,18 @@ Function Publish-SddcManagerPasswordExpiration {
                         }
                     }
                 }
-                if ($allSddcManagerPasswordExpirationObject.Count -eq 0) { $notManagement = $true }
-                if ($notManagement) {
-                    $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $allSddcManagerPasswordExpirationObject
                 } else {
-                    $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -As Table
+                    if ($allSddcManagerPasswordExpirationObject.Count -eq 0) { $notManagement = $true }
+                    if ($notManagement) {
+                        $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                    } else {
+                        $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -As Table
+                    }
+                    $allSddcManagerPasswordExpirationObject = Convert-CssClass -htmldata $allSddcManagerPasswordExpirationObject
+                    $allSddcManagerPasswordExpirationObject
                 }
-                $allSddcManagerPasswordExpirationObject = Convert-CssClass -htmldata $allSddcManagerPasswordExpirationObject
-                $allSddcManagerPasswordExpirationObject
             }
         }
     } Catch {
@@ -15829,7 +15834,8 @@ Function Publish-SddcManagerPasswordComplexity {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command to be Executed
@@ -15852,14 +15858,18 @@ Function Publish-SddcManagerPasswordComplexity {
                         }
                     }
                 }
-                if ($sddcManagerPasswordComplexityObject.Count -eq 0) { $notManagement = $true }
-                if ($notManagement) {
-                    $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $sddcManagerPasswordComplexityObject
                 } else {
-                    $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -As Table
+                    if ($sddcManagerPasswordComplexityObject.Count -eq 0) { $notManagement = $true }
+                    if ($notManagement) {
+                        $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                    } else {
+                        $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -As Table
+                    }
+                    $sddcManagerPasswordComplexityObject = Convert-CssClass -htmldata $sddcManagerPasswordComplexityObject
+                    $sddcManagerPasswordComplexityObject
                 }
-                $sddcManagerPasswordComplexityObject = Convert-CssClass -htmldata $sddcManagerPasswordComplexityObject
-                $sddcManagerPasswordComplexityObject
             }
         }
     } Catch {
@@ -15906,7 +15916,8 @@ Function Publish-SddcManagerAccountLockout {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command to be Executed
@@ -15929,14 +15940,18 @@ Function Publish-SddcManagerAccountLockout {
                         }
                     }
                 }
-                if ($sddcManagerAccountLockoutObject.Count -eq 0) { $notManagement = $true }
-                if ($notManagement) {
-                    $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $sddcManagerAccountLockoutObject
                 } else {
-                    $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -As Table
+                    if ($sddcManagerAccountLockoutObject.Count -eq 0) { $notManagement = $true }
+                    if ($notManagement) {
+                        $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -PostContent '<p>Management Domain not requested.</p>'
+                    } else {
+                        $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -As Table
+                    }
+                    $sddcManagerAccountLockoutObject = Convert-CssClass -htmldata $sddcManagerAccountLockoutObject
+                    $sddcManagerAccountLockoutObject
                 }
-                $sddcManagerAccountLockoutObject = Convert-CssClass -htmldata $sddcManagerAccountLockoutObject
-                $sddcManagerAccountLockoutObject
             }
         }
     } Catch {
@@ -16370,10 +16385,10 @@ Export-ModuleMember -Function Update-SsoAccountLockout
 Function Publish-SsoPasswordPolicy {
     <#
         .SYNOPSIS
-        Publish password policies for ESXi Hosts
+        Publish password policies for vCenter Single Sign-On
 
         .DESCRIPTION
-        The Publish-EsxiPasswordPolicy cmdlet retrieves the requested password policy for vCenter Single Sign-On and
+        The Publish-SsoPasswordPolicy cmdlet retrieves the requested password policy for vCenter Single Sign-On and
         converts the output to HTML. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
@@ -16417,7 +16432,8 @@ Function Publish-SsoPasswordPolicy {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     if ($policy -eq "PasswordExpiration") { $pvsCmdlet = "Request-SsoPasswordExpiration"; $preHtmlContent = '<a id="sso-password-expiration"></a><h3>vCenter Single Sign-On - Password Expiration</h3>' }
@@ -16446,14 +16462,18 @@ Function Publish-SsoPasswordPolicy {
                         }
                     }
                 }
-                if ($ssoPasswordPolicyObject.Count -eq 0) { $notManagement = $true }
-                if ($notManagement) {
-                    $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | ConvertTo-Html -Fragment -PreContent $preHtmlContent -PostContent '<p>Management Domain not requested.</p>'
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $ssoPasswordPolicyObject
                 } else {
-                    $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+                    if ($ssoPasswordPolicyObject.Count -eq 0) { $notManagement = $true }
+                    if ($notManagement) {
+                        $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | ConvertTo-Html -Fragment -PreContent $preHtmlContent -PostContent '<p>Management Domain not requested.</p>'
+                    } else {
+                        $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+                    }
+                    $ssoPasswordPolicyObject = Convert-CssClass -htmldata $ssoPasswordPolicyObject
+                    $ssoPasswordPolicyObject
                 }
-                $ssoPasswordPolicyObject = Convert-CssClass -htmldata $ssoPasswordPolicyObject
-                $ssoPasswordPolicyObject
             }
         }
     } Catch {
@@ -17045,7 +17065,8 @@ Function Publish-VcenterPasswordExpiration {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command
@@ -17066,9 +17087,13 @@ Function Publish-VcenterPasswordExpiration {
                         $vcenterPasswordExpiration = Invoke-Expression $command ; $vcenterPasswordExpirationObject += $vcenterPasswordExpiration
                     }
                 }
-                $vcenterPasswordExpirationObject = $vcenterPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration"></a><h3>vCenter Server - Password Expiration</h3>' -As Table
-                $vcenterPasswordExpirationObject = Convert-CssClass -htmldata $vcenterPasswordExpirationObject
-                $vcenterPasswordExpirationObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $vcenterPasswordExpirationObject
+                } else {
+                    $vcenterPasswordExpirationObject = $vcenterPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration"></a><h3>vCenter Server - Password Expiration</h3>' -As Table
+                    $vcenterPasswordExpirationObject = Convert-CssClass -htmldata $vcenterPasswordExpirationObject
+                    $vcenterPasswordExpirationObject
+                }
             }
         }
     } Catch {
@@ -17110,7 +17135,8 @@ Function Publish-VcenterLocalPasswordExpiration {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -17130,9 +17156,13 @@ Function Publish-VcenterLocalPasswordExpiration {
                         $vcenterLocalPasswordExpiration = Invoke-Expression $command ; $vcenterLocalPasswordExpirationObject += $vcenterLocalPasswordExpiration
                     }
                 }
-                $vcenterLocalPasswordExpirationObject = $vcenterLocalPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration-local"></a><h3>vCenter Server - Password Expiration (Local Users)</h3>' -As Table
-                $vcenterLocalPasswordExpirationObject = Convert-CssClass -htmldata $vcenterLocalPasswordExpirationObject
-                $vcenterLocalPasswordExpirationObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $vcenterLocalPasswordExpirationObject
+                } else {
+                    $vcenterLocalPasswordExpirationObject = $vcenterLocalPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration-local"></a><h3>vCenter Server - Password Expiration (Local Users)</h3>' -As Table
+                    $vcenterLocalPasswordExpirationObject = Convert-CssClass -htmldata $vcenterLocalPasswordExpirationObject
+                    $vcenterLocalPasswordExpirationObject
+                }
             }
         }
     } Catch {
@@ -17178,7 +17208,8 @@ Function Publish-VcenterLocalPasswordComplexity {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -17187,20 +17218,24 @@ Function Publish-VcenterLocalPasswordComplexity {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                $vcenterLocalPasswordComplexitynObject = New-Object System.Collections.ArrayList
+                $vcenterLocalPasswordComplexityObject = New-Object System.Collections.ArrayList
                 if ($PsBoundParameters.ContainsKey('workloadDomain')) {
                     $command = "Request-VcenterPasswordComplexity -server $server -user $user -pass $pass -domain $workloadDomain" + $commandSwitch
-                    $vcenterLocalPasswordComplexity = Invoke-Expression $command ; $vcenterLocalPasswordComplexitynObject += $vcenterLocalPasswordComplexity
+                    $vcenterLocalPasswordComplexity = Invoke-Expression $command ; $vcenterLocalPasswordComplexityObject += $vcenterLocalPasswordComplexity
                 } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
                     $allWorkloadDomains = Get-VCFWorkloadDomain
                     foreach ($domain in $allWorkloadDomains ) {
                         $command = "Request-VcenterPasswordComplexity -server $server -user $user -pass $pass -domain $($domain.name)" + $commandSwitch
-                        $vcenterLocalPasswordComplexity = Invoke-Expression $command ; $vcenterLocalPasswordComplexitynObject += $vcenterLocalPasswordComplexity
+                        $vcenterLocalPasswordComplexity = Invoke-Expression $command ; $vcenterLocalPasswordComplexityObject += $vcenterLocalPasswordComplexity
                     }
                 }
-                $vcenterLocalPasswordComplexitynObject = $vcenterLocalPasswordComplexitynObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-complexity-local"></a><h3>vCenter Server - Password Complexity (Local Users)</h3>' -As Table
-                $vcenterLocalPasswordComplexitynObject = Convert-CssClass -htmldata $vcenterLocalPasswordComplexitynObject
-                $vcenterLocalPasswordComplexitynObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $vcenterLocalPasswordComplexityObject
+                } else {
+                    $vcenterLocalPasswordComplexityObject = $vcenterLocalPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-complexity-local"></a><h3>vCenter Server - Password Complexity (Local Users)</h3>' -As Table
+                    $vcenterLocalPasswordComplexityObject = Convert-CssClass -htmldata $vcenterLocalPasswordComplexityObject
+                    $vcenterLocalPasswordComplexityObject
+                }
             }
         }
     } Catch {
@@ -17246,7 +17281,8 @@ Function Publish-VcenterLocalAccountLockout {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -17266,9 +17302,13 @@ Function Publish-VcenterLocalAccountLockout {
                         $vcenterLocalAccountLockout = Invoke-Expression $command ; $vcenterLocalAccountLockoutObject += $vcenterLocalAccountLockout
                     }
                 }
-                $vcenterLocalAccountLockoutObject = $vcenterLocalAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-account-lockout-local"></a><h3>vCenter Server - Account Lockout (Local Users)</h3>' -As Table
-                $vcenterLocalAccountLockoutObject = Convert-CssClass -htmldata $vcenterLocalAccountLockoutObject
-                $vcenterLocalAccountLockoutObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $vcenterLocalAccountLockoutObject
+                } else {
+                    $vcenterLocalAccountLockoutObject = $vcenterLocalAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-account-lockout-local"></a><h3>vCenter Server - Account Lockout (Local Users)</h3>' -As Table
+                    $vcenterLocalAccountLockoutObject = Convert-CssClass -htmldata $vcenterLocalAccountLockoutObject
+                    $vcenterLocalAccountLockoutObject
+                }
             }
         }
     } Catch {
@@ -17661,7 +17701,8 @@ Function Publish-NsxManagerPasswordExpiration {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -17690,10 +17731,13 @@ Function Publish-NsxManagerPasswordExpiration {
                         }
                     }
                 }
-                
-                $nsxManagerPasswordExpirationObject = $nsxManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-expiration"></a><h3>NSX Manager - Password Expiration</h3>' -As Table
-                $nsxManagerPasswordExpirationObject = Convert-CssClass -htmldata $nsxManagerPasswordExpirationObject
-                $nsxManagerPasswordExpirationObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $nsxManagerPasswordExpirationObject
+                } else {
+                    $nsxManagerPasswordExpirationObject = $nsxManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-expiration"></a><h3>NSX Manager - Password Expiration</h3>' -As Table
+                    $nsxManagerPasswordExpirationObject = Convert-CssClass -htmldata $nsxManagerPasswordExpirationObject
+                    $nsxManagerPasswordExpirationObject
+                }
             }
         }
     } Catch {
@@ -17739,7 +17783,8 @@ Function Publish-NsxManagerPasswordComplexity {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -17759,9 +17804,13 @@ Function Publish-NsxManagerPasswordComplexity {
                         $nsxPasswordComplexity = Invoke-Expression $command ; $nsxManagerPasswordComplexityObject += $nsxPasswordComplexity
                     }
                 }
-                $nsxManagerPasswordComplexityObject = $nsxManagerPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-complexity"></a><h3>NSX Manager - Password Complexity</h3>' -As Table
-                $nsxManagerPasswordComplexityObject = Convert-CssClass -htmldata $nsxManagerPasswordComplexityObject
-                $nsxManagerPasswordComplexityObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $nsxManagerPasswordComplexityObject
+                } else {
+                    $nsxManagerPasswordComplexityObject = $nsxManagerPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-complexity"></a><h3>NSX Manager - Password Complexity</h3>' -As Table
+                    $nsxManagerPasswordComplexityObject = Convert-CssClass -htmldata $nsxManagerPasswordComplexityObject
+                    $nsxManagerPasswordComplexityObject
+                }
             }
         }
     } Catch {
@@ -17807,7 +17856,8 @@ Function Publish-NsxManagerAccountLockout {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -17827,9 +17877,13 @@ Function Publish-NsxManagerAccountLockout {
                         $nsxAccountLockout = Invoke-Expression $command ; $nsxManagerAccountLockoutObject += $nsxAccountLockout
                     }
                 }
-                $nsxManagerAccountLockoutObject = $nsxManagerAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-account-lockout"></a><h3>NSX Manager - Account Lockout</h3>' -As Table
-                $nsxManagerAccountLockoutObject = Convert-CssClass -htmldata $nsxManagerAccountLockoutObject
-                $nsxManagerAccountLockoutObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $nsxManagerAccountLockoutObject
+                } else {
+                    $nsxManagerAccountLockoutObject = $nsxManagerAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-account-lockout"></a><h3>NSX Manager - Account Lockout</h3>' -As Table
+                    $nsxManagerAccountLockoutObject = Convert-CssClass -htmldata $nsxManagerAccountLockoutObject
+                    $nsxManagerAccountLockoutObject
+                }
             }
         }
     } Catch {
@@ -18210,7 +18264,8 @@ Function Publish-NsxEdgePasswordExpiration {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -18249,9 +18304,13 @@ Function Publish-NsxEdgePasswordExpiration {
                         }
                     }
                 }
-                $nsxEdgePasswordExpirationObject = $nsxEdgePasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-expiration"></a><h3>NSX Edge - Password Expiration</h3>' -As Table
-                $nsxEdgePasswordExpirationObject = Convert-CssClass -htmldata $nsxEdgePasswordExpirationObject
-                $nsxEdgePasswordExpirationObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $nsxEdgePasswordExpirationObject
+                } else {
+                    $nsxEdgePasswordExpirationObject = $nsxEdgePasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-expiration"></a><h3>NSX Edge - Password Expiration</h3>' -As Table
+                    $nsxEdgePasswordExpirationObject = Convert-CssClass -htmldata $nsxEdgePasswordExpirationObject
+                    $nsxEdgePasswordExpirationObject
+                }
             }
         }
     } Catch {
@@ -18297,7 +18356,8 @@ Function Publish-NsxEdgePasswordComplexity {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -18317,9 +18377,13 @@ Function Publish-NsxEdgePasswordComplexity {
                         $nsxEdgePasswordComplexity = Invoke-Expression $command ;  $nsxEdgePasswordComplexityObject += $nsxEdgePasswordComplexity
                     }
                 }
-                $nsxEdgePasswordComplexityObject = $nsxEdgePasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-complexity"></a><h3>NSX Edge - Password Complexity</h3>' -As Table
-                $nsxEdgePasswordComplexityObject = Convert-CssClass -htmldata $nsxEdgePasswordComplexityObject
-                $nsxEdgePasswordComplexityObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $nsxEdgePasswordComplexityObject
+                } else {
+                    $nsxEdgePasswordComplexityObject = $nsxEdgePasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-complexity"></a><h3>NSX Edge - Password Complexity</h3>' -As Table
+                    $nsxEdgePasswordComplexityObject = Convert-CssClass -htmldata $nsxEdgePasswordComplexityObject
+                    $nsxEdgePasswordComplexityObject
+                }
             }
         }
     } Catch {
@@ -18365,7 +18429,8 @@ Function Publish-NsxEdgeAccountLockout {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     # Define the Command Switch
@@ -18385,9 +18450,13 @@ Function Publish-NsxEdgeAccountLockout {
                         $nsxEdgeAccountLockout = Invoke-Expression $command ;  $nsxEdgeAccountLockoutObject += $nsxEdgeAccountLockout
                     }
                 }
-                $nsxEdgeAccountLockoutObject = $nsxEdgeAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-account-lockout"></a><h3>NSX Edge - Account Lockout</h3>' -As Table
-                $nsxEdgeAccountLockoutObject = Convert-CssClass -htmldata $nsxEdgeAccountLockoutObject
-                $nsxEdgeAccountLockoutObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $nsxEdgeAccountLockoutObject
+                } else {
+                    $nsxEdgeAccountLockoutObject = $nsxEdgeAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-account-lockout"></a><h3>NSX Edge - Account Lockout</h3>' -As Table
+                    $nsxEdgeAccountLockoutObject = Convert-CssClass -htmldata $nsxEdgeAccountLockoutObject
+                    $nsxEdgeAccountLockoutObject
+                }
             }
         }
     } Catch {
@@ -19016,7 +19085,8 @@ Function Publish-EsxiPasswordPolicy {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     if ($policy -eq "PasswordExpiration") { $pvsCmdlet = "Request-EsxiPasswordExpiration"; $preHtmlContent = '<a id="esxi-password-expiration"></a><h3>ESXi - Password Expiration</h3>' }
@@ -19060,9 +19130,13 @@ Function Publish-EsxiPasswordPolicy {
                         }
                     }
                 }
-                $esxiPasswordPolicyObject = $esxiPasswordPolicyObject | Sort-Object 'Workload Domain', 'Cluster', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
-                $esxiPasswordPolicyObject = Convert-CssClass -htmldata $esxiPasswordPolicyObject
-                $esxiPasswordPolicyObject
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $esxiPasswordPolicyObject
+                } else {
+                    $esxiPasswordPolicyObject = $esxiPasswordPolicyObject | Sort-Object 'Workload Domain', 'Cluster', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+                    $esxiPasswordPolicyObject = Convert-CssClass -htmldata $esxiPasswordPolicyObject
+                    $esxiPasswordPolicyObject
+                }
             }
         }
     } Catch {
@@ -19779,7 +19853,8 @@ Function Invoke-PasswordPolicyManager {
         [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$darkMode,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
     )
 
     Try {
@@ -19788,24 +19863,17 @@ Function Invoke-PasswordPolicyManager {
 
         if (Test-VCFConnection -server $sddcManagerFqdn) {
             if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                $defaultReport = Set-CreateReportDirectory -path $reportPath -sddcManagerFqdn $sddcManagerFqdn # Setup Report Location and Report File
                 if (!(Test-Path -Path $reportPath)) {Write-Warning "Unable to locate report path $reportPath, enter a valid path and try again"; Write-Host ""; Break }
                 if (!(Test-Path -Path $($reportPath + '\' + $policyFile))) {Write-Warning "Unable to locate policy file $policyFile, enter a valid path and try again"; Write-Host ""; Break }
+                Start-SetupLogFile -Path $reportPath -ScriptName $MyInvocation.MyCommand.Name # Setup Log Location and Log File
+                $defaultReport = Set-CreateReportDirectory -path $reportPath -sddcManagerFqdn $sddcManagerFqdn # Setup Report Location and Report File
                 if ($PsBoundParameters.ContainsKey("allDomains")) {
                     $reportname = $defaultReport.Split('.')[0] + "-" + $sddcManagerFqdn.Split(".")[0] + ".htm"
                     $workflowMessage = "VMware Cloud Foundation instance ($sddcManagerFqdn)"
+                    $commandSwitch = "-allDomains"
                 } else {
                     $reportname = $defaultReport.Split('.')[0] + "-" + $workloadDomain + ".htm"
                     $workflowMessage = "Workload Domain ($workloadDomain)"
-                }
-                Start-SetupLogFile -Path $reportPath -ScriptName $MyInvocation.MyCommand.Name # Setup Log Location and Log File
-                Write-LogMessage -Type INFO -Message "Starting the Process of Generating Password Policy Manager Report for $workflowMessage." -Colour Yellow
-                Write-LogMessage -Type INFO -Message "Setting up the log file to path $logfile."
-                Write-LogMessage -Type INFO -Message "Setting up report folder and report $reportName."
-
-                if ($PsBoundParameters.ContainsKey('allDomains')) {
-                    $commandSwitch = "-allDomains"
-                } else {
                     $commandSwitch = "-workloadDomain $workloadDomain"
                 }
                 if ($PsBoundParameters.ContainsKey('drift')) { 
@@ -19815,93 +19883,142 @@ Function Invoke-PasswordPolicyManager {
                         $commandSwitch = $commandSwitch + " -drift"
                     }
                 }
-
+                if ($PsBoundParameters.ContainsKey("json")) {
+                    $commandSwitch = $commandSwitch + " -json"
+                    Write-LogMessage -Type INFO -Message "Starting the Process of Generating Password Policy Manager Config Drift JSON for $workflowMessage." -Colour Yellow
+                } else {
+                    Write-LogMessage -Type INFO -Message "Starting the Process of Generating Password Policy Manager Report for $workflowMessage." -Colour Yellow
+                    Write-LogMessage -Type INFO -Message "Setting up the log file to path $logfile."
+                    Write-LogMessage -Type INFO -Message "Setting up report folder and report $reportName."
+                }
                 # Collect Password Policies
                 Write-LogMessage -Type INFO -Message "Collecting SDDC Manager Password Policies for $workflowMessage."
-                $sddcManagerPasswordExpirationHtml = Invoke-Expression "Publish-SddcManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
-                $sddcManagerPasswordComplexityHtml = Invoke-Expression "Publish-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
-                $sddcManagerAccountLockoutHtml = Invoke-Expression "Publish-SddcManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
+                $sddcManagerPasswordExpiration = Invoke-Expression "Publish-SddcManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
+                $sddcManagerPasswordComplexity = Invoke-Expression "Publish-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
+                $sddcManagerAccountLockout = Invoke-Expression "Publish-SddcManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcRootPass $sddcRootPass $($commandSwitch)"
                 
                 Write-LogMessage -Type INFO -Message "Collecting vCenter Single Sign-On Password Policies for $workflowMessage."
-                $ssoPasswordExpirationHtml = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration $($commandSwitch)"
-                $ssoPasswordComplexityHtml = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity $($commandSwitch)"
-                $SsoAccountLockoutHtml = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout $($commandSwitch)"
+                $ssoPasswordExpiration = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration $($commandSwitch)"
+                $ssoPasswordComplexity = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity $($commandSwitch)"
+                $ssoAccountLockout = Invoke-Expression "Publish-SsoPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting vCenter Server Password Expiration Policy for $workflowMessage."
-                $vcenterPasswordExpirationHtml = Invoke-Expression "Publish-VcenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $vcenterPasswordExpiration = Invoke-Expression "Publish-VcenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting vCenter Server (Local User) Password Policies for $workflowMessage."
-                $vcenterLocalPasswordExpirationHtml = Invoke-Expression "Publish-VcenterLocalPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $vcenterLocalPasswordComplexityHtml = Invoke-Expression "Publish-VcenterLocalPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $vcenterLocalAccountLockoutHtml = Invoke-Expression "Publish-VcenterLocalAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $vcenterLocalPasswordExpiration = Invoke-Expression "Publish-VcenterLocalPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $vcenterLocalPasswordComplexity = Invoke-Expression "Publish-VcenterLocalPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $vcenterLocalAccountLockout = Invoke-Expression "Publish-VcenterLocalAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting NSX Manager Password Policies for $workflowMessage."
-                $nsxManagerPasswordExpirationHtml = Invoke-Expression "Publish-NsxManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxManagerPasswordComplexityHtml = Invoke-Expression "Publish-NsxManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxMangerAccountLockoutHtml = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxManagerPasswordExpiration = Invoke-Expression "Publish-NsxManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxManagerPasswordComplexity = Invoke-Expression "Publish-NsxManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxMangerAccountLockout = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting NSX Edge Password Policies for $workflowMessage."
-                $nsxEdgePasswordExpirationHtml = Invoke-Expression "Publish-NsxEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxEdgePasswordComplexityHtml = Invoke-Expression "Publish-NsxEdgePasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxEdgeAccountLockoutHtml = Invoke-Expression "Publish-NsxEdgeAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxEdgePasswordExpiration = Invoke-Expression "Publish-NsxEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxEdgePasswordComplexity = Invoke-Expression "Publish-NsxEdgePasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxEdgeAccountLockout = Invoke-Expression "Publish-NsxEdgeAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting ESXi Password Policies for $workflowMessage."
-                $esxiPasswordExpirationHtml = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration $($commandSwitch)"
-                $esxiPasswordComplexityHtml = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity $($commandSwitch)"
-                $esxiAccountLockoutHtml = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout $($commandSwitch)"
+                $esxiPasswordExpiration = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration $($commandSwitch)"
+                $esxiPasswordComplexity = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity $($commandSwitch)"
+                $esxiAccountLockout = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout $($commandSwitch)"
 
-                # Combine all information gathered into a single HTML report
-                if ($PsBoundParameters.ContainsKey("allDomains")) {
-                    $reportData = "<h1>SDDC Manager: $sddcManagerFqdn</h1>"
-                } else{
-                    $reportData = "<h1>Workload Domain: $workloadDomain</h1>"
-                }
-                
-                $reportData += $sddcManagerPasswordExpirationHtml
-                $reportData += $ssoPasswordExpirationHtml
-                $reportData += $vcenterPasswordExpirationHtml
-                $reportData += $vcenterLocalPasswordExpirationHtml
-                $reportData += $nsxManagerPasswordExpirationHtml
-                $reportData += $nsxEdgePasswordExpirationHtml
-                $reportData += $esxiPasswordExpirationHtml
-                $reportData += $sddcManagerPasswordComplexityHtml
-                $reportData += $ssoPasswordComplexityHtml
-                $reportData += $vcenterLocalPasswordComplexityHtml
-                $reportData += $nsxManagerPasswordComplexityHtml
-                $reportData += $nsxEdgePasswordComplexityHtml
-                $reportData += $esxiPasswordComplexityHtml
-                $reportData += $sddcManagerAccountLockoutHtml
-                $reportData += $ssoAccountLockoutHtml
-                $reportData += $vcenterLocalAccountLockoutHtml
-                $reportData += $nsxMangerAccountLockoutHtml
-                $reportData += $nsxEdgeAccountLockoutHtml
-                $reportData += $esxiAccountLockoutHtml
+                if ($PsBoundParameters.ContainsKey("json")) {
+                    $sddcManagerPasswordPolicy = New-Object -TypeName psobject
+                    $sddcManagerPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $sddcManagerPasswordExpiration
+                    $sddcManagerPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $sddcManagerPasswordComplexity
+                    $sddcManagerPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $sddcManagerAccountLockout
+                    $ssoPasswordPolicy = New-Object -TypeName psobject
+                    $ssoPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $ssoPasswordExpiration
+                    $ssoPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $ssoPasswordComplexity
+                    $ssoPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $ssoAccountLockout
+                    $vcenterPasswordPolicy = New-Object -TypeName psobject
+                    $vcenterPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $vcenterPasswordExpiration
+                    $vcenterLocalPasswordPolicy = New-Object -TypeName psobject
+                    $vcenterLocalPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $vcenterLocalPasswordExpiration
+                    $vcenterLocalPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $vcenterLocalPasswordComplexity
+                    $vcenterLocalPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $vcenterLocalAccountLockout
+                    $nsxManagerPasswordPolicy = New-Object -TypeName psobject
+                    $nsxManagerPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $nsxManagerPasswordExpiration
+                    $nsxManagerPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $nsxManagerPasswordComplexity
+                    $nsxManagerPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $nsxManagerAccountLockout
+                    $nsxEdgePasswordPolicy = New-Object -TypeName psobject
+                    $nsxEdgePasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $nsxEdgePasswordExpiration
+                    $nsxEdgePasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $nsxEdgePasswordComplexity
+                    $nsxEdgePasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $nsxEdgeAccountLockout
+                    $esxiPasswordPolicy = New-Object -TypeName psobject
+                    $esxiPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $esxiPasswordExpiration
+                    $esxiPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $esxiPasswordComplexity
+                    $esxiPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $esxiAccountLockout
 
-                if ($PsBoundParameters.ContainsKey("darkMode")) {
-                    $reportHeader = Save-ClarityReportHeader -dark
+                    # Build Final Default Password Policy Object
+                    $outputJsonObject = New-Object -TypeName psobject
+                    $outputJsonObject | Add-Member -notepropertyname 'sddcManager' -notepropertyvalue $sddcManagerPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'sso' -notepropertyvalue $ssoPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'vcenterServer' -notepropertyvalue $vcenterPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'vcenterServerLocal' -notepropertyvalue $vcenterLocalPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'nsxManager' -notepropertyvalue $nsxManagerPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'nsxEdge' -notepropertyvalue $nsxEdgePasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'esxi' -notepropertyvalue $esxiPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'wsaLocal' -notepropertyvalue $wsaLocalPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'wsaDirectory' -notepropertyvalue $wsaDirectoryPasswordPolicy
+                    $jsonFile = ($reportFolder + "passwordPolicyManager" + ".json")
+                    Write-LogMessage -Type INFO -Message "Generating the Final JSON and Saving to ($jsonFile)."
+                    $outputJsonObject | ConvertTo-Json | Out-File -FilePath $jsonFile
                 } else {
-                    $reportHeader = Save-ClarityReportHeader
-                }
-                $reportNavigation = Save-ClarityReportNavigation
-                $reportFooter = Save-ClarityReportFooter
+                    # Combine all information gathered into a single HTML report
+                    if ($PsBoundParameters.ContainsKey("allDomains")) {
+                        $reportData = "<h1>SDDC Manager: $sddcManagerFqdn</h1>"
+                    } else{
+                        $reportData = "<h1>Workload Domain: $workloadDomain</h1>"
+                    }
+                    $reportData += $sddcManagerPasswordExpiration
+                    $reportData += $ssoPasswordExpiration
+                    $reportData += $vcenterPasswordExpiration
+                    $reportData += $vcenterLocalPasswordExpiration
+                    $reportData += $nsxManagerPasswordExpiration
+                    $reportData += $nsxEdgePasswordExpiration
+                    $reportData += $esxiPasswordExpiration
+                    $reportData += $sddcManagerPasswordComplexity
+                    $reportData += $ssoPasswordComplexity
+                    $reportData += $vcenterLocalPasswordComplexity
+                    $reportData += $nsxManagerPasswordComplexity
+                    $reportData += $nsxEdgePasswordComplexity
+                    $reportData += $esxiPasswordComplexity
+                    $reportData += $sddcManagerAccountLockout
+                    $reportData += $ssoAccountLockout
+                    $reportData += $vcenterLocalAccountLockout
+                    $reportData += $nsxMangerAccountLockout
+                    $reportData += $nsxEdgeAccountLockout
+                    $reportData += $esxiAccountLockout
 
-                $report = $reportHeader
-                $report += $reportNavigation
-                $report += $reportData
-                $report += $reportFooter
+                    if ($PsBoundParameters.ContainsKey("darkMode")) {
+                        $reportHeader = Save-ClarityReportHeader -dark
+                    } else {
+                        $reportHeader = Save-ClarityReportHeader
+                    }
+                    $reportNavigation = Save-ClarityReportNavigation
+                    $reportFooter = Save-ClarityReportFooter
 
-                # Generate the report to an HTML file and then open it in the default browser
-                Write-LogMessage -Type INFO -Message "Generating the Final Report and Saving to ($reportName)."
-                $report | Out-File $reportName
-                if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -ne "Linux") {
-                    Invoke-Item $reportName
-                } elseif ($PSEdition -eq "Desktop") {
-                    Invoke-Item $reportName
+                    $report = $reportHeader
+                    $report += $reportNavigation
+                    $report += $reportData
+                    $report += $reportFooter
+
+                    # Generate the report to an HTML file and then open it in the default browser
+                    Write-LogMessage -Type INFO -Message "Generating the Final Report and Saving to ($reportName)."
+                    $report | Out-File $reportName
+                    if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -ne "Linux") {
+                        Invoke-Item $reportName
+                    } elseif ($PSEdition -eq "Desktop") {
+                        Invoke-Item $reportName
+                    }
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-CatchWriter -object $_
     }
 }
