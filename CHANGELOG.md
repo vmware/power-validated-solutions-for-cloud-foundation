@@ -82,16 +82,26 @@
 - Removed `Get-VCPasswordExpiry`
 - Removed `Join-ESXiActiveDirectory`
 - Removed `Add-ESXiDomainUser`
-- Removed `Set-SRMLicenseConfig` replaced with `Add-SrmLicenseKey`.
-- Removed `Undo-SRMLicenseConfig` replaced with `Undo-SrmLicenseKey`.
-- Removed `New-vSRPortGroup` replaced with `Add-VdsPortGroup`.
-- Removed `Undo-vSRPortGroup` replaced with `Undo-VdsPortGroup`.
-- Removed `Set-vSRNetworkConfig` replaced with `Set-VrmsNetworkInterface`.
-- Removed `Undo-vSRNetworkConfig`.
-- Removed `New-vSRVMkernelPort` replaced with `Add-EsxiVMkernelPort`.
-- Removed `Undo-vSRVMkernelPort` replaced with `Undo-EsxiVMkernelPort`.
-- Removed `New-vSREsxiStaticRoute` replaced with `Add-EsxiVrmsStaticRoute`.
-- Removed `Undo-vSREsxiStaticRoute` replaced with `Undo-EsxiVrmsStaticRoute`
+- Removed `Set-SRMLicenseConfig`
+- Removed `Undo-SRMLicenseConfig`
+- Removed `New-vSRPortGroup`
+- Removed `Undo-vSRPortGroup`
+- Removed `Set-vSRNetworkConfig`
+- Removed `Undo-vSRNetworkConfig`
+- Removed `New-vSRVMkernelPort`
+- Removed `Undo-vSRVMkernelPort`
+- Removed `New-vSREsxiStaticRoute`
+- Removed `Undo-vSREsxiStaticRoute`
+- Removed `Set-vSRIncomingStorageTraffic`
+- Removed `Get-vSRIncomingStorageTraffic`
+- Removed `Set-DRSolutionNetworkAdapter`
+- Removed `Get-DRSolutionSummary`
+- Removed `Get-DRSolutionNetworkConfig`
+- Removed `Register-DRSolutionTovCenter`
+- Removed `Test-VAMIConnection`
+- Removed `Test-VAMIAuthentication`
+- Removed `createVAMIAuthHeader`
+- Removed `Request-VAMISessionId`
 
 ## v1.10.0 (2022-29-11)
 
