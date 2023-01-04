@@ -19913,7 +19913,7 @@ Function Invoke-PasswordPolicyManager {
                 Write-LogMessage -Type INFO -Message "Collecting NSX Manager Password Policies for $workflowMessage."
                 $nsxManagerPasswordExpiration = Invoke-Expression "Publish-NsxManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
                 $nsxManagerPasswordComplexity = Invoke-Expression "Publish-NsxManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
-                $nsxMangerAccountLockout = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
+                $nsxManagerAccountLockout = Invoke-Expression "Publish-NsxManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
 
                 Write-LogMessage -Type INFO -Message "Collecting NSX Edge Password Policies for $workflowMessage."
                 $nsxEdgePasswordExpiration = Invoke-Expression "Publish-NsxEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass $($commandSwitch)"
