@@ -16788,7 +16788,7 @@ Function Update-VcenterPasswordComplexity {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
                         if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 $existingConfiguration = Get-LocalPasswordComplexity -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
@@ -16849,7 +16849,7 @@ Function Update-VcenterAccountLockout {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
                         if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 $existingConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
@@ -17606,7 +17606,7 @@ Function Update-NsxtManagerPasswordExpiration {
                                 $localUsers = Get-NsxtApplianceUser
                                 foreach ($localUser in $localUsers) {
                                     if ($localUser.password_change_frequency -ne $maxDays) {
-                                        Set-NsxtApplianceUserExpirationPolicy -userId $localUser.userid -days $maxDays | Out-Null
+                                        Set-NsxtApplianceUserExpirationPolicy -userId $localUser.userid -maxDays $maxDays | Out-Null
                                         $updatedConfiguration = Get-NsxtApplianceUser | Where-Object {$_.userid -eq $localUser.userid }
                                         if (($updatedConfiguration).password_change_frequency -eq $maxDays ) {
                                             if ($detail -eq "true") {
@@ -17674,7 +17674,7 @@ Function Update-NsxtManagerPasswordComplexity {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
                         if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain -listNodes)) {
@@ -17858,19 +17858,19 @@ Function Publish-NsxManagerPasswordExpiration {
                 $nsxManagerPasswordExpirationObject = New-Object System.Collections.ArrayList
                 if ($PsBoundParameters.ContainsKey('workloadDomain')) {
                     if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $workloadDomain -listNodes)) {
-                        foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                        # foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
                             $command = "Request-NsxtManagerPasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain" + $commandSwitch
                             $nsxPasswordExpiration = Invoke-Expression $command ; $nsxManagerPasswordExpirationObject += $nsxPasswordExpiration
-                        }
+                        # }
                     }
                 } elseif ($PsBoundParameters.ContainsKey('allDomains')) {
                     $allWorkloadDomains = Get-VCFWorkloadDomain
                     foreach ($domain in $allWorkloadDomains ) {
                         if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain.name -listNodes)) {
-                            foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
+                            # foreach ($nsxtManagerNode in $vcfNsxDetails.nodes) {
                                 $command = "Request-NsxtManagerPasswordExpiration -server $server -user $user -pass $pass -domain $($domain.name)" + $commandSwitch
                                 $nsxPasswordExpiration = Invoke-Expression $command ; $nsxManagerPasswordExpirationObject += $nsxPasswordExpiration
-                            }
+                            # }
                         }
                     }
                 }
@@ -18572,11 +18572,11 @@ Function Publish-NsxEdgePasswordExpiration {
                     if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $workloadDomain)) {
                         if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
                             if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                                $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
-                                foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                # $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                # foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
                                     $command = "Request-NsxtEdgePasswordExpiration -server $server -user $user -pass $pass -domain $workloadDomain" + $commandSwitch
                                     $nsxEdgePasswordExpiration = Invoke-Expression $command ;  $nsxEdgePasswordExpirationObject += $nsxEdgePasswordExpiration
-                                }
+                                # }
                             }
                         }
                     }
@@ -18586,11 +18586,11 @@ Function Publish-NsxEdgePasswordExpiration {
                         if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain.name)) {
                             if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
                                 if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                                    $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
-                                    foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
+                                    # $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
+                                    # foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
                                         $command = "Request-NsxtEdgePasswordExpiration -server $server -user $user -pass $pass -domain $($domain.name)" + $commandSwitch
                                         $nsxEdgePasswordExpiration = Invoke-Expression $command ;  $nsxEdgePasswordExpirationObject += $nsxEdgePasswordExpiration
-                                    }
+                                    # }
                                 }
                             }
                         }
@@ -19244,11 +19244,11 @@ Function Update-EsxiAccountLockout {
         - Configures the account lockout policy for all ESXi hosts in the cluster
 
         .EXAMPLE
-        Update-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -failures 5 -unlockTime 900
+        Update-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -failures 5 -unlockInterval 900
         This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01
 
         .EXAMPLE
-        Update-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -failures 5 -unlockTime 900 -detail false
+        Update-EsxiAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -cluster sfo-m01-cl01 -failures 5 -unlockInterval 900 -detail false
         This example configures all ESXi hosts within the cluster named sfo-m01-cl01 of the workload domain sfo-m01 but does not show the detail per host
     #>
 
@@ -20327,7 +20327,7 @@ Function Start-PasswordPolicyConfig {
         Foundation instance using the JSON configuration file procided.
 
         .EXAMPLE
-        Start-PasswordPolicyConfig -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -policy F:\Reporting\passwordPolicyConfig.json
+        Start-PasswordPolicyConfig -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -policyFile passwordPolicyConfig.json
         This examples configures all password policies for all components across a VMware Cloud Foundation instance
     #>
 
@@ -20336,15 +20336,20 @@ Function Start-PasswordPolicyConfig {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcRootPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policy
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policyFile
     )
+
+    Clear-Host; Write-Host ""
 
     Try {
         if (Test-VCFConnection -server $sddcManagerFqdn) {
             if (Test-VCFAuthentication -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass) {
-                if (!(Test-Path -Path $policy)) {Write-Warning "Unable to locate policy file $policy, enter a valid path and try again"; Write-Host ""; Break }
+                Start-SetupLogFile -Path $reportPath -ScriptName $MyInvocation.MyCommand.Name # Setup Log Location and Log File
+                if (!(Test-Path -Path $reportPath)) {Write-Warning "Unable to locate report path $reportPath, enter a valid path and try again"; Write-Host ""; Break }
+                if (!(Test-Path -Path $($reportPath + '\' + $policyFile))) {Write-Warning "Unable to locate policy file $policyFile, enter a valid path and try again"; Write-Host ""; Break }
                 Write-LogMessage -Type INFO -Message "Starting the Process of Configuring Password Policies for SDDC Manager Instance ($sddcManagerFqdn)." -Colour Yellow
-                $customPolicy = Get-Content -Path $policy | ConvertFrom-Json
+                $customPolicy = Get-Content -Path $($reportPath + '\' + $policyFile) | ConvertFrom-Json
                 $sddcDomainMgmt = (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name
                 $allWorkloadDomains = Get-VCFWorkloadDomain
                 
@@ -20357,7 +20362,7 @@ Function Start-PasswordPolicyConfig {
                     if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                 }
                 Write-LogMessage -Type INFO -Message "Configuring SDDC Manager Instance ($sddcManagerFqdn): Password Complexity Policy"
-                $StatusMsg = Update-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -rootPass $sddcRootPass -minLength $customPolicy.sddcManager.passwordComplexity.minLength -minLowercase $customPolicy.sddcManager.passwordComplexity.minLowercase -minUppercase $customPolicy.sddcManager.passwordComplexity.minUppercase -minNumerical $customPolicy.sddcManager.passwordComplexity.minNumerical -minSpecial $customPolicy.sddcManager.passwordComplexity.minSpecial -minUnique $customPolicy.sddcManager.passwordComplexitymin.Unique -minClass $customPolicy.sddcManager.passwordComplexity.minClass -maxSequence $customPolicy.sddcManager.passwordComplexity.maxSequence -history $customPolicy.sddcManager.passwordComplexity.history -maxRetry $customPolicy.sddcManager.passwordComplexity.maxRetries -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Update-SddcManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -rootPass $sddcRootPass -minLength $customPolicy.sddcManager.passwordComplexity.minLength -minLowercase $customPolicy.sddcManager.passwordComplexity.minLowercase -minUppercase $customPolicy.sddcManager.passwordComplexity.minUppercase -minNumerical $customPolicy.sddcManager.passwordComplexity.minNumerical -minSpecial $customPolicy.sddcManager.passwordComplexity.minSpecial -minUnique $customPolicy.sddcManager.passwordComplexity.minUnique -minClass $customPolicy.sddcManager.passwordComplexity.minClass -maxSequence $customPolicy.sddcManager.passwordComplexity.maxSequence -history $customPolicy.sddcManager.passwordComplexity.history -maxRetry $customPolicy.sddcManager.passwordComplexity.retries -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                 Write-LogMessage -Type INFO -Message "Configuring SDDC Manager Instance ($sddcManagerFqdn): Account Lockout Policy"
                 $StatusMsg = Update-SddcManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -rootPass $sddcRootPass -failures $customPolicy.sddcManager.accountLockout.maxFailures -unlockInterval $customPolicy.sddcManager.accountLockout.unlockInterval -rootUnlockInterval $customPolicy.sddcManager.accountLockout.rootUnlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -20380,6 +20385,7 @@ Function Start-PasswordPolicyConfig {
                 # Configuring Password Policies for vCenter Server
                 Write-LogMessage -Type INFO -Message "Configuring Password Policies for vCenter Server" -Colour Yellow
                 foreach ($workloadDomain in $allWorkloadDomains) {
+                    Write-LogMessage -Type INFO -Message "Starting the Process of Configuring Password Policies for vCenter Server for Workload Domain ($($workloadDomain.name))" -Colour Yellow
                     Write-LogMessage -Type INFO -Message "Configuring vCenter Server: Password Expiration Policy for Workload Domain ($($workloadDomain.name))"
                     $StatusMsg = Update-VcenterPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -maxDays $customPolicy.vcenterServer.passwordExpiration.maxDays -minDays $customPolicy.vcenterServer.passwordExpiration.minDays -warnDays $customPolicy.vcenterServer.passwordExpiration.warningDays -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
@@ -20390,23 +20396,20 @@ Function Start-PasswordPolicyConfig {
                     $StatusMsg = Update-VcenterPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $workloadDomain.name -minLength $customPolicy.vcenterServerLocal.passwordComplexity.minLength -minLowercase $customPolicy.vcenterServerLocal.passwordComplexity.minLowercase -minUppercase $customPolicy.vcenterServerLocal.passwordComplexity.minUppercase -minNumerical $customPolicy.vcenterServerLocal.passwordComplexity.minNumerical -minSpecial $customPolicy.vcenterServerLocal.passwordComplexity.minSpecial -minUnique $customPolicy.vcenterServerLocal.passwordComplexity.minUnique -history $customPolicy.vcenterServerLocal.passwordComplexity.history -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     Write-LogMessage -Type INFO -Message "Configuring vCenter Server Local Users: Account Lockout Policy for Workload Domain ($($workloadDomain.name))"
-                    $StatusMsg = Update-VcenterAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $workloadDomain.name  -failures $customPolicy.vcenterServerLocal.accountLockout.maxFailures -unlockInterval $customPolicy.vcenterServerLocal.accountLockout.unlockInterval -rootUnlockInterval $customPolicy.vcenterServerLocal.accountLockout.rootUnlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    $StatusMsg = Update-VcenterAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $workloadDomain.name -failures $customPolicy.vcenterServerLocal.accountLockout.maxFailures -unlockInterval $customPolicy.vcenterServerLocal.accountLockout.unlockInterval -rootUnlockInterval $customPolicy.vcenterServerLocal.accountLockout.rootUnlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                 }
                 Write-LogMessage -Type INFO -Message "Completed Configuring Password Policies for vCenter Server" -Colour Yellow
 
                 # Configuring Password Policies for NSX Local Managers
                 Write-LogMessage -Type INFO -Message "Configuring Password Policies for NSX Local Managers" -Colour Yellow
-                $localUsers = @("admin","audit","root","guestuser1","guestuser2")
                 foreach ($workloadDomain in $allWorkloadDomains) {
-                    $vcfNsxDetails = Get-NsxtServerDetail -fqdn $sddcManagerFqdn -username $sddcManagerUser -password $sddcManagerPass -domain $($workloadDomain.name) -listNodes
+                    Write-LogMessage -Type INFO -Message "Starting the Process of Configuring Password Policies for the NSX Local Manager for Workload Domain ($($workloadDomain.name))" -Colour Yellow
                     Write-LogMessage -Type INFO -Message "Configuring NSX Local Managers: Password Expiration Policy ($($workloadDomain.name))"
-                    foreach ($nsxManagerName in ((Get-VCFNsxtCluster -id $workloadDomain.nsxtCluster.id).nodes | Select-Object name)) {
-                        $StatusMsg = Update-LocalUserPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -vmName $($nsxManagerName.name) -guestUser $($vcfNsxDetails.rootUser) -guestPassword $($vcfNsxDetails.rootPass) -localUser $localUsers -minDays $customPolicy.nsxManager.passwordExpiration.minDays -maxDays $customPolicy.nsxManager.passwordExpiration.maxDays -warnDays $customPolicy.nsxManager.passwordExpiration.warningDays -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-                    }
+                    $StatusMsg = Update-NsxtManagerPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -maxdays $customPolicy.nsxEdge.passwordExpiration.maxDays -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     Write-LogMessage -Type INFO -Message "Configuring NSX Local Managers: Password Complexity Policy ($($workloadDomain.name))"
-                    $StatusMsg = Update-NsxtManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -minLength $customPolicy.nsxManager.passwordComplexity.minLength -minLowercase $customPolicy.nsxManager.passwordComplexity.minLowercase -minUppercase $customPolicy.nsxManager.passwordComplexity.minUppercase -minNumerical $customPolicy.nsxManager.passwordComplexity.minNumerical -minSpecial $customPolicy.nsxManager.passwordComplexity.minSpecial -minUnique $customPolicy.nsxManager.passwordComplexity.minUnique -maxRetry $customPolicy.nsxManager.passwordComplexity.maxRetry -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    $StatusMsg = Update-NsxtManagerPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -minLength $customPolicy.nsxManager.passwordComplexity.minLength -minLowercase $customPolicy.nsxManager.passwordComplexity.minLowercase -minUppercase $customPolicy.nsxManager.passwordComplexity.minUppercase -minNumerical $customPolicy.nsxManager.passwordComplexity.minNumerical -minSpecial $customPolicy.nsxManager.passwordComplexity.minSpecial -minUnique $customPolicy.nsxManager.passwordComplexity.minUnique -maxRetry $customPolicy.nsxManager.passwordComplexity.retries -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Update Password Complexity Policy on NSX Local Managers for Workload Domain ($($workloadDomain.name)): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Update Password Complexity Policy on NSX Local Managers for Workload Domain ($($workloadDomain.name)), already set: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     Write-LogMessage -Type INFO -Message "Configuring NSX Local Managers: Account Lockout Policy ($($workloadDomain.name))"
                     $StatusMsg = Update-NsxtManagerAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cliFailures $customPolicy.nsxManager.accountLockout.cliMaxFailures -cliUnlockInterval $customPolicy.nsxManager.accountLockout.cliUnlockInterval -apiFailures $customPolicy.nsxManager.accountLockout.apiMaxFailures -apiFailureInterval $customPolicy.nsxManager.accountLockout.apiRestInterval -apiUnlockInterval $customPolicy.nsxManager.accountLockout.apiUnlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -20416,16 +20419,13 @@ Function Start-PasswordPolicyConfig {
 
                 # Configuring Password Policies for NSX Edge Nodes
                 Write-LogMessage -Type INFO -Message "Configuring Password Policies for NSX Edge Nodes" -Colour Yellow
-                $localUsers = @("admin","audit","root","guestuser1","guestuser2")
                 foreach ($workloadDomain in $allWorkloadDomains) {
-                    $vcfNsxDetails = Get-NsxtServerDetail -fqdn $sddcManagerFqdn -username $sddcManagerUser -password $sddcManagerPass -domain $($workloadDomain.name) -listNodes
+                    Write-LogMessage -Type INFO -Message "Starting the Process of Configuring Password Policies for the NSX Edge for Workload Domain ($($workloadDomain.name))" -Colour Yellow
                     Write-LogMessage -Type INFO -Message "Configuring NSX Edge Nodes: Password Expiration Policy for Workload Domain ($($workloadDomain.name))"
-                    foreach ($edgeName in @((Get-VCFEdgeCluster | Where-Object {$_.nsxtCluster.id -eq $($workloadDomain.nsxtCluster.id)}).edgeNodes.hostname)) {
-                        $StatusMsg = Update-LocalUserPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -vmName $($edgeName.Split('.')[-0]) -guestUser $($vcfNsxDetails.rootUser) -guestPassword $($vcfNsxDetails.rootPass) -localUser $localUsers -minDays $customPolicy.nsxEdge.passwordExpiration.minDays -maxDays $customPolicy.nsxEdge.passwordExpiration.maxDays -warnDays $customPolicy.nsxEdge.passwordExpiration.warningDays -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-                    }
+                    $StatusMsg = Update-NsxtEdgePasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -maxdays $customPolicy.nsxEdge.passwordExpiration.maxDays -detail false -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     Write-LogMessage -Type INFO -Message "Configuring NSX Edge Nodes: Password Complexity Policy ($($workloadDomain.name))"
-                    $StatusMsg = Update-NsxtEdgePasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -minLength $customPolicy.nsxEdge.passwordComplexity.minLength -minLowercase $customPolicy.nsxEdge.passwordComplexity.minLowercase -minUppercase $customPolicy.nsxEdge.passwordComplexity.minUppercase -minNumerical $customPolicy.nsxEdge.passwordComplexity.minNumerical -minSpecial $customPolicy.nsxEdge.passwordComplexity.minSpecial -minUnique $customPolicy.nsxEdge.passwordComplexity.minUnique -maxRetry $customPolicy.nsxEdge.passwordComplexity.maxRetry -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    $StatusMsg = Update-NsxtEdgePasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -minLength $customPolicy.nsxEdge.passwordComplexity.minLength -minLowercase $customPolicy.nsxEdge.passwordComplexity.minLowercase -minUppercase $customPolicy.nsxEdge.passwordComplexity.minUppercase -minNumerical $customPolicy.nsxEdge.passwordComplexity.minNumerical -minSpecial $customPolicy.nsxEdge.passwordComplexity.minSpecial -minUnique $customPolicy.nsxEdge.passwordComplexity.minUnique -maxRetry $customPolicy.nsxEdge.passwordComplexity.retries -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                     if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Update Password Complexity Policy on NSX Edge Nodes for Workload Domain ($($workloadDomain.name)): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Update Password Complexity Policy on NSX Edge Nodes for Workload Domain ($($workloadDomain.name)), already set: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     Write-LogMessage -Type INFO -Message "Configuring NSX Edge Nodes: Account Lockout Policy ($($workloadDomain.name))"
                     $StatusMsg = Update-NsxtEdgeAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cliFailures $customPolicy.nsxEdge.accountLockout.cliMaxFailures -cliUnlockInterval $customPolicy.nsxEdge.accountLockout.cliUnlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -20436,6 +20436,7 @@ Function Start-PasswordPolicyConfig {
                 # Configuring Password Policies for ESXi Hosts
                 Write-LogMessage -Type INFO -Message "Configuring Password Policies for ESXi Hosts" -Colour Yellow
                 foreach ($workloadDomain in $allWorkloadDomains) {
+                    Write-LogMessage -Type INFO -Message "Starting the Process of Configuring Password Policies for the ESXi Hosts for Workload Domain ($($workloadDomain.name))" -Colour Yellow
                     $clusters = $workloadDomain.clusters
                     Write-LogMessage -Type INFO -Message "Configuring ESXi Hosts: Password Expiration Policy for Workload Domain ($($workloadDomain.name))"
                     foreach ($cluster in $clusters) {
@@ -20452,7 +20453,7 @@ Function Start-PasswordPolicyConfig {
                     Write-LogMessage -Type INFO -Message "Configuring ESXi Hosts: Account Lockout Policy"
                     foreach ($cluster in $clusters) {
                         $clusterName = (Get-VCFCluster -id $cluster.id).name
-                        $StatusMsg = Update-EsxiAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cluster $clusterName -failures $customPolicy.esxi.passwordComplexity.maxFailures -unlockInterval $customPolicy.esxi.passwordComplexity.unlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Update-EsxiAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cluster $clusterName -failures $customPolicy.esxi.accountLockout.maxFailures -unlockInterval $customPolicy.esxi.accountLockout.unlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Update Account Lockout Policy on ESXi Hosts for Worload Domain / Cluster ($($workloadDomain.name) / $clusterName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Update Account Lockout Policy on ESXi Hosts for Worload Domain / Cluster ($($workloadDomain.name) / $clusterName), already set: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     }
                 }
@@ -20567,8 +20568,6 @@ Function Get-PasswordPolicyDefault {
     # Build Default NSX Manager Local Users Password Policy Settings
     $nsxManagerPasswordExpiration = New-Object -TypeName psobject
     $nsxManagerPasswordExpiration | Add-Member -notepropertyname 'maxDays' -notepropertyvalue "90"
-    $nsxManagerPasswordExpiration | Add-Member -notepropertyname 'minDays' -notepropertyvalue "0"
-    $nsxManagerPasswordExpiration | Add-Member -notepropertyname 'warningDays' -notepropertyvalue "7"
     $nsxManagerPasswordComplexity = New-Object -TypeName psobject
     $nsxManagerPasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "15"
     $nsxManagerPasswordComplexity | Add-Member -notepropertyname 'minLowercase' -notepropertyvalue "-1"
@@ -20591,8 +20590,6 @@ Function Get-PasswordPolicyDefault {
     # Build Default NSX Edge Local Users Password Policy Settings
     $nsxEdgePasswordExpiration = New-Object -TypeName psobject
     $nsxEdgePasswordExpiration | Add-Member -notepropertyname 'maxDays' -notepropertyvalue "90"
-    $nsxEdgePasswordExpiration | Add-Member -notepropertyname 'minDays' -notepropertyvalue "0"
-    $nsxEdgePasswordExpiration | Add-Member -notepropertyname 'warningDays' -notepropertyvalue "7"
     $nsxEdgePasswordComplexity = New-Object -TypeName psobject
     $nsxEdgePasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "15"
     $nsxEdgePasswordComplexity | Add-Member -notepropertyname 'minLowercase' -notepropertyvalue "-1"
@@ -38298,71 +38295,6 @@ Function Get-VCServerPasswordPolicy {
 	}
 }
 Export-ModuleMember -Function Get-VCServerPasswordPolicy
-
-Function Set-vCenterPasswordExpiration {
-    <#
-		.SYNOPSIS
-		Set the password expiration for the root account
-
-        .DESCRIPTION
-        The Set-vCenterPasswordExpiration cmdlet configures password expiration settings for the vCenter Server root
-        account. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vCenter Server
-		- Configures the password expiration either to never expire or to expire in given number of days
-		- Sets the email for warning notification to given value
-
-        .EXAMPLE
-        Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $true -email "administrator@rainpole.io" -maxDaysBetweenPasswordChange 999
-        This example configures the password expiration settings for the vCenter Server root account to expire after 80 days with email for warning set to "admin@rainpole.io"
-
-        .EXAMPLE
-		Set-vCenterPasswordExpiration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -passwordExpires $false
-        This example configures the password expiration settings for the vCenter Server root account to never expire
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-		[Parameter (Mandatory = $false, ParameterSetName = 'neverexpire')]
-		[Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [Bool]$passwordExpires,
-        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
-        [Parameter (Mandatory = $true, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$maxDaysBetweenPasswordChange
-	)
-
-	Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                            Request-vSphereApiToken -Fqdn $vcfVcenterDetails.fqdn -Username $vcfVcenterDetails.ssoadmin -Password $vcfVcenterDetails.ssoAdminPass -admin | Out-Null
-                            $pwdExpirySettings = Get-VCPasswordExpiry
-                            if ($passwordExpires) {
-                                Set-VCPasswordExpiry -passwordExpires $passwordExpires -email $email -maxDaysBetweenPasswordChange $maxDaysBetweenPasswordChange | Out-Null
-                            } else {
-                                Set-VCPasswordExpiry -passwordExpires $passwordExpires | Out-Null
-                            }
-                            $pwdExpirySettings = Get-VCPasswordExpiry
-                            if ($pwdExpirySettings.max_days_between_password_change -eq -1) {
-                                Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to (Never Expire): SUCCESSFUL"
-                            } else {
-                                Write-Output "Configured Password Expiry on vCenter Server Appliance ($($vcfVcenterDetails.fqdn)) to ($($pwdExpirySettings.max_days_between_password_change) days) and Email Notification to ($($pwdExpirySettings.email)): SUCCESSFUL"
-                            }
-                        }
-                    }
-                } else {
-                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                }
-            }
-        }
-	} Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Set-vCenterPasswordExpiration
 
 Function Get-SsoPasswordPolicies {
     <#
