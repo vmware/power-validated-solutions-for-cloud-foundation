@@ -20634,7 +20634,7 @@ Function Start-PasswordPolicyConfig {
 
         .EXAMPLE
         Start-PasswordPolicyConfig -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -policyFile passwordPolicyConfig.json -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -wsaAdminPass VMw@re1!
-        This examples configures all password policies for all components across a VMware Cloud Foundation instance and Workspace ONE Access
+        This example configures all password policies for all components across a VMware Cloud Foundation instance and Workspace ONE Access
     #>
 
     Param (
