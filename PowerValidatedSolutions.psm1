@@ -20706,10 +20706,10 @@ Function Get-PasswordPolicyConfig {
             $customConfig = Get-Content -Path $policyFilePath | ConvertFrom-Json
             $result = Test-PasswordPolicyConfig -customConfig $customConfig
 			if ($result -eq "true") {
-				Write-LogMessage -Type INFO -Message "Custom Policy configuration file Validation passed"
+				Write-LogMessage -Type INFO -Message "Validation of Password Policy Configuration File: PASSED"
 			} else {
-                write-LogMessage -Type INFO -Message "Custom Policy configuration file Validation failed."
-                break
+                Write-LogMessage -Type ERROR -Message "Validation of Password Policy Configuration File: FAILED" -Colour Red
+                Break
 			}
         } else {
             Write-Error "Unable to Locate Password Policy Configuration File. Check the path ($policyFilePath)."
@@ -20721,7 +20721,7 @@ Function Get-PasswordPolicyConfig {
     $customConfig
 }
 
-Function checkRange() {
+Function checkRange {
 	Param(
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$value,
@@ -20730,17 +20730,17 @@ Function checkRange() {
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$required
 	)
 	if (($value -eq "Null") -and ($required -eq $true)) {
-		Write-LogMessage -Type ERROR -Message "$name parameter has not been configured."  -Colour Red
+		Write-LogMessage -Type ERROR -Message "$name parameter has not been configured." -Colour Red
 		return $false
 	} elseif (($value -lt $minRange) -or ($value -gt $maxRange)) {
-		Write-LogMessage -Type ERROR -Message "The recommended range for $name should be between $minRange and $maxRange. [$value]"  -Colour Red
+		Write-LogMessage -Type ERROR -Message "The recommended range for $name should be between $minRange and $maxRange. [$value]" -Colour Red
 		return $false
 	} else {
 		return $true
 	}
 }
 
-Function checkEmailString() {
+Function checkEmailString {
 	Param(
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$address,
@@ -20770,38 +20770,38 @@ Function Test-PasswordPolicyConfig {
     $encounterError = "False"
 
     # validating product Types in customConfig file
-    $defaultProductList = $defaultConfig | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
-    $customProductList = $customConfig | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
+    $defaultProductList = $defaultConfig | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
+    $customProductList = $customConfig | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
     $defaultSection = "passwordExpiration", "passwordComplexity", "accountLockout"
 	
     foreach ($product in $customProductList) {
         if (-Not $defaultProductList.Name.Contains($product.Name)) {
-            Write-LogMessage -Type ERROR -Message "Unknow product type $($product.Name), please check the custom configuration file and run the cmdlet again" -Colour Red
+            Write-LogMessage -Type ERROR -Message "Found Unknown Product ($($product.Name)). Please check the Password Policy Configuration File and Run Again" -Colour Red
             $encounterError = "True"
-            break
+            Break
         }
-        # Validating product sections in customConfig file
+        # Validating Product Sections in the Password Policy Configuration File
         if ($encounterError -ne "True") {
-            $customSectionList = $customConfig.($product.Name) | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
+            $customSectionList = $customConfig.($product.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
             foreach ($section in $customSectionList) {
                  if (-Not $defaultSection.Contains($section.Name)) {
-                    Write-LogMessage -Type ERROR -Message "Unknow section $($section.Name) under product $($product.Name), please check the custom configuration file and run the cmdlet again" -Colour Red
+                    Write-LogMessage -Type ERROR -Message "Found Unknown Password Policy Section ($($section.Name)) Under Product ($($product.Name)). Please Check the Password Policy Configuration File and Run Again" -Colour Red
                     $encounterError = "True"
-                    break
+                    Break
                 }
                 # Validate parameters in customConfig file
 			    if ($encounterError -ne "True") {
-				    $defaultParameterList = $defaultConfig.($product.Name).($section.Name) | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
-			    	$customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
+				    $defaultParameterList = $defaultConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
+			    	$customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
 			    	foreach ( $parameterName in $customParameterList) {
 			    		if ( -Not $defaultParameterList.Name.Contains($parameterName.Name)) {
-			    			Write-LogMessage -Type ERROR -Message "Unknow parameter $($parameterName.Name) under $($section.Name) under product $($product.Name), please check the custom configuration file and run the cmdlet again" -Colour Red
+			    			Write-LogMessage -Type ERROR -Message "Found Unknow Parameter ($($parameterName.Name)) Under Section ($($section.Name)) for Product ($($product.Name)), Please Check the Password Policy Configuration File and Run Again" -Colour Red
 			    			$encounterError = "True"
-			    			break
-			    		} elseif ($customConfig.($product.Name).($section.Name).($parameterName.Name) -eq "" -and $parameterName.Name -ine "email") {
-			    			Write-LogMessage -Type ERROR -Message "$($product.Name):$($section.Name):$($parameterName.Name) parameter is not configured, please check the custom password policy json file" -Colour Red
+			    			Break
+			    		} elseif ($customConfig.($product.Name).($section.Name).($parameterName.Name) -eq "") {
+			    			Write-LogMessage -Type ERROR -Message "Parameter ($($product.Name):$($section.Name):$($parameterName.Name)) Not Configured, Please Check the Password Policy Configuration File and Run Again." -Colour Red
 			    			$encounterError = "True"
-			    			break
+			    			Break
 			    		}
 			    	}
 			    }
@@ -20812,11 +20812,10 @@ Function Test-PasswordPolicyConfig {
     # Validating parameter values
     if ($encounterError -ne "True") {
         foreach ($product in $customProductList) {
-            $customSectionList = $customConfig.($product.Name) | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
+            $customSectionList = $customConfig.($product.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
             foreach ($section in $customSectionList) {
-                $defaultParameterList = $defaultConfig.($product.Name).($section.Name) | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
-                $customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | where {$_.MemberType -match "NoteProperty"} | Select-Object Name
-                # Write-LogMessage -Type INFO -Message "Validating $($product.Name):$($section.Name) parameters value range"
+                $defaultParameterList = $defaultConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
+                $customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
                 foreach ( $parameterName in $customParameterList) {
                     # Validating parameter values
                     switch ($parameterName.Name)  {
@@ -20844,11 +20843,8 @@ Function Test-PasswordPolicyConfig {
                         }
                         "email"
                         {
-                            if ($customConfig.($product.Name).($section.Name)."email" -eq "") {
-                                Write-LogMessage -Type WARNING -Message "$($product.Name):$($section.Name):email is not configured."  -Colour Yellow
-                            } else {
-                                $checkReturn = checkEmailString -name "$($product.Name):$($section.Name):email" -address $customConfig.($product.Name).($section.Name)."email" -required $true
-                            }
+                            
+                            $checkReturn = checkEmailString -name "$($product.Name):$($section.Name):email" -address $customConfig.($product.Name).($section.Name)."email" -required $true
                             if (-Not $checkReturn) {
                                 $encounterError = "True"
                             }
@@ -20887,37 +20883,37 @@ Function Test-PasswordPolicyConfig {
 							$policyString = $customConfig.($product.Name).($section.Name)."policy"
                             $customConfig.($product.Name).($section.Name)."policy" | Select-String -Pattern "^retry=(\d+)\s+min=(.+),(.+),(.+),(.+),(.+)" | Foreach-Object {$PasswdPolicyRetryValue, $PasswdPolicyMinValue1, $PasswdPolicyMinValue2, $PasswdPolicyMinValue3, $PasswdPolicyMinValue4, $PasswdPolicyMinValue5 = $_.Matches[0].Groups[1..6].Value}
                             if ($PasswdPolicyRetryValue -eq "" -or $PasswdPolicyMinValue1 -eq "" -or $PasswdPolicyMinValue2 -eq "" -or $PasswdPolicyMinValue3 -eq "" -or $PasswdPolicyMinValue4 -eq "" -or $PasswdPolicyMinValue5 -eq "") {
-                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15"  -Colour Red
-								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15" -Colour Red
+								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString" -Colour Red
                                 $encounterError = "True"
                             }
                             if (($PasswdPolicyRetryValue -lt 0) -or ($PasswdPolicyRetryValue -gt 9999)) {
-                                Write-LogMessage -Type ERROR -Message "The recommended range for retry should be between 0 and 9999"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended range for retry should be between 0 and 9999" -Colour Red
                                 $encounterError = "True"
                             }
                             if ((($PasswdPolicyMinValue1 -lt 7) -or ($PasswdPolicyMinValue1 -gt 999)) -and ($PasswdPolicyMinValue1 -ine "disabled")) {
-                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15"  -Colour Red
-								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15" -Colour Red
+								Write-LogMessage -Type ERROR -Message "Password Policy Configuration File Defined as ($policyString)"  -Colour Red
                                 $encounterError = "True"
                             }
                             elseif ((($PasswdPolicyMinValue2 -lt 7) -or ($PasswdPolicyMinValue2 -gt 999)) -and ($PasswdPolicyMinValue2 -ine "disabled")) {
-                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15"  -Colour Red
-								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15" -Colour Red
+								Write-LogMessage -Type ERROR -Message "Password Policy Configuration File Defined as ($policyString)"  -Colour Red
                                 $encounterError = "True"
                             }
                             elseif ((($PasswdPolicyMinValue3 -lt 7) -or ($PasswdPolicyMinValue3 -gt 999)) -and ($PasswdPolicyMinValue3 -ine "disabled")) {
-                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15"  -Colour Red
-								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15" -Colour Red
+								Write-LogMessage -Type ERROR -Message "Password Policy Configuration File Defined as ($policyString)"  -Colour Red
                                 $encounterError = "True"
                             }
                             elseif ((($PasswdPolicyMinValue4 -lt 7) -or ($PasswdPolicyMinValue4 -gt 999)) -and ($PasswdPolicyMinValue4 -ine "disabled")) {
-                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15"  -Colour Red
-								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15" -Colour Red
+								Write-LogMessage -Type ERROR -Message "Password Policy Configuration File Defined as ($policyString)"  -Colour Red
                                 $encounterError = "True"
                             }
                             elseif ((($PasswdPolicyMinValue5 -lt 7) -or ($PasswdPolicyMinValue5 -gt 999)) -and ($PasswdPolicyMinValue5 -ine "disabled")) {
-                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15"  -Colour Red
-								Write-LogMessage -Type ERROR -Message "The custom policy file shows $policyString"  -Colour Red
+                                Write-LogMessage -Type ERROR -Message "The recommended policy setup should be retry=3 min=disabled,disabled,disabled,disbled,15" -Colour Red
+								Write-LogMessage -Type ERROR -Message "Password Policy Configuration File Defined as ($policyString)"  -Colour Red
                                 $encounterError = "True"
                             }
                         }
@@ -21092,7 +21088,7 @@ Function Test-PasswordPolicyConfig {
 
     # check to see if there are any validation errors and exit script if there are errors
     if ($encounterError -eq "True") {
-        Write-LogMessage -Type ERROR -Message "Error in validate the custom password policy file. Check the log file for details. " -Colour Red
+        Write-LogMessage -Type ERROR -Message "Validate Errors Found in the Password Policy Configuration File. Check the Log for Details." -Colour Red
         return $false
     } else {
         return $true
