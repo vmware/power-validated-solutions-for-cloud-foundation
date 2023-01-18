@@ -15579,7 +15579,7 @@ Function Request-SddcManagerAccountLockout {
                                     Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -product sddcManager -drift
                                 }
                             } else {
-                                Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                                Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -product sddcManager
                             }
                         }
                         Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -15689,10 +15689,10 @@ Function Update-SddcManagerAccountLockout {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $existingConfiguration = Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                            $existingConfiguration = Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -product sddcManager
                             if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
                                 Set-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
-                                $updatedConfiguration = Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass
+                                $updatedConfiguration = Get-LocalAccountLockout -vmName ($server.Split("."))[-0] -guestUser root -guestPassword $rootPass -product sddcManager
                                 if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
                                     Write-Output "Update Account Lockout Policy on SDDC Manager ($server): SUCCESSFUL"
                                 } else {
@@ -16678,7 +16678,7 @@ Function Request-VcenterAccountLockout {
                                         Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -product vcenterServerLocal -drift -reportPath $reportPath
                                     }
                                 } else {
-                                    Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                    Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -product vcenterServerLocal
                                 }
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
@@ -16852,10 +16852,10 @@ Function Update-VcenterAccountLockout {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
                         if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                $existingConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                $existingConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -product vcenterServerLocal
                                 if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
                                     Set-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
-                                    $updatedConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass
+                                    $updatedConfiguration = Get-LocalAccountLockout -vmName ($vcfVcenterDetails.fqdn.Split("."))[-0] -guestUser $vcfVcenterDetails.root -guestPassword $vcfVcenterDetails.rootPass -product vcenterServerLocal
                                     if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
                                         Write-Output "Update Account Lockout Policy on vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                     } else {
@@ -18328,7 +18328,7 @@ Function Update-NsxtEdgePasswordExpiration {
                                     $localUsers = Get-NsxtApplianceUser
                                     foreach ($localUser in $localUsers) {
                                         if ($localUser.password_change_frequency -ne $maxDays) {
-                                            Set-NsxtApplianceUserExpirationPolicy -userId $localUser.userid -days $maxDays | Out-Null
+                                            Set-NsxtApplianceUserExpirationPolicy -userId $localUser.userid -maxDays $maxDays | Out-Null
                                             $updatedConfiguration = Get-NsxtApplianceUser | Where-Object {$_.userid -eq $localUser.userid }
                                             if (($updatedConfiguration).password_change_frequency -eq $maxDays ) {
                                                 if ($detail -eq "true") {
@@ -19456,24 +19456,43 @@ Function Request-WsaPasswordExpiration {
         .EXAMPLE
         Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
         This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01
+
+        .EXAMPLE
+        Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01 and checks the configuration drift using the provided configuration JSON
+
+        .EXAMPLE
+        Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift
+        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01 and compares the configuration against the product defaults
     #>
 
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
 	
+    if ($drift) {
+        if ($PsBoundParameters.ContainsKey("policyFile")) {
+            $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).wsaDirectory.passwordExpiration
+        } else {
+            $requiredConfig = (Get-PasswordPolicyConfig).wsaDirectory.passwordExpiration
+        }
+    }
+
 	Try {
 		if (Test-WsaConnection -server $server) {
 			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
                 if ($WsaPasswordExpiration = Get-WsaPasswordPolicy) {
                     $WsaPasswordExpirationObject = New-Object -TypeName psobject
-                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue $server
-                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Lifetime (days)" -notepropertyvalue ($WsaPasswordExpiration.passwordTtlInHours / 24)
-                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder (days)" -notepropertyvalue ($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000)
-                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Temporary Password (hours)" -notepropertyvalue $WsaPasswordExpiration.tempPasswordTtl
-                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder Frequency (days)" -notepropertyvalue ($WsaPasswordExpiration.notificationInterval / 24 / 3600 / 1000)
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "System" -notepropertyvalue ($server.Split("."))[-0]
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Lifetime (days)" -notepropertyvalue $(if ($drift) { if (($WsaPasswordExpiration.passwordTtlInHours / 24) -ne $requiredConfig.passwordLifetime) { "$(($WsaPasswordExpiration.passwordTtlInHours / 24)) [ $($requiredConfig.passwordLifetime) ]" } else { "$(($WsaPasswordExpiration.passwordTtlInHours / 24))" }} else { "$(($WsaPasswordExpiration.passwordTtlInHours / 24))" })
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder (days)" -notepropertyvalue $(if ($drift) { if (($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000) -ne $requiredConfig.passwordReminder) { "$(($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000)) [ $($requiredConfig.passwordReminder) ]" } else { "$(($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000))" }} else { "$(($WsaPasswordExpiration.notificationThreshold / 24 / 3600 / 1000))" })
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Temporary Password (hours)" -notepropertyvalue $(if ($drift) { if ($WsaPasswordExpiration.tempPasswordTtl -ne $requiredConfig.temporaryPassword) { "$($WsaPasswordExpiration.tempPasswordTtl) [ $($requiredConfig.temporaryPassword) ]" } else { "$($WsaPasswordExpiration.tempPasswordTtl)" }} else { "$($WsaPasswordExpiration.tempPasswordTtl)" })
+                    $WsaPasswordExpirationObject | Add-Member -notepropertyname "Password Reminder Frequency (days)" -notepropertyvalue $(if ($drift) { if (($WsaPasswordExpiration.notificationInterval / 24 / 3600 / 1000) -ne $requiredConfig.temporaryPassword) { "$(($WsaPasswordExpiration.notificationInterval / 24 / 3600 / 1000)) [ $($requiredConfig.temporaryPassword) ]" } else { "$(($WsaPasswordExpiration.notificationInterval / 24 / 3600 / 1000))" }} else { "$(($WsaPasswordExpiration.notificationInterval / 24 / 3600 / 1000))" })
                 } else {
                     Write-Error "Unable to retrieve password expiration policy from Workspace ONE Access instance ($server): PRE_VALIDATION_FAILED"
                 }
@@ -19499,27 +19518,48 @@ Function Request-WsaPasswordComplexity {
         .EXAMPLE
         Request-WsaPasswordComplexity -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
         This example retrieves the password complexity policy for Workspace ONE Access instance sfo-wsa01
+
+        .EXAMPLE
+        Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the password complexity policy for Workspace ONE Access instance sfo-wsa01 and checks the configuration drift using the provided configuration JSON
+
+        .EXAMPLE
+        Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift
+        This example retrieves the password complexity policy for Workspace ONE Access instance sfo-wsa01 and compares the configuration against the product defaults
     #>
 
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
+
+    if ($drift) {
+        if ($PsBoundParameters.ContainsKey("policyFile")) {
+            $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).wsaDirectory.passwordComplexity
+        } else {
+            $requiredConfig = (Get-PasswordPolicyConfig).wsaDirectory.passwordComplexity
+        }
+    }
+
+    $(if ($drift) { if ($WsaPasswordComplexity.History -ne $requiredConfig.history) { "$($WsaPasswordComplexity.History) [ $($requiredConfig.history) ]" } else { "$($WsaPasswordComplexity.History)" }} else { "$($WsaPasswordComplexity.History)" })
 	
 	Try {
 		if (Test-WsaConnection -server $server) {
 			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
                 if ($WsaPasswordComplexity = Get-WsaPasswordPolicy) {
                     $WsaPasswordComplexityObject = New-Object -TypeName psobject
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $server
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $WsaPasswordComplexity.minLen
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $WsaPasswordComplexity.minLower
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $WsaPasswordComplexity.minUpper
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Numberic" -notepropertyvalue $WsaPasswordComplexity.minDigit
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $WsaPasswordComplexity.minSpecial
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Max Identical Adjacent" -notepropertyvalue $WsaPasswordComplexity.maxConsecutiveIdenticalCharacters
-                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $WsaPasswordComplexity.History
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue ($server.Split("."))[-0]
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.minLen -ne $requiredConfig.minLength) { "$($WsaPasswordComplexity.minLen) [ $($requiredConfig.minLength) ]" } else { "$($WsaPasswordComplexity.minLen)" }} else { "$($WsaPasswordComplexity.minLen)" })
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.minLower -ne $requiredConfig.minLowercase) { "$($WsaPasswordComplexity.minLower) [ $($requiredConfig.minLowercase) ]" } else { "$($WsaPasswordComplexity.minLower)" }} else { "$($WsaPasswordComplexity.minLower)" })
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.minUpper -ne $requiredConfig.minUppercase) { "$($WsaPasswordComplexity.minUpper) [ $($requiredConfig.minUppercase) ]" } else { "$($WsaPasswordComplexity.minUpper)" }} else { "$($WsaPasswordComplexity.minUpper)" })
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Numberic" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.minDigit -ne $requiredConfig.minNumerical) { "$($WsaPasswordComplexity.minDigit) [ $($requiredConfig.minNumerical) ]" } else { "$($WsaPasswordComplexity.minDigit)" }} else { "$($WsaPasswordComplexity.minDigit)" })
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.minSpecial -ne $requiredConfig.minSpecial) { "$($WsaPasswordComplexity.minSpecial) [ $($requiredConfig.minSpecial) ]" } else { "$($WsaPasswordComplexity.minSpecial)" }} else { "$($WsaPasswordComplexity.minSpecial)" })
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "Max Identical Adjacent" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.maxConsecutiveIdenticalCharacters -ne $requiredConfig.maxIdenticalAdjacent) { "$($WsaPasswordComplexity.maxConsecutiveIdenticalCharacters) [ $($requiredConfig.maxIdenticalAdjacent) ]" } else { "$($WsaPasswordComplexity.maxConsecutiveIdenticalCharacters)" }} else { "$($WsaPasswordComplexity.maxConsecutiveIdenticalCharacters)" })
+                    $WsaPasswordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $(if ($drift) { if ($WsaPasswordComplexity.History -ne $requiredConfig.history) { "$($WsaPasswordComplexity.History) [ $($requiredConfig.history) ]" } else { "$($WsaPasswordComplexity.History)" }} else { "$($WsaPasswordComplexity.History)" })
                 } else {
                     Write-Error "Unable to retrieve password complexity policy from Workspace ONE Access instance ($server): PRE_VALIDATION_FAILED"
                 }
@@ -19547,6 +19587,14 @@ Function Request-WsaLocalUserPasswordComplexity {
         .EXAMPLE
         Request-WsaLocalUserPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1!
         This example retrieves the local user password complexity policy for Workspace ONE Access
+
+        .EXAMPLE
+        Request-WsaLocalUserPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the local user password complexity policy for Workspace ONE Access and checks the configuration drift using the provided configuration JSON
+
+        .EXAMPLE
+        Request-WsaLocalUserPasswordComplexity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -drift
+        This example retrieves the local user password complexity policy for Workspace ONE Access and compares the configuration against the product defaults
     #>
 
     Param (
@@ -19554,7 +19602,10 @@ Function Request-WsaLocalUserPasswordComplexity {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
     
 	Try {
@@ -19563,7 +19614,15 @@ Function Request-WsaLocalUserPasswordComplexity {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                            if ($drift) {
+                                if ($PsBoundParameters.ContainsKey('policyFile')) {
+                                    Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -drift -product wsaLocal -reportPath $reportPath -policyFile $policyFile
+                                } else {
+                                    Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -drift -product wsaLocal
+                                }
+                            } else {
+                                Get-LocalPasswordComplexity -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
+                            }
                         }
                         Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
@@ -19590,6 +19649,14 @@ Function Request-WsaLocalUserAccountLockout {
         .EXAMPLE
         Request-WsaLocalUserAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1!
         This example retrieves the account lockout policy for Workspace ONE Access
+
+        .EXAMPLE
+        Request-WsaLocalUserAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the local user password complexity policy for Workspace ONE Access and checks the configuration drift using the provided configuration JSON
+
+        .EXAMPLE
+        Request-WsaLocalUserAccountLockout -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -drift
+        This example retrieves the local user password complexity policy for Workspace ONE Access and compares the configuration against the product defaults
     #>
 
     Param (
@@ -19597,7 +19664,10 @@ Function Request-WsaLocalUserAccountLockout {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
     
 	Try {
@@ -19606,7 +19676,15 @@ Function Request-WsaLocalUserAccountLockout {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                            if ($drift) { 
+                                if ($PsBoundParameters.ContainsKey('policyFile')) {
+                                    Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal -drift -reportPath $reportPath -policyFile $policyFile
+                                } else {
+                                    Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal -drift
+                                }
+                            } else {
+                                Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
+                            }
                         }
                         Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
@@ -19632,21 +19710,42 @@ Function Request-WsaAccountLockout {
         .EXAMPLE
         Request-WsaAccountLockout -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
         This example retrieves the account lockout policy for Workspace ONE Access instance sfo-wsa01
+
+        .EXAMPLE
+        Request-WsaAccountLockout -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example retrieves the local user password complexity policy for Workspace ONE Access and checks the configuration drift using the provided configuration JSON
+
+        .EXAMPLE
+        Request-WsaAccountLockout -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift
+        This example retrieves the local user password complexity policy for Workspace ONE Access and compares the configuration against the product defaults
     #>
 
 	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
 	)
+
+    if ($drift) {
+        if ($PsBoundParameters.ContainsKey("policyFile")) {
+            $requiredConfig = (Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile ).wsaDirectory.accountLockout
+        } else {
+            $requiredConfig = (Get-PasswordPolicyConfig).wsaDirectory.accountLockout
+        }
+    }
 	
-	Try {
+    $(if ($drift) { if ($WsaAccountLockout.numAttempts -ne $requiredConfig.maxFailures) { "$($WsaAccountLockout.numAttempts) [ $($requiredConfig.maxFailures) ]" } else { "$($WsaAccountLockout.numAttempts)" }} else { "$($WsaAccountLockout.numAttempts)" })
+	
+    Try {
 		if (Test-WsaConnection -server $server) {
 			if (Test-WsaAuthentication -server $server -user $user -pass $pass) {
                 if ($WsaAccountLockout = Get-WsaAccountLockout) {
                     $WsaAccountLockoutObject = New-Object -TypeName psobject
-                    $WsaAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $server
-                    $WsaAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $WsaAccountLockout.numAttempts
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue ($server.Split("."))[-0]
+                    $WsaAccountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($WsaAccountLockout.numAttempts -ne $requiredConfig.maxFailures) { "$($WsaAccountLockout.numAttempts) [ $($requiredConfig.maxFailures) ]" } else { "$($WsaAccountLockout.numAttempts)" }} else { "$($WsaAccountLockout.numAttempts)" })
                     $WsaAccountLockoutObject | Add-Member -notepropertyname "Unlock Interval (min)" -notepropertyvalue $WsaAccountLockout.unlockInterval
                     $WsaAccountLockoutObject | Add-Member -notepropertyname "Failed Attempt Interval (min)" -notepropertyvalue $WsaAccountLockout.attemptInterval                   
                 } else {
@@ -19906,10 +20005,10 @@ Function Update-WsaLocalUserAccountLockout {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-vSphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-vSphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $existingConfiguration = Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                            $existingConfiguration = Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
                             if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
                                 Set-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
-                                $updatedConfiguration = Get-LocalAccountLockout ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass
+                                $updatedConfiguration = Get-LocalAccountLockout ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
                                 if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
                                     Write-Output "Update Account Lockout Policy on Workspace ONE Access ($wsaFqdn): SUCCESSFUL"
                                 } else {
@@ -19929,6 +20028,159 @@ Function Update-WsaLocalUserAccountLockout {
     }
 }
 Export-ModuleMember -Function Update-WsaLocalUserAccountLockout
+
+Function Publish-WsaDirectoryPasswordPolicy {
+    <#
+        .SYNOPSIS
+        Publish password policies for Workspace ONE Access Directory
+
+        .DESCRIPTION
+        The Publish-WsaDirectoryPasswordPolicy cmdlet retrieves the requested password policy for Workspace ONE Access
+        and converts the output to HTML. The cmdlet connects to the SDDC Manager using the -server, -user, and
+        -password values:
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+        - Retrieves the requested password policy for Workspace ONE Access and converts to HTML
+
+        .EXAMPLE
+        Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordExpiration -allDomains
+        This example will return password expiration policy for Workspace ONE Access Directory Users
+
+        .EXAMPLE
+        Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordComplexity -allDomains
+        This example will return password complexity policy for Workspace ONE Access Directory Users
+
+        .EXAMPLE
+        Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy AccountLockout -allDomains
+        This example will return account lockout policy for Workspace ONE Access Directory Users
+
+        .EXAMPLE
+        Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordExpiration -allDomains -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example will return password expiration policy for Workspace ONE Access Directory Users and compare the configuration against the passwordPolicyConfig.json
+
+        .EXAMPLE
+        Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordExpiration -allDomains -drift
+        This example will return password expiration policy for Workspace ONE Access Directory Users and compares the configuration against the product defaults
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet('PasswordExpiration','PasswordComplexity','AccountLockout')] [String]$policy,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    if ($policy -eq "PasswordExpiration") { $pvsCmdlet = "Request-WsaPasswordExpiration"; $preHtmlContent = '<a id="wsa-directory-password-expiration"></a><h3>Workspace ONE Access Directory - Password Expiration</h3>' }
+    if ($policy -eq "PasswordComplexity") { $pvsCmdlet = "Request-WsaPasswordComplexity"; $preHtmlContent = '<a id="wsa-directory-password-complexity"></a><h3>Workspace ONE Access Directory - Password Complexity</h3>' }
+    if ($policy -eq "AccountLockout") { $pvsCmdlet = "Request-WsaAccountLockout"; $preHtmlContent = '<a id="wsa-directory-account-lockout"></a><h3>Workspace ONE Access Directory - Account Lockout</h3>' }
+
+    # Define the Command Switch
+    if ($PsBoundParameters.ContainsKey('drift')) { if ($PsBoundParameters.ContainsKey('policyFile')) { $commandSwitch = " -drift -reportPath '$reportPath' -policyFile '$policyFile'" } else { $commandSwitch = " -drift" }} else { $commandSwitch = "" }
+
+    Try {
+        $command = $pvsCmdlet + " -server $server -user $user -pass $pass" + $commandSwitch
+        $wsaDirectoryPasswordPolicyObject = Invoke-Expression $command
+        if ($PsBoundParameters.ContainsKey('json')) {
+            $wsaDirectoryPasswordPolicyObject
+        } else {
+            if ($wsaDirectoryPasswordPolicyObject.Count -eq 0) {
+                $wsaDirectoryPasswordPolicyObject = $wsaDirectoryPasswordPolicyObject | ConvertTo-Html -Fragment -PreContent $preHtmlContent -PostContent '<p>Workspace ONE Access Not Requested</p>'
+            } else {
+                $wsaDirectoryPasswordPolicyObject = $wsaDirectoryPasswordPolicyObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+            }   
+            $wsaDirectoryPasswordPolicyObject = Convert-CssClass -htmldata $wsaDirectoryPasswordPolicyObject
+            $wsaDirectoryPasswordPolicyObject
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-WsaDirectoryPasswordPolicy
+
+Function Publish-WsaLocalPasswordPolicy {
+    <#
+        .SYNOPSIS
+        Publish password policies for Workspace ONE Access Local Users
+
+        .DESCRIPTION
+        The Publish-WsaDirectoryPasswordPolicy cmdlet retrieves the requested password policy for all ESXi hosts and converts
+        the output to HTML. The cmdlet connects to the SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to vCenter Server
+        - Retrieves the requested password policy for Workspace ONE Access Local Users and converts to HTML
+
+        .EXAMPLE
+        Publish-WsaLocalPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -allDomains
+        This example will return password expiration policy for Workspace ONE Access Directory Users
+
+        .EXAMPLE
+        Publish-WsaLocalPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordComplexity -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -allDomains
+        This example will return password complexity policy for Workspace ONE Access Directory Users
+
+        .EXAMPLE
+        Publish-WsaLocalPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy AccountLockout -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -allDomains
+        This example will return account lockout policy for Workspace ONE Access Directory Users
+
+        .EXAMPLE
+        Publish-WsaLocalPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -allDomains -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
+        This example will return password expiration policy for Workspace ONE Access Directory Users and compare the configuration against the passwordPolicyConfig.json
+
+        .EXAMPLE
+        Publish-WsaLocalPasswordPolicy -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -policy PasswordExpiration -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -allDomains -drift
+        This example will return password expiration policy for Workspace ONE Access Directory Users and compares the configuration against the product defaults
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $true)] [ValidateSet('PasswordExpiration','PasswordComplexity','AccountLockout')] [String]$policy,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json,
+        [Parameter (ParameterSetName = 'All-WorkloadDomains', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$allDomains,
+        [Parameter (ParameterSetName = 'Specific-WorkloadDomain', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+
+                # Define the Command Switch
+                if ($PsBoundParameters.ContainsKey('drift')) { if ($PsBoundParameters.ContainsKey('policyFile')) { $commandSwitch = " -drift -reportPath '$reportPath' -policyFile '$policyFile'" } else { $commandSwitch = " -drift" }} else { $commandSwitch = "" }
+                [Array]$localUsers = '"root","sshuser"'
+                if ($policy -eq "PasswordExpiration") { $pvsCmdlet = "Request-LocalUserPasswordExpiration"; $preHtmlContent = '<a id="wsa-local-password-expiration"></a><h3>Workspace ONE Access (Local Users) - Password Expiration</h3>'; $customSwitch = " -domain $((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) -product wsaLocal -vmName $(($wsaFqdn.Split("."))[-0]) -guestUser root -guestPassword $wsaRootPass -localUser $localUsers" }
+                if ($policy -eq "PasswordComplexity") { $pvsCmdlet = "Request-WsaLocalUserPasswordComplexity"; $preHtmlContent = '<a id="wsa-local-password-complexity"></a><h3>Workspace ONE Access (Local Users) - Password Complexity</h3>'; $customSwitch = " -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass"}
+                if ($policy -eq "AccountLockout") { $pvsCmdlet = "Request-WsaLocalUserAccountLockout"; $preHtmlContent = '<a id="wsa-local-account-lockout"></a><h3>Workspace ONE Access (Local Users) - Account Lockout</h3>'; $customSwitch = " -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass" }
+
+                $command = $pvsCmdlet + " -server $server -user $user -pass $pass" + $commandSwitch + $customSwitch
+                $wsaLocalPasswordPolicyObject = Invoke-Expression $command
+                if ($PsBoundParameters.ContainsKey('json')) {
+                    $wsaLocalPasswordPolicyObject
+                } else {
+                    if ($wsaLocalPasswordPolicyObject.Count -eq 0) {
+                        $wsaLocalPasswordPolicyObject = $wsaLocalPasswordPolicyObject | ConvertTo-Html -Fragment -PreContent $preHtmlContent -PostContent '<p>Workspace ONE Access Not Requested</p>'
+                    } else {
+                        $wsaLocalPasswordPolicyObject = $wsaLocalPasswordPolicyObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
+                    }   
+                    $wsaLocalPasswordPolicyObject = Convert-CssClass -htmldata $wsaLocalPasswordPolicyObject
+                    $wsaLocalPasswordPolicyObject
+                }
+            }
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Publish-WsaLocalPasswordPolicy
 
 #EndRegion  End Workspace ONE Access Password Management Functions  ######
 ##########################################################################
@@ -20123,6 +20375,10 @@ Function Invoke-PasswordPolicyManager {
         This example runs a password policy report for all Workload Domain within an SDDC Manager instance.
 
         .EXAMPLE
+        Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -darkMode -allDomains -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -wsaAdminPass VMw@re1!
+        This example runs a password policy report for all Workload Domain within an SDDC Manager instance and Workspace ONE Access
+
+        .EXAMPLE
         Invoke-PasswordPolicyManager -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -darkMode -workloadDomain sfo-w01
         This example runs a password policy report for a specific Workload Domain within an SDDC Manager instance.
 
@@ -20146,7 +20402,10 @@ Function Invoke-PasswordPolicyManager {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$darkMode,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$drift,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$json,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$wsaAdminPass
     )
 
     Try {
@@ -20218,6 +20477,18 @@ Function Invoke-PasswordPolicyManager {
                 $esxiPasswordComplexity = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity $($commandSwitch)"
                 $esxiAccountLockout = Invoke-Expression "Publish-EsxiPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout $($commandSwitch)"
 
+                if ($PsBoundParameters.ContainsKey("wsaFqdn")) {
+                    Write-LogMessage -Type INFO -Message "Collecting Workspace ONE Access Local Directory Password Policies for $workflowMessage."
+                    $wsaDirectoryPasswordExpiration = Invoke-Expression "Publish-WsaDirectoryPasswordPolicy -server $wsaFqdn -user admin -pass $wsaAdminPass -policy PasswordExpiration $($commandSwitch)"
+                    $wsaDirectoryPasswordComplexity = Invoke-Expression "Publish-WsaDirectoryPasswordPolicy -server $wsaFqdn -user admin -pass $wsaAdminPass -policy PasswordComplexity $($commandSwitch)"
+                    $wsaDirectoryAccountLockout = Invoke-Expression "Publish-WsaDirectoryPasswordPolicy -server $wsaFqdn -user admin -pass $wsaAdminPass -policy AccountLockout $($commandSwitch)"
+
+                    Write-LogMessage -Type INFO -Message "Collecting Workspace ONE Access Local User Password Policies for $workflowMessage."
+                    $wsaLocalPasswordExpiration = Invoke-Expression "Publish-WsaLocalPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordExpiration -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass $($commandSwitch)"
+                    $wsaLocalPasswordComplexity = Invoke-Expression "Publish-WsaLocalPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy PasswordComplexity -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass $($commandSwitch)"
+                    $wsaLocalAccountLockout = Invoke-Expression "Publish-WsaLocalPasswordPolicy -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -policy AccountLockout -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass $($commandSwitch)"
+                }
+
                 if ($PsBoundParameters.ContainsKey("json")) {
                     $sddcManagerPasswordPolicy = New-Object -TypeName psobject
                     $sddcManagerPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $sddcManagerPasswordExpiration
@@ -20245,6 +20516,16 @@ Function Invoke-PasswordPolicyManager {
                     $esxiPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $esxiPasswordExpiration
                     $esxiPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $esxiPasswordComplexity
                     $esxiPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $esxiAccountLockout
+                    if ($PsBoundParameters.ContainsKey("wsaFqdn")) {
+                        $wsaDirectoryPasswordPolicy = New-Object -TypeName psobject
+                        $wsaDirectoryPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $wsaDirectoryPasswordExpiration
+                        $wsaDirectoryPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $wsaDirectoryPasswordComplexity
+                        $wsaDirectoryPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $wsaDirectoryAccountLockout
+                        $wsaLocalPasswordPolicy = New-Object -TypeName psobject
+                        $wsaLocalPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $wsaLocalPasswordExpiration
+                        $wsaLocalPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $wsaLocalPasswordComplexity
+                        $wsaLocalPasswordPolicy | Add-Member -notepropertyname 'accountLockout' -notepropertyvalue $wsaLocalAccountLockout
+                    }
 
                     # Build Final Default Password Policy Object
                     $outputJsonObject = New-Object -TypeName psobject
@@ -20255,8 +20536,8 @@ Function Invoke-PasswordPolicyManager {
                     $outputJsonObject | Add-Member -notepropertyname 'nsxManager' -notepropertyvalue $nsxManagerPasswordPolicy
                     $outputJsonObject | Add-Member -notepropertyname 'nsxEdge' -notepropertyvalue $nsxEdgePasswordPolicy
                     $outputJsonObject | Add-Member -notepropertyname 'esxi' -notepropertyvalue $esxiPasswordPolicy
-                    $outputJsonObject | Add-Member -notepropertyname 'wsaLocal' -notepropertyvalue $wsaLocalPasswordPolicy
                     $outputJsonObject | Add-Member -notepropertyname 'wsaDirectory' -notepropertyvalue $wsaDirectoryPasswordPolicy
+                    $outputJsonObject | Add-Member -notepropertyname 'wsaLocal' -notepropertyvalue $wsaLocalPasswordPolicy
                     $jsonFile = ($reportFolder + "passwordPolicyManager" + ".json")
                     Write-LogMessage -Type INFO -Message "Generating the Final JSON and Saving to ($jsonFile)."
                     $outputJsonObject | ConvertTo-Json | Out-File -FilePath $jsonFile
@@ -20274,18 +20555,39 @@ Function Invoke-PasswordPolicyManager {
                     $reportData += $nsxManagerPasswordExpiration
                     $reportData += $nsxEdgePasswordExpiration
                     $reportData += $esxiPasswordExpiration
+                    if ($PsBoundParameters.ContainsKey("wsaFqdn")) {
+                        $reportData += $wsaDirectoryPasswordExpiration
+                        $reportData += $wsaLocalPasswordExpiration
+                    } else {
+                        $reportData += ($wsaDirectoryPasswordExpiration | ConvertTo-Html -Fragment -PreContent '<a id="wsa-directory-password-expiration"></a><h3>Workspace ONE Access Directory - Password Expiration</h3>' -PostContent '<p>Workspace ONE Access Not Requested</p>')
+                        $reportData += ($wsaLocalPasswordExpiration | ConvertTo-Html -Fragment -PreContent '<a id="wsa-local-password-expiration"></a><h3>Workspace ONE Access (Local Users) - Password Expiration</h3>' -PostContent '<p>Workspace ONE Access Not Requested</p>')
+                    }
                     $reportData += $sddcManagerPasswordComplexity
                     $reportData += $ssoPasswordComplexity
                     $reportData += $vcenterLocalPasswordComplexity
                     $reportData += $nsxManagerPasswordComplexity
                     $reportData += $nsxEdgePasswordComplexity
                     $reportData += $esxiPasswordComplexity
+                    if ($PsBoundParameters.ContainsKey("wsaFqdn")) {
+                        $reportData += $wsaDirectoryPasswordComplexity
+                        $reportData += $wsaLocalPasswordComplexity
+                    } else {
+                        $reportData += ($wsaDirectoryPasswordComplexity | ConvertTo-Html -Fragment -PreContent '<a id="wsa-directory-password-complexity"></a><h3>Workspace ONE Access Directory - Password Complexity</h3>' -PostContent '<p>Workspace ONE Access Not Requested</p>')
+                        $reportData += ($wsaLocalPasswordComplexity | ConvertTo-Html -Fragment -PreContent '<a id="wsa-local-password-complexity"></a><h3>Workspace ONE Access (Local Users) - Password Complexity</h3>' -PostContent '<p>Workspace ONE Access Not Requested</p>')
+                    }
                     $reportData += $sddcManagerAccountLockout
                     $reportData += $ssoAccountLockout
                     $reportData += $vcenterLocalAccountLockout
                     $reportData += $nsxManagerAccountLockout
                     $reportData += $nsxEdgeAccountLockout
                     $reportData += $esxiAccountLockout
+                    if ($PsBoundParameters.ContainsKey("wsaFqdn")) {
+                        $reportData += $wsaDirectoryAccountLockout
+                        $reportData += $wsaLocalAccountLockout
+                    } else {
+                        $reportData += ($wsaDirectoryAccountLockout | ConvertTo-Html -Fragment -PreContent '<a id="wsa-directory-account-lockout"></a><h3>Workspace ONE Access Directory - Account Lockout</h3>' -PostContent '<p>Workspace ONE Access Not Requested</p>')
+                        $reportData += ($wsaLocalAccountLockout | ConvertTo-Html -Fragment -PreContent '<a id="wsa-local-account-lockout"></a><h3>Workspace ONE Access (Local Users) - Account Lockout</h3>' -PostContent '<p>Workspace ONE Access Not Requested</p>')
+                    }
 
                     if ($PsBoundParameters.ContainsKey("darkMode")) {
                         $reportHeader = Save-ClarityReportHeader -dark
@@ -20633,7 +20935,7 @@ Function Get-PasswordPolicyDefault {
 
     # Build Default Workspace ONE Access Local Users Password Policy Settings
     $wsaLocalPasswordExpiration = New-Object -TypeName psobject
-    $wsaLocalPasswordExpiration | Add-Member -notepropertyname 'maxDays' -notepropertyvalue "90"
+    $wsaLocalPasswordExpiration | Add-Member -notepropertyname 'maxDays' -notepropertyvalue "60"
     $wsaLocalPasswordExpiration | Add-Member -notepropertyname 'minDays' -notepropertyvalue "0"
     $wsaLocalPasswordExpiration | Add-Member -notepropertyname 'warningDays' -notepropertyvalue "7"
     $wsaLocalPasswordComplexity = New-Object -TypeName psobject
@@ -20953,6 +21255,8 @@ Function Save-ClarityReportNavigation {
                     <li><a class="nav-link" href="#nsxmanager-password-expiration">NSX Manager</a></li>
                     <li><a class="nav-link" href="#nsxedge-password-expiration">NSX  Edge</a></li>
                     <li><a class="nav-link" href="#esxi-password-expiration">ESXi</a></li>
+                    <li><a class="nav-link" href="#wsa-directory-password-expiration">Workspace ONE (Directory)</a></li>
+                    <li><a class="nav-link" href="#wsa-local-password-expiration">Workspace ONE (Local)</a></li>
                 </ul>
             </section>           
             <section class="nav-group collapsible">
@@ -20965,6 +21269,8 @@ Function Save-ClarityReportNavigation {
                     <li><a class="nav-link" href="#nsxmanager-password-complexity">NSX Manager</a></li>
                     <li><a class="nav-link" href="#nsxedge-password-complexity">NSX Edge</a></li>
                     <li><a class="nav-link" href="#esxi-password-complexity">ESXi</a></li>
+                    <li><a class="nav-link" href="#wsa-directory-password-complexity">Workspace ONE (Directory)</a></li>
+                    <li><a class="nav-link" href="#wsa-local-password-complexity">Workspace ONE (Local)</a></li>
                 </ul>
             </section>
             <section class="nav-group collapsible">
@@ -20977,6 +21283,8 @@ Function Save-ClarityReportNavigation {
                     <li><a class="nav-link" href="#nsxmanager-account-lockout">NSX Manager</a></li>
                     <li><a class="nav-link" href="#nsxedge-account-lockout">NSX Edge</a></li>
                     <li><a class="nav-link" href="#esxi-account-lockout">ESXi</a></li>
+                    <li><a class="nav-link" href="#wsa-directory-account-lockout">Workspace ONE (Directory)</a></li>
+                    <li><a class="nav-link" href="#wsa-local-account-lockout">Workspace ONE (Local)</a></li>
                 </ul>
             </section>
         </section>
@@ -22333,15 +22641,15 @@ Function Get-LocalAccountLockout {
         The Get-LocalAccountLockout cmdlets retrieves the account lockout for local users
 
         .EXAMPLE
-        Get-LocalAccountLockout -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1!
+        Get-LocalAccountLockout -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -product vcenterServerLocal
         This example retrieves the vCenter Server sfo-w01-vc01 account lockout policy
 
         .EXAMPLE
-        Get-LocalAccountLockout -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1!
+        Get-LocalAccountLockout -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -product sddcManager
         This example retrieves the SDDC Manager sfo-vcf01 account lockout policy
 
         .EXAMPLE
-        Get-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1!
+        Get-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -product wsaLocal
         This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy
 
         .EXAMPLE
@@ -22356,7 +22664,7 @@ Function Get-LocalAccountLockout {
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
+            [Parameter (Mandatory = $true)] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
             [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
