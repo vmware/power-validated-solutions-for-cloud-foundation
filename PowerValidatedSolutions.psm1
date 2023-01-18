@@ -20008,7 +20008,7 @@ Function Update-WsaLocalUserAccountLockout {
                             $existingConfiguration = Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
                             if ($existingConfiguration.'Max Failures' -ne $failures -or $existingConfiguration.'Unlock Interval (sec)' -ne $unlockInterval -or $existingConfiguration.'Root Unlock Interval (sec)' -ne $rootUnlockInterval) {
                                 Set-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -failures $failures -unlockInterval $unlockInterval -rootUnlockInterval $rootUnlockInterval | Out-Null
-                                $updatedConfiguration = Get-LocalAccountLockout ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
+                                $updatedConfiguration = Get-LocalAccountLockout -vmName ($wsaFqdn.Split("."))[-0] -guestUser root -guestPassword $wsaRootPass -product wsaLocal
                                 if ($updatedConfiguration.'Max Failures' -eq $failures -and $updatedConfiguration.'Unlock Interval (sec)' -eq $unlockInterval -and $updatedConfiguration.'Root Unlock Interval (sec)' -eq $rootUnlockInterval) {
                                     Write-Output "Update Account Lockout Policy on Workspace ONE Access ($wsaFqdn): SUCCESSFUL"
                                 } else {
@@ -20631,6 +20631,10 @@ Function Start-PasswordPolicyConfig {
         .EXAMPLE
         Start-PasswordPolicyConfig -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -policyFile passwordPolicyConfig.json
         This examples configures all password policies for all components across a VMware Cloud Foundation instance
+
+        .EXAMPLE
+        Start-PasswordPolicyConfig -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser admin@local -sddcManagerPass VMw@re1!VMw@re1! -sddcRootPass VMw@re1! -reportPath F:\Reporting -policyFile passwordPolicyConfig.json -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaRootPass VMw@re1! -wsaAdminPass VMw@re1!
+        This examples configures all password policies for all components across a VMware Cloud Foundation instance and Workspace ONE Access
     #>
 
     Param (
@@ -20639,7 +20643,10 @@ Function Start-PasswordPolicyConfig {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcRootPass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policyFile
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$policyFile,
+        [Parameter (Mandatory = $false, ParameterSetName = 'wsa')] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
+        [Parameter (Mandatory = $false, ParameterSetName = 'wsa')] [ValidateNotNullOrEmpty()] [String]$wsaRootPass,
+        [Parameter (Mandatory = $false, ParameterSetName = 'wsa')] [ValidateNotNullOrEmpty()] [String]$wsaAdminPass
     )
 
     Clear-Host; Write-Host ""
@@ -20746,13 +20753,13 @@ Function Start-PasswordPolicyConfig {
                         $StatusMsg = Update-EsxiPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cluster $clusterName -maxDays $customPolicy.esxi.passwordExpiration.maxDays -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Update Password Expiration Policy on ESXi Hosts for Worload Domain / Cluster ($($workloadDomain.name) / $clusterName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Update Password Expiration Policy on ESXi Hosts for Worload Domain / Cluster ($($workloadDomain.name) / $clusterName), already set: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     }
-                    Write-LogMessage -Type INFO -Message "Configuring ESXi Hosts: Password Complexity Policy"
+                    Write-LogMessage -Type INFO -Message "Configuring ESXi Hosts: Password Complexity Policy for Workload Domain ($($workloadDomain.name))"
                     foreach ($cluster in $clusters) {
                         $clusterName = (Get-VCFCluster -id $cluster.id).name
                         $StatusMsg = Update-EsxiPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cluster $clusterName -policy $customPolicy.esxi.passwordComplexity.policy -history $customPolicy.esxi.passwordComplexity.history -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg -match "SUCCESSFUL" ) { Write-LogMessage -Type INFO -Message "Update Password Complexity Policy on ESXi Hosts for Worload Domain / Cluster ($($workloadDomain.name) / $clusterName): SUCCESSFUL" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Update Password Complexity Policy on ESXi Hosts for Worload Domain / Cluster ($($workloadDomain.name) / $clusterName), already set: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                     }
-                    Write-LogMessage -Type INFO -Message "Configuring ESXi Hosts: Account Lockout Policy"
+                    Write-LogMessage -Type INFO -Message "Configuring ESXi Hosts: Account Lockout Policy for Workload Domain ($($workloadDomain.name))"
                     foreach ($cluster in $clusters) {
                         $clusterName = (Get-VCFCluster -id $cluster.id).name
                         $StatusMsg = Update-EsxiAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $($workloadDomain.name) -cluster $clusterName -failures $customPolicy.esxi.accountLockout.maxFailures -unlockInterval $customPolicy.esxi.accountLockout.unlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -20760,6 +20767,38 @@ Function Start-PasswordPolicyConfig {
                     }
                 }
                 Write-LogMessage -Type INFO -Message "Completed Configuring Password Policies for ESXi Hosts" -Colour Yellow
+
+                # Configuring Password Policies for Workspace ONE Access
+                if ($PsBoundParameters.ContainsKey("wsaFqdn")) {
+                    # Workspace ONE Access Directory Password Policies
+                    Write-LogMessage -Type INFO -Message "Configuring Password Policies for Workspace ONE Access Local Directory" -Colour Yellow
+                    Write-LogMessage -Type INFO -Message "Configuring Workspace ONE Access Local Directory: Password Expiration Policy for instance ($($wsaFqdn))"
+                    $StatusMsg = Update-WsaPasswordExpiration -server $wsaFqdn -user admin -pass $wsaAdminPass -maxDays $customPolicy.wsaDirectory.passwordExpiration.passwordLifetime -warnDays $customPolicy.wsaDirectory.passwordExpiration.passwordReminder -reminderDays $customPolicy.wsaDirectory.passwordExpiration.passwordReminderFrequency -tempPasswordHours $customPolicy.wsaDirectory.passwordExpiration.temporaryPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                    Write-LogMessage -Type INFO -Message "Configuring Workspace ONE Access Local Directory: Password Complexity Policy for instance ($($wsaFqdn))"
+                    $StatusMsg = Update-WsaPasswordComplexity -server $wsaFqdn -user admin -pass $wsaAdminPass -minLength $customPolicy.wsaDirectory.passwordComplexity.minLength -minLowercase $customPolicy.wsaDirectory.passwordComplexity.minLowercase -minUppercase $customPolicy.wsaDirectory.passwordComplexity.minUppercase -minNumeric $customPolicy.wsaDirectory.passwordComplexity.minNumerical -minSpecial $customPolicy.wsaDirectory.passwordComplexity.minSpecial -maxIdenticalAdjacent $customPolicy.wsaDirectory.passwordComplexity.maxIdenticalAdjacent -maxPreviousCharacters $customPolicy.wsaDirectory.passwordComplexity.history -history $customPolicy.wsaDirectory.passwordComplexity.history -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                    Write-LogMessage -Type INFO -Message "Configuring Workspace ONE Access Local Directory: Account Lockout Policy for instance ($($wsaFqdn))"
+                    $StatusMsg = Update-WsaAccountLockout -server $wsaFqdn -user admin -pass $wsaAdminPass -failures $customPolicy.wsaDirectory.accountLockout.maxFailures -failureInterval $customPolicy.wsaDirectory.accountLockout.failedAttemptInterval -unlockInterval $customPolicy.wsaDirectory.accountLockout.unlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                    Write-LogMessage -Type INFO -Message "Completed Configuring Password Policies for Workspace ONE Access Local Directory" -Colour Yellow
+
+                    # Workspace ONE Access Local User Password Policies
+                    Write-LogMessage -Type INFO -Message "Configuring Password Policies for Workspace ONE Access Local Users" -Colour Yellow
+                    Write-LogMessage -Type INFO -Message "Configuring Workspace ONE Access Local Users: Password Expiration Policy for instance ($($wsaFqdn))"
+                    $localUsers = @("root","sshuser")
+                    foreach ($localUser in $localUsers) {
+                        $StatusMsg = Update-LocalUserPasswordExpiration -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainMgmt -vmName ($wsaFqdn.Split('.')[-0]) -guestUser root -guestPassword $wsaRootPass -localUser $localUser -minDays $customPolicy.sddcManager.passwordExpiration.minDays -maxDays $customPolicy.sddcManager.passwordExpiration.maxDays -warnDays $customPolicy.sddcManager.passwordExpiration.warningDays -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                    }
+                    Write-LogMessage -Type INFO -Message "Configuring Workspace ONE Access Local Users: Password Complexity Policy for instance ($($wsaFqdn))"
+                    $StatusMsg = Update-WsaLocalUserPasswordComplexity -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass -minLength $customPolicy.wsaLocal.passwordComplexity.minLength -history $customPolicy.wsaLocal.passwordComplexity.history -maxRetry $customPolicy.wsaLocal.passwordComplexity.retries -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                    Write-LogMessage -Type INFO -Message "Configuring Workspace ONE Access Local Users: Account Lockout Policy for instance ($($wsaFqdn))"
+                    $StatusMsg = Update-WsaLocalUserAccountLockout -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -wsaFqdn $wsaFqdn -wsaRootPass $wsaRootPass -failures $customPolicy.wsaLocal.accountLockout.maxFailures -unlockInterval $customPolicy.wsaLocal.accountLockout.unlockInterval -rootUnlockInterval $customPolicy.wsaLocal.accountLockout.rootUnlockInterval -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                    Write-LogMessage -Type INFO -Message "Completed Configuring Password Policies for Workspace ONE Access Local Users" -Colour Yellow
+                }
             }
         }
     } Catch {
