@@ -20939,11 +20939,11 @@ Function Get-PasswordPolicyDefault {
     $wsaLocalPasswordExpiration | Add-Member -notepropertyname 'minDays' -notepropertyvalue "0"
     $wsaLocalPasswordExpiration | Add-Member -notepropertyname 'warningDays' -notepropertyvalue "7"
     $wsaLocalPasswordComplexity = New-Object -TypeName psobject
-    $wsaLocalPasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "8"
+    $wsaLocalPasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "1"
     $wsaLocalPasswordComplexity | Add-Member -notepropertyname 'retries' -notepropertyvalue "3"
     $wsaLocalPasswordComplexity | Add-Member -notepropertyname 'history' -notepropertyvalue "5"
     $wsaLocalAccountLockout = New-Object -TypeName psobject
-    $wsaLocalAccountLockout | Add-Member -notepropertyname 'maxFailures' -notepropertyvalue "5"
+    $wsaLocalAccountLockout | Add-Member -notepropertyname 'maxFailures' -notepropertyvalue "3"
     $wsaLocalAccountLockout | Add-Member -notepropertyname 'unlockInterval' -notepropertyvalue "900"
     $wsaLocalAccountLockout | Add-Member -notepropertyname 'rootUnlockInterval' -notepropertyvalue "900"
     $wsaLocalPasswordPolicy = New-Object -TypeName psobject
@@ -20954,21 +20954,21 @@ Function Get-PasswordPolicyDefault {
     # Build Default Workspace ONE Access Directory Users Password Policy Settings
     $wsaDirectoryPasswordExpiration = New-Object -TypeName psobject
     $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordLifetime' -notepropertyvalue "90"
-    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordReminder' -notepropertyvalue "15"
-    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordReminderFrequency' -notepropertyvalue "1"
+    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordReminder' -notepropertyvalue "0"
+    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordReminderFrequency' -notepropertyvalue "0"
     $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'temporaryPassword' -notepropertyvalue "24"
     $wsaDirectoryPasswordComplexity = New-Object -TypeName psobject
-    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "15"
-    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minLowercase' -notepropertyvalue "1"
-    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minUppercase' -notepropertyvalue "1"
+    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "8"
+    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minLowercase' -notepropertyvalue "0"
+    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minUppercase' -notepropertyvalue "0"
     $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minNumerical' -notepropertyvalue "0"
-    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minSpecial' -notepropertyvalue "1"
-    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'maxIdenticalAdjacent' -notepropertyvalue "1"
-    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'history' -notepropertyvalue "5"
+    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minSpecial' -notepropertyvalue "0"
+    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'maxIdenticalAdjacent' -notepropertyvalue "0"
+    $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'history' -notepropertyvalue "0"
     $wsaDirectoryAccountLockout = New-Object -TypeName psobject
     $wsaDirectoryAccountLockout | Add-Member -notepropertyname 'maxFailures' -notepropertyvalue "5"
     $wsaDirectoryAccountLockout | Add-Member -notepropertyname 'unlockInterval' -notepropertyvalue "900"
-    $wsaDirectoryAccountLockout | Add-Member -notepropertyname 'failedAttemptInterval' -notepropertyvalue "180"
+    $wsaDirectoryAccountLockout | Add-Member -notepropertyname 'failedAttemptInterval' -notepropertyvalue "900"
     $wsaDirectoryPasswordPolicy = New-Object -TypeName psobject
     $wsaDirectoryPasswordPolicy | Add-Member -notepropertyname 'passwordExpiration' -notepropertyvalue $wsaDirectoryPasswordExpiration
     $wsaDirectoryPasswordPolicy | Add-Member -notepropertyname 'passwordComplexity' -notepropertyvalue $wsaDirectoryPasswordComplexity
