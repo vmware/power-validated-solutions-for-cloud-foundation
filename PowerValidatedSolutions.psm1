@@ -19455,15 +19455,15 @@ Function Request-WsaPasswordExpiration {
 
         .EXAMPLE
         Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1!
-        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01
+        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01.sfo.rainpole.io
 
         .EXAMPLE
         Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
-        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01 and checks the configuration drift using the provided configuration JSON
+        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01.sfo.rainpole.io and checks the configuration drift using the provided configuration JSON
 
         .EXAMPLE
         Request-WsaPasswordExpiration -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -drift
-        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01 and compares the configuration against the product defaults
+        This example retrieves the password expiration policy for Workspace ONE Access instance sfo-wsa01.sfo.rainpole.io and compares the configuration against the product defaults
     #>
 
 	Param (
@@ -20043,23 +20043,23 @@ Function Publish-WsaDirectoryPasswordPolicy {
 
         .EXAMPLE
         Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordExpiration -allDomains
-        This example will return password expiration policy for Workspace ONE Access Directory Users
+        This example will return the password expiration policy for Workspace ONE Access Directory Users
 
         .EXAMPLE
         Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordComplexity -allDomains
-        This example will return password complexity policy for Workspace ONE Access Directory Users
+        This example will return the password complexity policy for Workspace ONE Access Directory Users
 
         .EXAMPLE
         Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy AccountLockout -allDomains
-        This example will return account lockout policy for Workspace ONE Access Directory Users
+        This example will return the account lockout policy for Workspace ONE Access Directory Users
 
         .EXAMPLE
         Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordExpiration -allDomains -drift -reportPath "F:\Reporting" -policyFile "passwordPolicyConfig.json"
-        This example will return password expiration policy for Workspace ONE Access Directory Users and compare the configuration against the passwordPolicyConfig.json
+        This example will return the password expiration policy for Workspace ONE Access Directory Users and compare the configuration against the passwordPolicyConfig.json
 
         .EXAMPLE
         Publish-WsaDirectoryPasswordPolicy -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -policy PasswordExpiration -allDomains -drift
-        This example will return password expiration policy for Workspace ONE Access Directory Users and compares the configuration against the product defaults
+        This example will return the password expiration policy for Workspace ONE Access Directory Users and compares the configuration against the product defaults
     #>
 
     Param (
