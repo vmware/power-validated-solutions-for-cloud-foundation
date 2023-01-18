@@ -20953,10 +20953,10 @@ Function Get-PasswordPolicyDefault {
 
     # Build Default Workspace ONE Access Directory Users Password Policy Settings
     $wsaDirectoryPasswordExpiration = New-Object -TypeName psobject
-    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordLifetime' -notepropertyvalue "90"
+    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordLifetime' -notepropertyvalue "0"
     $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordReminder' -notepropertyvalue "0"
     $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'passwordReminderFrequency' -notepropertyvalue "0"
-    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'temporaryPassword' -notepropertyvalue "24"
+    $wsaDirectoryPasswordExpiration | Add-Member -notepropertyname 'temporaryPassword' -notepropertyvalue "168"
     $wsaDirectoryPasswordComplexity = New-Object -TypeName psobject
     $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minLength' -notepropertyvalue "8"
     $wsaDirectoryPasswordComplexity | Add-Member -notepropertyname 'minLowercase' -notepropertyvalue "0"
