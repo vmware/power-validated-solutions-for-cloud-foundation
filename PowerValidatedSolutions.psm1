@@ -20755,7 +20755,7 @@ Function checkEmailString {
 	if ($checkStatement -eq $true) {
 		return $true
 	} else {
-		Write-Error "Please input a validate email address for $name "
+		Write-Error "Please input a valid email address for $name "
 		return $false
 	}
 }
@@ -20795,7 +20795,7 @@ Function Test-PasswordPolicyConfig {
 			    	$customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
 			    	foreach ( $parameterName in $customParameterList) {
 			    		if ( -Not $defaultParameterList.Name.Contains($parameterName.Name)) {
-			    			Write-Error "Found Unknow Parameter ($($parameterName.Name)) Under Section ($($section.Name)) for Product ($($product.Name)), Please Check the Password Policy Configuration File and Run Again"
+			    			Write-Error "Found Unknown Parameter ($($parameterName.Name)) Under Section ($($section.Name)) for Product ($($product.Name)), Please Check the Password Policy Configuration File and Run Again"
 			    			$encounterError = "True"
 			    			Break
 			    		} elseif ($customConfig.($product.Name).($section.Name).($parameterName.Name) -eq "") {
