@@ -21065,13 +21065,14 @@ Function Get-PasswordPolicyConfig {
 }
 
 Function checkRange {
-	Param(
+	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$value,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$minRange,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [int]$maxRange,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$required
 	)
+
 	if (($value -eq "Null") -and ($required -eq $true)) {
 		Write-Error "$name parameter has not been configured."
 		return $false
@@ -21084,7 +21085,7 @@ Function checkRange {
 }
 
 Function checkEmailString {
-	Param(
+	Param (
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$address,
 		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$required
@@ -21127,27 +21128,27 @@ Function Test-PasswordPolicyConfig {
         if ($encounterError -ne "True") {
             $customSectionList = $customConfig.($product.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
             foreach ($section in $customSectionList) {
-                 if (-Not $defaultSection.Contains($section.Name)) {
+                if (-Not $defaultSection.Contains($section.Name)) {
                     Write-Error "Found Unknown Password Policy Section ($($section.Name)) Under Product ($($product.Name)), Please Check the Password Policy Configuration File and Run Again"
                     $encounterError = "True"
                     Break
                 }
                 # Validate parameters in customConfig file
-			    if ($encounterError -ne "True") {
-				    $defaultParameterList = $defaultConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
-			    	$customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
-			    	foreach ( $parameterName in $customParameterList) {
-			    		if ( -Not $defaultParameterList.Name.Contains($parameterName.Name)) {
-			    			Write-Error "Found Unknown Parameter ($($parameterName.Name)) Under Section ($($section.Name)) for Product ($($product.Name)), Please Check the Password Policy Configuration File and Run Again"
-			    			$encounterError = "True"
-			    			Break
-			    		} elseif ($customConfig.($product.Name).($section.Name).($parameterName.Name) -eq "") {
-			    			Write-Error "Parameter ($($product.Name):$($section.Name):$($parameterName.Name)) Not Configured, Please Check the Password Policy Configuration File and Run Again."
-			    			$encounterError = "True"
-			    			Break
-			    		}
-			    	}
-			    }
+                if ($encounterError -ne "True") {
+                    $defaultParameterList = $defaultConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
+                    $customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
+                    foreach ( $parameterName in $customParameterList) {
+                        if ( -Not $defaultParameterList.Name.Contains($parameterName.Name)) {
+                            Write-Error "Found Unknown Parameter ($($parameterName.Name)) Under Section ($($section.Name)) for Product ($($product.Name)), Please Check the Password Policy Configuration File and Run Again"
+                            $encounterError = "True"
+                            Break
+                        } elseif ($customConfig.($product.Name).($section.Name).($parameterName.Name) -eq "") {
+                            Write-Error "Parameter ($($product.Name):$($section.Name):$($parameterName.Name)) Not Configured, Please Check the Password Policy Configuration File and Run Again."
+                            $encounterError = "True"
+                            Break
+                        }
+                    }
+                }
             }
         }
     }
@@ -21161,64 +21162,47 @@ Function Test-PasswordPolicyConfig {
                 $customParameterList = $customConfig.($product.Name).($section.Name) | Get-Member | Where-Object {$_.MemberType -match "NoteProperty"} | Select-Object Name
                 foreach ( $parameterName in $customParameterList) {
                     # Validating parameter values
-                    switch ($parameterName.Name)  {
+                    Switch ($parameterName.Name)  {
                         # Password Expiration Section
                         "maxDays"
-                        {
+{
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):maxDays" -value $customConfig.($product.Name).($section.Name)."maxDays" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minDays"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minDays" -value $customConfig.($product.Name).($section.Name)."minDays" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "warningDays"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):warningDays" -value $customConfig.($product.Name).($section.Name)."warningDays" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "email"
                         {
-                            
                             $checkReturn = checkEmailString -name "$($product.Name):$($section.Name):email" -address $customConfig.($product.Name).($section.Name)."email" -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "passwordLifetime"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):passwordLifetime" -value $customConfig.($product.Name).($section.Name)."passwordLifetime" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "passwordReminder"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):passwordReminder" -value $customConfig.($product.Name).($section.Name)."passwordReminder" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "passwordReminderFrequency"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):passwordReminderFrequency" -value $customConfig.($product.Name).($section.Name)."passwordReminderFrequency" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "temporaryPassword"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):temporaryPassword" -value $customConfig.($product.Name).($section.Name)."temporaryPassword" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         # Password Complexity section
                         "policy"
@@ -21238,23 +21222,19 @@ Function Test-PasswordPolicyConfig {
                                 Write-Error "The recommended policy configuration should be retry=3 min=disabled,disabled,disabled,disbled,15"
 								Write-Error "Password Policy Configuration File Defined as ($policyString)"
                                 $encounterError = "True"
-                            }
-                            elseif ((($PasswdPolicyMinValue2 -lt 7) -or ($PasswdPolicyMinValue2 -gt 999)) -and ($PasswdPolicyMinValue2 -ine "disabled")) {
+                            } elseif ((($PasswdPolicyMinValue2 -lt 7) -or ($PasswdPolicyMinValue2 -gt 999)) -and ($PasswdPolicyMinValue2 -ine "disabled")) {
                                 Write-Error "The recommended policy configuration should be retry=3 min=disabled,disabled,disabled,disbled,15"
 								Write-Error "Password Policy Configuration File Defined as ($policyString)"
                                 $encounterError = "True"
-                            }
-                            elseif ((($PasswdPolicyMinValue3 -lt 7) -or ($PasswdPolicyMinValue3 -gt 999)) -and ($PasswdPolicyMinValue3 -ine "disabled")) {
+                            } elseif ((($PasswdPolicyMinValue3 -lt 7) -or ($PasswdPolicyMinValue3 -gt 999)) -and ($PasswdPolicyMinValue3 -ine "disabled")) {
                                 Write-Error "The recommended policy configuration should be retry=3 min=disabled,disabled,disabled,disbled,15"
 								Write-Error "Password Policy Configuration File Defined as ($policyString)"
                                 $encounterError = "True"
-                            }
-                            elseif ((($PasswdPolicyMinValue4 -lt 7) -or ($PasswdPolicyMinValue4 -gt 999)) -and ($PasswdPolicyMinValue4 -ine "disabled")) {
+                            } elseif ((($PasswdPolicyMinValue4 -lt 7) -or ($PasswdPolicyMinValue4 -gt 999)) -and ($PasswdPolicyMinValue4 -ine "disabled")) {
                                 Write-Error "The recommended policy configuration should be retry=3 min=disabled,disabled,disabled,disbled,15"
 								Write-Error "Password Policy Configuration File Defined as ($policyString)"
                                 $encounterError = "True"
-                            }
-                            elseif ((($PasswdPolicyMinValue5 -lt 7) -or ($PasswdPolicyMinValue5 -gt 999)) -and ($PasswdPolicyMinValue5 -ine "disabled")) {
+                            } elseif ((($PasswdPolicyMinValue5 -lt 7) -or ($PasswdPolicyMinValue5 -gt 999)) -and ($PasswdPolicyMinValue5 -ine "disabled")) {
                                 Write-Error "The recommended policy configuration should be retry=3 min=disabled,disabled,disabled,disbled,15"
 								Write-Error "Password Policy Configuration File Defined as ($policyString)"
                                 $encounterError = "True"
@@ -21263,178 +21243,130 @@ Function Test-PasswordPolicyConfig {
                         "history"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):history" -value $customConfig.($product.Name).($section.Name)."history" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minLength"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minLength" -value $customConfig.($product.Name).($section.Name)."minLength" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "maxLength"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):maxLength" -value $customConfig.($product.Name).($section.Name)."maxLength" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minAlphabetic"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minAlphabetic" -value $customConfig.($product.Name).($section.Name)."minAlphabetic" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minLowercase"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minLowercase" -value $customConfig.($product.Name).($section.Name)."minLowercase" -minRange -1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minUppercase"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minUppercase" -value $customConfig.($product.Name).($section.Name)."minUppercase" -minRange -1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minNumerical"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minNumerical" -value $customConfig.($product.Name).($section.Name)."minNumerical" -minRange -1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minSpecial"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minSpecial" -value $customConfig.($product.Name).($section.Name)."minSpecial" -minRange -1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "maxIdenticalAdjacent"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):maxIdenticalAdjacent" -value $customConfig.($product.Name).($section.Name)."maxIdenticalAdjacent" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minUnique"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minUnique" -value $customConfig.($product.Name).($section.Name)."minUnique" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "minClass"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):minClass" -value $customConfig.($product.Name).($section.Name)."minClass" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "maxSequence"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):maxSequence" -value $customConfig.($product.Name).($section.Name)."maxSequence" -minRange 0 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "retries"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):retries" -value $customConfig.($product.Name).($section.Name)."retries" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "maxIdenticalAdjacent"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):maxIdenticalAdjacent" -value $customConfig.($product.Name).($section.Name)."maxIdenticalAdjacent" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         # Account Lockout section
                         "maxFailures"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):maxFailures" -value $customConfig.($product.Name).($section.Name)."maxFailures" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "unlockInterval"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):unlockInterval" -value $customConfig.($product.Name).($section.Name)."unlockInterval" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "failedAttemptInterval"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):failedAttemptInterval" -value $customConfig.($product.Name).($section.Name)."failedAttemptInterval" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "rootUnlockInterval"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):rootUnlockInterval" -value $customConfig.($product.Name).($section.Name)."rootUnlockInterval" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "apiMaxFailures"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):apiMaxFailures" -value $customConfig.($product.Name).($section.Name)."apiMaxFailures" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "apiUnlockInterval"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):apiUnlockInterval" -value $customConfig.($product.Name).($section.Name)."apiUnlockInterval" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "apiRestInterval"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):apiRestInterval" -value $customConfig.($product.Name).($section.Name)."apiRestInterval" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "cliMaxFailures"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):cliMaxFailures" -value $customConfig.($product.Name).($section.Name)."cliMaxFailures" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                         "cliUnlockInterval"
                         {
                             $checkReturn = checkRange -name "$($product.Name):$($section.Name):cliUnlockInterval" -value $customConfig.($product.Name).($section.Name)."cliUnlockInterval" -minRange 1 -maxRange 99999 -required $true
-                            if (-Not $checkReturn) {
-                                $encounterError = "True"
-                            }
+                            if (-Not $checkReturn) { $encounterError = "True" }
                         }
                     }
                 }
             }
         }
     }
-
-
-    # check to see if there are any validation errors and exit script if there are errors
+    # Check to see if there are any validation errors and exit if any found
     if ($encounterError -eq "True") {
-        Write-Error "Validate Errors Found in the Password Policy Configuration File."
-        return $false
+        Write-Error "Validate Errors Found in the Password Policy Configuration File"
+        Return $false
     } else {
-        return $true
+        Return $true
     }
 }
 
