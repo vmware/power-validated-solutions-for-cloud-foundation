@@ -18176,7 +18176,8 @@ Function Request-NsxtEdgePasswordComplexity {
                                             $nsxtPasswordComplexityPolicy = New-Object System.Collections.ArrayList
                                             $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
                                             foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-                                                if ($nsxtEdgeNodePolicy = Get-LocalPasswordComplexity -vmName $($nsxtEdgeNode.display_name) -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx ) {
+                                                $nsxEdgeRootPass = (Get-VCFCredential | Where-Object {$_.resource.resourceName -eq ($nsxtEdgeNode.display_name + '.' + $vcfNsxDetails.fqdn.Split('.',2)[-1]) -and $_.username -eq "root"}).password
+                                                if ($nsxtEdgeNodePolicy = Get-LocalPasswordComplexity -vmName $($nsxtEdgeNode.display_name) -guestUser root -guestPassword $nsxEdgeRootPass -nsx ) {
                                                     $NsxtEdgePasswordComplexityObject = New-Object -TypeName psobject
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "Workload Domain" -notepropertyvalue $domain
                                                     $NsxtEdgePasswordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $nsxtEdgeNode.display_name
@@ -18405,7 +18406,8 @@ Function Update-NsxtEdgePasswordComplexity {
                                         if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
                                             $nsxtEdgeNodes = (Get-NsxtEdgeCluster | Where-Object {$_.member_node_type -eq "EDGE_NODE"})
                                             foreach ($nsxtEdgeNode in $nsxtEdgeNodes.members) {
-                                                $existingConfiguration = Get-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
+                                                $nsxEdgeRootPass = (Get-VCFCredential | Where-Object {$_.resource.resourceName -eq ($nsxtEdgeNode.display_name + '.' + $vcfNsxDetails.fqdn.Split('.',2)[-1]) -and $_.username -eq "root"}).password
+                                                $existingConfiguration = Get-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $nsxEdgeRootPass -nsx
                                                 if ($existingConfiguration.'Min Length' -ne $minLength  -or $existingConfiguration.'Min Lowercase' -ne $minLowercase -or $existingConfiguration.'Min Uppercase' -ne $minUppercase -or $existingConfiguration.'Min Numerical' -ne $minNumerical -or $existingConfiguration.'Min Special' -ne $minSpecial -or $existingConfiguration.'Min Unique' -ne $minUnique -or $existingConfiguration.'Max Retries' -ne $maxRetry) {
                                                     Set-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx -minLength $minLength -uppercase $minUppercase -lowercase $minLowercase -numerical $minNumerical -special $minSpecial -unique $minUnique -retry $maxRetry| Out-Null
                                                     $updatedConfiguration = Get-LocalPasswordComplexity -vmName $nsxtEdgeNode.display_name -guestUser $vcfNsxDetails.rootUser -guestPassword $vcfNsxDetails.rootPass -nsx
