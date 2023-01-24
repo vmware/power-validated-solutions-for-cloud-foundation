@@ -25979,14 +25979,14 @@ Export-ModuleMember Get-NsxtEdgeNodeAuthPolicy
 Function Set-NsxtEdgeNodeAuthPolicy {
     <#
         .SYNOPSIS
-        Set the Authentication Policy for NSX Manager Nodes
+        Set the Authentication Policy for NSX Edge Nodes
 
         .DESCRIPTION
-        The Set-NsxtManagerAuthPolicy cmdlet getss the authentication policy for NSX Manager Nodes
+        The Set-NsxtEdgeNodeAuthPolicy cmdlet sets the authentication policy for NSX Edge Nodes
 
         .EXAMPLE
-        Set-NsxManagerAuthPolicy -nsxtManagerNode "sfo-m01-nsx01a.sfo.rainpole.io" -api_lockout_period 900 -api_reset_period 120 -api_max_attempt 5 -cli_lockout_period 900 -cli_max_attempt 5 -min_passwd_length 15
-		This example customized the password policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io.
+        Set-NsxtEdgeNodeAuthPolicy -nsxtManager sfo-m01-nsx01.sfo.rainpole.io -nsxtEdgeNodeID <node_id> -cli_lockout_period 900 -cli_max_attempt 5 -min_passwd_length 15
+		This example configures the password policy in NSX Edge node sfo-m01-nsx01a.sfo.rainpole.io.
     #>
 
 	Param (
