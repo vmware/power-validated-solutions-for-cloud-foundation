@@ -9063,7 +9063,7 @@ Function Enable-vRLIContentPack {
         - Installs the vRealize Log Insight content pack selected from the marketplace
 
         .EXAMPLE
-        Enable-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack VRO
+        Enable-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -token <your_base64_github_token> -contentPack VRO
         This examples installs the vRealize Orchestrator content pack from the marketplace.
         #>
 
@@ -9071,6 +9071,7 @@ Function Enable-vRLIContentPack {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$token,
         [Parameter (Mandatory = $true)] [ValidateSet('VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD')] [String]$contentPack
     )
 
@@ -9094,12 +9095,12 @@ Function Enable-vRLIContentPack {
                             if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
                             if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
 
-                            $index = Get-vRLIMarketplaceMetadata -index
+                            $index = Get-vRLIMarketplaceMetadata -index -token $token
                             $contentPackFile = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).filename
                             $contentPackName = ($index| Where-Object { $_.namespace -eq $contentPackNamespace }).name
                             $contentPackVersion = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
 
-                            if ($response = Get-vRLIMarketplaceMetadata) {
+                            if ($response = Get-vRLIMarketplaceMetadata -token $token) {
                                 $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
                                 $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
                                 $json = $response | ConvertTo-Json -Depth 100 -Compress
@@ -9178,13 +9179,13 @@ Function Update-vRLIContentPack {
                             if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
                             if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
 
-                            $index = Get-vRLIMarketplaceMetadata -index
+                            $index = Get-vRLIMarketplaceMetadata -index -token $token
                             $contentPackFile = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).filename
                             $contentPackName = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).name
                             $contentPackVersion = ($index | Where-Object { $_.namespace -eq $contentPackNamespace }).contentVersion
 
                             if ($status = Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
-                                if ($response = Get-vRLIMarketplaceMetadata) {
+                                if ($response = Get-vRLIMarketplaceMetadata -token $token) {
                                     $uri = ($response | Where-Object { $_.name -eq $contentPackFile }).url
                                     $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $ghHeaders
                                     $json = $response | ConvertTo-Json -Depth 100 -Compress
@@ -35495,17 +35496,18 @@ Function Get-vRLIMarketplaceMetadata {
         the Content Pack Marketplace hosted on GitHub (https://github.com/vmw-loginsight/).
 
         .EXAMPLE
-        Get-vRLIMarketplaceMetadata
+        Get-vRLIMarketplaceMetadata -token <your_base64_encoded_github_token>
         This example returns the metadata for vRealize Log Insight content packs in the Content Pack MarketPlace.
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$index
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$index,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$token
     )
     
     Try {
         # Get the headers with authorization to pull content pack from the GitHub repository
-        createGitHubAuthHeader
+        createGitHubAuthHeader -token $token
         if ($PsBoundParameters.ContainsKey("index")) {
             # Get the content pack index from the GitHub repository
             $uri = 'https://api.github.com/repos/vmw-loginsight/vlcp/contents/index.json'
@@ -37730,12 +37732,15 @@ Function createvCenterAuthHeader {
 }
 
 Function createGitHubAuthHeader {
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$token
+    )
+
     # Get the headers with authorization to pull content pack from the GitHub repository
-    # Note: Uses the same token used by vRealize Log Insight's in-product Marketplace as seen in Chrome Developer Tools
-    $ghToken = 'bGktbWFya2V0cGxhY2U6Y2UzYjBkODFjYzczMTJhZjk5ZDYzMjFjZDlkMTUzOTc4ZjZlZjM2NQ=='
     $Global:ghHeaders = New-Object 'System.Collections.Generic.Dictionary[[String],[String]]'
     $ghHeaders.Add('Accept', 'application/vnd.github.VERSION.raw')
-    $ghHeaders.Add('Authorization', "Basic $ghToken")
+    $ghHeaders.Add('Authorization', "Basic $token")
 }
 
 #EndRegion  End Utility Functions                              ######
