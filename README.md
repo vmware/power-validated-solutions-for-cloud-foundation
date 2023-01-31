@@ -16,7 +16,7 @@ This infrastructure-as-code model enables you to use the module "out-of-the-box"
 
 ### Platform
 
-* [VMware Cloud Foundation][vmware-cloud-foundation] 4.2 or higher
+* [VMware Cloud Foundation][vmware-cloud-foundation] 4.3 or higher
 
 ### Powershell
 
@@ -88,7 +88,7 @@ If you discover a bug or would like to suggest an enhancement, please [open an i
 
 ## License
 
-Copyright 2021-2022 VMware, Inc.
+Copyright 2021-2023 VMware, Inc.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

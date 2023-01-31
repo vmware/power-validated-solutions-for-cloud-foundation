@@ -1,6 +1,6 @@
 # Release History
 
-## v2.0.0 (Not Released)
+## v2.0.0 (2023-31-01)
 
 - Added `Request-EsxiPasswordExpiration` cmdlet to retrieve the password expiration policy for all ESXi hosts in a cluster.
 - Added `Request-EsxiPasswordComplexity` cmdlet to retrieve the password complexity policy for all ESXi hosts in a cluster.

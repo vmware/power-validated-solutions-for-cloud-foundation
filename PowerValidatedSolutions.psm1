@@ -7,11 +7,10 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ### Note
-# This PowerShell module should be considered entirely experimental. It is still in development & not tested beyond lab
-# scenarios. It is recommended you don't use it for any production environment without testing extensively!
+# It is recommended you don't use it for any production environment without testing extensively!
 
 # Enable communication with self signed certs when using Powershell Core. If you require all communications to be secure
-# and do not wish to allow communication with self-signed certificates remove lines 17-38 before importing the module.
+# and do not wish to allow communication with self-signed certificates remove lines 15-38 before importing the module.
 
 if ($PSEdition -eq 'Core') {
     $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck", $true)
