@@ -1,5 +1,10 @@
 # Release History
 
+## v2.1.0 (Not Released)
+
+- Added `Convert-CssClassStyle` cmdlet to modify the CSS Style in the HTML output.
+- Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
+
 ## v2.0.0 (2023-31-01)
 
 - Added `Request-EsxiPasswordExpiration` cmdlet to retrieve the password expiration policy for all ESXi hosts in a cluster.
