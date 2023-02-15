@@ -15867,7 +15867,7 @@ Function Publish-SddcManagerPasswordComplexity {
                     } else {
                         $sddcManagerPasswordComplexityObject = $sddcManagerPasswordComplexityObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-complexity"></a><h3>SDDC Manager - Password Complexity</h3>' -As Table
                     }
-                    $sddcManagerPasswordComplexityObject = Convert-CssClass -htmldata $sddcManagerPasswordComplexityObject
+                    $sddcManagerPasswordComplexityObject = Convert-CssClassStyle -htmldata $sddcManagerPasswordComplexityObject
                     $sddcManagerPasswordComplexityObject
                 }
             }
@@ -15949,7 +15949,7 @@ Function Publish-SddcManagerAccountLockout {
                     } else {
                         $sddcManagerAccountLockoutObject = $sddcManagerAccountLockoutObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-account-lockout"></a><h3>SDDC Manager - Account Lockout</h3>' -As Table
                     }
-                    $sddcManagerAccountLockoutObject = Convert-CssClass -htmldata $sddcManagerAccountLockoutObject
+                    $sddcManagerAccountLockoutObject = Convert-CssClassStyle -htmldata $sddcManagerAccountLockoutObject
                     $sddcManagerAccountLockoutObject
                 }
             }
@@ -16471,7 +16471,7 @@ Function Publish-SsoPasswordPolicy {
                     } else {
                         $ssoPasswordPolicyObject = $ssoPasswordPolicyObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
                     }
-                    $ssoPasswordPolicyObject = Convert-CssClass -htmldata $ssoPasswordPolicyObject
+                    $ssoPasswordPolicyObject = Convert-CssClassStyle -htmldata $ssoPasswordPolicyObject
                     $ssoPasswordPolicyObject
                 }
             }
@@ -17091,7 +17091,7 @@ Function Publish-VcenterPasswordExpiration {
                     $vcenterPasswordExpirationObject
                 } else {
                     $vcenterPasswordExpirationObject = $vcenterPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration"></a><h3>vCenter Server - Password Expiration</h3>' -As Table
-                    $vcenterPasswordExpirationObject = Convert-CssClass -htmldata $vcenterPasswordExpirationObject
+                    $vcenterPasswordExpirationObject = Convert-CssClassStyle -htmldata $vcenterPasswordExpirationObject
                     $vcenterPasswordExpirationObject
                 }
             }
@@ -17160,7 +17160,7 @@ Function Publish-VcenterLocalPasswordExpiration {
                     $vcenterLocalPasswordExpirationObject
                 } else {
                     $vcenterLocalPasswordExpirationObject = $vcenterLocalPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-expiration-local"></a><h3>vCenter Server - Password Expiration (Local Users)</h3>' -As Table
-                    $vcenterLocalPasswordExpirationObject = Convert-CssClass -htmldata $vcenterLocalPasswordExpirationObject
+                    $vcenterLocalPasswordExpirationObject = Convert-CssClassStyle -htmldata $vcenterLocalPasswordExpirationObject
                     $vcenterLocalPasswordExpirationObject
                 }
             }
@@ -17233,7 +17233,7 @@ Function Publish-VcenterLocalPasswordComplexity {
                     $vcenterLocalPasswordComplexityObject
                 } else {
                     $vcenterLocalPasswordComplexityObject = $vcenterLocalPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-password-complexity-local"></a><h3>vCenter Server - Password Complexity (Local Users)</h3>' -As Table
-                    $vcenterLocalPasswordComplexityObject = Convert-CssClass -htmldata $vcenterLocalPasswordComplexityObject
+                    $vcenterLocalPasswordComplexityObject = Convert-CssClassStyle -htmldata $vcenterLocalPasswordComplexityObject
                     $vcenterLocalPasswordComplexityObject
                 }
             }
@@ -17306,7 +17306,7 @@ Function Publish-VcenterLocalAccountLockout {
                     $vcenterLocalAccountLockoutObject
                 } else {
                     $vcenterLocalAccountLockoutObject = $vcenterLocalAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="vcenter-account-lockout-local"></a><h3>vCenter Server - Account Lockout (Local Users)</h3>' -As Table
-                    $vcenterLocalAccountLockoutObject = Convert-CssClass -htmldata $vcenterLocalAccountLockoutObject
+                    $vcenterLocalAccountLockoutObject = Convert-CssClassStyle -htmldata $vcenterLocalAccountLockoutObject
                     $vcenterLocalAccountLockoutObject
                 }
             }
@@ -17878,7 +17878,7 @@ Function Publish-NsxManagerPasswordExpiration {
                     $nsxManagerPasswordExpirationObject
                 } else {
                     $nsxManagerPasswordExpirationObject = $nsxManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-expiration"></a><h3>NSX Manager - Password Expiration</h3>' -As Table
-                    $nsxManagerPasswordExpirationObject = Convert-CssClass -htmldata $nsxManagerPasswordExpirationObject
+                    $nsxManagerPasswordExpirationObject = Convert-CssClassStyle -htmldata $nsxManagerPasswordExpirationObject
                     $nsxManagerPasswordExpirationObject
                 }
             }
@@ -17951,7 +17951,7 @@ Function Publish-NsxManagerPasswordComplexity {
                     $nsxManagerPasswordComplexityObject
                 } else {
                     $nsxManagerPasswordComplexityObject = $nsxManagerPasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-password-complexity"></a><h3>NSX Manager - Password Complexity</h3>' -As Table
-                    $nsxManagerPasswordComplexityObject = Convert-CssClass -htmldata $nsxManagerPasswordComplexityObject
+                    $nsxManagerPasswordComplexityObject = Convert-CssClassStyle -htmldata $nsxManagerPasswordComplexityObject
                     $nsxManagerPasswordComplexityObject
                 }
             }
@@ -18024,7 +18024,7 @@ Function Publish-NsxManagerAccountLockout {
                     $nsxManagerAccountLockoutObject
                 } else {
                     $nsxManagerAccountLockoutObject = $nsxManagerAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxmanager-account-lockout"></a><h3>NSX Manager - Account Lockout</h3>' -As Table
-                    $nsxManagerAccountLockoutObject = Convert-CssClass -htmldata $nsxManagerAccountLockoutObject
+                    $nsxManagerAccountLockoutObject = Convert-CssClassStyle -htmldata $nsxManagerAccountLockoutObject
                     $nsxManagerAccountLockoutObject
                 }
             }
@@ -18602,7 +18602,7 @@ Function Publish-NsxEdgePasswordExpiration {
                     $nsxEdgePasswordExpirationObject
                 } else {
                     $nsxEdgePasswordExpirationObject = $nsxEdgePasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-expiration"></a><h3>NSX Edge - Password Expiration</h3>' -As Table
-                    $nsxEdgePasswordExpirationObject = Convert-CssClass -htmldata $nsxEdgePasswordExpirationObject
+                    $nsxEdgePasswordExpirationObject = Convert-CssClassStyle -htmldata $nsxEdgePasswordExpirationObject
                     $nsxEdgePasswordExpirationObject
                 }
             }
@@ -18675,7 +18675,7 @@ Function Publish-NsxEdgePasswordComplexity {
                     $nsxEdgePasswordComplexityObject
                 } else {
                     $nsxEdgePasswordComplexityObject = $nsxEdgePasswordComplexityObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-password-complexity"></a><h3>NSX Edge - Password Complexity</h3>' -As Table
-                    $nsxEdgePasswordComplexityObject = Convert-CssClass -htmldata $nsxEdgePasswordComplexityObject
+                    $nsxEdgePasswordComplexityObject = Convert-CssClassStyle -htmldata $nsxEdgePasswordComplexityObject
                     $nsxEdgePasswordComplexityObject
                 }
             }
@@ -18748,7 +18748,7 @@ Function Publish-NsxEdgeAccountLockout {
                     $nsxEdgeAccountLockoutObject
                 } else {
                     $nsxEdgeAccountLockoutObject = $nsxEdgeAccountLockoutObject | Sort-Object 'Workload Domain', 'System' | ConvertTo-Html -Fragment -PreContent '<a id="nsxedge-account-lockout"></a><h3>NSX Edge - Account Lockout</h3>' -As Table
-                    $nsxEdgeAccountLockoutObject = Convert-CssClass -htmldata $nsxEdgeAccountLockoutObject
+                    $nsxEdgeAccountLockoutObject = Convert-CssClassStyle -htmldata $nsxEdgeAccountLockoutObject
                     $nsxEdgeAccountLockoutObject
                 }
             }
@@ -19428,7 +19428,7 @@ Function Publish-EsxiPasswordPolicy {
                     $esxiPasswordPolicyObject
                 } else {
                     $esxiPasswordPolicyObject = $esxiPasswordPolicyObject | Sort-Object 'Workload Domain', 'Cluster', 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
-                    $esxiPasswordPolicyObject = Convert-CssClass -htmldata $esxiPasswordPolicyObject
+                    $esxiPasswordPolicyObject = Convert-CssClassStyle -htmldata $esxiPasswordPolicyObject
                     $esxiPasswordPolicyObject
                 }
             }
@@ -20095,7 +20095,7 @@ Function Publish-WsaDirectoryPasswordPolicy {
             } else {
                 $wsaDirectoryPasswordPolicyObject = $wsaDirectoryPasswordPolicyObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
             }   
-            $wsaDirectoryPasswordPolicyObject = Convert-CssClass -htmldata $wsaDirectoryPasswordPolicyObject
+            $wsaDirectoryPasswordPolicyObject = Convert-CssClassStyle -htmldata $wsaDirectoryPasswordPolicyObject
             $wsaDirectoryPasswordPolicyObject
         }
     } Catch {
@@ -20173,7 +20173,7 @@ Function Publish-WsaLocalPasswordPolicy {
                     } else {
                         $wsaLocalPasswordPolicyObject = $wsaLocalPasswordPolicyObject | Sort-Object 'System' | ConvertTo-Html -Fragment -PreContent $preHtmlContent -As Table
                     }   
-                    $wsaLocalPasswordPolicyObject = Convert-CssClass -htmldata $wsaLocalPasswordPolicyObject
+                    $wsaLocalPasswordPolicyObject = Convert-CssClassStyle -htmldata $wsaLocalPasswordPolicyObject
                     $wsaLocalPasswordPolicyObject
                 }
             }
@@ -21657,6 +21657,22 @@ Function Save-ClarityReportFooter {
     </body>
     </html>'
     $clarityCssFooter
+}
+
+Function Convert-CssClassStyle {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [PSCustomObject]$htmlData
+    )
+
+    # Function to replace CSS Style
+    $oldTable = '<table>'
+    $newTable = '<table class="table">'
+    $oldAddLine = ':-: '
+    $newNewLine = '<br/>'
+
+    $htmlData = $htmlData -replace $oldTable,$newTable
+    $htmlData = $htmlData -replace $oldAddLine,$newNewLine
+    $htmlData
 }
 
 #EndRegion  End Password Policy Manager Functions                   ######
