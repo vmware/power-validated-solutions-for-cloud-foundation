@@ -26178,7 +26178,7 @@ Function New-vRAUser {
 
         .EXAMPLE
         New-vRAUser -userId $userId -orgId $serviceRole -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole> -serviceRole $serviceRole>
-        This example adds a user to vRealize Automation by userId and orgId and assisgnes the required orgRole and serviceRole.
+        This example adds a user to vRealize Automation by userId and orgId and assigns the required orgRole and serviceRole.
     #>
 
     Param (
@@ -26257,11 +26257,11 @@ Function New-vRAGroup {
 
         .EXAMPLE
         New-vRAGroup -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole-serviceRole $serviceRole
-        This example adds a group in vRealize Automation by groupId and orgId and assisgnes both the required orgRole and serviceRole.
+        This example adds a group in vRealize Automation by groupId and orgId and assigns both the required orgRole and serviceRole.
 
         .EXAMPLE
         New-vRAGroup -groupId $orgId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole -serviceRole $serviceRole
-        This example adds a group in vRealize Automation by groupId and orgId and assisgnes the required orgRole only.
+        This example adds a group in vRealize Automation by groupId and orgId and assigns the required orgRole only.
 
         Note: This cmdlet currently only supports a single serviceRole.
     #>
@@ -28514,9 +28514,8 @@ Function Remove-vRAGroup {
         If the group name does not exist, no changes are made.
 
         .EXAMPLE
-        Remove-vRAGroup -displayName "SampleProject@example.com"
-
-        This example removes the group SampleProject in the example.com identity provider from vRealize Automation.
+        Remove-vRAGroup -displayName gg-vra-cloud-assembly-admins@rainpole.io
+        This example removes a group Sfrom vRealize Automation by displayName
     #>
 
     Param (

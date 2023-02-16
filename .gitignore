@@ -5,3 +5,8 @@
 # MkDocs
 ## Ignore site directory.
 **/.site/**
+
+# Certificates
+## Ignore certificate files.
+**/.cer
+**/.csr
