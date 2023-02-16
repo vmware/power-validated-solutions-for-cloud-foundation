@@ -28543,49 +28543,6 @@ Function Get-vROPSManagementPackStatus {
 }
 Export-ModuleMember -Function Get-vROPSManagementPackStatus
 
-Function Remove-vRAGroup {
-    <#
-        .SYNOPSIS
-        Removes a group's access from vRealize Automation.
-
-        .DESCRIPTION
-        The Remove-vRAGroup cmdlet removes a group in vRealize Automation. The cmdlet searches the IAM for all organization and service roles for a group.
-        If the group name does not exist, no changes are made.
-
-        .EXAMPLE
-        Remove-vRAGroup -displayName gg-vra-cloud-assembly-admins@rainpole.io
-        This example removes a group Sfrom vRealize Automation by displayName
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
-    )
-    Try {
-        $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
-        if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.displayName -eq $displayName }) {
-            $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id
-            if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $null -ne $_.organizationRoles.name -or $null -ne $_.serviceRoles.serviceDefinitionId }) {
-                Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
-                if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $null -ne $_.organizationRoles.name -and $null -ne $_.serviceRoles.serviceRoleNames -and $null -ne $_.serviceRoles.serviceDefinitionId })) {
-                    Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
-                }
-                else {
-                    Write-Error "Removing group ($displayName) from vRealize Automation: POST_VALIDATION_FAILED"
-                }
-            }
-            else {
-                Write-Warning "Removing group ($displayName) from vRealize Automation, does not exist: SKIPPED"
-            }
-        }
-        else {
-            Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
-        }
-    }
-    Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Remove-vRAGroup
 
 Function Get-vROPSManagementPackActivity {
     <#
