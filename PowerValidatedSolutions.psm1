@@ -33574,8 +33574,8 @@ Export-ModuleMember -Function Test-vRAConnection
 Function Test-vRAAuthentication {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:vraHeaders -Force -Confirm:$false -ErrorAction Ignore
