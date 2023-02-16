@@ -13131,38 +13131,77 @@ Function Undo-vRAGroup {
         .EXAMPLE
         Undo-vRAGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -displayName gg-vra-cloud-assembly-admins@rainpole.io
         This example removes a group from vRealize Automation by displayName.
+
+        .EXAMPLE
+        Undo-vRAGroup -direct -vraFqdn vra-on-prem.sfo.rainpole.io -vraUser configadmin -vraPass VMw@re1! -displayName gg-vra-cloud-assembly-admins@rainpole.io
+        This example removes a group from a non-vCF (on-prem) vRealize Automation instance, by displayName.
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraUser,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$displayName
+        # Common
+        [Parameter (ParameterSetName = 'vcf', Mandatory = $true)]
+        [Parameter (ParameterSetName = 'direct', Mandatory = $true)]
+        [ValidateNotNullOrEmpty()] [String]$vraUser,
+        [Parameter (ParameterSetName = 'vcf', Mandatory = $true)]
+        [Parameter (ParameterSetName = 'direct', Mandatory = $true)]
+        [ValidateNotNullOrEmpty()] [String]$vraPass,
+        [Parameter (ParameterSetName = 'vcf', Mandatory = $true)]
+        [Parameter (ParameterSetName = 'direct', Mandatory = $true)]
+        [ValidateNotNullOrEmpty()] [String]$displayName,
+        # vcf
+        [Parameter (ParameterSetName = 'vcf', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (ParameterSetName = 'vcf', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (ParameterSetName = 'vcf', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        # direct (on-prem)
+        [Parameter (ParameterSetName = 'direct', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$direct = $false,
+        [Parameter (ParameterSetName = 'direct', Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraFqdn
     )
 
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
-                        if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
-                            $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
-                            if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.displayName -eq $displayName }) {
-                                $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id 
-                                if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
-                                    Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
-                                    if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceRoleNames -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null})) {
-                                        Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
-                                    } else {
-                                        Write-Error "Removing group ($displayName) from vRealize Automation:: POST_VALIDATION_FAILED"
+        if ($PsCmdlet.ParameterSetName -eq 'vcf') {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
+                        if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
+                            if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
+                                $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
+                                if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.displayName -eq $displayName }) {
+                                    $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id 
+                                    if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
+                                        Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
+                                        if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceRoleNames -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null})) {
+                                            Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
+                                        }
+                                        else {
+                                            Write-Error "Removing group ($displayName) from vRealize Automation:: POST_VALIDATION_FAILED"
+                                        }
                                     }
-                                } else {
-                                    Write-Warning "Removing group ($displayName) from vRealize Automation:, does not exist: SKIPPED"
+                                    else {
+                                        Write-Warning "Removing group ($displayName) from vRealize Automation:, does not exist: SKIPPED"
+                                    }
                                 }
-                            } else {
-                                Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
+                                else {
+                                    Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if ($PsCmdlet.ParameterSetName -eq 'direct') {
+            if (Test-vRAConnection -server $vraFqdn) {
+                if (Test-vRAAuthentication -server $vraFqdn -user $vraUser -pass $vraPass) {
+                    $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
+                    if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.displayName -eq $displayName }) {
+                        $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id
+                        if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $null -ne $_.organizationRoles.name -or $null -ne $_.serviceRoles.serviceDefinitionId }) {
+                            Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
+                            if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $null -ne $_.organizationRoles.name -and $null -ne $_.serviceRoles.serviceRoleNames -and $null -ne $_.serviceRoles.serviceDefinitionId })) {
+                                Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
+                            }
+                            else {
+                                Write-Error "Removing group ($displayName) from vRealize Automation: POST_VALIDATION_FAILED"
                             }
                         }
                     }
