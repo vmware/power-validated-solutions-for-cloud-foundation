@@ -1,9 +1,10 @@
 # Release History
 
-## v2.1.0 (Not Released)
+## v2.0.1 (Not Released)
 
 - Added `Convert-CssClassStyle` cmdlet to modify the CSS Style in the HTML output.
 - Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
+- Added `vrli-cloud-vsphere-integration.role` role file to support adding the vRealize Log Insight Cloud to vSphere Integration role in vCenter Server.
 
 ## v2.0.0 (2023-31-01)
 
