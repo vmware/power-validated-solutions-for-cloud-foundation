@@ -15785,7 +15785,7 @@ Function Publish-SddcManagerPasswordExpiration {
                     } else {
                         $allSddcManagerPasswordExpirationObject = $allSddcManagerPasswordExpirationObject | Sort-Object 'Workload Domain', 'System', 'User' | ConvertTo-Html -Fragment -PreContent '<a id="sddcmanager-password-expiration"></a><h3>SDDC Manager - Password Expiration</h3>' -As Table
                     }
-                    $allSddcManagerPasswordExpirationObject = Convert-CssClass -htmldata $allSddcManagerPasswordExpirationObject
+                    $allSddcManagerPasswordExpirationObject = Convert-CssClassStyle -htmldata $allSddcManagerPasswordExpirationObject
                     $allSddcManagerPasswordExpirationObject
                 }
             }
