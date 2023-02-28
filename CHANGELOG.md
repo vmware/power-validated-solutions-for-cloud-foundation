@@ -1,11 +1,12 @@
 # Release History
 
-## v2.0.1 (Not Released)
+## v2.0.1 (2023-28-02)
 
 - Added `Convert-CssClassStyle` cmdlet to modify the CSS Style in the HTML output.
-- Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
 - Added `cbl-vsphere-integration.role` role file to support adding the vRealize Log Insight Cloud to vSphere Integration role in vCenter Server.
 - Added `cbo-vsphere-integration.role` role file to support adding the vRealize Operations Cloud to vSphere Integration role in vCenter Server.
+- Enhanced `Test-SSOAuthentication` cmdlet to include -SkipCertificateCheck parameter to handle platforms with self-signed certificates.
+- Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
 
 ## v2.0.0 (2023-31-01)
 
