@@ -37870,7 +37870,7 @@ Function Test-SSOAuthentication {
     )
 
     Try {
-        $Script:ssoConnectionDetail = Connect-SsoAdminServer -Server $server -User $user -Password $pass
+        $Script:ssoConnectionDetail = Connect-SsoAdminServer -Server $server -User $user -Password $pass -SkipCertificateCheck
         if ($DefaultSsoAdminServers.Name -eq $server) {
             $ssoAuthentication = $True
             Return $ssoAuthentication
