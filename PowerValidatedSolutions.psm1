@@ -118,11 +118,11 @@ Function Add-IdentitySource {
         - Configures the new LDAP/LDAPs Identity Provider as the default
 
         .EXAMPLE
-        Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldap
+        Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldap
         This example adds the sfo.rainpole.io domain as the default Identity Provider to vCenter Server using LDAP
 
         .EXAMPLE
-        Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
+        Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
         This example adds the sfo.rainpole.io domain as the default Identity Provider to vCenter Server using LDAPS
     #>
 
@@ -130,6 +130,7 @@ Function Add-IdentitySource {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindPass,
@@ -160,7 +161,7 @@ Function Add-IdentitySource {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (!(Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain })) {
@@ -170,27 +171,27 @@ Function Add-IdentitySource {
                                     } else {
                                         Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
                                     }
+                                    $managementVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
                                     if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
-                                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                        if (Test-VsphereConnection -server $($managementVcenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $managementVcenterDetails.fqdn -user $managementVcenterDetails.ssoAdmin -pass $managementVcenterDetails.ssoAdminPass) {
                                                 $scriptCommand = '/opt/vmware/bin/sso-config.sh -set_default_identity_sources -i ' + $domain + ''
                                                 Invoke-VMScript -VM $vcfVcenterDetails.vmName -ScriptText $scriptCommand -GuestUser $vcfVcenterDetails.root -GuestPassword $vcfVcenterDetails.rootPass | Out-Null
-                                                #$output = Invoke-VMScript -VM $vcfVcenterDetails.vmName -ScriptText $scriptCommand -GuestUser $vcfVcenterDetails.root -GuestPassword $vcfVcenterDetails.rootPass
                                                 Write-Output "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): SUCCESSFUL"
                                             }
                                         }
                                     } else {
                                         Write-Error "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
                                     }
-                                    Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
+                                    Disconnect-VIServer -Server $managementVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
                                 } else {
                                     Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
                                 }
-                                Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                             } else {
                                 Write-Warning "Adding Identity Source to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), already exists: SKIPPED"
                             }
                         }
+                        Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
                     }
                 }
             }
@@ -214,7 +215,7 @@ Function Undo-IdentitySource {
         - Removes the Active Directory Domain as an Identity Provider if its present
 
         .EXAMPLE
-        Undo-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io
+        Undo-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io
         This example removes the sfo.rainpole.io domain as an Identity Provider from vCenter Server
     #>
 
@@ -222,13 +223,14 @@ Function Undo-IdentitySource {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
     )
 
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
@@ -238,11 +240,11 @@ Function Undo-IdentitySource {
                                 } else {
                                     Write-Error "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
                                 }                                
-                                Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                             } else {
                                 Write-Warning "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), does not exist: SKIPPED"
                             }
                         }
+                        Disconnect-SsoAdminServer * -WarningAction SilentlyContinue; $DefaultSsoAdminServers = $null
                     }
                 }
             }
@@ -14452,7 +14454,7 @@ Function Move-VMtoFolder {
                                     Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null
                                     Write-Output "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
                                 } else {
-                                    Write-Warning "Relocating Virtual Machines in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
+                                    Write-Error "Relocating Virtual Machines in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
                                 }
                             }
                         } else {
@@ -21808,18 +21810,18 @@ Function Get-vCenterServerDetail {
                 $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
             }
             if ($vcfWorkloadDomainDetails) {
+                $vcfDetail = Get-VCFManager
                 $vcenterServerDetails = Get-VCFvCenter | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.vcenters.id) }
                 $vcenterCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($vcenterServerDetails.id) }
-                $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" }
+                $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" -and ($_.username).Split('@')[-1] -eq $vcfWorkloadDomainDetails.ssoName}
                 $vcenterServer = New-Object -TypeName psobject
                 $vcenterServer | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcenterServerDetails.fqdn
                 $vcenterServer | Add-Member -notepropertyname 'vmName' -notepropertyvalue $vcenterServerDetails.fqdn.Split(".")[0]
-                $vcfDetail = Get-VCFManager
+                
                 if ( ($vcfDetail.version).Split("-")[0] -gt "4.1.0.0") {
                     $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).username
                     $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).password
-                }
-                else {
+                } else {
                     $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "USER") }).username
                     $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "USER") }).password
                 }

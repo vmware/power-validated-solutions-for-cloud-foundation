@@ -2,6 +2,9 @@
 
 ## v2.1.0 (Not Released)
 
+- Enhanced `Get-vCenterServerDetail` cmdlet to to support VCF 5.0 and isolated workload domains.
+- Enhanced `Add-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
+- Enhanced `Undo-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
 - Fixed `Get-GlobalPermission` cmdlet where UseBasicParsing was set to false but should be true.
 
 ## v2.0.1 (2023-28-02)
