@@ -1,6 +1,12 @@
 # Release History
 
-## v2.0.1 (Not Released)
+## v2.1.0 (Not Released)
+
+- Enhanced `Get-vCenterServerDetail` cmdlet to to support VCF 5.0 and isolated workload domains.
+- Enhanced `Add-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
+- Enhanced `Undo-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
+
+## v2.0.1 (2023-28-02)
 
 - Added `Convert-CssClassStyle` cmdlet to modify the CSS Style in the HTML output.
 - Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
