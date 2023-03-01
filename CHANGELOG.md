@@ -1,5 +1,9 @@
 # Release History
 
+## v2.1.0 (Not Released)
+
+- Fixed `Get-GlobalPermission` cmdlet where UseBasicParsing was set to false but should be true.
+
 ## v2.0.1 (2023-28-02)
 
 - Added `Convert-CssClassStyle` cmdlet to modify the CSS Style in the HTML output.
