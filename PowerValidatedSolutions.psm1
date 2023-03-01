@@ -23145,7 +23145,7 @@ Function Get-GlobalPermission {
             Credential = $Global:DefaultMobServer.Credential
             Method = "POST"
             Body = $body
-            UseBasicParsing = $false
+            UseBasicParsing = $true
         }
         $response = Invoke-WebRequest @params
         $vsphereRoles = Get-VIRole | Select-Object Name, @{N="Id";E={@($_.Id)}} # Gather vSphere Roles and their Id
