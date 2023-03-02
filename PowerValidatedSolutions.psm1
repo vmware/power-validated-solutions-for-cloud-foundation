@@ -13313,7 +13313,7 @@ Function Add-SsoPermission {
                             if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                                 if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                                     if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        if ($targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnectionDetail) {
+                                        if ($targetGroup = Get-SsoGroup -Domain $vcfVcenterDetails.ssoDomain -Name $ssoGroup -Server $ssoConnectionDetail) {
                                         if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
                                                 if ($type -eq "group") {
                                                     $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
@@ -13373,7 +13373,7 @@ Function Add-SsoPermission {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                         if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if ($targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnectionDetail) {
+                                if ($targetGroup = Get-SsoGroup -Domain $vcfVcenterDetails.ssoDomain -Name $ssoGroup -Server $ssoConnectionDetail) {
                                     if (Get-IdentitySource | Where-Object { $_.Name -eq $domain }) {
                                         if ($type -eq "group") {
                                             if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail)) {
@@ -13461,7 +13461,7 @@ Function Undo-SsoPermission {
                         if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                             if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                                 if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                    if ($targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnectionDetail) {
+                                    if ($targetGroup = Get-SsoGroup -Domain $vcfVcenterDetails.ssoDomain -Name $ssoGroup -Server $ssoConnectionDetail) {
                                         if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
                                             if ($type -eq "group") {
                                                 if (Get-SsoGroup -Group $targetGroup -Name $principal) {
@@ -13509,7 +13509,7 @@ Function Undo-SsoPermission {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                         if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                             if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                if ($targetGroup = Get-SsoGroup -Domain vsphere.local -Name $ssoGroup -Server $ssoConnectionDetail) {
+                                if ($targetGroup = Get-SsoGroup -Domain $vcfVcenterDetails.ssoDomain -Name $ssoGroup -Server $ssoConnectionDetail) {
                                     if (Get-IdentitySource | Where-Object { $_.Name -eq $domain }) {
                                         if ($type -eq "group") {
                                             if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail) {
@@ -21817,6 +21817,7 @@ Function Get-vCenterServerDetail {
                 $vcenterServer = New-Object -TypeName psobject
                 $vcenterServer | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcenterServerDetails.fqdn
                 $vcenterServer | Add-Member -notepropertyname 'vmName' -notepropertyvalue $vcenterServerDetails.fqdn.Split(".")[0]
+                $vcenterServer | Add-Member -notepropertyname 'ssoDomain' -notepropertyvalue $vcfWorkloadDomainDetails.ssoName
                 
                 if ( ($vcfDetail.version).Split("-")[0] -gt "4.1.0.0") {
                     $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).username
