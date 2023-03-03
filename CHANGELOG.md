@@ -6,6 +6,9 @@
 - Enhanced `Add-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
 - Enhanced `Undo-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
 - Enhanced `Add-SsoPermission` cmdlet to support VCF 5.0 and isolated workload domains.
+- Enhanced `Undo-SsoPermission` cmdlet to support VCF 5.0 and isolated workload domains.
+- Enhanced `Add-vSphereRole` cmdlet to support VCF 5.0 and isolated workload domains.
+- Enhanced `Undo-vSphereRole` cmdlet to support VCF 5.0 and isolated workload domains.
 - Fixed `Get-GlobalPermission` cmdlet where UseBasicParsing was set to false but should be true.
 
 ## v2.0.1 (2023-28-02)
