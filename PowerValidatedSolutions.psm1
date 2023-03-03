@@ -13623,7 +13623,7 @@ Function Add-vSphereRole {
         - Assigns permissions to the role based on the template file provided
 
         .EXAMPLE
-        Add-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -roleName "NSX-T Data Center to vSphere Integration" -template .\vSphereRoles\nsx-vsphere-integration.role
+        Add-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX-T Data Center to vSphere Integration" -template .\vSphereRoles\nsx-vsphere-integration.role
         This example adds the "NSX-T Data Center to vSphere Integration" role in the management domain vCenter Server
     #>
 
@@ -13631,6 +13631,7 @@ Function Add-vSphereRole {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleName,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$template
     )
@@ -13647,7 +13648,7 @@ Function Add-vSphereRole {
 
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             $roleContent = Get-Content -Path $template
@@ -13691,7 +13692,7 @@ Function Undo-vSphereRole {
         - Verifies if the role exists and if it does removes it
 
         .EXAMPLE
-        Undo-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -roleName "NSX-T Data Center to vSphere Integration"
+        Undo-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX-T Data Center to vSphere Integration"
         This example removes the "NSX-T Data Center to vSphere Integration" role from the management domain vCenter Server
     #>
 
@@ -13699,13 +13700,14 @@ Function Undo-vSphereRole {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleName
     )
 
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (Get-VIRole -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $roleName }) {
