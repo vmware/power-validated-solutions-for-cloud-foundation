@@ -1,6 +1,6 @@
 # Release History
 
-## v2.1.0 (Not Released)
+## v2.1.0 (2023-28-03)
 
 - Enhanced `Get-vCenterServerDetail` cmdlet to to support VCF 5.0 and isolated workload domains.
 - Enhanced `Add-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
