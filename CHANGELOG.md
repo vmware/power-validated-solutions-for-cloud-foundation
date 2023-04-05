@@ -1,5 +1,10 @@
 # Release History
 
+## v2.2.0 (Not Released)
+
+- Enhanced `New-vROPSNotification` cmdlet to check that the alert plugin is valid.
+- Enhanced `Import-vROPSNotification` cmdlet to handle output from low level functions.
+
 ## v2.1.0 (2023-28-03)
 
 - Enhanced `Get-vCenterServerDetail` cmdlet to to support VCF 5.0 and isolated workload domains.
