@@ -11291,11 +11291,10 @@ Function Import-vROPSNotification {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             $StatusMsg = New-vROPSNotification $csvPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            #if ( $StatusMsg ) { Write-Output "Adding Notifications to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Seperated Value File ($csvPath): SUCCESSFUL" }
                             if ( $ErrorMsg ) {
                                 Write-Error "$ErrorMsg"
                             } else {
-                                Write-Output "Adding Notifications to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Seperated Value File ($csvPath): SUCCESSFUL"
+                                Write-Output "Adding Notifications to vRealize Operations ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Separated Value File ($csvPath): SUCCESSFUL"
                             }
                         }
                     }
@@ -34436,7 +34435,7 @@ Export-ModuleMember -Function Get-vROPSNotification
 Function New-vROPSNotification {
     <#
         .SYNOPSIS
-        Create notifications
+        Create notifications in vRealize Operations
 
         .DESCRIPTION
         The New-vROPSNotification cmdlet creates notifications in vRealize Operations
