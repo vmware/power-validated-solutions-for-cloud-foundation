@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Maintainer Edit Permissions
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v3
         if: >-
           ${{ ( env.IN_MAINTAINER_LIST == 'false' ) && (
           env.MAINTAINER_CAN_MODIFY == 'false' ) }}
