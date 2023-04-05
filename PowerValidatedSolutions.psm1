@@ -11253,20 +11253,20 @@ Export-ModuleMember -Function Add-vROPSAlertPluginEmail
 Function Import-vROPSNotification {
     <#
 		.SYNOPSIS
-        Adds notifications
+        Adds notifications to vRealize Operations
 
         .DESCRIPTION
-        The Import-vROPSNotification cmdlet adds notifications in vRealize Operations Manager. The cmdlet connects to
-        SDDC Manager using the -server, -user, and -password values.
+        The Import-vROPSNotification cmdlet adds notifications in vRealize Operations. The cmdlet connects to SDDC
+        Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that network connectivity and authentication is possible to vRealize Operations
         - Validates that the .csv provided exists
         - Adds notifications based on a .csv file into vRealize Operations Manager
 
         .EXAMPLE
         Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\vrops-vcf-notifications.csv
-        This example adds notifications based on the comma seperated value file provided
+        This example adds notifications based on the comma seperated value file provided to vRealize Operations
     #>
 
     Param (
@@ -11290,8 +11290,13 @@ Function Import-vROPSNotification {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                            New-vROPSNotification $csvPath | Out-Null
-                            Write-Output "Adding Notifications to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Seperated Value File ($csvPath): SUCCESSFUL"
+                            $StatusMsg = New-vROPSNotification $csvPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            #if ( $StatusMsg ) { Write-Output "Adding Notifications to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Seperated Value File ($csvPath): SUCCESSFUL" }
+                            if ( $ErrorMsg ) {
+                                Write-Error "$ErrorMsg"
+                            } else {
+                                Write-Output "Adding Notifications to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Seperated Value File ($csvPath): SUCCESSFUL"
+                            }
                         }
                     }
                 }
@@ -34431,70 +34436,71 @@ Export-ModuleMember -Function Get-vROPSNotification
 Function New-vROPSNotification {
     <#
         .SYNOPSIS
-        Creates notifications
+        Create notifications
 
         .DESCRIPTION
-        The New-vROPSNotification cmdlet creates notifications in vRealize Operations Manager
+        The New-vROPSNotification cmdlet creates notifications in vRealize Operations
 
         .EXAMPLE
         New-vROPSNotification -csvPath .\SampleNotifications\vropsNotifications-vcf.csv
-        This example adds all the notifications in the csv file
+        This example adds all the notifications in the csv file to vRealize Operations
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$csvPath
     )
 
-    if ($PsBoundParameters.ContainsKey("csvPath")) {
-        if (!(Test-Path $csvPath)) {
-            Throw "CSV File Not Found"
-        }
-        else {
-            $alerts = Import-CSV $csvPath | Where-Object -FilterScript { $_.alertName }
-        }
-    }
-
     Try {
-        Foreach ($alert in $alerts) {
-            $body = '{
-                "name":  "'+ $($alert.alertName) +'",
-                "pluginId":  "'+ (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $($alert.alertPluginName)}).pluginId +'",
-                "resourceKindFilters":  [
-                    {
-                        "resourceKind":  "'+ $($alert.resourceKindKey) +'",
-                        "adapterKind":  "'+ $($alert.adapterKindKey) +'"
-                    }
-                ],
-                "resourceFilters":  [ ],
-                "alertDefinitionIdFilters":  {
-                    "values":  [ "'+ $($alert.alertDefinition) +'" ]
-                },
-                "properties":  [
-                    {
-                        "name":  "maxNotify",
-                        "value":  "'+ $($alert.maxNotify) +'"
-                    },
-                    {
-                        "name":  "delay",
-                        "value":  "'+ $($alert.delay) +'"
-                    },
-                    {
-                        "name":  "emailaddr",
-                        "value":  "'+ $($alert.emailAddress) +'"
-                    },
-                    {
-                        "name":  "resend",
-                        "value":  "'+ $($alert.resend) +'"
-                    }
-                ]
-            }'
-            $uri = "https://$vropsAppliance/suite-api/api/notifications/rules"
-            if (!(Get-vROPSNotification | Where-Object {$_.name -eq $($alert.alertName)})) {
-                Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
+        if ($PsBoundParameters.ContainsKey("csvPath")) {
+            if (!(Test-Path $csvPath)) {
+                Throw "CSV File Not Found"
+            } else {
+                $alerts = Import-CSV $csvPath | Where-Object -FilterScript { $_.alertName }
             }
         }
-    }
-    Catch {
+        Foreach ($alert in $alerts) {
+            if ((Get-vROPSAlertPlugin | Where-Object {$_.name -eq $($alert.alertPluginName)})) {
+                $body = '{
+                    "name":  "'+ $($alert.alertName) +'",
+                    "pluginId":  "'+ (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $($alert.alertPluginName)}).pluginId +'",
+                    "resourceKindFilters":  [
+                        {
+                            "resourceKind":  "'+ $($alert.resourceKindKey) +'",
+                            "adapterKind":  "'+ $($alert.adapterKindKey) +'"
+                        }
+                    ],
+                    "resourceFilters":  [ ],
+                    "alertDefinitionIdFilters":  {
+                        "values":  [ "'+ $($alert.alertDefinition) +'" ]
+                    },
+                    "properties":  [
+                        {
+                            "name":  "maxNotify",
+                            "value":  "'+ $($alert.maxNotify) +'"
+                        },
+                        {
+                            "name":  "delay",
+                            "value":  "'+ $($alert.delay) +'"
+                        },
+                        {
+                            "name":  "emailaddr",
+                            "value":  "'+ $($alert.emailAddress) +'"
+                        },
+                        {
+                            "name":  "resend",
+                            "value":  "'+ $($alert.resend) +'"
+                        }
+                    ]
+                }'
+                $uri = "https://$vropsAppliance/suite-api/api/notifications/rules"
+                if (!(Get-vROPSNotification | Where-Object {$_.name -eq $($alert.alertName)})) {
+                    Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
+                }
+            } else {
+                Write-Error "Unable to Add Notification for Alert Definition ($($alert.alertDefinition)), Due to Incorrect Alert Plugin Name ($($alert.alertPluginName))"
+            }
+        }
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
