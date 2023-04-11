@@ -1,7 +1,8 @@
 # Release History
 
-## v2.2.0 (Not Released)
+## v2.1.1 (2023-11-04)
 
+- Fixed `Get-vCenterServerDetail` cmdlet to check for VMware Cloud Foundation version when looking up the vCenter Single Sign-On credentials.
 - Enhanced `New-vROPSNotification` cmdlet to check that the alert plugin is valid.
 - Enhanced `Import-vROPSNotification` cmdlet to handle output from low level functions.
 
