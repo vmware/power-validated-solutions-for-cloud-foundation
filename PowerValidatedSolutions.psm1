@@ -7461,7 +7461,7 @@ Function New-vRLIDeployment {
                             if (!($environmentExists = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $($jsonSpec.environmentName)}))) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
-                                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
+                                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             $newRequest = Add-vRSLCMEnvironment -json $json
                                             if ($newRequest) {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
@@ -15534,7 +15534,7 @@ Function Get-ADPrincipalGuid {
         The Get-ADPrincipalGuid cmdlet retrieves the GUID details for an active directory user or group Active Directory domain
 
         .EXAMPLE
-        Get-ADPrincipalGuid -domain sfo.rainple.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
+        Get-ADPrincipalGuid -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
         This example retrives the details for th gg-sso-admin domain
     #>
 
@@ -15570,6 +15570,23 @@ Export-ModuleMember -Function Get-ADPrincipalGuid
 #Region     Begin Cloud Foundation Functions                   ######
 
 Function Get-vCenterServerDetail {
+    <#
+        .SYNOPSIS
+        Get vCenter Server details from SDDC Manager
+
+        .DESCRIPTION
+        The Get-vCenterServerDetail cmdlet retrieves the VM hostname, FQDN, root and vCenter Single Sign-On credentials
+        of a vCenter Server for a given Workload Domain.
+
+        .EXAMPLE
+        Get-vCenterServerDetail -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -domainType MANAGEMENT
+        This example retrives the vCenter Server details for the Workload Domain with a type of MANAGEMENT
+
+        .EXAMPLE
+        Get-vCenterServerDetail -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -domain sfo-w01
+        This example retrives the vCenter Server details for the Workload Domain sfo-w01
+    #>
+
     Param (
         [Parameter (Mandatory = $false)] [String]$server,
         [Parameter (Mandatory = $false)] [String]$user,
@@ -15588,48 +15605,46 @@ Function Get-vCenterServerDetail {
         if (!$PsBoundParameters.ContainsKey("server")) {
             $server = Read-Host "SDDC Manager access token not found. Please enter the SDDC Manager FQDN, e.g., sfo-vcf01.sfo.rainpole.io"
         }
-        Request-VCFToken -fqdn $server -Username $user -Password $pass | Out-Null
 
-        if ($accessToken) {
-            if ($PsBoundParameters.ContainsKey("domainType")) {
-                # Dynamically build vCenter Server details based on Cloud Foundation domain type
-                $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.type -eq $domainType }
-            }
-            if ($PsBoundParameters.ContainsKey("domain")) {
-                # Dynamically build vCenter Server details based on Cloud Foundation domain name
-                $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
-            }
-            if ($vcfWorkloadDomainDetails) {
-                $vcfDetail = Get-VCFManager
-                $vcenterServerDetails = Get-VCFvCenter | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.vcenters.id) }
-                $vcenterCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($vcenterServerDetails.id) }
-                if ( ($vcfDetail.version).Split("-")[0] -gt "4.5.0.0") {
-                    $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" -and ($_.username).Split('@')[-1] -eq $vcfWorkloadDomainDetails.ssoName}
-                } else {
-                    $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" }
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if ($PsBoundParameters.ContainsKey("domainType")) {
+                    # Dynamically build vCenter Server details based on Workload Domain type
+                    $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.type -eq $domainType }
                 }
-                $vcenterServer = New-Object -TypeName psobject
-                $vcenterServer | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcenterServerDetails.fqdn
-                $vcenterServer | Add-Member -notepropertyname 'vmName' -notepropertyvalue $vcenterServerDetails.fqdn.Split(".")[0]
-                $vcenterServer | Add-Member -notepropertyname 'ssoDomain' -notepropertyvalue $vcfWorkloadDomainDetails.ssoName
-                
-                if ( ($vcfDetail.version).Split("-")[0] -gt "4.1.0.0") {
-                    $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).username
-                    $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).password
-                } else {
-                    $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "USER") }).username
-                    $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "USER") }).password
+                if ($PsBoundParameters.ContainsKey("domain")) {
+                    # Dynamically build vCenter Server details based on Workload Domain name
+                    $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
                 }
-                $vcenterServer | Add-Member -notepropertyname 'root' -notepropertyvalue ($vcenterCredentialDetails | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "USER") }).username
-                $vcenterServer | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($vcenterCredentialDetails | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "USER") }).password
-                $vcenterServer
+                if ($vcfWorkloadDomainDetails) {
+                    $vcfDetail = Get-VCFManager
+                    $vcenterServerDetails = Get-VCFvCenter | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.vcenters.id) }
+                    $vcenterCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($vcenterServerDetails.id) }
+                    if ( ($vcfDetail.version).Split("-")[0] -gt "4.5.0.0") {
+                        $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" -and ($_.username).Split('@')[-1] -eq $vcfWorkloadDomainDetails.ssoName}
+                    } else {
+                        $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" }
+                    }
+                    $vcenterServer = New-Object -TypeName psobject
+                    $vcenterServer | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcenterServerDetails.fqdn
+                    $vcenterServer | Add-Member -notepropertyname 'vmName' -notepropertyvalue $vcenterServerDetails.fqdn.Split(".")[0]
+                    $vcenterServer | Add-Member -notepropertyname 'ssoDomain' -notepropertyvalue $vcfWorkloadDomainDetails.ssoName
+                    
+                    if ( ($vcfDetail.version).Split("-")[0] -gt "4.1.0.0") {
+                        $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).username
+                        $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).password
+                    } else {
+                        $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "USER") }).username
+                        $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "USER") }).password
+                    }
+                    $vcenterServer | Add-Member -notepropertyname 'root' -notepropertyvalue ($vcenterCredentialDetails | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "USER") }).username
+                    $vcenterServer | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($vcenterCredentialDetails | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "USER") }).password
+                    $vcenterServer
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
             }
-            else {
-                Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-            }
-        }
-        else {
-            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
         }
     }
     Catch {
@@ -15639,6 +15654,23 @@ Function Get-vCenterServerDetail {
 Export-ModuleMember -Function Get-vCenterServerDetail
 
 Function Get-NsxtServerDetail {
+    <#
+        .SYNOPSIS
+        Get NSX-T details from SDDC Manager
+
+        .DESCRIPTION
+        The Get-NsxtServerDetail cmdlet retrieves the FQDN, root and admin credentials of NSX-T for a given
+        Workload Domain.
+
+        .EXAMPLE
+        Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domainType MANAGEMENT
+        This example retrives the vCenter Server details for the Workload Domain with a type of MANAGEMENT
+
+        .EXAMPLE
+        Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domain sfo-w01
+        This example retrives the vCenter Server details for the Workload Domain sfo-w01
+    #>
+
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
         [Parameter (Mandatory = $false)] [String]$username,
@@ -15658,40 +15690,37 @@ Function Get-NsxtServerDetail {
         if (!$PsBoundParameters.ContainsKey("fqdn")) {
             $fqdn = Read-Host "SDDC Manager access token not found. Please enter the SDDC Manager FQDN, e.g., sfo-vcf01.sfo.rainpole.io"
         }
-        Request-VCFToken -fqdn $fqdn -Username $username -Password $password | Out-Null
 
-        if ($accessToken) {
-            if ($PsBoundParameters.ContainsKey("domainType")) {
-                # Dynamically build vCenter Server details based on Cloud Foundation domain type
-                $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.type -eq $domainType }
-            }
-            if ($PsBoundParameters.ContainsKey("domain")) {
-                # Dynamically build vCenter Server details based on Cloud Foundation domain name
-                $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
-            }
-            if ($vcfWorkloadDomainDetails) {
-                $nsxtServerDetails = Get-VCFNsxtcluster | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.nsxtCluster.id) }
-                $nsxtCreds = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($nsxtServerDetails.id) }
+        if (Test-VCFConnection -server $fqdn) {
+            if (Test-VCFAuthentication -server $fqdn -user $username -pass $password) {
+                if ($PsBoundParameters.ContainsKey("domainType")) {
+                    # Dynamically build NSX-T details based on the Workload Domain type
+                    $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.type -eq $domainType }
+                }
+                if ($PsBoundParameters.ContainsKey("domain")) {
+                    # Dynamically build NSX-T details based on the Workload Domain name
+                    $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
+                }
+                if ($vcfWorkloadDomainDetails) {
+                    $nsxtServerDetails = Get-VCFNsxtcluster | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.nsxtCluster.id) }
+                    $nsxtCreds = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($nsxtServerDetails.id) }
 
-                $nsxtCluster = New-Object -TypeName PSCustomObject
-                $nsxtCluster | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $nsxtServerDetails.vipFqdn
-                $nsxtCluster | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username 
-                $nsxtCluster | Add-Member -notepropertyname 'adminPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
-                $nsxtCluster | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username
-                $nsxtCluster | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
-                if ($listNodes) {
-					$nsxtCluster | Add-Member -notepropertyname 'nodes' -notepropertyvalue $nsxtServerDetails.nodes
-				}
-				$nsxtCluster
+                    $nsxtCluster = New-Object -TypeName PSCustomObject
+                    $nsxtCluster | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $nsxtServerDetails.vipFqdn
+                    $nsxtCluster | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username 
+                    $nsxtCluster | Add-Member -notepropertyname 'adminPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
+                    $nsxtCluster | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username
+                    $nsxtCluster | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
+                    if ($listNodes) {
+                        $nsxtCluster | Add-Member -notepropertyname 'nodes' -notepropertyvalue $nsxtServerDetails.nodes
+                    }
+                    $nsxtCluster
+                }
+                else {
+                    Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                    Break
+                }
             }
-            else {
-                Write-Error "Workload domainType or domain name does not exist"
-                Break
-            }
-        }
-        else {
-            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials"
-            Break
         }
     }
     Catch {
@@ -15701,6 +15730,19 @@ Function Get-NsxtServerDetail {
 Export-ModuleMember -Function Get-NsxtServerDetail
 
 Function Get-vRSLCMServerDetail {
+    <#
+        .SYNOPSIS
+        Get vRealize Suite Lifecycle Manager details from SDDC Manager
+
+        .DESCRIPTION
+        The Get-WSAServerDetail cmdlet retrieves the FQDN, root and admin credentials of vRealize Suite Lifecycle
+        Manager from SDDC Manager.
+
+        .EXAMPLE
+        Get-vRSLCMServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
+        This example retrives the vRealize Suite Lifecycle Manager details from SDDC Manager
+    #>
+
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
         [Parameter (Mandatory = $false)] [String]$username,
@@ -15745,6 +15787,19 @@ Function Get-vRSLCMServerDetail {
 Export-ModuleMember -Function Get-vRSLCMServerDetail
 
 Function Get-WSAServerDetail {
+    <#
+        .SYNOPSIS
+        Get Workspace ONE Access details from SDDC Manager
+
+        .DESCRIPTION
+        The Get-WSAServerDetail cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of Workspace ONE Access
+        from SDDC Manager.
+
+        .EXAMPLE
+        Get-WSAServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
+        This example retrives the Workspace ONE Access details from SDDC Manager
+    #>
+
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
         [Parameter (Mandatory = $false)] [String]$username,
@@ -15789,6 +15844,19 @@ Function Get-WSAServerDetail {
 Export-ModuleMember -Function Get-WSAServerDetail
 
 Function Get-vRAServerDetail {
+    <#
+        .SYNOPSIS
+        Get vRealize Automation details from SDDC Manager
+
+        .DESCRIPTION
+        The Get-vRAServerDetail cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of vRealize Automation
+        from SDDC Manager.
+
+        .EXAMPLE
+        Get-vRAServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
+        This example retrives the vRealize Automation details from SDDC Manager
+    #>
+
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
         [Parameter (Mandatory = $false)] [String]$username,
@@ -15834,17 +15902,17 @@ Export-ModuleMember -Function Get-vRAServerDetail
 
 Function Get-vROPsServerDetail {
     <#
-		.SYNOPSIS
-    	Gather details about vRealize Operations Manager
+        .SYNOPSIS
+        Get vRealize Operations details from SDDC Manager
 
-    	.DESCRIPTION
-    	The Get-vROPsServerDetail cmdlet connects to SDDC Manager and gathers details about vRealize Operations Manager
-        from the SDDC Manager inventory.
+        .DESCRIPTION
+        The Get-vROPsServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of vRealize
+        Operations from SDDC Manager.
 
-    	.EXAMPLE
-    	Get-vROPsServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
-        This example gathers details about vRealize Opertations Manager
-  	#>
+        .EXAMPLE
+        Get-vROPsServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
+        This example retrives the vRealize Operations details from SDDC Manager
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -15898,6 +15966,19 @@ Function Get-vROPsServerDetail {
 Export-ModuleMember -Function Get-vROPsServerDetail
 
 Function Get-vRLIServerDetail {
+    <#
+        .SYNOPSIS
+        Get vRealize Log Insight details from SDDC Manager
+
+        .DESCRIPTION
+        The Get-vRLIServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of vRealize
+        Log Insight from SDDC Manager.
+
+        .EXAMPLE
+        Get-vRLIServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
+        This example retrives the vRealize Log Insight details from SDDC Manager
+    #>
+
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
         [Parameter (Mandatory = $false)] [String]$username,
@@ -31563,21 +31644,43 @@ Function createGitHubAuthHeader {
 #Region     Start of Test Functions                            ######
 
 Function Test-VCFConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to SDDC Manager
+
+        .DESCRIPTION
+        Checks the network connectivity to SDDC Manager. Supports testing a connection on ports 443 (HTTPS) and 22 (SSH)
+        only. If no port is provided it will default to port 443 (HTTPS).
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo-vcf01.sfo.rainpole.io
+        This example checks network connectivity with SDDC Manager on port 443 (HTTPS)
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo-vcf01.sfo.rainpole.io -port 22
+        This example checks network connectivity with SDDC Manager on port 22 (SSH)
+    #>
+
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vcfConnection = $True
-        Return $vcfConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with SDDC Manager ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
-        $vcfConnection = $False
-        Return $vcfConnection
+    Try {
+        $OriginalProgressPreference = $Global:ProgressPreference; $Global:ProgressPreference = 'SilentlyContinue'
+        if ($status = Test-NetConnection -Port $port -ComputerName $server -WarningAction SilentlyContinue ) {
+            $Global:ProgressPreference = $OriginalProgressPreference
+            Return $status.TcpTestSucceeded
+        }   
+        else { 
+            Write-Error "Unable to Communicate with SDDC Manager ($server) on Port ($port), Check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            $Global:ProgressPreference = $OriginalProgressPreference
+            Return $status.TcpTestSucceeded
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Test-VCFConnection
 
 Function Test-VCFAuthentication {
     Param (
