@@ -2,7 +2,7 @@
 
 ## v2.2.0 (Not Released)
 
-- Moved all Password Policy Configuration Functions to new VMware.CloudFoundation.PasswordManagement module.
+- Moved all Password Policy Configuration Functions to new `VMware.CloudFoundation.PasswordManagement` module.
 
 ## v2.1.1 (2023-11-04)
 
