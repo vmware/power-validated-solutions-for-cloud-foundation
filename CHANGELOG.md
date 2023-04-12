@@ -4,6 +4,18 @@
 
 - Moved all Password Policy Configuration Functions to new `VMware.CloudFoundation.PasswordManagement` module.
 
+### Deprecation
+
+- Removed `Get-EsxiPasswordPolicy`
+- Removed `Set-EsxiPasswordExpirationPeriod`
+- Removed `Set-EsxiPasswordPolicy`
+- Removed `Get-VCServerPasswordPolicy`
+- Removed `Get-SsoPasswordPolicies`
+- Removed `Get-NsxtManagerAuthenticationPolicy`
+- Removed `Set-NsxtManagerAuthenticationPolicy`
+- Removed `Get-NsxtEdgeNodeAuthenticationPolicy`
+- Removed `Set-NsxtEdgeNodeAuthenticationPolicy`
+
 ## v2.1.1 (2023-11-04)
 
 - Fixed `Get-vCenterServerDetail` cmdlet to check for VMware Cloud Foundation version when looking up the vCenter Single Sign-On credentials.
