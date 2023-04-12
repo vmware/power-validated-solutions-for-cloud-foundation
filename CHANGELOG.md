@@ -3,6 +3,16 @@
 ## v2.2.0 (Not Released)
 
 - Moved all Password Policy Configuration Functions to new `VMware.CloudFoundation.PasswordManagement` module.
+- Fixed `New-vRLIDeployment` cmdlet where in some scenarios it was failing to find the license alias.
+- Enhanced `Test-VCFConnection` cmdlet to use `Test-NetConnection` with ports 443 (HTTPS) and 22 (SSH) instead of ICMP.
+- Enhanced `Get-vCenterServerDetail` cmdlet with examples and utilizing `Test-VCFConnection` and `Test-VCFAuthentication`.
+- Enhanced `Get-NsxtServerDetail` cmdlet with examples and utilizing `Test-VCFConnection` and `Test-VCFAuthentication`.
+- Enhanced `Get-vRSLCMServerDetail` cmdlet with a synopsis and examples.
+- Enhanced `Get-WSAServerDetail` cmdlet with a synopsis and examples.
+- Enhanced `Get-vRAServerDetail` cmdlet with a synopsis and examples.
+- Enhanced `Get-vROPsServerDetail` cmdlet with a synopsis and examples.
+- Enhanced `Get-vRLIServerDetail` cmdlet with a synopsis and examples.
+
 
 ## v2.1.1 (2023-11-04)
 
