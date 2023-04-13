@@ -12,7 +12,8 @@
 - Enhanced `Get-vRAServerDetail` cmdlet with a synopsis and examples.
 - Enhanced `Get-vROPsServerDetail` cmdlet with a synopsis and examples.
 - Enhanced `Get-vRLIServerDetail` cmdlet with a synopsis and examples.
-
+- Added `Test-PowerValidatedSolutionsPrereq` cmdlet to perform a check for the installation of prerequisite PowerShell modules.
+- Added `Show-PowerValidatedSolutionsOutput` cmdlet to handle formatting of output to the console when PowerVCF is not installed.
 
 ### Deprecation
 
@@ -25,6 +26,7 @@
 - Removed `Set-NsxtManagerAuthenticationPolicy`
 - Removed `Get-NsxtEdgeNodeAuthenticationPolicy`
 - Removed `Set-NsxtEdgeNodeAuthenticationPolicy`
+- Removed `Confirm-PSModule`
 
 ## v2.1.1 (2023-11-04)
 
