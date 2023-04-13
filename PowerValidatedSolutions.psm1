@@ -37,68 +37,6 @@ if ($PSEdition -eq 'Desktop') {
     }
 }
 
-Function Confirm-PSModule {
-    <#
-        .SYNOPSIS
-        Checks the status of a PowerShell module
-
-        .DESCRIPTION
-        Checks the status of the PowerShell module passed. Logic:
-        - Check if module is imported into the current session
-        - If module is not imported, check if available on disk and try to import
-        - If module is not imported & not available on disk, try PSGallery then install and import
-        - If module is not imported, not available and not in online gallery then abort
-
-        Informing user only if the module needs importing/installing. If the module is already present nothing will be displayed.
-
-        .EXAMPLE
-        Confirm-PSModule -moduleName 'VMware.vSphere.SsoAdmin'
-        This example will check if the current PowerShell session has VMware.vSphere.SsoAdmin installed, if not will try to install it
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$moduleName
-    )
-
-    # Check if module is imported into the current session
-    if (Get-Module -Name $moduleName) {
-        $searchResult = "ALREADY_IMPORTED"
-    } else {
-        # If module is not imported, check if available on disk and try to import
-        if (Get-Module -ListAvailable | Where-Object { $_.Name -eq $moduleName }) {
-            Try {
-                "`n Module $moduleName not loaded, importing now please wait..."
-                Import-Module $moduleName
-                Write-Output " Module $moduleName imported successfully."
-                $searchResult = "IMPORTED"
-            }
-            Catch {
-                $searchResult = "IMPORT_FAILED"
-            }
-        } else {
-            # If module is not imported & not available on disk, try PSGallery then install and import
-            if (Find-Module -Name $moduleName | Where-Object { $_.Name -eq $moduleName }) {
-                Try {
-                    Write-Output "`n Module $moduleName was missing, installing now please wait..."
-                    Install-Module -Name $moduleName -Force -Scope CurrentUser
-                    Write-Output " Importing module $moduleName, please wait..."
-                    Import-Module $moduleName
-                    Write-Output " Module $moduleName installed and imported"
-                    $searchResult = "INSTALLED_IMPORTED"
-                }
-                Catch {
-                    $searchResult = "INSTALL_IMPORT_FAILED"
-                }
-            } else {
-                # If module is not imported, not available and not in online gallery then abort
-                $searchResult = "NOT_AVAILABLE"
-            }
-        }
-    }
-    Return $searchResult
-}
-Export-ModuleMember -Function Confirm-PSModule
-
 #######################################################################################################################
 #Region             I D E N T I T Y  A N D  A C C E S S  M A N A G E M E N T  F U N C T I O N S             ###########
 
@@ -31493,6 +31431,37 @@ Export-ModuleMember -Function Set-SrmVamiCertificate
 #####################################################################
 #Region     Start Utility Functions                            ######
 
+Function Show-PowerValidatedSolutionsOutput {
+    Param (
+        [Parameter (Mandatory = $true)] [AllowEmptyString()] [String]$message,
+        [Parameter (Mandatory = $false)] [ValidateSet("INFO", "ERROR", "WARNING", "EXCEPTION","ADVISORY","NOTE","QUESTION","WAIT")] [String]$type = "INFO",
+        [Parameter (Mandatory = $false)] [Switch]$skipnewline
+    )
+
+    If ($type -eq "INFO") {
+        $messageColour = "92m" #Green
+    } elseIf ($type -in "ERROR","EXCEPTION") {
+        $messageColour = "91m" # Red
+    } elseIf ($type -in "WARNING","ADVISORY","QUESTION") {
+        $messageColour = "93m" #Yellow
+    } elseIf ($type -in "NOTE","WAIT") {
+        $messageColour = "97m" # White
+    }
+
+    $ESC = [char]0x1b
+    $timestampColour = "97m"
+
+    $timeStamp = Get-Date -Format "MM-dd-yyyy_HH:mm:ss"
+
+    If ($skipnewline) {
+        Write-Host -NoNewline "$ESC[${timestampcolour} [$timestamp]$ESC[${threadColour} $ESC[${messageColour} [$type] $message$ESC[0m"
+    } else {
+        Write-Host "$ESC[${timestampcolour} [$timestamp]$ESC[${threadColour} $ESC[${messageColour} [$type] $message$ESC[0m"
+    }
+}
+Export-ModuleMember -Function Show-PowerValidatedSolutionsOutput
+
+
 Function internalCatchWriter ($applianceName, $applianceFqdn) {
     if ($_.Exception.Message -match "400") {
         Write-Error "400 (Bad Request: ($_.Exception.ErrorLabel)"
@@ -31642,6 +31611,47 @@ Function createGitHubAuthHeader {
 
 #####################################################################
 #Region     Start of Test Functions                            ######
+
+Function Test-PowerValidatedSolutionsPrereq {
+    <#
+		.SYNOPSIS
+        Validate prerequisites to run the PowerShell module.
+
+        .DESCRIPTION
+        The Test-PowerValidatedSolutionsPrereq cmdlet checks that all the prerequisites have been met to run the PowerShell module.
+
+        .EXAMPLE
+        Test-PowerValidatedSolutionsPrereq
+        This example runs the prerequisite validation.
+    #>
+
+    Try {
+        Clear-Host; Write-Host ""
+
+        $modules = @(
+            @{ Name=("VMware.PowerCLI"); MinimumVersion=("13.0.0")}
+            @{ Name=("VMware.vSphere.SsoAdmin"); MinimumVersion=("1.3.9")}
+            @{ Name=("ImportExcel"); MinimumVersion=("7.8.4")}
+            @{ Name=("PowerVCF"); MinimumVersion=("2.2.0")}
+        )
+
+        foreach ($module in $modules ) {
+            if ((Get-InstalledModule -ErrorAction SilentlyContinue -Name $module.Name).Version -lt $module.MinimumVersion) {
+                $message = "PowerShell Module: $($module.Name) $($module.MinimumVersion) is not installed."
+                Show-PowerValidatedSolutionsOutput -type ERROR -message $message
+                Break
+            } else {
+                $moduleCurrentVersion = (Get-InstalledModule -Name $module.Name).Version
+                $message = "PowerShell Module: $($module.Name) $($moduleCurrentVersion) is installed and supports the minimum required version."
+                Show-PowerValidatedSolutionsOutput -type INFO -message $message
+            }
+        } 
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-PowerValidatedSolutionsPrereq
 
 Function Test-VCFConnection {
     <#
