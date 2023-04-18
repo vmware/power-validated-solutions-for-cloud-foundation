@@ -16294,7 +16294,7 @@ Function Connect-vSphereMobServer {
             $null = $response -match 'name="vmware-session-nonce" type="hidden" value="?([^\s^"]+)"'
             $Global:DefaultMobServer.SessionNonce = $matches[1]
             $Global:DefaultMobServer.WebSession = $mobSession
-            Write-Verbose "Connected to vSphere MOB Server ($($Global:DefaultMobServer.Server))"
+            Write-Output "Connected to vSphere MOB Server ($($Global:DefaultMobServer.Server))"
         }
         else {
             Throw "Failed to login to vSphere MOB Server ($($Global:DefaultMobServer.Server))"
@@ -31691,6 +31691,7 @@ Function Test-VCFConnection {
         $_.Exception.Message
     }
 }
+Export-ModuleMember -Function Test-VCFConnection
 
 Function Test-VCFAuthentication {
     Param (
