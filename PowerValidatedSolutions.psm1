@@ -16968,7 +16968,10 @@ Function Get-GlobalPermission {
                 $roleLookup."$($role.Id)" = $role.Name
             }
         # Extract the data from the parsed HTML
-        $table = $response.ParsedHtml.body.getElementsByTagName("table")[3]
+        $html = New-Object -Com "HTMLFile"
+		[string]$htmlBody = $response.Content
+		$html.write([ref]$htmlBody)
+        $table = $html.getElementsByTagName("table")[3]
         $td = $table.getElementsByTagName("tr")[4].getElementsByTagName("td")[2]
         $li = $td.getElementsByTagName("ul")[0].getElementsByTagName("li")
             
