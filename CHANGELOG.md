@@ -14,6 +14,7 @@
 - Enhanced `Get-vRLIServerDetail` cmdlet with a synopsis and examples.
 - Added `Test-PowerValidatedSolutionsPrereq` cmdlet to perform a check for the installation of prerequisite PowerShell modules.
 - Added `Show-PowerValidatedSolutionsOutput` cmdlet to handle formatting of output to the console when PowerVCF is not installed.
+- Fixed `Get-GlobalPermission` cmdlet to correclty read the HTML response data.
 
 ### Deprecation
 
