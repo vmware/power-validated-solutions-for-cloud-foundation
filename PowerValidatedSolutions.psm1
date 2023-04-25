@@ -7161,13 +7161,18 @@ Function Export-vRLIJsonSpec {
         .EXAMPLE
         Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example creates a JSON specification file for deploying vRealize Log Insight using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.4
+        This example creates a JSON specification file for deploying vRealize Log Insight using a custom version and the Planning and Preparation Workbook data
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     Try {
@@ -7307,11 +7312,15 @@ Function Export-vRLIJsonSpec {
                                         }
 
                                         #### Generate the vRealize Log Insight Properties Section
-                                        if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0"}
-                                        if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1"}
-                                        if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2"}
-                                        if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2"}
-										if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2"}
+                                        if (!$PsBoundParameters.ContainsKey("customVersion")) { 
+                                            if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0" }
+                                            if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1" }
+                                            if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
+                                            if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
+                                            if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
+                                        } else {
+                                            $vrliVersion = $customVersion
+                                        }
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
                                             'id' 			= "vrli"
@@ -7367,6 +7376,10 @@ Function New-vRLIDeployment {
         .EXAMPLE
         New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example starts a deployment of vRealize Log Inisght via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.2
+        This example starts a deployment of a custom version of vRealize Log Inisght via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -7374,7 +7387,8 @@ Function New-vRLIDeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     Try {
@@ -7393,7 +7407,11 @@ Function New-vRLIDeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            if (!($PsBoundParameters.ContainsKey("customVersion"))) {
+                                Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            } else {
+                                Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
+                            }
                             $json = (Get-Content -Raw .\vrliDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!($environmentExists = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $($jsonSpec.environmentName)}))) {
@@ -9187,6 +9205,10 @@ Function Export-vROPsJsonSpec {
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
         This example creates a reduce footprint JSON specification file for deploying vRealize Operations Manager using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
+        This example creates a reduce footprint JSON specification file for deploying vRealize Operations Manager using a custom version and the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -9194,7 +9216,8 @@ Function Export-vROPsJsonSpec {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     Try {
@@ -9416,11 +9439,15 @@ Function Export-vROPsJsonSpec {
                                                 }
 
                                                 #### Generate the vRealize Operations Manager Properties Section
-                                                if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
-                                                if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
-                                                if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
-                                                if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
-												if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
+                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                    if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
+                                                    if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
+                                                    if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
+                                                    if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
+                                                    if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
+                                                } else {
+                                                    $vropsVersion = $customVersion
+                                                }
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vrops"
@@ -9478,24 +9505,28 @@ Export-ModuleMember -Function Export-vROPsJsonSpec
 Function New-vROPSDeployment {
     <#
         .SYNOPSIS
-        Deploy vRealize Operations Manager to vRealize Suite Lifecycle Manager
+        Deploy vRealize Operations to vRealize Suite Lifecycle Manager
 
         .DESCRIPTION
-        The New-vROPSDeployment cmdlet deploys vRealize Operations Manager via vRealize Suite Lifecycle Manager. The
+        The New-vROPSDeployment cmdlet deploys vRealize Operations via vRealize Suite Lifecycle Manager. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Suite Lifecycle Manager has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
         - Validates that the environment does not already exist in vRealize Suite Lifecycle Manager
-        - Requests a new deployment of vRealize Operations Manager via vRealize Suite Lifecycle Manager
+        - Requests a new deployment of vRealize Operations via vRealize Suite Lifecycle Manager
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of vRealize Operations Manager via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a deployment of vRealize Operations via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
-        This example starts a reduce footprint deployment of vRealize Operations Manager via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a reduce footprint deployment of vRealize Operations via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
+        This example starts a deployment using a custom version of vRealize Operations via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -9504,7 +9535,8 @@ Function New-vROPSDeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -9522,17 +9554,25 @@ Function New-vROPSDeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (!$PsBoundParameters.ContainsKey("nested")) {
-                                Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass | Out-Null
+                            if (!($PsBoundParameters.ContainsKey("customVersion"))) {
+                                if (!$PsBoundParameters.ContainsKey("nested")) {
+                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass | Out-Null
+                                } else {
+                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested | Out-Null
+                                }
                             } else {
-                                Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested | Out-Null
+                                if (!$PsBoundParameters.ContainsKey("nested")) {
+                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -customVersion $customVersion | Out-Null
+                                } else {
+                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested -customVersion $customVersion | Out-Null
+                                }
                             }
                             $json = (Get-Content -Raw .\vropsDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
-                                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
+                                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
                                             } else {
@@ -11440,13 +11480,18 @@ Function Export-vRAJsonSpec {
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example creates a JSON deployment specification of vRealize Automation using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
+        This example creates a JSON deployment specification of vRealize Automation using a custom version and the Planning and Preparation Workbook
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     Try {
@@ -11590,11 +11635,15 @@ Function Export-vRAJsonSpec {
                                                 }
 
                                                 #### Generate the vRealize Automation Properties Section
-                                                if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1"}
-                                                if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0"}
-                                                if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2"}
-                                                if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2"}
-												if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2"}
+                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                    if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1" }
+                                                    if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0" }
+                                                    if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
+                                                    if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
+                                                    if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
+                                                } else {
+                                                    $vraVersion = $customVersion
+                                                }
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vra"
@@ -11664,6 +11713,10 @@ Function New-vRADeployment {
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
         This example starts a deployment of vRealize Automation using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
+        This example starts a deployment of vRealize Automation using a custom version and the Planning and Preparation Workbook
     #>
 
     Param (
@@ -11671,7 +11724,8 @@ Function New-vRADeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -11689,13 +11743,17 @@ Function New-vRADeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            } else {
+                                Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
+                            }
                             $json = (Get-Content -Raw .\vraDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
-                                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -Match $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
+                                        if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $($jsonSpec.products.properties.licenseRef.Split(":")[3])}) {
                                             if ($jsonSpec.environmentId) {
                                                 $newRequest = Add-vRSLCMEnvironment -json $json -environmentId $jsonSpec.environmentId -addProduct
                                             } else {
@@ -23745,6 +23803,10 @@ Function Export-WsaJsonSpec {
         .EXAMPLE
         Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
         This example creates a JSON deployment specification of Standard Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
+        This example creates a JSON deployment specification of Standard Workspace ONE Access using a custom version and the Planning and Preparation Workbook
     #>
 
     Param (
@@ -23752,7 +23814,8 @@ Function Export-WsaJsonSpec {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     Try {
@@ -23911,11 +23974,15 @@ Function Export-WsaJsonSpec {
                                                 }
 
                                                 #### Generate the Workspace ONE Properties Section
-                                                if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5"}
-                                                if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5"}
-                                                if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
-                                                if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
-												if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
+                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                    if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5"}
+                                                    if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5"}
+                                                    if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
+                                                    if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
+                                                    if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
+                                                } else {
+                                                    $wsaVersion = $customVersion
+                                                }
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vidm"
@@ -23989,6 +24056,10 @@ Function New-WSADeployment {
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
         This example starts a deployment of Standard Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
+        This example starts a deployment of Clustered Workspace ONE Access using a custom version and the Planning and Preparation Workbook
     #>
 
     Param (
@@ -23997,7 +24068,8 @@ Function New-WSADeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -24018,10 +24090,18 @@ Function New-WSADeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (!$PsBoundParameters.ContainsKey("standard")) {
-                                Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                            if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                if (!$PsBoundParameters.ContainsKey("standard")) {
+                                    Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                                } else {
+                                    Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -standard | Out-Null
+                                }
                             } else {
-                                Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -standard | Out-Null
+                                if (!$PsBoundParameters.ContainsKey("standard")) {
+                                    Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
+                                } else {
+                                    Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -standard -customVersion $customVersion | Out-Null
+                                }
                             }
                             $json = (Get-Content -Raw .\wsaDeploymentSpec.json)
                             $jsonSpec = $json | ConvertFrom-Json

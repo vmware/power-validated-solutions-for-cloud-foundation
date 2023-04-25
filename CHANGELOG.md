@@ -2,7 +2,16 @@
 
 ## v2.3.0 (Not Released)
 
-- 
+- Fixed `New-vROPSDeployment` license check in vRealize Suite Lifecycle Manager locker.
+- Fixed `New-vRADeployment` license check in vRealize Suite Lifecycle Manager locker.
+- Enhanced `Export-vRLIJsonSpec` with a new switch to define a custom version of vRealize Log Insight to deploy.
+- Enhanced `New-vRLIDeployment` with a new switch to define a custom version of vRealize Log Insight to deploy.
+- Enhanced `Export-vROPSJsonSpec` with a new switch to define a custom version of vRealize Operations to deploy.
+- Enhanced `New-vROPSDeployment` with a new switch to define a custom version of vRealize Operations to deploy.
+- Enhanced `Export-vRAJsonSpec` with a new switch to define a custom version of vRealize Automation to deploy.
+- Enhanced `New-vRADeployment` with a new switch to define a custom version of vRealize Automation to deploy.
+- Enhanced `Export-WSAJsonSpec` with a new switch to define a custom version of Workspace ONE Access to deploy.
+- Enhanced `New-WSADeployment` with a new switch to define a custom version of Workspace ONE Access to deploy.
 
 ## v2.2.0 (2023-04-25)
 
