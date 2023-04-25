@@ -1,6 +1,6 @@
 # Release History
 
-## v2.2.0 (Not Released)
+## v2.2.0 (2023-04-25)
 
 - Moved all Password Policy Configuration Functions to new `VMware.CloudFoundation.PasswordManagement` module.
 - Fixed `New-vRLIDeployment` cmdlet where in some scenarios it was failing to find the license alias.

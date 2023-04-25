@@ -26,16 +26,15 @@ This infrastructure-as-code model enables you to use the module "out-of-the-box"
 
 * [`VMware.PowerCLI`][module-vmware-powercli] 13.0.0 or higher
 * [`VMware.vSphere.SsoAdmin`][module-vmware-vsphere-ssoadmin] 1.3.9 or higher
+* [`ImportExcel`][module-importexcel] 7.8.4 or higher
 * [`PowerVCF`][module-powervcf] 2.3.0 or higher
-* [`ImportExcel`][module-importexcel] 7.1.1 or higher
+
 
 ## Installing the Module
 
-If you want to use this PowerShell module to perform implementation and configuration procedures, you must install the modules and its pre-requisites from the PowerShell Gallery.
-
 Verify that your system has a supported edition and version of PowerShell installed.
 
-Install the supporting PowerShell modules from the PowerShell Gallery by running the following commands:
+Install the supporting PowerShell modules from the Microsoft PowerShell Gallery by running the following commands in the PowerShell console:
 
 ```powershell
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -46,13 +45,31 @@ Install-Module -Name PowerVCF -MinimumVersion 2.3.0
 Install-Module -Name PowerValidatedSolutions -MinimumVersion 2.2.0
 ```
 
-To verify the modules are installed, run the following command in the PowerShell console.
+## Verifying the Module
+
+To verify the correct versions of the supporting modules are installed, run the following command in the PowerShell console.
 
 ```powershell
-Get-InstalledModule
+Test-PowerValidatedSolutionsPrereq
 ```
 
 Once installed, any cmdlets associated with `PowerValidatedSolutions` and the supporting PowerShell modules will be available for use.
+
+## Updating the Module
+
+Update the PowerShell module to the latest release from the Microsoft PowerShell Gallery by running the following command in the PowerShell console:
+
+```powershell
+Update-Module -Name PowerValidatedSolutions
+```
+
+To verify the version of the PowerShell module, run the following command in the PowerShell console.
+
+```powershell
+Get-InstalledModule -Name PowerValidatedSolutions
+```
+
+## Getting Help
 
 To view the cmdlets available in the module, run the following command in the PowerShell console.
 
@@ -65,12 +82,17 @@ To view the help for any cmdlet, run the `Get-Help` command in the PowerShell co
 For example:
 
 ```powershell
-Get-Help -Name <cmdlet name>
+Get-Help -Name Add-IdentitySource
 ```
 
 ```powershell
-Get-Help -Name <cmdlet name> -Examples
+Get-Help -Name Add-IdentitySource -examples
 ```
+
+```powershell
+Get-Help -Name <cmdlet-name> -full
+```
+
 ## Contributing
 
 The project team welcomes contributions from the community. Before you start working with PowerValidatedSolutions, please
