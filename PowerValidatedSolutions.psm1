@@ -927,7 +927,7 @@ Function Set-WorkspaceOneNsxtIntegration {
         The Set-WorkspaceOneNsxtIntegration cmdlet configures integration between NSX Manager and Workspace ONE Access. 
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Validates that network connectivity and authentication is possible to Workspace ONE Access
         - Creates a service client within Workspace ONE Access
         - Enables the integration between NSX Manager and Workspace ONE Access
@@ -1008,7 +1008,7 @@ Function Undo-WorkspaceOneNsxtIntegration {
         The Undo-WorkspaceOneNsxtIntegration cmdlet disables integration between NSX Manager and Workspace ONE Access. 
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Disables the integration between NSX Manager and Workspace ONE Access
 
         .EXAMPLE
@@ -1080,7 +1080,7 @@ Function Add-NsxtVidmRole {
         The Add-NsxtVidmRole cmdlet configures role assignments in NSX Manager. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Assigns Active Directory users or groups to NSX Manager roles based on the -type, -principal, and -role values. 
 
         .EXAMPLE
@@ -1112,15 +1112,15 @@ Function Add-NsxtVidmRole {
                                     if (!(Get-NsxtUser | Where-Object { $_.name -eq $principal })) {
                                         Invoke-Expression "Set-NsxtRole -principal $principal -type remote_$type -role $role -identitySource VIDM | Out-Null"
                                         if (Get-NsxtUser | Where-Object { $_.name -eq $principal }) {
-                                            Write-Output "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
+                                            Write-Output "Assigning $type ($principal) the role ($role) in NSX for Workload Domain ($domain): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                            Write-Error "Assigning $type ($principal) the role ($role) in NSX for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "Assigning $type ($principal) the role ($role) in NSX-T Data Center for Workload Domain ($domain), already exists: SKIPPED"
+                                        Write-Warning "Assigning $type ($principal) the role ($role) in NSX for Workload Domain ($domain), already exists: SKIPPED"
                                     }    
                                 } else {
-                                    Write-Error "Unable to find $type ($principal) in Workspace ONE Access for NSX-T Data Center, check $type synchronization: PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find $type ($principal) in Workspace ONE Access for NSX, check $type synchronization: PRE_VALIDATION_FAILED"
                                 }
                             }
                         }
@@ -1145,7 +1145,7 @@ Function Undo-NsxtVidmRole {
         The Undo-NsxtVidmRole cmdlet removes role assignments in NSX Manager. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Removes user or group's from NSX Manager roles based on the -principal 
 
         .EXAMPLE
@@ -1171,12 +1171,12 @@ Function Undo-NsxtVidmRole {
                                 if (Get-NsxtUser | Where-Object { $_.name -eq $principal }) {
                                     Remove-NsxtRole -id (Get-NsxtUser | Where-Object { $_.name -eq $principal }).id
                                     if (!(Get-NsxtUser | Where-Object { $_.name -eq $principal })) {
-                                        Write-Output "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain): SUCCESSFUL"
+                                        Write-Output "Removing access for ($principal) from NSX for Workload Domain ($domain): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                        Write-Error "Removing access for ($principal) from NSX for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing access for ($principal) from NSX-T Data Center for Workload Domain ($domain), already removed: SKIPPED"
+                                    Write-Warning "Removing access for ($principal) from NSX for Workload Domain ($domain), already removed: SKIPPED"
                                 }
                             }
                         }
@@ -2422,12 +2422,12 @@ Function Get-NSXLBDetails {
         Get-NSXLBDetails
 
         .DESCRIPTION
-        The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs & pool members for the NSX-T Load Balancer for vRealize. 
+        The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs & pool members for the NSX Load Balancer for vRealize.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the NSX load balancer configurationn
 
         .EXAMPLE
         Get-NSXLBDetails -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example gets the IP addresses of the VIPs & pool members for the NSX-T Load Balancer for vRealize.
+        This example gets the IP addresses of the VIPs & pool members for the NSX Load Balancer for vRealize.
     #>
 
     Param (
@@ -2464,8 +2464,8 @@ Function Get-NSXLBDetails {
                 $vraNode2IP = $vraDetails.node2IpAddress
                 $vraNode3IP = $vraDetails.node3IpAddress
         }
-        # Gather NSX-T Manager Details
-        Write-Output "Getting NSX-T Login Details"
+        # Gather NSX Manager Details
+        Write-Output "Getting NSX Login Details"
         $nsxt = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domainType MANAGEMENT
         $nsxtFQDN = $nsxt.fqdn
     } Catch {
@@ -5073,7 +5073,7 @@ Export-ModuleMember -Function Undo-NetworkSegment
 Function Add-PrefixList {
     <#
         .SYNOPSIS
-        The Add-PrefixList cmdlet creates NSX Prefix List in the NSX Management Cluster. The cmdlet connects to SDDC
+        The Add-PrefixList cmdlet creates NSX Prefix List in the NSX Manager cluster. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
@@ -5084,7 +5084,7 @@ Function Add-PrefixList {
 
         .EXAMPLE
         Add-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -subnetCIDR 192.168.20.0/24 -ingressSubnetCidr "192.168.21.0/24" -egressSubnetCidr "192.168.22.0/24" -GE "28" -LE "32" -action PERMIT
-        This example creates an NSX Prefix List in the workload domain NSX Management Cluster
+        This example creates an NSX Prefix List in the workload domain NSX Manager cluster
     #>
 
     Param (
@@ -5149,7 +5149,7 @@ Function Undo-PrefixList {
 
         .EXAMPLE
         Undo-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist
-        This example removes an NSX Prefix List in the Workload Domain NSX Management Cluster
+        This example removes an NSX Prefix List in the Workload Domain NSX Manager cluster
     #>
 
     Param (
@@ -5195,7 +5195,7 @@ Export-ModuleMember -Function Undo-PrefixList
 Function Add-RouteMap {
     <#
         .SYNOPSIS
-        The Add-RouteMap cmdlet creates NSX Prefix List in the NSX Management Cluster. The cmdlet connects to SDDC
+        The Add-RouteMap cmdlet creates NSX Prefix List in the NSX Manager cluster. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
@@ -5262,7 +5262,7 @@ Export-ModuleMember -Function Add-RouteMap
 Function Undo-RouteMap {
     <#
         .SYNOPSIS
-        The Undo-RouteMap cmdlet removes NSX Route Map from the NSX Management Cluster. The cmdlet connects to SDDC
+        The Undo-RouteMap cmdlet removes NSX Route Map from the NSX Manager cluster. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
@@ -5724,7 +5724,7 @@ Function Enable-SupervisorCluster {
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Performs validation of in puts unless skipped using a switch
         - Enables Workload Management on the vSphere cluster
 
@@ -7977,8 +7977,8 @@ Function Set-vRLISyslogEdgeCluster {
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Gathers the NSX Edge Node details from NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
+        - Gathers the NSX Edge Node details from NSX Manager cluster
         - Configures the Syslog settings on the NSX Edge Node if not already configured
 
         .EXAMPLE
@@ -8039,8 +8039,8 @@ Function Undo-vRLISyslogEdgeCluster {
         SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to NSX Management Cluster
-        - Gathers the NSX Edge Node details from NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to NSX Manager cluster
+        - Gathers the NSX Edge Node details from NSX Manager cluster
         - Removes the Syslog settings on the NSX Edge Node
 
         .EXAMPLE
@@ -8602,7 +8602,7 @@ Function Add-NsxtNodeProfileSyslogExporter {
         - Validates that network connectivity and authentication is possible to NSX Manager
         - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Adds a syslog exporter on the default (All NSX Nodes) or specified node profile for NSX-T Data Center
+        - Adds a syslog exporter on the default (All NSX Nodes) or specified node profile for NSX
 
         .EXAMPLE
         Add-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
@@ -8672,7 +8672,7 @@ Function Undo-NsxtNodeProfileSyslogExporter {
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Removes all syslog exporters on the default (All NSX Nodes) or specified node profile for NSX-T Data Center
+        - Removes all syslog exporters on the default (All NSX Nodes) or specified node profile for NSX
 
         .EXAMPLE
         Undo-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
@@ -10266,12 +10266,12 @@ Function Add-vROPSAdapterNsxt {
         Adds an NSX Adapter to vRealize Operations Manager
 
         .DESCRIPTION
-        The Add-vROPSAdapterNsxt cmdlet adds an NSX Adapter for a Workload Domains NSX Management Cluster to vRealize
+        The Add-vROPSAdapterNsxt cmdlet adds an NSX Adapter for a Workload Domains NSX Manager cluster to vRealize
         Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Workload Domain is valid and then obtains the NSX Management Cluster details
+        - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
         - Validates that the Remote Collector Group exits in vRealize Operations Manager
         - Validates that the NSX Adapter and Credentials do not already exist in vRealize Operations Manager
         - Validates that the credentials do not already exist in vRealize Operations Manager
@@ -10784,7 +10784,7 @@ Function Add-vROPSAdapterSrm {
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Workload Domain is valid and then obtains the NSX Management Cluster details
+        - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
         - Validates that the Remote Collector Group exits in vRealize Operations Manager
         - Validates that the Adapter and Credentials do not already exist in vRealize Operations Manager
         - Creates a new Site Recovery Manager Adapter in vRealize Operations Manager
@@ -10890,7 +10890,7 @@ Function Add-vROPSAdapterVr {
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Workload Domain is valid and then obtains the NSX Management Cluster details
+        - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
         - Validates that the Remote Collector Group exits in vRealize Operations Manager
         - Validates that the Adapter and Credentials do not already exist in vRealize Operations Manager
         - Creates a new vSphere Replication Adapter in vRealize Operations Manager
@@ -11299,7 +11299,7 @@ Function Test-vROPsAdapterStatusByType {
 
         .EXAMPLE
         Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind NSXTAdapter
-        This example validates the integration status between vRealize Operations Manager and NSXT adapter.
+        This example validates the integration status between vRealize Operations Manager and the NSX adapter.
 
         .EXAMPLE
         Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind CASAdapter
@@ -11800,7 +11800,7 @@ Function Update-vRAOrganizationDisplayName {
         .DESCRIPTION
         The Update-vRAOrganizationDisplayName cmdlet configures the organization display name in vRealize Automation. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to  SDDC Manager
+        - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
         - Validates that network connectivity and authentication is possible to vRealize Automation
         - Verifies if the organization name is already configured based on the input
@@ -11851,20 +11851,20 @@ Export-ModuleMember -Function Update-vRAOrganizationDisplayName
 Function New-vRACloudAccount {
     <#
         .SYNOPSIS
-        Creates vSphere and NSX-T Cloud Accounts
+        Creates vSphere and NSX Cloud Accounts
 
         .DESCRIPTION
-        The New-vRACloudAccount cmdlet creates the vSphere and NSX-T Cloud Accounts for a Workload Domain in vRealize
+        The New-vRACloudAccount cmdlet creates the vSphere and NSX Cloud Accounts for a Workload Domain in vRealize
         Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to  SDDC Manager
+        - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to  vRealize Automation
-        - Retrives details from SDDC Manager for the vCenter Server and NSX Management Cluster
-        - Adds a Cloud Account for vCenter Server and NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Retrives details from SDDC Manager for the vCenter Server and NSX Manager cluster
+        - Adds a Cloud Account for vCenter Server and NSX Manager cluster
 
         .EXAMPLE
         New-vRACloudAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -capabilityTab private
-        This example creates vSphere and NSX-T Cloud Accounts in vRealize Automation
+        This example creates vSphere and NSX Cloud Accounts in vRealize Automation
     #>
 
     Param (
@@ -11926,12 +11926,12 @@ Function New-vRACloudAccount {
                                     }'
                                     Add-vRACloudAccount -type nsx-t -json $nsxtCloudAccount | Out-Null
                                     if (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}) {
-                                        Write-Output "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
+                                        Write-Output "Creating NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
+                                        Write-Error "Creating NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Creating NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), already exists: SKIPPED"
+                                    Write-Warning "Creating NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -11950,20 +11950,20 @@ Export-ModuleMember -Function New-vRACloudAccount
 Function Undo-vRACloudAccount {
     <#
         .SYNOPSIS
-        Removes the vSphere and NSX-T Cloud Accounts
+        Removes the vSphere and NSX Cloud Accounts
 
         .DESCRIPTION
-        The Undo-vRACloudAccount cmdlet removes the vSphere and NSX-T Cloud Accounts for a Workload Domain in vRealize
+        The Undo-vRACloudAccount cmdlet removes the vSphere and NSX Cloud Accounts for a Workload Domain in vRealize
         Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to  SDDC Manager
+        - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to  vRealize Automation
-        - Retrives details from SDDC Manager for the vCenter Server and NSX Management Cluster
-        - Removes the Cloud Accounts for vCenter Server and NSX Management Cluster
+        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Retrives details from SDDC Manager for the vCenter Server and NSX Manager cluster
+        - Removes the Cloud Accounts for vCenter Server and NSX Manager cluster
 
         .EXAMPLE
         Undo-vRACloudAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1!
-        This example creates vSphere and NSX-T Cloud Accounts in vRealize Automation
+        This example creates vSphere and NSX Cloud Accounts in vRealize Automation
     #>
 
     Param (
@@ -11987,12 +11987,12 @@ Function Undo-vRACloudAccount {
                                 if (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}) {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
-                                        Write-Output "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
+                                        Write-Output "Removing NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
+                                        Write-Error "Removing NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing NSX-T Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), does not exist: SKIPPED"
+                                    Write-Warning "Removing NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), does not exist: SKIPPED"
                                 }
                                 if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}).id | Out-Null
@@ -12536,7 +12536,7 @@ Function Add-vRAUser {
         .DESCRIPTION
         The Add-vRAUser cmdlet adds user access in vRealize Automation. The cmdlet connects to SDDC Manager 
         using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to  SDDC Manager
+        - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
         - Validates that network connectivity and authentication is possible to vRealize Automation
         - Adds the user to both an organization role and a service role
@@ -12706,7 +12706,7 @@ Function Add-vRAGroup {
         .DESCRIPTION
         The Add-vRAGroup cmdlet adds a group in vRealize Automation. The cmdlet connects to SDDC Manager 
         using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to  SDDC Manager
+        - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
         - Validates that network connectivity and authentication is possible to vRealize Automation
         - Adds the group to an organization role and a service role
@@ -12920,7 +12920,7 @@ Function Undo-vRAvROPsIntegrationItem {
         The Undo-vRAvROPsIntegrationItem cmdlet deletes vRealize Operations Manager integration from vRealize Automation.The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to  vRealize Automation
+        - Validates that network connectivity and authentication is possible to vRealize Automation
         - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to vRealize Operations Manager
         - Deletes vRealize Operations Manager integration from vRealize Automation
@@ -12998,8 +12998,8 @@ Function Add-vCenterGlobalPermission {
         This example adds the group gg-vc-admins from domain sfo.rainpole.io the Administrator Global Permission
 
         .EXAMPLE
-		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain vsphere.local -domainBindUser administrator -domainBindPass VMw@re1! -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX-T Data Center to vSphere Integration" -propagate true -type user -localdomain
-		This example adds the "NSX-T Data Center to vSphere Integration" Global Permission to the user svc-sfo-m01-nsx01-sfo-m01-vc01 from domain vsphere.local
+		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain vsphere.local -domainBindUser administrator -domainBindPass VMw@re1! -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX to vSphere Integration" -propagate true -type user -localdomain
+		This example adds the "NSX to vSphere Integration" Global Permission to the user svc-sfo-m01-nsx01-sfo-m01-vc01 from domain vsphere.local
     #>
 
     Param (
@@ -13623,8 +13623,8 @@ Function Add-vSphereRole {
         - Assigns permissions to the role based on the template file provided
 
         .EXAMPLE
-        Add-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX-T Data Center to vSphere Integration" -template .\vSphereRoles\nsx-vsphere-integration.role
-        This example adds the "NSX-T Data Center to vSphere Integration" role in the management domain vCenter Server
+        Add-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX to vSphere Integration" -template .\vSphereRoles\nsx-vsphere-integration.role
+        This example adds the "NSX to vSphere Integration" role in the management domain vCenter Server
     #>
 
     Param (
@@ -13692,8 +13692,8 @@ Function Undo-vSphereRole {
         - Verifies if the role exists and if it does removes it
 
         .EXAMPLE
-        Undo-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX-T Data Center to vSphere Integration"
-        This example removes the "NSX-T Data Center to vSphere Integration" role from the management domain vCenter Server
+        Undo-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX to vSphere Integration"
+        This example removes the "NSX to vSphere Integration" role from the management domain vCenter Server
     #>
 
     Param (
@@ -15652,10 +15652,10 @@ Export-ModuleMember -Function Get-vCenterServerDetail
 Function Get-NsxtServerDetail {
     <#
         .SYNOPSIS
-        Get NSX-T details from SDDC Manager
+        Get NSX details from SDDC Manager
 
         .DESCRIPTION
-        The Get-NsxtServerDetail cmdlet retrieves the FQDN, root and admin credentials of NSX-T for a given
+        The Get-NsxtServerDetail cmdlet retrieves the FQDN, root and admin credentials of NSX for a given
         Workload Domain.
 
         .EXAMPLE
@@ -15690,11 +15690,11 @@ Function Get-NsxtServerDetail {
         if (Test-VCFConnection -server $fqdn) {
             if (Test-VCFAuthentication -server $fqdn -user $username -pass $password) {
                 if ($PsBoundParameters.ContainsKey("domainType")) {
-                    # Dynamically build NSX-T details based on the Workload Domain type
+                    # Dynamically build NSX details based on the Workload Domain type
                     $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.type -eq $domainType }
                 }
                 if ($PsBoundParameters.ContainsKey("domain")) {
-                    # Dynamically build NSX-T details based on the Workload Domain name
+                    # Dynamically build NSX details based on the Workload Domain name
                     $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
                 }
                 if ($vcfWorkloadDomainDetails) {
@@ -16698,7 +16698,7 @@ Function Get-LocalPasswordComplexity {
 
         .EXAMPLE
         Get-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx
-        This example retrieves the NSX Local Manager sfo-w01-nsx01a password complexity
+        This example retrieves the NSX Manager sfo-w01-nsx01a password complexity
 
         .EXAMPLE
         Get-LocalPasswordComplexity -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1!
@@ -18647,7 +18647,7 @@ Export-ModuleMember -Function Set-WsaPasswordPolicy
 #####################################################################
 
 #####################################################################
-#Region     Begin NSX-T Data Center Functions                  ######
+#Region     Begin NSX Functions                                ######
 
 Function Request-NsxtToken {
     <#
@@ -18884,11 +18884,11 @@ Function Set-NsxtVidm {
         Set Identity Manager Configuration
 
         .DESCRIPTION
-        The Set-NsxtVidm cmdlet configures Identity Manager in NSX-T Manager
+        The Set-NsxtVidm cmdlet configures Identity Manager in NSX Manager
 
         .EXAMPLE
         Set-NsxtVidm
-        This example configures the Identity Manager in NSX-T Manager
+        This example configures the Identity Manager in NSX Manager
     #>
 
     Param (
@@ -18929,14 +18929,14 @@ Export-ModuleMember -Function Set-NsxtVidm
 Function Get-NsxtRole {
     <#
         .SYNOPSIS
-        Gets NSX-T Manager roles
+        Gets NSX Manager roles
 
         .DESCRIPTION
-        The Get-NsxtRole cmdlet gets the roles in NSX-T Manager
+        The Get-NsxtRole cmdlet gets the roles in NSX Manager
 
         .EXAMPLE
         Get-NsxtRole
-        This example gets all roles in NSX-T Manager
+        This example gets all roles in NSX Manager
     #>
 
     Try {
@@ -18997,7 +18997,7 @@ Function Remove-NsxtRole {
         Delete a user/group role assignment
 
         .DESCRIPTION
-        The Remove-NsxtRole cmdlet removes a user/group role in NSX-T Manager
+        The Remove-NsxtRole cmdlet removes a user/group role in NSX Manager
 
         .EXAMPLE
         Remove-NsxtRole -id
@@ -19025,11 +19025,11 @@ Function Get-NsxtUser {
         Gets all users and groups
 
         .DESCRIPTION
-        The Get-NsxtUser cmdlet gets all users and groups in NSX-T Manager
+        The Get-NsxtUser cmdlet gets all users and groups in NSX Manager
 
         .EXAMPLE
         Get-NsxtUser
-        This example gets all users and grops in NSX-T Manager
+        This example gets all users and grops in NSX Manager
     #>
 
     Try {
@@ -19049,11 +19049,11 @@ Function Get-NsxtVidmUser {
         Gets vIDM users
 
         .DESCRIPTION
-        The Get-NsxtVidmUser cmdlet gets all vIDM users from NSX-T Manager
+        The Get-NsxtVidmUser cmdlet gets all vIDM users from NSX Manager
 
         .EXAMPLE
         Get-NsxtVidmUser -searchString svc
-        This example gets all vIDM users starting with 'svc' from NSX-T Manager
+        This example gets all vIDM users starting with 'svc' from NSX Manager
     #>
 
     Param (
@@ -19077,11 +19077,11 @@ Function Get-NsxtVidmGroup {
         Gets vIDM groups
 
         .DESCRIPTION
-        The Get-NsxtVidmGroup cmdlet gets all vIDM groups from  NSX-T Manager
+        The Get-NsxtVidmGroup cmdlet gets all vIDM groups from NSX Manager
 
         .EXAMPLE
         Get-NsxtVidmGroup -searchString gg-
-        This example gets all vIDM groups starting with gg- from NSX-T Manager
+        This example gets all vIDM groups starting with gg- from NSX Manager
     #>
 
     Param (
@@ -19102,18 +19102,18 @@ Export-ModuleMember -Function Get-NsxtVidmGroup
 Function Get-NsxEdgeCluster {
     <#
         .SYNOPSIS
-        Retrieves NSX-T Edge Cluster(s)
+        Retrieves NSX Edge Cluster(s)
 
         .DESCRIPTION
-        The Get-NsxtEdgeCluster cmdlet retrieves NSX-T Edge Cluster(s)
+        The Get-NsxtEdgeCluster cmdlet retrieves NSX Edge Cluster(s)
 
         .EXAMPLE
         Get-NsxtEdgeCluster
-        This example returns any NSX-T Edge Clusters
+        This example returns any NSX Edge Clusters
 
         .EXAMPLE
         Get-NsxtEdgeCluster -Name "sfo-w01-ec01"
-        This example returns any NSX-T Edge Clusters
+        This example returns any NSX Edge Clusters
     #>
 
     Param (
@@ -19132,7 +19132,7 @@ Function Get-NsxEdgeCluster {
             $responseChecked = $response.results | Where-Object { $_.display_name -eq $Name }
 
             if (!$responseChecked) {
-                Write-Output "NSX-T Edge Cluster $Name was not found."
+                Write-Output "NSX Edge Cluster $Name was not found."
             }
             elseif ($responseChecked) {
                 $responseChecked
@@ -19194,14 +19194,14 @@ Export-ModuleMember -Function Get-NsxtTransportZone
 Function New-NsxtSegment {
     <#
         .SYNOPSIS
-        Create a new NSX-T Segment
+        Create a new NSX Segment
 
         .DESCRIPTION
-        The New-NsxtSegment cmdlet creates NSX-T Segments
+        The New-NsxtSegment cmdlet creates NSX Segments
 
         .EXAMPLE
         New-NsxtSegment -Name "sfo-w01-xreg-seg01" -GatewayType "Tier1" -ConnectedGateway "sfo-w01-ec01-t1-gw01" -Cidr "192.168.31.1/24" -TransportZone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io"
-        This example creates an NSX-T Overlay Segment with the name "sfo-w01-xreg-seg01", connected to Tier-1 gateway "sfo-w01-ec01-t1-gw01", Transport Zone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io", and CIDR address of "192.168.31.1/24"
+        This example creates an NSX Overlay Segment with the name "sfo-w01-xreg-seg01", connected to Tier-1 gateway "sfo-w01-ec01-t1-gw01", Transport Zone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io", and CIDR address of "192.168.31.1/24"
     #>
 
     Param (
@@ -20231,7 +20231,7 @@ Function Get-NsxtSyslogStatus {
         Gets the status of the Syslog Service
 
         .DESCRIPTION
-        The Get-NsxtSyslogStatus cmdlet gets the status of the Syslog Service for NSX-T Data Center components
+        The Get-NsxtSyslogStatus cmdlet gets the status of the Syslog Service for NSX components
 
         .EXAMPLE
         Get-NsxtSyslogStatus -type node
@@ -20272,7 +20272,7 @@ Function Get-NsxtSyslogExporter {
         Gets Syslog exporters
 
         .DESCRIPTION
-        The Get-NsxtSyslogExporter cmdlet gets the Syslog exporters configures for NSX-T Data Center components
+        The Get-NsxtSyslogExporter cmdlet gets the Syslog exporters configures for NSX components
 
         .EXAMPLE
         Get-NsxtSyslogExporter -node
@@ -20313,7 +20313,7 @@ Function Set-NsxtSyslogExporter {
         Sets Syslog exporters
 
         .DESCRIPTION
-        The Set-NsxtSyslogExporter cmdlet Sets the Syslog exporters configures for NSX-T Data Center components
+        The Set-NsxtSyslogExporter cmdlet Sets the Syslog exporters configures for NSX components
 
         .EXAMPLE
         Set-NsxtSyslogExporter -node -exporterName Syslog1 -logLevel INFO -port 514 -protocol TCP -server sfo-vrli01.sfo.rainpole.io
@@ -20367,7 +20367,7 @@ Function Remove-NsxtSyslogExporter {
         Delete Syslog exporters
 
         .DESCRIPTION
-        The Remove-NsxtSyslogExporter cmdlet deletes the Syslog exporters for NSX-T Data Center components
+        The Remove-NsxtSyslogExporter cmdlet deletes the Syslog exporters for NSX components
 
         .EXAMPLE
         Remove-NsxtSyslogExporter -node -exporterName Syslog1
@@ -20557,7 +20557,7 @@ Function Copy-vRealizeLoadBalancer {
                 }
             }
             else {
-                Write-Error "Aborting remainder of NSX-T Load Balancer configuration until certificate files present"
+                Write-Error "Aborting remainder of NSX Load Balancer configuration until certificate files present"
             }
         }
     }
@@ -21166,11 +21166,11 @@ Function Get-NsxtEdgeCluster {
         Gets NSX-T Edge Cluster Id
     
         .DESCRIPTION
-        The Get-NsxtEdgeCluster cmdlet gets the Edge Cluster Id
+        The Get-NsxtEdgeCluster cmdlet gets the NSX Edge Cluster Id
     
         .EXAMPLE
         Get-NsxtEdgeCluster
-        This example creates a new Route Map on a Tier 0 Gateway
+        This example returns the NSX Edge Cluster Id
     #>
 
     Try {
@@ -21479,14 +21479,14 @@ Export-ModuleMember -Function New-NsxtLBVirtualServer
 Function Get-NsxtCertificate {
     <#
         .SYNOPSIS
-        Gets NSX-T Certificates
+        Gets NSX Certificates
     
         .DESCRIPTION
-        The Get-NsxtCertificates cmdlet gets certificates installed in NSX-T
+        The Get-NsxtCertificates cmdlet gets certificates installed in NSX
     
         .EXAMPLE
         PS C:\> Get-NsxtCertificates
-        This example gets the certificates installed in NSX-T
+        This example gets the certificates installed in NSX
     #>
 
     Param (
@@ -21514,14 +21514,14 @@ Export-ModuleMember -Function Get-NsxtCertificate
 Function Set-NsxtCertificate {
     <#
         .SYNOPSIS
-        Installs a Certificate in NSX-T
+        Installs a Certificate in NSX
     
         .DESCRIPTION
-        The Set-NsxtCertificates cmdlet installs certificates in NSX-T
+        The Set-NsxtCertificates cmdlet installs certificates in NSX
     
         .EXAMPLE
         Set-NsxtCertificates
-        This example installs the certificates in NSX-T
+        This example installs the certificates in NSX
     #>
 
     Param (
@@ -21684,7 +21684,7 @@ Function Get-NsxtBackupConfiguration {
 
     Try {
         $uri = "https://$fqdn/api/v1/cluster/backups/config"
-        # Note: NSX-T v3.2.0 and later use `/policy/api/v1/cluster/backups/config` or `/api/v1/cluster/backups/config`
+        # Note: NSX v3.2.0 and later use `/policy/api/v1/cluster/backups/config` or `/api/v1/cluster/backups/config`
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
         $response
     }
@@ -22159,7 +22159,7 @@ Function Set-NsxtApplianceUserPassword {
 }
 Export-ModuleMember -Function Set-NsxtApplianceUserPassword
 
-#EndRegion  End NSX-T Functions                                ######
+#EndRegion  End NSX Functions                                  ######
 #####################################################################
 
 #####################################################################
@@ -24734,11 +24734,11 @@ Function Add-vRACloudAccount {
 
         .EXAMPLE
         Add-vRACloudAccount -type vsphere -json (Get-Content -raw .\vsphereCloudAccount.json)
-        This example adds a vsphere cloud account within the current organization
+        This example adds a vSphere cloud account within the current organization
 
         .EXAMPLE
-        Add-vRACloudAccount -type nsx-t -json (Get-Content -raw .\nsxtCloudAccount.json)
-        This example adds a nsx-t cloud account within the current organization
+        Add-vRACloudAccount -type nsx-t -json (Get-Content -raw .\nsxCloudAccount.json)
+        This example adds a NSX cloud account within the current organization
     #>
 
     Param (
