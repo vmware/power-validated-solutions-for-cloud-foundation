@@ -12,6 +12,7 @@
 - Enhanced `New-vRADeployment` with a new switch to define a custom version of vRealize Automation to deploy.
 - Enhanced `Export-WSAJsonSpec` with a new switch to define a custom version of Workspace ONE Access to deploy.
 - Enhanced `New-WSADeployment` with a new switch to define a custom version of Workspace ONE Access to deploy.
+- Added `operations-for-networks-vsphere-integration.role` file for Aria Operations for Networks to vSphere Integration.
 
 ## v2.2.0 (2023-04-25)
 
