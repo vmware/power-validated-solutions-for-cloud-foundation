@@ -13,6 +13,8 @@
 - Enhanced `Export-WSAJsonSpec` with a new switch to define a custom version of Workspace ONE Access to deploy.
 - Enhanced `New-WSADeployment` with a new switch to define a custom version of Workspace ONE Access to deploy.
 - Added `operations-for-networks-vsphere-integration.role` file for Aria Operations for Networks to vSphere Integration.
+- Updated `cbo-vsphere-integration.role` to `operations-vsphere-integration.role` so that its more closely aligned to the product.
+- Updated `cbl-vsphere-integration.role` to `operations-for-logs-vsphere-integration.role` so that its more closely aligned to the product.
 
 ## v2.2.0 (2023-04-25)
 
