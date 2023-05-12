@@ -12994,18 +12994,23 @@ Function Add-vCenterGlobalPermission {
 		If -localDomain is selected, then AD authentication check is skipped and user/group is checked for in the local directory
 
         .EXAMPLE
-        Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -principal gg-vc-admins -role Admin -propagate true -type group
-        This example adds the group gg-vc-admins from domain sfo.rainpole.io the Administrator Global Permission
+        Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -principal gg-kub-admins -role Admin -propagate true -type group
+        This example adds the group gg-vc-admins from domain sfo.rainpole.io to the Global Permissions with the Administrator role for vCenter Server instances in the same vCenter Single Sign-On domain as management domain sfo-m01.
 
         .EXAMPLE
-		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain vsphere.local -domainBindUser administrator -domainBindPass VMw@re1! -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX to vSphere Integration" -propagate true -type user -localdomain
-		This example adds the "NSX to vSphere Integration" Global Permission to the user svc-sfo-m01-nsx01-sfo-m01-vc01 from domain vsphere.local
+        Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -principal gg-vc-admins -role Admin -propagate true -type group
+        This example adds the group gg-vc-admins from domain sfo.rainpole.io to the Global Permissions with the Administrator role for vCenter Server instances in the same vCenter Single Sign-On domain as workload domain sfo-w01.
+
+        .EXAMPLE
+		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain vsphere.local -domainBindUser administrator -domainBindPass VMw@re1! -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX to vSphere Integration" -propagate true -type user -localdomain
+		This example adds the user svc-sfo-m01-nsx01-sfo-m01-vc01@vsphere.local from the vCenter Single Sign-on domain vsphere.local to Global Permissions with the "NSX to vSphere Integration" role for vCenter Server instances in the same vCenter Single Sign-On domain as management domain sfo-m01.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindPass,
@@ -13029,7 +13034,7 @@ Function Add-vCenterGlobalPermission {
 		$domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
@@ -13061,9 +13066,9 @@ Function Add-vCenterGlobalPermission {
                                                 Add-GlobalPermission -principal $principal -roleId $roleId -propagate $propagate -type $type | Out-Null
                                                 $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal.Split("\")[-1]})
                                                 if ($roleAssigned | Where-Object {$_.Role -eq $role}) {
-                                                    Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): SUCCESSFUL"
+                                                    Write-Output "Adding Global Permissions for $type ($principal) with role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) and vCenter Single Sign-On domain ($($vcfVcenterDetails.ssoDomain)): SUCCESSFUL"
                                                 } else {
-                                                    Write-Error "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): POST_VALIDATION_FAILED"
+                                                    Write-Error "Adding Global Permissions for $type ($principal) with role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) and vCenter Single Sign-On domain ($($vcfVcenterDetails.ssoDomain)): POST_VALIDATION_FAILED"
                                                 }
                                             } else {
                                                 if ($localDomain) {
@@ -13107,18 +13112,19 @@ Function Undo-vCenterGlobalPermission {
 		If -localDomain is selected, then AD authentication check is skipped and user/group is checked for in the local directory
 
         .EXAMPLE
-        Undo-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -principal gg-vc-admins -type group
-        This example remove the group gg-vc-admins from the vCenter Global Permission
+        Undo-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -principal gg-vc-admins -type group
+        This example removes the group gg-vc-admins from domain sfo.rainpole.io from the Global Permissions for vCenter Server instances in the same vCenter Single Sign-On domain as management domain sfo-m01.
 
         .EXAMPLE
-		Undo-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain vsphere.local -principal testUser -type user -localdomain
-        This example remove the group testUser from the vCenter Global Permission
+		Undo-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain vsphere.local -principal testUser -type user -localdomain
+        This example removes the user testUser from the vCenter Single Sign-on domain vsphere.local from the Global Permissions for vCenter Server instances in the same vCenter Single Sign-On domain as workload domain sfo-w01.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
         [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type,
@@ -13128,7 +13134,7 @@ Function Undo-vCenterGlobalPermission {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
@@ -13139,12 +13145,12 @@ Function Undo-vCenterGlobalPermission {
                                     Remove-GlobalPermission -principal $principal -type $type | Out-Null
                                 }
                                 if (!(Get-GlobalPermission | Where-Object {$_.Principal -match $principal})) {
-                                    Write-Output "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal): SUCCESSFUL"
+                                    Write-Output "Removing Global Permissions for $type ($principal) in vCenter Server ($($vcfVcenterDetails.vmName)) and vCenter Single Sign-On domain ($($vcfVcenterDetails.ssoDomain)): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing Global Permissions for $type ($principal) in vCenter Server ($($vcfVcenterDetails.vmName)) and vCenter Single Sign-On domain ($($vcfVcenterDetails.ssoDomain)) for $type ($principal): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Removing Global Permission in vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal), already removed: SKIPPED"
+                                Write-Warning "Removing Global Permissions for $type ($principal) in vCenter Server ($($vcfVcenterDetails.vmName)), already removed: SKIPPED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
                             Disconnect-vSphereMobServer
