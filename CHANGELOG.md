@@ -2,6 +2,8 @@
 
 ## v2.3.0 (Not Released)
 
+- **Breaking Change** - Updated `Add-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
+- **Breaking Change** - Updated `Undo-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
 - Fixed `New-vROPSDeployment` license check in vRealize Suite Lifecycle Manager locker.
 - Fixed `New-vRADeployment` license check in vRealize Suite Lifecycle Manager locker.
 - Enhanced `Export-vRLIJsonSpec` with a new switch to define a custom version of vRealize Log Insight to deploy.
