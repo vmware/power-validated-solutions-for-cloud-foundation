@@ -23986,6 +23986,7 @@ Function Export-WsaJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
                                                     if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
                                                     if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
+                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.6"}
                                                 } else {
                                                     $wsaVersion = $customVersion
                                                 }
