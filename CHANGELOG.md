@@ -18,6 +18,9 @@
 - Updated `cbo-vsphere-integration.role` to `operations-vsphere-integration.role` so that its more closely aligned to the product.
 - Updated `cbl-vsphere-integration.role` to `operations-for-logs-vsphere-integration.role` so that its more closely aligned to the product.
 - Updated `Export-WsaJsonSpec` to support VMware Cloud Foundation v4.5.1 and Workspace ONE Access
+- Updated `Export-vRLIJsonSpec` to support VMware Cloud Foundation v4.5.1.
+- Updated `Export-vROPSJsonSpec` to support VMware Cloud Foundation v4.5.1.
+- Updated `Export-vRAJsonSpec` to support VMware Cloud Foundation v4.5.1.
 
 ## v2.2.0 (2023-04-25)
 
