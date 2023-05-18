@@ -7203,7 +7203,7 @@ Function Export-vRLIJsonSpec {
                             if ($vrliLicense.key -eq $licenseKey) {
                                 if ($vrliCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value}) {
                                     if ($vrliPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value) {
-                                        if ($vcfVersion -eq "4.5.0") {
+                                        if ($vcfVersion -ge "4.5.0") {
                                             $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
                                         } else {
                                             $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
@@ -7318,6 +7318,7 @@ Function Export-vRLIJsonSpec {
                                             if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
+                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.8.2" }
                                         } else {
                                             $vrliVersion = $customVersion
                                         }
@@ -9250,7 +9251,7 @@ Function Export-vROPsJsonSpec {
                                 if ($vropsCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value}) {
                                     if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value) {
                                         if ($vropsPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value) {
-                                            if ($vcfVersion -eq "4.5.0") {
+                                            if ($vcfVersion -ge "4.5.0") {
                                                 $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
                                             } else {
                                                 $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
@@ -9445,6 +9446,7 @@ Function Export-vROPsJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
+                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.6.3"}
                                                 } else {
                                                     $vropsVersion = $customVersion
                                                 }
@@ -11527,7 +11529,7 @@ Function Export-vRAJsonSpec {
                                     if ($defaultPassword.alias) {
                                         $vraPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value
                                         if ($vraPassword.alias) {
-                                            if ($vcfVersion -eq "4.5.0") {
+                                            if ($vcfVersion -ge "4.5.0") {
                                                 $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
                                             } else {
                                                 $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
@@ -11641,6 +11643,7 @@ Function Export-vRAJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
+                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.8.2" }
                                                 } else {
                                                     $vraVersion = $customVersion
                                                 }
@@ -23851,7 +23854,7 @@ Function Export-WsaJsonSpec {
                                 if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
                                     if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
                                         if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
-                                            if ($vcfVersion -eq "4.5.0") {
+                                            if ($vcfVersion -ge "4.5.0") {
                                                 $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
                                             } else {
                                                 $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
