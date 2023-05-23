@@ -6,6 +6,7 @@
 - **Breaking Change** - Updated `Undo-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
 - Fixed `New-vROPSDeployment` license check in vRealize Suite Lifecycle Manager locker.
 - Fixed `New-vRADeployment` license check in vRealize Suite Lifecycle Manager locker.
+- Fixed `Get-vCenterServerDetail` which had blank SSO Domain for pre-VMware Cloud Foundation 4.5.0.0 release causing `Add-SsoPermission` to fail.
 - Enhanced `Export-vRLIJsonSpec` with a new switch to define a custom version of vRealize Log Insight to deploy.
 - Enhanced `New-vRLIDeployment` with a new switch to define a custom version of vRealize Log Insight to deploy.
 - Enhanced `Export-vROPSJsonSpec` with a new switch to define a custom version of vRealize Operations to deploy.
