@@ -13332,7 +13332,8 @@ Function Add-SsoPermission {
                                                             $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                             if (Get-SsoGroup -Group $targetGroup -Name $principal) {
                                                                 Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                            } else {  Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
+                                                            } else {  
+                                                                Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
                                                         } else { 
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
@@ -13388,7 +13389,7 @@ Function Add-SsoPermission {
                                             if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail)) {
                                                 $ldapGroup = Get-SsoGroup -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                 $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
-                                                if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail) {
+                                                if (Get-SsoGroup $targetGroup -Name $principal -Server $ssoConnectionDetail) {
                                                     Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
                                                 } else {
                                                     Write-Error "Assigning SSO On Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
@@ -15625,17 +15626,19 @@ Function Get-vCenterServerDetail {
                     $vcfDetail = Get-VCFManager
                     $vcenterServerDetails = Get-VCFvCenter | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.vcenters.id) }
                     $vcenterCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($vcenterServerDetails.id) }
-                    if ( ($vcfDetail.version).Split("-")[0] -gt "4.5.0.0") {
+                    if ( ($vcfDetail.version).Split("-")[0] -ge "4.5.0.0") {
                         $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" -and ($_.username).Split('@')[-1] -eq $vcfWorkloadDomainDetails.ssoName}
+                        $ssoDomainName = $vcfWorkloadDomainDetails.ssoName
                     } else {
                         $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" }
+                        $ssoDomainName = ((Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" }).username).Split("@")[-1]
                     }
                     $vcenterServer = New-Object -TypeName psobject
                     $vcenterServer | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcenterServerDetails.fqdn
                     $vcenterServer | Add-Member -notepropertyname 'vmName' -notepropertyvalue $vcenterServerDetails.fqdn.Split(".")[0]
-                    $vcenterServer | Add-Member -notepropertyname 'ssoDomain' -notepropertyvalue $vcfWorkloadDomainDetails.ssoName
+                    $vcenterServer | Add-Member -notepropertyname 'ssoDomain' -notepropertyvalue $ssoDomainName
                     
-                    if ( ($vcfDetail.version).Split("-")[0] -gt "4.1.0.0") {
+                    if ( ($vcfDetail.version).Split("-")[0] -ge "4.1.0.0") {
                         $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).username
                         $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).password
                     } else {
