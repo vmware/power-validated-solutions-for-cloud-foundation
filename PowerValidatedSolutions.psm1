@@ -13389,7 +13389,7 @@ Function Add-SsoPermission {
                                             if (!(Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail)) {
                                                 $ldapGroup = Get-SsoGroup -Domain $domain -Name $principal -Server $ssoConnectionDetail
                                                 $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
-                                                if (Get-SsoGroup $targetGroup -Name $principal -Server $ssoConnectionDetail) {
+                                                if (Get-SsoGroup -Group $targetGroup -Name $principal -Server $ssoConnectionDetail) {
                                                     Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
                                                 } else {
                                                     Write-Error "Assigning SSO On Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
