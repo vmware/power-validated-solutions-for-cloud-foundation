@@ -9446,7 +9446,7 @@ Function Export-vROPsJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
-                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.6.3"}
+                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.6.4"}
                                                 } else {
                                                     $vropsVersion = $customVersion
                                                 }
@@ -11643,7 +11643,7 @@ Function Export-vRAJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
-                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.8.2" }
+                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.9.1" }
                                                 } else {
                                                     $vraVersion = $customVersion
                                                 }

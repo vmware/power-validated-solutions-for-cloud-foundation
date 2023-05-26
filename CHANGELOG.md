@@ -22,6 +22,7 @@
 - Updated `Export-vRLIJsonSpec` to support VMware Cloud Foundation v4.5.1.
 - Updated `Export-vROPSJsonSpec` to support VMware Cloud Foundation v4.5.1.
 - Updated `Export-vRAJsonSpec` to support VMware Cloud Foundation v4.5.1.
+- Updated versions to highest release supported for vRealize Suite Lifecycle Manager and PSPACK6.
 
 ## v2.2.0 (2023-04-25)
 
