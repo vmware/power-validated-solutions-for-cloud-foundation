@@ -18,7 +18,7 @@
     # CompatiblePSEditions = @()
     
     # ID used to uniquely identify this module
-    GUID = 'a6dfed7b-65d2-4da2-bdcc-7f3d2df9b28f'
+    GUID = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
     
     # Author of this module
     Author = 'Cloud Infrastructure Business Group (CIBG)'

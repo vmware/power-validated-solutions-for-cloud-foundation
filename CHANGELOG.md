@@ -1,6 +1,6 @@
 # Release History
 
-## v2.3.0 (Not Released)
+## v2.3.0 (2023-05-30)
 
 - **Breaking Change** - Updated `Add-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
 - **Breaking Change** - Updated `Undo-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
