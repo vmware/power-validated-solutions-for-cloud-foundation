@@ -8175,16 +8175,20 @@ Function Add-vRLIAuthenticationGroup {
                 if ($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass) {
                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                         if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
-                            if (Get-vRLIAuthenticationWSA -eq "True") {
-                                if (!(Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain})) {
-                                    Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
-                                    if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
-                                        Write-Output "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
+                            if ((Get-vRLIAuthenticationWSA).enabled -eq "True") {
+                                if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+                                    if (!(Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain})) {
+                                        Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
+                                        if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
+                                            Write-Output "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                                        }
                                     } else {
-                                        Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                                        Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
                                     }
                                 } else {
-                                    Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
+                                    Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier. Complete the process manually."
                                 }
                             } else {
                                 Write-Error "Workspace ONE Integration on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
@@ -8975,7 +8979,7 @@ Function Remove-vRAvRLIConfig {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                      if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
                                 if (Test-vRAConnection -server $vRADetails.node1IpAddress) {   
                                     $vmName = $vraDetails.fqdn | Select-Object -First 1
@@ -28484,15 +28488,15 @@ Export-ModuleMember -Function Test-vROPsAdapterStatus
 Function Request-vRLIToken {
     <#
         .SYNOPSIS
-        Connects to the specified vRealize Log Insight and obtains authorization token
+        Connects to the specified vRealize Log Insight instance and obtains authorization token
 
         .DESCRIPTION
-        The Request-vRLIToken cmdlet connects to the specified vRealize Log Insight and obtains an authorization token.
+        The Request-vRLIToken cmdlet connects to the specified vRealize Log Insight instance and obtains an authorization token.
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
-        Request-vRLIToken -fqdn sfo-vvrli01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the vRealize Log Insight appliance
+        Request-vRLIToken -fqdn sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
+        This example shows how to connect to the vRealize Log Insight instance
     #>
 
     Param (
@@ -28508,7 +28512,6 @@ Function Request-vRLIToken {
     }
 
     Try {
-
         $vrliBasicHeaders = createBasicAuthHeader $username $password
         $Global:vrliAppliance = $fqdn
         $Global:vrliHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
@@ -28524,8 +28527,7 @@ Function Request-vRLIToken {
         
         if ($PSEdition -eq 'Core') {
             $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliBasicHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $Global:vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliBasicHeaders -Body $body
         }
 
@@ -28533,12 +28535,33 @@ Function Request-vRLIToken {
             $vrliHeaders.Add("Authorization", "Bearer " + $vrliResponse.sessionId)
             Write-Output "Successfully connected to vRealize Log Insight: $vrliAppliance"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Request-vRLIToken
+
+Function Get-vRLIVersion {
+    <#
+        .SYNOPSIS
+        Get vRealize Log Insight version information
+
+        .DESCRIPTION
+        The Get-vRLIVersion cmdlet gets the vRealize Log Insight version information
+
+        .EXAMPLE
+        Get-vRLIVersion
+        This example gets the vRealize Log Insight version information
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/version"
+        Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIVersion
 
 Function Get-vRLIAuthenticationWSA {
     <#
@@ -28550,15 +28573,25 @@ Function Get-vRLIAuthenticationWSA {
 
         .EXAMPLE
         Get-vRLIAuthenticationWSA
-        This example gets the configuration for Workspace ONE Access Integration
+        This example gets the configuration for the Workspace ONE Access Integration
+
+        .EXAMPLE
+        Get-vRLIAuthenticationWSA -statuss
+        This example gets the connection status for the Workspace ONE Access Integration
     #>
 
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$status
+    )
+
     Try {
-        $uri = "https://$vrliAppliance/api/v1/vidm"
-        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
-        $response
-    }
-    Catch {
+        if ($PsBoundParameters.ContainsKey("status")) {
+            $uri = "https://$vrliAppliance/api/v1/vidm/status"
+        } else {
+            $uri = "https://$vrliAppliance/api/v1/vidm"
+        }
+        Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -28570,7 +28603,7 @@ Function Set-vRLIAuthenticationWSA {
         Configure Workspace ONE Access Intergration
 
         .DESCRIPTION
-        The Set-vRLIAuthenticationWSA cmdlet configures Workspace ONE Access Integration
+        The Set-vRLIAuthenticationWSA cmdlet configures the Workspace ONE Access Integration
 
         .EXAMPLE
         Set-vRLIAuthenticationWSA -hostname sfo-wsa01.sfo.rainpole.io -port 443 -redirectUrl sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
@@ -28600,8 +28633,7 @@ Function Set-vRLIAuthenticationWSA {
         $body = $jsonSpec | ConvertTo-Json -Depth 12
         $uri = "https://$vrliAppliance/api/v1/vidm"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -28630,36 +28662,33 @@ Function Remove-vRLIAuthenticationWSA {
         $uri = "https://$vrliAppliance/api/v1/vidm"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Remove-vRLIAuthenticationWSA
 
-Function Get-vRLIContentPack {
+Function Get-vRLIAuthenticationAD {
     <#
         .SYNOPSIS
-        Get list of installed content packs
+        Get Active Directory configuration settings
 
         .DESCRIPTION
-        The Get-vRLIContentPack cmdlet gets a list of all content packs installed on vRealize Log Insight
+        The Get-vRLIAuthenticationAD cmdlet gets the Active Directory configuration settings
 
         .EXAMPLE
-        Get-vRLIContentPack
-        This example gets a list of all content packs
+        Get-vRLIAuthenticationAD
+        This example gets the the Active Directory configuration settings
     #>
 
     Try {
-        $uri = "https://$vrliAppliance/api/v1/content/contentpack"
-        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
-        $response.contentPackMetadataList
-    }
-    Catch {
+        $uri = "https://$vrliAppliance/api/v1/ad"
+        Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Get-vRLIContentPack
+Export-ModuleMember -Function Get-vRLIAuthenticationAD
 
 Function Get-vRLIAgentGroup {
     <#
@@ -29040,8 +29069,7 @@ Function Get-vRLIRole {
         $uri = "https://$vrliAppliance/api/v1/roles"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
         $response.roles
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29069,9 +29097,13 @@ Function Get-vRLIGroup {
     )
 
     Try {
-        $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider"
-        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
-        $response.authProviderGroups
+        if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+            $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider"
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+            $response.authProviderGroups
+        } else {
+            Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier"
+        }
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -29100,13 +29132,16 @@ Function Add-vRLIGroup {
     )
 
     Try {
-        $roleId = (Get-vRLIRole | Where-Object {$_.name -eq $role}).id
-        $uri = "https://$vrliAppliance/api/v1/authgroups"
-        $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "groupIds": [ "'+ $roleId + '" ]}'
-        $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
-        $response
-    }
-    Catch {
+        if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+            $roleId = (Get-vRLIRole | Where-Object {$_.name -eq $role}).id
+            $uri = "https://$vrliAppliance/api/v1/authgroups"
+            $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "groupIds": [ "'+ $roleId + '" ]}'
+            $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
+            $response
+        } else {
+            Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier"
+        }
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29132,11 +29167,14 @@ Function Remove-vRLIGroup {
     )
 
     Try {
-        $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider/$domain/$group@$domain"
-        $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
-        $response
-    }
-    Catch {
+        if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+            $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider/$domain/$group@$domain"
+            $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
+            $response
+        } else {
+            Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier"
+        }
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29449,6 +29487,30 @@ Function Get-vRLIMarketplaceMetadata {
     }
 }
 Export-ModuleMember -Function Get-vRLIMarketplaceMetadata
+
+Function Get-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Get list of installed content packs
+
+        .DESCRIPTION
+        The Get-vRLIContentPack cmdlet gets a list of all content packs installed on vRealize Log Insight
+
+        .EXAMPLE
+        Get-vRLIContentPack
+        This example gets a list of all content packs
+    #>
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/content/contentpack"
+        $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
+        $response.contentPackMetadataList
+    }
+    Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRLIContentPack
 
 Function Install-vRLIContentPack {
     <#
