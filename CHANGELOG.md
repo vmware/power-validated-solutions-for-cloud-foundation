@@ -1,5 +1,15 @@
 # Release History
 
+## v2.4.0 (Not Released)
+
+- Added `Get-vRLIAuthenticationAD` cmdlet to retrieve the Active Directory configuration settings.
+- Added `Get-vRLIVersion` cmdlet to retrieve the vRealize Log Insight version information.
+- Enhanced `Get-vRLIAuthenticationWSA` cmdlet with a -status switch to retrieve the connection status with Workspace ONE Access.
+- Enhanced `Add-vRLIAuthenticationGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
+- Enhanced `Get-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
+- Enhanced `Add-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
+- Enhanced `Remove-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
+
 ## v2.3.0 (2023-05-30)
 
 - **Breaking Change** - Updated `Add-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
