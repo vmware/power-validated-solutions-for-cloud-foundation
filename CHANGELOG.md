@@ -9,6 +9,7 @@
 - Enhanced `Get-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
 - Enhanced `Add-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
 - Enhanced `Remove-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
+- Enhanced `Add-vRSLCMNtpServer` cmdlet with additional checking of the inputs against the exiting configuration.
 
 ## v2.3.0 (2023-05-30)
 

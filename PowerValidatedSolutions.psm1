@@ -2500,58 +2500,51 @@ Function Add-vRSLCMNtpServer {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServerDesc
     )
 
-    $testNtp = Test-NtpServer -Server $ntpServer
-    if ($testNtp -eq $false) {
-        Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
-        Break
-    }
-
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
-                            if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
-                                $vmName = $vrslcmDetails.fqdn.Split(".")[0]
-                                if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                    $vrslcmProductNtpServers = Get-vRSLCMProductNtpServer
-                                    if ($vrslcmProductNtpServers -match $ntpServer) {
-                                        Write-Warning "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list, already performed: SKIPPED"
-                                    } else {
-                                        $addvRSLCMProductNtp = Add-vRSLCMProductNtpServer -ntpServer $ntpServer -ntpServerDesc $ntpServerDesc -ErrorAction SilentlyContinue
-                                        if ($addvRSLCMProductNtp -match $ntpServer) {
-                                            Write-Output "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: SUCCESSFUL"
+        if (Test-NtpServer -Server $ntpServer) {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
+                                if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
+                                    $vmName = $vrslcmDetails.fqdn.Split(".")[0]
+                                    if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                                        $vrslcmProductNtpServers = Get-vRSLCMProductNtpServer
+                                        if ($vrslcmProductNtpServers -match $ntpServer -or $vrslcmProductNtpServers -match $ntpServerDesc) {
+                                            Write-Warning "Adding ($ntpServer) or description ($ntpServerDesc) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list, already performed: SKIPPED"
                                         } else {
-                                            Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: POST_VALIDATION_FAILED"
+                                            $addvRSLCMProductNtp = Add-vRSLCMProductNtpServer -ntpServer $ntpServer -ntpServerDesc $ntpServerDesc -ErrorAction SilentlyContinue
+                                            if ($addvRSLCMProductNtp -match $ntpServer) {
+                                                Write-Output "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: POST_VALIDATION_FAILED"
+                                            }
                                         }
-                                    }
-                                    $vRSLCMAppliancePreCheck = Get-vRSLCMProductNtpServer
-                                    if ($vRSLCMAppliancePreCheck -match $ntpServer) {
                                         $vrslcmApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig
-                                        if ($vrslcmApplianceNtpConfig.ntpServers -match $ntpServer) {
-                                            Write-Warning "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration, already performed: SKIPPED"
+                                        if ($vrslcmApplianceNtpConfig.ntpServers -match $ntpServer -or $vrslcmApplianceNtpConfig.ntpServers -match $ntpServerDesc) {
+                                            Write-Warning "Adding ($ntpServer) or description ($ntpServerDesc) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration, already performed: SKIPPED"
                                         } else {
                                             $addvRSLCMApplianceNtp = Add-vRSLCMApplianceNtpConfig -ntpServer $ntpServer -ErrorAction SilentlyContinue
                                             if ($addvRSLCMApplianceNtp.ntpServers -match $ntpServer) {
-                                                Write-Output "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: SUCCESSFUL"
+                                                Write-Output "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: SUCCESSFUL"
                                             } else {
-                                                Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: POST_VALIDATION_FAILED"
+                                                Write-Error "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: POST_VALIDATION_FAILED"
                                             }
                                         }
                                     } else {
-                                        Write-Error "Adding NTP server ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
                                     }
-                                } else {
-                                    Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
+                                    Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
-                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
                 }
             }
+        } else {
+            Write-Error "Unable to confirm NTP Server ($ntpServer) is valid: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
