@@ -16733,15 +16733,16 @@ Function Get-LocalPasswordComplexity {
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx,
             [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
             [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$version,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
         )
 
         if ($PsBoundParameters.ContainsKey('drift')) { 
             if ($PsBoundParameters.ContainsKey('policyFile')) { 
-                $command = "(Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile).$product.passwordComplexity"
+                $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.passwordComplexity"
             } else {
-                $command = "(Get-PasswordPolicyConfig).$product.passwordComplexity"
+                $command = "(Get-PasswordPolicyConfig -version $version).$product.passwordComplexity"
             }
             $requiredConfig = Invoke-Expression $command
         }
@@ -16919,15 +16920,16 @@ Function Get-LocalAccountLockout {
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
             [Parameter (Mandatory = $true)] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
             [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$version,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
         )
 
         if ($PsBoundParameters.ContainsKey('drift')) { 
             if ($PsBoundParameters.ContainsKey('policyFile')) { 
-                $command = "(Get-PasswordPolicyConfig -reportPath $reportPath -policyFile $policyFile).$product.accountLockout"
+                $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.accountLockout"
             } else {
-                $command = "(Get-PasswordPolicyConfig).$product.accountLockout"
+                $command = "(Get-PasswordPolicyConfig -version $version).$product.accountLockout"
             }
             $requiredConfig = Invoke-Expression $command
         }
@@ -20117,7 +20119,7 @@ Function Set-NsxtManagerAuthPolicy {
         The Set-NsxtManagerAuthPolicy cmdlet configures the authentication policy for NSX Manager Node
 
         .EXAMPLE
-        Set-NsxManagerAuthPolicy -nsxtManagerNode "sfo-m01-nsx01a.sfo.rainpole.io" -api_lockout_period 900 -api_reset_period 120 -api_max_attempt 5 -cli_lockout_period 900 -cli_max_attempt 5 -min_passwd_length 15
+        Set-NsxtManagerAuthPolicy -nsxtManagerNode "sfo-m01-nsx01a.sfo.rainpole.io" -api_lockout_period 900 -api_reset_period 120 -api_max_attempt 5 -cli_lockout_period 900 -cli_max_attempt 5 -min_passwd_length 15 -maximum_password_length 30 -digits 10 -lower_chars -1 -upper_chars -1 -special_chars -1 -max_repeats 2 -max_sequence 3 -minimum_unique_chars 0 -password_remembrance 5
 		This example customized the Authentication policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io.
     #>
 
@@ -20128,7 +20130,16 @@ Function Set-NsxtManagerAuthPolicy {
 		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_max_attempt,
 		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_lockout_period,
 		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_max_attempt,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$min_passwd_length
+		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$min_passwd_length,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$maximum_password_length,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$digits,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$lower_chars,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$upper_chars,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$special_chars,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$max_repeats,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$max_sequence,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$minimum_unique_chars,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$password_remembrance 
 	)
 
 	$authPolicyBody = @{}
@@ -20150,6 +20161,30 @@ Function Set-NsxtManagerAuthPolicy {
 	if ($PsBoundParameters.ContainsKey("min_passwd_length")) {
 		$authPolicyBody += @{minimum_password_length = $min_passwd_length}
 	}
+    if ($PsBoundParameters.ContainsKey("maximum_password_length")) {
+		$authPolicyBody += @{maximum_password_length = $maximum_password_length}
+	}
+	if ($PsBoundParameters.ContainsKey("lower_chars")) {
+		$authPolicyBody += @{lower_chars = $lower_chars}
+	}
+	if ($PsBoundParameters.ContainsKey("upper_chars")) {
+		$authPolicyBody += @{upper_chars = $upper_chars}
+	}
+	if ($PsBoundParameters.ContainsKey("special_chars")) {
+		$authPolicyBody += @{special_chars = $special_chars}
+	}
+	if ($PsBoundParameters.ContainsKey("password_remembrance")) {
+		$authPolicyBody += @{password_remembrance = $password_remembrance}
+	}
+	if ($PsBoundParameters.ContainsKey("minimum_unique_chars")) {
+		$authPolicyBody += @{minimum_unique_chars = $minimum_unique_chars}
+	} 
+    if ($PsBoundParameters.ContainsKey("max_repeats")) {
+		$authPolicyBody += @{max_repeats = $max_repeats}
+	}
+    if ($PsBoundParameters.ContainsKey("max_sequence")) {
+        $authPolicyBody += @{max_sequence = $max_sequence}
+    }
 
 	Try {
 		$requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
