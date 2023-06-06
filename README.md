@@ -1,97 +1,25 @@
-<img src=".github/icon-400px.svg" alt="A PowerShell Module for VMware Validated Soltions" width="150"></br></br>
+<!-- markdownlint-disable first-line-h1 no-inline-html -->
+<img src=".github/icon-400px.svg" alt="A PowerShell Module for VMware Validated Solutions" width="150"></br></br>
 
 # A PowerShell Module for VMware Validated Solutions
 
-[<img src="https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge&logo=powershell&logoColor=white" alt="PowerShell Gallery" >][module-powervalidatedsolutions]&nbsp;&nbsp;[<img src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge&logo=github&logoColor=white" alt="CHANGELOG" >][changelog]&nbsp;&nbsp;[<img src="https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge&logo=powershell&logoColor=white" alt="PowerShell Gallery Downloads" >][module-powervcf]&nbsp;&nbsp;
+[<img src="https://img.shields.io/badge/Documentation-Read-blue?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Documenation">][docs-module]&nbsp;&nbsp;
+[<img src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge&logo=github&logoColor=white" alt="CHANGELOG" >][changelog]
+
+[<img src="https://img.shields.io/powershellgallery/v/PowerValidatedSolutions?style=for-the-badge&logo=powershell&logoColor=white" alt="PowerShell Gallery">][psgallery-module]&nbsp;&nbsp;
+<img src="https://img.shields.io/powershellgallery/dt/PowerValidatedSolutions?style=for-the-badge&logo=powershell&logoColor=white" alt="PowerShell Gallery Downloads">
 
 ## Overview
 
-`PowerValidatedSolutions` is a PowerShell module that has been written to support the automation of many procedures associated with the implementation of the [VMware Validated Solutions for VMware Cloud Foundation][vvs].
+`PowerValidatedSolutions` is a PowerShell module that has been written to support the automation of many procedures associated with the implementation of the [VMware Validated Solutions][vvs] for [VMware Cloud Foundation][docs-vmware-cloud-foundation].
 
 The module helps reduce human error, delivers consistency and robustness, and accelerates the time-to-deploy these solutions. The module's cmdlets reduce complexity by automating the deployment and configuration steps using the product APIs or command-line tools.
 
-This infrastructure-as-code model enables you to use the module "out-of-the-box" or in your own end-to-end automation.
+This infrastructure-as-code model enables you to use the module to accelerate the deployment and management of the VMware Validate Solutions or use it in your own end-to-end automation.
 
-## Requirements
+## Documentation
 
-### Platform
-
-* [VMware Cloud Foundation][vmware-cloud-foundation] 4.3 or higher
-
-### Powershell
-
-* [Microsoft Windows PowerShell][microsoft-powershell] 5.1
-
-### PowerShell Modules
-
-* [`VMware.PowerCLI`][module-vmware-powercli] 13.0.0 or higher
-* [`VMware.vSphere.SsoAdmin`][module-vmware-vsphere-ssoadmin] 1.3.9 or higher
-* [`ImportExcel`][module-importexcel] 7.8.4 or higher
-* [`PowerVCF`][module-powervcf] 2.3.0 or higher
-
-
-## Installing the Module
-
-Verify that your system has a supported edition and version of PowerShell installed.
-
-Install the supporting PowerShell modules from the Microsoft PowerShell Gallery by running the following commands in the PowerShell console:
-
-```powershell
-Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Install-Module -Name VMware.PowerCLI -MinimumVersion 13.0.0
-Install-Module -Name VMware.vSphere.SsoAdmin -MinimumVersion 1.3.9
-Install-Module -Name ImportExcel -MinimumVersion 7.8.4
-Install-Module -Name PowerVCF -MinimumVersion 2.3.0
-Install-Module -Name PowerValidatedSolutions -MinimumVersion 2.3.0
-```
-
-## Verifying the Module
-
-To verify the correct versions of the supporting modules are installed, run the following command in the PowerShell console.
-
-```powershell
-Test-PowerValidatedSolutionsPrereq
-```
-
-Once installed, any cmdlets associated with `PowerValidatedSolutions` and the supporting PowerShell modules will be available for use.
-
-## Updating the Module
-
-Update the PowerShell module to the latest release from the Microsoft PowerShell Gallery by running the following command in the PowerShell console:
-
-```powershell
-Update-Module -Name PowerValidatedSolutions
-```
-
-To verify the version of the PowerShell module, run the following command in the PowerShell console.
-
-```powershell
-Get-InstalledModule -Name PowerValidatedSolutions
-```
-
-## Getting Help
-
-To view the cmdlets available in the module, run the following command in the PowerShell console.
-
-```powershell
-Get-Command -Module PowerValidatedSolutions
-```
-
-To view the help for any cmdlet, run the `Get-Help` command in the PowerShell console.
-
-For example:
-
-```powershell
-Get-Help -Name Add-IdentitySource
-```
-
-```powershell
-Get-Help -Name Add-IdentitySource -examples
-```
-
-```powershell
-Get-Help -Name <cmdlet-name> -full
-```
+Please refer to the [documentation][docs-module] for more information on how to use this module.
 
 ## Contributing
 
@@ -102,11 +30,22 @@ as an open-source patch.
 
 For more detailed information, refer to the [contribution guidelines][contributing] to get started.
 
-## Disclaimer
+## Support
 
-This PowerShell module is not supported by VMware Support.
+This PowerShell module is not supported by VMware Support Services.
 
-If you discover a bug or would like to suggest an enhancement, please [open an issue][issues].
+We welcome you to use the GitHub [issues][gh-issues] tracker to report bugs or suggest features and enhancements.
+
+When filing an issue, please check existing open, or recently closed, issues to make sure someone else hasn't already
+reported the issue.
+
+Please try to include as much information as you can. Details like these are incredibly useful:
+
+- A reproducible test case or series of steps.
+- Any modifications you've made relevant to the bug.
+- Anything unusual about your environment or deployment.
+
+You can also start a discussion on the [discussions][gh-discussions] area to ask questions or share ideas.
 
 ## License
 
@@ -124,13 +63,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 [changelog]: CHANGELOG.md
 [contributing]: CONTRIBUTING.md
-[issues]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues
-[vvs]: https://vmware.com/go/vvs
-[microsoft-powershell]: https://docs.microsoft.com/en-us/powershell
-[module-vmware-powercli]: https://www.powershellgallery.com/packages/VMware.PowerCLI
-[module-vmware-vsphere-ssoadmin]: https://www.powershellgallery.com/packages/VMware.vSphere.SsoAdmin
-[module-powervalidatedsolutions]: https://www.powershellgallery.com/packages/PowerValidatedSolutions
-[module-powervcf]: https://www.powershellgallery.com/packages/PowerVCF
-[module-importexcel]: https://www.powershellgallery.com/packages/ImportExcel
-[vmware-cloud-foundation]: https://docs.vmware.com/en/VMware-Cloud-Foundation
+[docs-vmware-cloud-foundation]: https://docs.vmware.com/en/VMware-Cloud-Foundation
+[docs-module]: https://vmware-samples.github.io/power-validated-solutions-for-cloud-foundation
+[gh-discussions]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/discussions
+[gh-issues]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues
+[psgallery-module]: https://www.powershellgallery.com/packages/PowerValidatedSolutions
 [vmware-cla-dco]: https://cla.vmware.com/dco
+[vvs]: https://vmware.com/go/vvs

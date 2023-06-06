@@ -54,7 +54,7 @@
 - Added `Show-PowerValidatedSolutionsOutput` cmdlet to handle formatting of output to the console when PowerVCF is not installed.
 - Fixed `Get-GlobalPermission` cmdlet to correclty read the HTML response data.
 
-### Deprecation
+Deprecation
 
 - Removed `Get-EsxiPasswordPolicy`
 - Removed `Set-EsxiPasswordExpirationPeriod`
@@ -176,7 +176,7 @@
 - Renamed `Set-WSAPasswordLockout` to Set-WsaAccountLockout to support better naming for account lockout.
 - Enhanced `Set-WsaPasswordPolicy` cmdlet to improve the output from the API.
 
-### Deprecation
+Deprecation
 
 - Removed `Get-VCPasswordExpiry`
 - Removed `Join-ESXiActiveDirectory`
