@@ -15473,6 +15473,50 @@ Function Update-SddcDeployedFlavor {
 }
 Export-ModuleMember -Function Update-SddcDeployedFlavor
 
+Function Invoke-VcenterCommand {
+    <#
+		.SYNOPSIS
+        Invoke a command line operation on vCenter Server
+
+        .DESCRIPTION
+        The Invoke-VcenterCommand cmdlet allows you to invoke any command line operation on a vCenter Server managed
+        by SDDC Manager
+
+        .EXAMPLE
+        Invoke-VcenterCommand -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -command "ip -s -s neigh flush all"
+        This example invokes the command to flush the ARP table for the vCenter Server of a given workload domain
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$command
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            $workloadDomainVcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
+                            $output = Invoke-VMScript -VM $workloadDomainVcenter.vmName -ScriptText $command -GuestUser $workloadDomainVcenter.root -GuestPassword $workloadDomainVcenter.rootPass -Server $vcfVcenterDetails.fqdn
+                            Write-Output ""; Write-Output "Executing command ($command) on vCenter Server ($($workloadDomainVcenter.fqdn))"
+                            Write-Output "";Write-Output "$output"
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-VcenterCommand
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 

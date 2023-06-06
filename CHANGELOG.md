@@ -4,6 +4,8 @@
 
 - Added `Get-vRLIAuthenticationAD` cmdlet to retrieve the Active Directory configuration settings.
 - Added `Get-vRLIVersion` cmdlet to retrieve the vRealize Log Insight version information.
+- Added `Invoke-VcenterCommand` cmdlet allows you to invoke any command line operation on a vCenter Server managed by SDDC Manager.
+- Added `vcdr-vsphere-integration.role` file for VMware Cloud Disaster Recovery to vSphere Integration.
 - Enhanced `Get-vRLIAuthenticationWSA` cmdlet with a -status switch to retrieve the connection status with Workspace ONE Access.
 - Enhanced `Add-vRLIAuthenticationGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
 - Enhanced `Get-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
@@ -11,8 +13,8 @@
 - Enhanced `Remove-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
 - Enhanced `Add-vRSLCMNtpServer` cmdlet with additional checking of the inputs against the exiting configuration.
 - Enhanced `Set-NsxtManagerAuthPolicy` to handle password complexity parameters for NSX 4.x.
-- Enhanced `Get-LocalPasswordComplexity` to handle VMware Cloud Foudation version parameter.
-- Enhanced `Get-LocalAccountLockout` to handle VMware Cloud Foudation version parameter.
+- Enhanced `Get-LocalPasswordComplexity` to handle VMware Cloud Foundation version parameter.
+- Enhanced `Get-LocalAccountLockout` to handle VMware Cloud Foundation version parameter.
 
 ## v2.3.0 (2023-05-30)
 
