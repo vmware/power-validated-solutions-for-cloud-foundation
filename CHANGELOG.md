@@ -15,6 +15,7 @@
 - Enhanced `Set-NsxtManagerAuthPolicy` to handle password complexity parameters for NSX 4.x.
 - Enhanced `Get-LocalPasswordComplexity` to handle VMware Cloud Foundation version parameter.
 - Enhanced `Get-LocalAccountLockout` to handle VMware Cloud Foundation version parameter.
+- Enhanced `Set-NsxtManagerAuthPolicy` cmdlet to handle `hash_algorithm` parameter for NSX 4.x.
 
 ## v2.3.0 (2023-05-30)
 
