@@ -177,7 +177,7 @@ Function Undo-IdentitySource {
                                     Write-Output "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): SUCCESSFUL"
                                 } else {
                                     Write-Error "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
-                                }                                
+                                }
                             } else {
                                 Write-Warning "Removing Identity Source from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain), does not exist: SKIPPED"
                             }
@@ -319,14 +319,14 @@ Function Undo-SddcManagerRole {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}) {
                     Remove-VCFUser -id (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}).id
-                    if (!(Get-VCFUser -type $type | Where-Object {$_.name -match $principal})) { 
+                    if (!(Get-VCFUser -type $type | Where-Object {$_.name -match $principal})) {
                         Write-Output "Removing $type from SDDC Manager ($server) named ($principal): SUCCESSFUL"
                     } else {
                         Write-Error "Removing $type from SDDC Manager ($server) named ($principal): POST_VALIDATION_FAILED"
                     }
                 } else {
                     Write-Warning "Removing $type from SDDC Manager ($server) named ($principal), not assigned: SKIPPED"
-                }                                 
+                }
             }
         }
     } Catch {
@@ -636,12 +636,12 @@ Function Set-WorkspaceOneNtpConfig {
         This example adds the NTP server ntp.lax.rainpole.io to the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io
 
         .EXAMPLE
-        Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -vrslcmIntegrated -ntpServer ntp.lax.rainpole.io 
-        This example adds the NTP server ntp.lax.rainpole.io to the vRealize Suite Lifecycle Manager integrated Workspace ONE Access nodes
+        Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -vrslcmIntegrated -ntpServer ntp.lax.rainpole.io
+        This example adds the NTP server ntp.lax.rainpole.io to the VMware Aria Suite Lifecycle integrated Workspace ONE Access nodes
 
         .EXAMPLE
         Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -vrslcmIntegrated
-        This example adds the primary NTP server defined in SDDC Manager to the vRealize Suite Lifecycle Manager integrated Workspace ONE Access nodes
+        This example adds the primary NTP server defined in SDDC Manager to the VMware Aria Suite Lifecycle integrated Workspace ONE Access nodes
     #>
 
     Param (
@@ -653,7 +653,7 @@ Function Set-WorkspaceOneNtpConfig {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
         [Parameter (Mandatory = $false, ParameterSetName = 'vrslcmIntegrated')] [ValidateNotNullOrEmpty()] [Switch]$vrslcmIntegrated
     )
-    
+
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -682,7 +682,7 @@ Function Set-WorkspaceOneNtpConfig {
                                             }
                                         }
                                     } else {
-                                        Write-Error "Unable to connect to vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn) to gather Workspace ONE Access appliance inventory: PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to connect to VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn) to gather Workspace ONE Access appliance inventory: PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
@@ -795,7 +795,7 @@ Function Set-WorkspaceOneSmtpConfig {
     <#
 		.SYNOPSIS
         Configure SMTP Server on Workspace ONE Access Appliance
-        
+
         .DESCRIPTION
         The Set-WorkspaceOneSmtpConfig cmdlet configures the SMTP Server details of the Workspace ONE Access Appliance.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
@@ -957,7 +957,7 @@ Function Set-WorkspaceOneNsxtIntegration {
         Integrate NSX Manager with Workspace ONE Access
 
         .DESCRIPTION
-        The Set-WorkspaceOneNsxtIntegration cmdlet configures integration between NSX Manager and Workspace ONE Access. 
+        The Set-WorkspaceOneNsxtIntegration cmdlet configures integration between NSX Manager and Workspace ONE Access.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
@@ -1038,7 +1038,7 @@ Function Undo-WorkspaceOneNsxtIntegration {
         Disables the integrate between NSX Manager with Workspace ONE Access
 
         .DESCRIPTION
-        The Undo-WorkspaceOneNsxtIntegration cmdlet disables integration between NSX Manager and Workspace ONE Access. 
+        The Undo-WorkspaceOneNsxtIntegration cmdlet disables integration between NSX Manager and Workspace ONE Access.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
@@ -1114,7 +1114,7 @@ Function Add-NsxtVidmRole {
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
-        - Assigns Active Directory users or groups to NSX Manager roles based on the -type, -principal, and -role values. 
+        - Assigns Active Directory users or groups to NSX Manager roles based on the -type, -principal, and -role values.
 
         .EXAMPLE
         Add-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type group -principal "gg-nsx-enterprise-admins@sfo.rainpole.io" -role enterprise_admin
@@ -1151,7 +1151,7 @@ Function Add-NsxtVidmRole {
                                         }
                                     } else {
                                         Write-Warning "Assigning $type ($principal) the role ($role) in NSX for Workload Domain ($domain), already exists: SKIPPED"
-                                    }    
+                                    }
                                 } else {
                                     Write-Error "Unable to find $type ($principal) in Workspace ONE Access for NSX, check $type synchronization: PRE_VALIDATION_FAILED"
                                 }
@@ -1179,7 +1179,7 @@ Function Undo-NsxtVidmRole {
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
-        - Removes user or group's from NSX Manager roles based on the -principal 
+        - Removes user or group's from NSX Manager roles based on the -principal
 
         .EXAMPLE
         Undo-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
@@ -1298,7 +1298,7 @@ Function Add-WorkspaceOneRole {
 }
 Export-ModuleMember -Function Add-WorkspaceOneRole
 
-#EndRegion                                  E N D  O F  F U N C T I O N S                                   ########### 
+#EndRegion                                  E N D  O F  F U N C T I O N S                                   ###########
 #######################################################################################################################
 
 #######################################################################################################################
@@ -1369,12 +1369,12 @@ Function Install-SiteRecoveryManager {
                                 $datacenter = (Get-Datacenter -Cluster $cluster).Name
                                 if (((Get-VCFConfigurationDNS).ipAddress).Count -gt 1) {
                                     $dnsServer = (Get-VCFConfigurationDNS).ipAddress[0] + "," + (Get-VCFConfigurationDNS).ipAddress[1]
-                                } else { 
+                                } else {
                                     $dnsServer = (Get-VCFConfigurationDNS).ipAddress
                                 }
                                 if (((Get-VCFConfigurationNTP).ipAddress).Count -gt 1) {
                                     $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0] + "," + (Get-VCFConfigurationNTP).ipAddress[1]
-                                } else { 
+                                } else {
                                     $ntpServer = (Get-VCFConfigurationNTP).ipAddress
                                 }
                                 $mgmtPortgroup = ((Get-VMHost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | Where-Object {$_.DeviceName -eq "vmk0"}).PortGroupName
@@ -1541,12 +1541,12 @@ Function Install-vSphereReplicationManager {
                                 $datacenter = (Get-Datacenter -Cluster $cluster).Name
                                 if (((Get-VCFConfigurationDNS).ipAddress).Count -gt 1) {
                                     $dnsServer = (Get-VCFConfigurationDNS).ipAddress[0] + "," + (Get-VCFConfigurationDNS).ipAddress[1]
-                                } else { 
+                                } else {
                                     $dnsServer = (Get-VCFConfigurationDNS).ipAddress
                                 }
                                 if (((Get-VCFConfigurationNTP).ipAddress).Count -gt 1) {
                                     $ntpServer = (Get-VCFConfigurationNTP).ipAddress[0] + "," + (Get-VCFConfigurationNTP).ipAddress[1]
-                                } else { 
+                                } else {
                                     $ntpServer = (Get-VCFConfigurationNTP).ipAddress
                                 }
                                 $mgmtPortgroup = ((Get-VMHost)[0] | Get-VMHostNetwork | Select-Object Hostname, VMkernelGateway -ExpandProperty VirtualNic | where-object {$_.DeviceName -eq "vmk0"}).PortGroupName
@@ -1571,7 +1571,7 @@ Function Install-vSphereReplicationManager {
                                     } Finally {
                                         $timer.Stop()  ## Stop the timer
                                         Write-Output "Deploying a virtual machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
-                                    }       
+                                    }
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
@@ -1661,12 +1661,12 @@ Function Connect-DRSolutionTovCenter {
         - Validates if the solution has already been registerd and if not proceeds with the registration
 
         .EXAMPLE
-        Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "srm-administrator@rainpole.io" -solution SRM 
+        Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "srm-administrator@rainpole.io" -solution SRM
         This example registers Site Recovery Manager with the vCenter Server of the Management Domain
 
         .EXAMPLE
-        Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "vrms-administrator@rainpole.io" -solution VRMS 
-        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
+        Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "vrms-administrator@rainpole.io" -solution VRMS
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain
     #>
 
     Param (
@@ -1755,12 +1755,12 @@ Function Undo-DRSolutionTovCenter {
         - Validates if the solution is registerd and if so proceeds to unregister
 
         .EXAMPLE
-        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution SRM 
+        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution SRM
         This example registers Site Recovery Manager with the vCenter Server of the Management Domain
 
         .EXAMPLE
-        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution VRMS 
-        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
+        Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution VRMS
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain
     #>
 
     Param (
@@ -1834,8 +1834,8 @@ Function Install-VamiCertificate {
 
         .EXAMPLE
         Install-VamiCertificate -server sfo-m01-vrms01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution VRMS
-        This example replaces the certificate for the VAMI interface of the vSphere Replication 
-        
+        This example replaces the certificate for the VAMI interface of the vSphere Replication
+
         .EXAMPLE
         Install-VamiCertificate -server sfo-m01-srm01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution SRM
         This example replaces the certificate for the VAMI interface of the Site Recovery Manager appliance
@@ -1858,14 +1858,14 @@ Function Install-VamiCertificate {
                 Write-Error  "Certificate (.p12) '$certFile' File Not Found"
             }
         }
-        
+
         if ($solution -eq "VRMS") {
             if (Test-VrmsVamiConnection -server $server) {
                 if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
                     Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
                     Write-Output "Installing Signed Certifcate on vSphere Replication appliance ($server) using ($certFile): SUCCESSFUL"
                 }
-            
+
             }
         } elseif ($solution -eq "SRM") {
             if (Test-SrmVamiConnection -server $server) {
@@ -1873,7 +1873,7 @@ Function Install-VamiCertificate {
                     Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
                     Write-Output "Installing Signed Certifcate on Site Recovery Manager appliance ($server) using ($certFile): SUCCESSFUL"
                 }
-            
+
             }
         }
     } Catch {
@@ -1951,13 +1951,13 @@ Function Add-VrmsNetworkAdapter {
                                         Request-VrmsToken -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass | Out-Null
                                         Set-VrmsReplication -filterIp $replicationIpAddress -managementIp $vrmsIpAddress | Out-Null
                                         #Set-vSRIncomingStorageTraffic -fqdn $vrmsFqdn -username admin -password $vrmsAdminPass -ipAddress $replicationIpAddress -ErrorAction SilentlyContinue | Out-Null
-                                        if (!((Get-VrmsConfiguration -replication).filter_ip -match $replicationIpAddress)) {                                                
+                                        if (!((Get-VrmsConfiguration -replication).filter_ip -match $replicationIpAddress)) {
                                             Write-Error "Setting Incoming Storage Traffic IP Address for vSphere Replication Appliance ($vrmsFqdn): POST_VALIDATION_FAILED"
                                         } else {
                                             Write-Output "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn): SUCCESSFUL"
                                         }
                                     } else {
-                                        Write-Warning "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn), already exists: SKIPPING" 
+                                        Write-Warning "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn), already exists: SKIPPING"
                                     }
                                 } else {
                                     Write-Error "Unable to find vSphere Distributed Port Group ($replicationPortgroup) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -1981,7 +1981,7 @@ Function Backup-VMOvfProperties {
         Backup-VMOvfProperties
 
         .DESCRIPTION
-        The Backup-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
+        The Backup-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
         - Creates a backup of the VM OVF environment
 
@@ -1996,7 +1996,7 @@ Function Backup-VMOvfProperties {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fileDir
     )
-        
+
     Try {
         if (!$PsBoundParameters.ContainsKey("fileDir")) {
             $fileDir = Get-ExternalDirectoryPath
@@ -2005,11 +2005,11 @@ Function Backup-VMOvfProperties {
                 Write-Error  "Directory '$fileDir' Not Found"
                 Break
             }
-        } 
+        }
         # Disconnect all connected vCenters to ensure only the desired vCenter is available
         if ($defaultviservers) {
             $server = $defaultviservers.Name
-            foreach ($server in $defaultviservers) {            
+            foreach ($server in $defaultviservers) {
                 Disconnect-VIServer -Server $server -Confirm:$False
             }
         }
@@ -2017,11 +2017,11 @@ Function Backup-VMOvfProperties {
         # Retrieve vRSLCM VM Name
         $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass
         if ($vrslcmDetails) {
-            Write-Output "Getting vRealize Suite Lifecycle Manager VM Name"
+            Write-Output "Getting VMware Aria Suite Lifecycle VM Name"
             Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
             $vrslcmVMName = Get-VM * | Where-Object {$_.Guest.Hostname -eq $vrslcmDetails.fqdn} | Select-Object Name
             $vrslcmVMName = $vrslcmVMName.Name
-            $vmsToBackup = @("$vrslcmVMName")                
+            $vmsToBackup = @("$vrslcmVMName")
             Disconnect-VIServer -server $vcenter.fqdn -Confirm:$False
         }
         # Retrieve WSA VM Names
@@ -2039,7 +2039,7 @@ Function Backup-VMOvfProperties {
         # Retrieve vROPs VM Names
         $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
         if ($vropsDetails) {
-            Write-Output "Getting vRealize Operations Manager VM Names"
+            Write-Output "Getting VMware Aria Operations VM Names"
             Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
             Foreach ($vropsFQDN in $vropsDetails.fqdn) {
                 $vropsVMName = Get-VM * | Where-Object{$_.Guest.Hostname -eq $vropsFQDN} | Select-Object Name
@@ -2051,7 +2051,7 @@ Function Backup-VMOvfProperties {
         # Retrieve vRA VM Names
         $vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass
         if ($vraDetails) {
-            Write-Output "Getting vRealize Automation VM Names"
+            Write-Output "Getting VMware Aria Automation VM Names"
             Connect-VIServer -server $vcenter.fqdn -user $vcenter.ssoAdmin -password $vcenter.ssoAdminPass | Out-Null
             Foreach ($vraFQDN in $vraDetails.fqdn) {
                 $vraVMName = Get-VM * | Where-Object {$_.Guest.Hostname -eq $vraFQDN} | Select-Object Name
@@ -2078,7 +2078,7 @@ Function Restore-VMOvfProperties {
         Restore-VMOvfProperties
 
         .DESCRIPTION
-        The Restore-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
+        The Restore-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
         - Creates a restore of the VM OVF environment
 
@@ -2094,7 +2094,7 @@ Function Restore-VMOvfProperties {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$fileDir
     )
 
-    Try {       
+    Try {
         if (!$PsBoundParameters.ContainsKey("fileDir")) {
             $fileDir = Get-ExternalDirectoryPath
         } else {
@@ -2102,13 +2102,13 @@ Function Restore-VMOvfProperties {
                 Write-Error  "Directory '$fileDir' Not Found"
                 Break
             }
-        } 
+        }
         $fileNames = @()
         $fileNames = Get-ChildItem -File "$($fileDir)\*-property-backup.json" -Recurse
         # Disconnect all connected vCenters to ensure only the desired vCenter is available
         if ($defaultviservers) {
             $server = $defaultviservers.Name
-            foreach ($server in $defaultviservers) {            
+            foreach ($server in $defaultviservers) {
                 Disconnect-VIServer -Server $server -Confirm:$False
             }
         }
@@ -2126,7 +2126,7 @@ Function Restore-VMOvfProperties {
                     Write-Output "Restoring VM OVF Settings for $restoredVM"
                     Set-VMOvfIPAssignment -vm $foundVM -assignment $vmSettings.IpAssignment
                     if ($vmSettings.eula) {
-                        Set-VMOvfEULA -vm $foundVM -eula $vmSettings.eula    
+                        Set-VMOvfEULA -vm $foundVM -eula $vmSettings.eula
                     }
                     Set-VMOvfEnvTransport -vm $foundVM -transport $vmSettings.ovfEnvironmentTransport
                     foreach ($product in $vmSettings.product) {
@@ -2134,7 +2134,7 @@ Function Restore-VMOvfProperties {
                     }
                     foreach ($property in $vmSettings.property) {
                         New-VMOvfProperty -vm $foundVM -property $property
-                    }                   
+                    }
                 } else {
                     Write-Output "Placeholder $restoredVM not found in $($vcenter.fqdn)"
                 }
@@ -2200,21 +2200,21 @@ Function New-VMOvfProperty {
     $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
     $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
     $propertySpec = New-Object VMware.Vim.VAppPropertySpec
-    
+
     #populate spec
     $propertySpec.Operation = "Add"
     $propertySpec.Info = New-Object VMware.Vim.VAppPropertyInfo
-    $propertySpec.info.category = $property.category 
+    $propertySpec.info.category = $property.category
     $propertySpec.info.classId = $property.classId
-    $propertySpec.info.defaultValue = $property.defaultValue 
-    $propertySpec.info.description = $property.description   
-    $propertySpec.info.id = $property.id 
-    $propertySpec.info.instanceId = $property.instanceId      
+    $propertySpec.info.defaultValue = $property.defaultValue
+    $propertySpec.info.description = $property.description
+    $propertySpec.info.id = $property.id
+    $propertySpec.info.instanceId = $property.instanceId
     $propertySpec.info.key = $property.key
-    $propertySpec.info.label = $property.label   
-    $propertySpec.info.type = $property.type 
-    $propertySpec.info.typeReference = $property.typeReference 
-    $propertySpec.info.userConfigurable = $property.userConfigurable 
+    $propertySpec.info.label = $property.label
+    $propertySpec.info.type = $property.type
+    $propertySpec.info.typeReference = $property.typeReference
+    $propertySpec.info.userConfigurable = $property.userConfigurable
     $propertySpec.info.value = $property.value
     $spec.VAppConfig.Property = $propertySpec
 
@@ -2222,7 +2222,7 @@ Function New-VMOvfProperty {
     Write-Output "Creating OVF Property $($property.id) on $($vm.name)"
     $task = $vm.ExtensionData.ReconfigVM_Task($spec)
     $task1 = Get-Task -Id ("Task-$($task.value)")
-    $waitask = $task1 | Wait-Task 
+    $waitask = $task1 | Wait-Task
 }
 Export-ModuleMember -Function New-VMOvfProperty
 
@@ -2259,7 +2259,7 @@ Function Set-VMOvfIPAssignment {
     Write-Output "Configuring IP Assignment setting on $($vm.name)"
     $task = $vm.ExtensionData.ReconfigVM_Task($spec)
     $task1 = Get-Task -Id ("Task-$($task.value)")
-    $waitask = $task1 | Wait-Task 
+    $waitask = $task1 | Wait-Task
 }
 Export-ModuleMember -Function Set-VMOvfIPAssignment
 
@@ -2273,7 +2273,7 @@ Function Set-VMOvfEnvTransport {
 
         .EXAMPLE
         Set-VMOvfEnvTransport -vm $vm -transport $transportObject
-    #> 
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -2286,12 +2286,12 @@ Function Set-VMOvfEnvTransport {
 
     #populate spec
     $spec.vAppConfig.ovfEnvironmentTransport = $transport
-    
+
     #write spec
     Write-Output "Configuring Environment Transport setting on $($vm.name)"
     $task = $vm.ExtensionData.ReconfigVM_Task($spec)
     $task1 = Get-Task -Id ("Task-$($task.value)")
-    $waitask = $task1 | Wait-Task 
+    $waitask = $task1 | Wait-Task
 }
 Export-ModuleMember -Function Set-VMOvfEnvTransport
 
@@ -2321,12 +2321,12 @@ Function New-VMOvfProduct {
     $productSpec.Operation = "Add"
     $productSpec.Info = New-Object VMware.Vim.VAppProductInfo
     $productSpec.info.appUrl = $product.appUrl
-    $productSpec.info.classId = $product.classId 
-    $productSpec.info.fullVersion = $product.fullVersion 
-    $productSpec.info.instanceId = $product.instanceId   
-    $productSpec.info.key = $product.key 
-    $productSpec.info.name = $product.name 
-    $productSpec.info.productUrl = $product.productUrl   
+    $productSpec.info.classId = $product.classId
+    $productSpec.info.fullVersion = $product.fullVersion
+    $productSpec.info.instanceId = $product.instanceId
+    $productSpec.info.key = $product.key
+    $productSpec.info.name = $product.name
+    $productSpec.info.productUrl = $product.productUrl
     $productSpec.info.vendor = $product.vendor
     $productSpec.info.vendorUrl = $product.vendorUrl
     $productSpec.info.version = $product.version
@@ -2336,7 +2336,7 @@ Function New-VMOvfProduct {
     Write-Output "Adding Product Setting on $($vm.name)"
     $task = $vm.ExtensionData.ReconfigVM_Task($spec)
     $task1 = Get-Task -Id ("Task-$($task.value)")
-    $waitask = $task1 | Wait-Task 
+    $waitask = $task1 | Wait-Task
 }
 Export-ModuleMember -Function New-VMOvfProduct
 
@@ -2350,7 +2350,7 @@ Function Set-VMOvfEULA {
 
         .EXAMPLE
         Set-VMOvfEULA -vm $vm -eula $eulaObject
-    #>    
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -2368,7 +2368,7 @@ Function Set-VMOvfEULA {
     Write-Output "Setting EULA on $($vm.name)"
     $task = $vm.ExtensionData.ReconfigVM_Task($spec)
     $task1 = Get-Task -Id ("Task-$($task.value)")
-    $waitask = $task1 | Wait-Task 
+    $waitask = $task1 | Wait-Task
 }
 Export-ModuleMember -Function Set-VMOvfEULA
 
@@ -2422,7 +2422,7 @@ Function Set-VMOvfProperty {
     )
 
     $vappProperties = $VM.ExtensionData.Config.VAppConfig.Property
-    
+
     #define spec
     $spec = New-Object VMware.Vim.VirtualMachineConfigSpec
     $spec.vAppConfig = New-Object VMware.Vim.VmConfigSpec
@@ -2445,7 +2445,7 @@ Function Set-VMOvfProperty {
     Write-Output "Setting vApp properties on $($vm.name)"
     $task = $vm.ExtensionData.ReconfigVM_Task($spec)
     $task1 = Get-Task -Id ("Task-$($task.value)")
-    $waitask = $task1 | Wait-Task 
+    $waitask = $task1 | Wait-Task
 }
 Export-ModuleMember -Function Set-VMOvfProperty
 
@@ -2455,12 +2455,12 @@ Function Get-NSXLBDetails {
         Get-NSXLBDetails
 
         .DESCRIPTION
-        The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs & pool members for the NSX Load Balancer for vRealize.
+        The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs & pool members for the NSX Load Balancer for VMware Aria.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the NSX load balancer configurationn
 
         .EXAMPLE
         Get-NSXLBDetails -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example gets the IP addresses of the VIPs & pool members for the NSX Load Balancer for vRealize.
+        This example gets the IP addresses of the VIPs & pool members for the NSX Load Balancer for VMware Aria.
     #>
 
     Param (
@@ -2482,7 +2482,7 @@ Function Get-NSXLBDetails {
         # Retrieve vROPs VM Names
         $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
         if ($vropsDetails) {
-            Write-Output "Found vRealize Operations. Getting Virtual Server & Node IPs"                
+            Write-Output "Found VMware Aria Operations. Getting Virtual Server & Node IPs"
                 $vropsVIP = $vropsDetails.loadBalancerIpAddress
                 $vopsNode1IP = $vropsDetails.node1IpAddress
                 $vopsNode2IP = $vropsDetails.node2IpAddress
@@ -2491,7 +2491,7 @@ Function Get-NSXLBDetails {
         # Retrieve vRA VM Names
         $vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass
         if ($vraDetails) {
-            Write-Output "Found vRealize Automation. Getting Virtual Server & Node IPs"
+            Write-Output "Found VMware Aria Automation. Getting Virtual Server & Node IPs"
                 $vraVIP = $vraDetails.loadBalancerIpAddress
                 $vraNode1IP = $vraDetails.node1IpAddress
                 $vraNode2IP = $vraDetails.node2IpAddress
@@ -2510,19 +2510,19 @@ Export-ModuleMember -Function Get-NSXLBDetails
 Function Add-vRSLCMNtpServer {
     <#
 		.SYNOPSIS
-        Add an NTP Server for the vRealize Suite Lifecycle Manager appliance
+        Add an NTP Server for the VMware Aria Suite Lifecycle appliance
 
         .DESCRIPTION
-        The Add-vRSLCMNtpServer cmdlet configures the NTP Server details of the vRealize Suite Lifecycle Manager
+        The Add-vRSLCMNtpServer cmdlet configures the NTP Server details of the VMware Aria Suite Lifecycle
         appliance using one or more NTP servers passed as a parameter. The cmdlet connects to SDDC Manager using
         the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures the vRealize Suite Lifecycle Manager appliance NTP configuration
-        
+        - Configures the VMware Aria Suite Lifecycle appliance NTP configuration
+
         .EXAMPLE
         Add-vRSLCMNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -ntpServer ntp.lax.rainpole.io -ntpServerDesc "VCF NTP Server 2"
-        This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add ntp.lax.rainpole.io to its list of NTP servers
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add ntp.lax.rainpole.io to its list of NTP servers
     #>
 
     Param (
@@ -2546,28 +2546,28 @@ Function Add-vRSLCMNtpServer {
                                     if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                         $vrslcmProductNtpServers = Get-vRSLCMProductNtpServer
                                         if ($vrslcmProductNtpServers -match $ntpServer -or $vrslcmProductNtpServers -match $ntpServerDesc) {
-                                            Write-Warning "Adding ($ntpServer) or description ($ntpServerDesc) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list, already performed: SKIPPED"
+                                            Write-Warning "Adding ($ntpServer) or description ($ntpServerDesc) to VMware Aria Suite Lifecycle ($vmName) product NTP server list, already performed: SKIPPED"
                                         } else {
                                             $addvRSLCMProductNtp = Add-vRSLCMProductNtpServer -ntpServer $ntpServer -ntpServerDesc $ntpServerDesc -ErrorAction SilentlyContinue
                                             if ($addvRSLCMProductNtp -match $ntpServer) {
-                                                Write-Output "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: SUCCESSFUL"
+                                                Write-Output "Adding ($ntpServer) to VMware Aria Suite Lifecycle ($vmName) product NTP server list: SUCCESSFUL"
                                             } else {
-                                                Write-Error "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) product NTP server list: POST_VALIDATION_FAILED"
+                                                Write-Error "Adding ($ntpServer) to VMware Aria Suite Lifecycle ($vmName) product NTP server list: POST_VALIDATION_FAILED"
                                             }
                                         }
                                         $vrslcmApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig
                                         if ($vrslcmApplianceNtpConfig.ntpServers -match $ntpServer -or $vrslcmApplianceNtpConfig.ntpServers -match $ntpServerDesc) {
-                                            Write-Warning "Adding ($ntpServer) or description ($ntpServerDesc) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration, already performed: SKIPPED"
+                                            Write-Warning "Adding ($ntpServer) or description ($ntpServerDesc) to VMware Aria Suite Lifecycle ($vmName) appliance NTP configuration, already performed: SKIPPED"
                                         } else {
                                             $addvRSLCMApplianceNtp = Add-vRSLCMApplianceNtpConfig -ntpServer $ntpServer -ErrorAction SilentlyContinue
                                             if ($addvRSLCMApplianceNtp.ntpServers -match $ntpServer) {
-                                                Write-Output "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: SUCCESSFUL"
+                                                Write-Output "Adding ($ntpServer) to VMware Aria Suite LifecycleName) appliance NTP configuration: SUCCESSFUL"
                                             } else {
-                                                Write-Error "Adding ($ntpServer) to vRealize Suite Lifecycle Manager ($vmName) appliance NTP configuration: POST_VALIDATION_FAILED"
+                                                Write-Error "Adding ($ntpServer) to VMware Aria Suite LifecycleName) appliance NTP configuration: POST_VALIDATION_FAILED"
                                             }
                                         }
                                     } else {
-                                        Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to authenticate with VMware Aria Suite Lifecycle ($vmName) appliance: PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
@@ -2588,23 +2588,23 @@ Export-ModuleMember -Function Add-vRSLCMNtpServer
 Function Set-vRSLCMDnsConfig {
     <#
 		.SYNOPSIS
-        Configure DNS Server and/or DNS search domains on vRealize Suite Lifecycle Manager appliance
+        Configure DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle appliance
 
         .DESCRIPTION
-        The Set-vRSLCMDnsConfig cmdlet configures the DNS server and search domain details of the vRealize Suite
+        The Set-vRSLCMDnsConfig cmdlet configures the DNS server and search domain details of the VMware Aria Suite
         Lifecycle Manager appliance using one or more DNS servers and/or DNS search domains passed as a parameter.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures the vRealize Suite Lifecycle Manager appliance DNS configuration
+        - Configures the VMware Aria Suite Lifecycle appliance DNS configuration
 
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains rainpole.io
-        This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
 
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5 172.17.11.4 172.17.11.5" -dnsSearchDomains "rainpole.io sfo.rainpole.io lax.rainpole.io"
-        This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains
     #>
 
     Param (
@@ -2633,9 +2633,9 @@ Function Set-vRSLCMDnsConfig {
                                         $scriptCommand = "cat /etc/systemd/resolved.conf"
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
-                                            Write-Output "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
+                                            Write-Output "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                            Write-Error "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                         }
                                     }
                                     if ($dnsSearchDomains) {
@@ -2643,14 +2643,14 @@ Function Set-vRSLCMDnsConfig {
                                             $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
                                         } else {
                                             $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                        } 
-                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn   
+                                        }
+                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         $scriptCommand = "cat /etc/systemd/resolved.conf"
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
-                                            Write-Output "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
+                                            Write-Output "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Configuring vRealize Suite Lifecycle Manager ($vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                            Write-Error "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                         }
                                     }
                                 } else {
@@ -2672,20 +2672,20 @@ Export-ModuleMember -Function Set-vRSLCMDnsConfig
 Function Undo-vRSLCMNtpServer {
     <#
 		.SYNOPSIS
-        Set the NTP Server configuration of vRealize Suite Lifecycle Manager to match SDDC Manager
+        Set the NTP Server configuration of VMware Aria Suite Lifecycle to match SDDC Manager
 
         .DESCRIPTION
-        The Undo-vRSLCMNtpServer cmdlet sets the NTP Server details of the vRealize Suite Lifecycle Manager appliance
+        The Undo-vRSLCMNtpServer cmdlet sets the NTP Server details of the VMware Aria Suite Lifecycle appliance
         back to what is stored in SDDC Manager. The cmdlet connects to SDDC Manager using the -server, -user, and
         -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Retrieves NTP server configuration from SDDC Manager
-        - Configures the vRealize Suite Lifecycle Manager to use only the values stored in SDDC Manager
-        
+        - Configures the VMware Aria Suite Lifecycle to use only the values stored in SDDC Manager
+
         .EXAMPLE
         Undo-vRSLCMNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use only the NTP servers found in SDDC Manager
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use only the NTP servers found in SDDC Manager
     #>
 
     Param (
@@ -2713,12 +2713,12 @@ Function Undo-vRSLCMNtpServer {
                                         Set-vRSLCMApplianceNtpConfig -ntpServer $sddcManagerNtpServers -ErrorAction SilentlyContinue | Out-Null
                                         $validateApplianceNtpConfig = Get-vRSLCMApplianceNtpConfig | Select-Object -ExpandProperty ntpServers
                                         if ($validateApplianceNtpConfig -eq $sddcManagerNtpServers) {
-                                            Write-Output "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: SUCCESSFUL"
+                                            Write-Output "Restoring VMware Aria Suite Lifecycle ($vmName) appliance NTP servers to SDDC Manager defaults: SUCCESSFUL"
                                         } else {
-                                            Write-Error "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: POST_VALIDATION_FAILED"
+                                            Write-Error "Restoring VMware Aria Suite Lifecycle ($vmName) appliance NTP servers to SDDC Manager defaults: POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "Restoring vRealize Suite Lifecycle Manager ($vmName) appliance NTP servers to SDDC Manager defaults: SKIPPED"
+                                        Write-Warning "Restoring VMware Aria Suite Lifecycle ($vmName) appliance NTP servers to SDDC Manager defaults: SKIPPED"
                                     }
                                     $sddcManagerNtpServers = $null
                                     $currentProductNtpServers = Get-vRSLCMProductNtpServer | Select-Object -ExpandProperty hostName
@@ -2735,17 +2735,17 @@ Function Undo-vRSLCMNtpServer {
                                         foreach ($validateProductNtpServer in $validateProductNtpServers) {
                                             if ($sddcManagerNtpServers -notContains $validateProductNtpServer) {
                                                 $validateProductNtpServerSuccess = 0
-                                                Write-Error "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: POST_VALIDATION_FAILED"
+                                                Write-Error "Restoring VMware Aria Suite Lifecycle ($vmName) product NTP servers to SDDC Manager defaults: POST_VALIDATION_FAILED"
                                             }
                                         }
                                         if ($validateProductNtpServerSuccess -eq 1) {
-                                            Write-Output "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: SUCCESSFUL"
+                                            Write-Output "Restoring VMware Aria Suite Lifecycle ($vmName) product NTP servers to SDDC Manager defaults: SUCCESSFUL"
                                         }
                                     } else {
-                                        Write-Warning "Restoring vRealize Suite Lifecycle Manager ($vmName) product NTP servers to SDDC Manager defaults: SKIPPED"
+                                        Write-Warning "Restoring VMware Aria Suite Lifecycle ($vmName) product NTP servers to SDDC Manager defaults: SKIPPED"
                                     }
                                 } else {
-                                    Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to authenticate with VMware Aria Suite Lifecycle ($vmName) appliance: PRE_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
@@ -2763,20 +2763,20 @@ Export-ModuleMember -Function Undo-vRSLCMNtpServer
 Function Undo-vRSLCMDnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on vRealize Suite Lifecycle Manager to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle to match SDDC Manager
 
         .DESCRIPTION
-        The Undo-vRSLCMDnsConfig cmdlet configures the DNS server and search domain details of the vRealize Suite
+        The Undo-vRSLCMDnsConfig cmdlet configures the DNS server and search domain details of the VMware Aria Suite
         Lifecycle Manager appliance to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager using
         the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Retrieves the DNS server and search domain values from SDDC Manager
-        - Configures the vRealize Suite Lifecycle Manager appliance DNS configuration to match the values retrieved from SDDC Manager
+        - Configures the VMware Aria Suite Lifecycle appliance DNS configuration to match the values retrieved from SDDC Manager
 
         .EXAMPLE
-        Undo-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! 
-        This example configures the vRealize Suite Lifecycle Manager appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
+        Undo-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
     #>
 
     Param (
@@ -2806,14 +2806,14 @@ Function Undo-vRSLCMDnsConfig {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
                                     } Catch [System.Security.Authentication.InvalidCredentialException]{
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
-                                    }                                
+                                    }
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
-                                        Write-Error "Unable to undo DNS configuration on vRealize Suite Lifecycle Manager ($vmName) appliance: PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to undo DNS configuration on VMware Aria Suite Lifecycle ($vmName) appliance: PRE_VALIDATION_FAILED"
                                     } else {
                                         Try {
                                             Set-vRSLCMDnsConfig -server $server -user $user -pass $pass -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains
                                         } Catch {
-                                            Write-Error "Unable to undo DNS configuration on vRealize Suite Lifecycle Manager ($vmName) appliance: POST_VALIDATION_FAILED"
+                                            Write-Error "Unable to undo DNS configuration on VMware Aria Suite Lifecycle ($vmName) appliance: POST_VALIDATION_FAILED"
                                         }
                                     }
                                 }
@@ -2876,9 +2876,9 @@ Function Set-WorkspaceOneDnsConfig {
                                     Start-Sleep 10
                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null
                                 } else {
-                                    Write-Error "Power off request of Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
-                                } 
-                                $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm              
+                                    Write-Error "Power off request of Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                }
+                                $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
                                 foreach ($productVM in $productVMs) {
                                     if ((Get-VM -Name $productVM.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                         if ($dnsServers) {
@@ -2917,9 +2917,9 @@ Function Set-WorkspaceOneDnsConfig {
                                 if ($newRequest) {
                                     Write-Output "Powering on Workspace ONE Access appliances and bringing up services. This may take quite a while."
                                     Start-Sleep 10
-                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null                                    
+                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null
                                 } else {
-                                    Write-Error "Power on request of Workspace ONE Access appliance(s) failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
+                                    Write-Error "Power on request of Workspace ONE Access appliance(s) failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
@@ -2941,7 +2941,7 @@ Function Undo-WorkspaceOneDnsConfig {
 
         .DESCRIPTION
         The Undo-WorkspaceOneDnsConfig cmdlet configures the DNS server and search domain details of all Workspace
-        ONE Access appliances to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager using the 
+        ONE Access appliances to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager using the
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
@@ -2979,7 +2979,7 @@ Function Undo-WorkspaceOneDnsConfig {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
                                     } Catch [System.Security.Authentication.InvalidCredentialException]{
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
-                                    }                                
+                                    }
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
                                         Write-Error "Unable to undo DNS configuration on Workspace ONE Access ($vmName) appliance: PRE_VALIDATION_FAILED"
                                     } else {
@@ -3008,20 +3008,20 @@ Export-ModuleMember -Function Undo-WorkspaceOneDnsConfig
 Function Set-vROPSDnsConfig {
     <#
 		.SYNOPSIS
-        Configure DNS Server and/or DNS search domains on vRealize Operations Manager appliance
+        Configure DNS Server and/or DNS search domains on VMware Aria Operations appliance
 
         .DESCRIPTION
-        The Set-vROPSDnsConfig cmdlet configures the DNS server and search domain details of all vRealize Operations
-        Manager analytics cluster appliances to the values passed as parameters. The cmdlet connects to SDDC Manager 
+        The Set-vROPSDnsConfig cmdlet configures the DNS server and search domain details of all VMware Aria Operations
+        Manager analytics cluster appliances to the values passed as parameters. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures all vRealize Operations Manager analytics cluster appliance DNS configuration to the values
+        - Configures all VMware Aria Operations analytics cluster appliance DNS configuration to the values
         passed to the function using -dnsServers and -dnsSearchDomains.
 
         .EXAMPLE
         Set-vROPSDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains rainpole.io
-        This example configures the vRealize Operations Manager analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
+        This example configures the VMware Aria Operations analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
     #>
 
     Param (
@@ -3047,7 +3047,7 @@ Function Set-vROPSDnsConfig {
                                 } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
-                                            ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
+                                            ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
                                             'Get-vRSLCMProductNode',
                                             [System.Management.Automation.ErrorCategory]::ReadError,
                                             ""
@@ -3071,9 +3071,9 @@ Function Set-vROPSDnsConfig {
                                             $scriptCommand = "cat /etc/systemd/resolved.conf"
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
-                                                Write-Output "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
+                                                Write-Output "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                Write-Error "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                             }
                                         }
                                         if ($dnsSearchDomains) {
@@ -3082,29 +3082,29 @@ Function Set-vROPSDnsConfig {
                                             if (($output.ScriptOutput).Contains("Domains=")) {
                                                 $scriptCommand = "sed -i '/^Domains=/d' /etc/systemd/network/10-eth0.network | systemctl restart systemd-networkd"
                                                 $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            } 
+                                            }
                                             $scriptCommand = "cat /etc/systemd/resolved.conf"
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("#Domains")) {
                                                 $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
                                             } else {
                                                 $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                            } 
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn   
+                                            }
+                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             $scriptCommand = "cat /etc/systemd/resolved.conf"
                                             $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
                                             if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
-                                                Write-Output "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
+                                                Write-Output "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Configuring vRealize Operations Manager appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                                Write-Error "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                             }
                                         }
                                     } else {
                                         Write-Error "Unable to locate a virtual machine named ($($vropsXregVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
-                                } 
+                                }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                            }  
+                            }
                         }
                     }
                 }
@@ -3119,21 +3119,21 @@ Export-ModuleMember -Function Set-vROPSDnsConfig
 Function Undo-vROPSDnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on vRealize Operations Manager appliances to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on VMware Aria Operations appliances to match SDDC Manager
 
         .DESCRIPTION
-        The Undo-vROPSDnsConfig cmdlet configures the DNS server and search domain details of vRealize Operations
+        The Undo-vROPSDnsConfig cmdlet configures the DNS server and search domain details of VMware Aria Operations
         Manager analytics cluster appliances to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Retrieves the DNS server and search domain values from SDDC Manager
-        - Configures vRealize Operations Manager analytics cluster appliance DNS configuration to match the values 
+        - Configures VMware Aria Operations analytics cluster appliance DNS configuration to match the values
         retrieved from SDDC Manager
 
         .EXAMPLE
         Undo-vROPSDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcManagerRootPass VMw@re1! -environmentName xint-env
-        This example configures all vRealize Operations Manager analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
+        This example configures all VMware Aria Operations analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
     #>
 
     Param (
@@ -3162,27 +3162,27 @@ Function Undo-vROPSDnsConfig {
                                     $vcfvROPSDetails = Get-VCFvROPS
                                     if (Test-vROPSConnection -server $vcfVROPSDetails.loadBalancerFqdn) {
                                         Try {
-                                            $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop 
+                                            $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
                                         } Catch [System.Security.Authentication.InvalidCredentialException]{
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
-                                        }                                
+                                        }
                                         if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
-                                            Write-Error "Unable to undo DNS configuration for vRealize Operations Manager analytics cluster appliances: PRE_VALIDATION_FAILED"
+                                            Write-Error "Unable to undo DNS configuration for VMware Aria Operations analytics cluster appliances: PRE_VALIDATION_FAILED"
                                         } else {
                                             Try {
                                                 Set-vROPSDnsConfig -server $server -user $user -pass $pass -environmentName $environmentName -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop -WarningAction SilentlyContinue
                                             } Catch {
                                                 Write-Error $_.Exception.Message
                                             }
-                                        }                                    
+                                        }
                                     } else {
-                                        Write-Error "Unable connect to vRealize Operations Manager: PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable connect to VMware Aria Operations: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Unable to authenticate with vRealize Suite Lifecycle Manager to retrieve vRealize Operations Manager analytics cluster appliances: PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to authenticate with VMware Aria Suite Lifecycle to retrieve VMware Aria Operations analytics cluster appliances: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Unable to connect to vRealize Suite Lifecycle Manager ($($vrslcmDetails.fqdn.Split(".")[0])): PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to connect to VMware Aria Suite Lifecycle ($($vrslcmDetails.fqdn.Split(".")[0])): PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         } else {
@@ -3201,19 +3201,19 @@ Export-ModuleMember -Function Undo-vROPSDnsConfig
 Function Add-vROPSNtpServer {
     <#
 		.SYNOPSIS
-        Adds an NTP server to all vRealize Operations Manager appliances
+        Adds an NTP server to all VMware Aria Operations appliances
 
         .DESCRIPTION
-        The Add-vROPSNtpServer cmdlet adds an NTP server to all vRealize Operations Manager appliances. The cmdlet 
+        The Add-vROPSNtpServer cmdlet adds an NTP server to all VMware Aria Operations appliances. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures all vRealize Operations Manager appliances to use an additional NTP server defined using the value
+        - Configures all VMware Aria Operations appliances to use an additional NTP server defined using the value
         passed to the function using -ntpServer.
 
         .EXAMPLE
         Add-vROPSNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env -ntpServer ntp.lax.rainpole.io
-        This example configures the vRealize Operations Manager appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add the NTP server ntp.lax.rainpole.io.
+        This example configures the VMware Aria Operations appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add the NTP server ntp.lax.rainpole.io.
     #>
 
     Param (
@@ -3243,7 +3243,7 @@ Function Add-vROPSNtpServer {
                                 } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
-                                            ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
+                                            ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
                                             'Get-vRSLCMProductNode',
                                             [System.Management.Automation.ErrorCategory]::ReadError,
                                             ""
@@ -3273,15 +3273,15 @@ Function Add-vROPSNtpServer {
                                     }
                                     $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
                                     if (!$compareArrays) {
-                                        Write-Output "Configuring vRealize Operations Manager appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
+                                        Write-Output "Configuring VMware Aria Operations appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
                                     } else {
-                                        Write-Output "Unable to validate vRealize Operations Manager appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
+                                        Write-Output "Unable to validate VMware Aria Operations appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                } 
+                                }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                            }  
+                            }
                         }
                     }
                 }
@@ -3296,19 +3296,19 @@ Export-ModuleMember -Function Add-vROPSNtpServer
 Function Undo-vROPSNtpServer {
     <#
 		.SYNOPSIS
-        Configure NTP settings for all vRealize Operations Manager appliances to match SDDC Manager
+        Configure NTP settings for all VMware Aria Operations appliances to match SDDC Manager
 
         .DESCRIPTION
-        The Undo-vROPSNtpServer cmdlet removes any added NTP server(s) to all vRealize Operations Manager appliances by
-        returning their configuration to match that of SDDC Manager. The cmdlet connects to SDDC Manager using the 
+        The Undo-vROPSNtpServer cmdlet removes any added NTP server(s) to all VMware Aria Operations appliances by
+        returning their configuration to match that of SDDC Manager. The cmdlet connects to SDDC Manager using the
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures all vRealize Operations Manager appliances to the use NTP server(s) defined in SDDC Manager.
+        - Configures all VMware Aria Operations appliances to the use NTP server(s) defined in SDDC Manager.
 
         .EXAMPLE
         Undo-vROPSNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env
-        This example configures the vRealize Operations Manager appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use the NTP server(s) defined in SDDC Manager.
+        This example configures the VMware Aria Operations appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use the NTP server(s) defined in SDDC Manager.
     #>
 
     Param (
@@ -3327,11 +3327,11 @@ Function Undo-vROPSNtpServer {
                             $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                 Try {
-                                    $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0] 
+                                    $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0]
                                 } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
-                                            ([System.Management.Automation.GetValueException]"Retrieving vRealize Operations Manager appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
+                                            ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
                                             'Get-vRSLCMProductNode',
                                             [System.Management.Automation.ErrorCategory]::ReadError,
                                             ""
@@ -3343,7 +3343,7 @@ Function Undo-vROPSNtpServer {
                                     $ntpServers = (Get-VCFConfigurationNTP).ipAddress
                                     if ($ntpServers.count -eq 1) {
                                         $ntpServersJson = $ntpServers | ConvertTo-JSON
-                                        $ntpServersJson = "[$ntpServersJson]" 
+                                        $ntpServersJson = "[$ntpServersJson]"
                                     } else {
                                         $ntpServersJson = $ntpServers | ConvertTo-JSON
                                         $ntpServersJson = $ntpServersJson -replace "`r`n","" -replace " ",""
@@ -3359,15 +3359,15 @@ Function Undo-vROPSNtpServer {
                                     }
                                     $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
                                     if (!$compareArrays) {
-                                        Write-Output "Configuring vRealize Operations Manager appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
+                                        Write-Output "Configuring VMware Aria Operations appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
                                     } else {
-                                        Write-Output "Unable to validate vRealize Operations Manager appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
+                                        Write-Output "Unable to validate VMware Aria Operations appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                } 
+                                }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                            }  
+                            }
                         }
                     }
                 }
@@ -3382,20 +3382,20 @@ Export-ModuleMember -Function Undo-vROPSNtpServer
 Function Set-vRADnsConfig {
     <#
 		.SYNOPSIS
-        Configure DNS Server and/or DNS search domains on vRealize Automation appliances
+        Configure DNS Server and/or DNS search domains on VMware Aria Automation appliances
 
         .DESCRIPTION
-        The Set-vRADnsConfig cmdlet configures the DNS server and search domain details of all vRealize Automation
-        appliances to the values passed as parameters. The cmdlet connects to SDDC Manager using the -server, -user, 
+        The Set-vRADnsConfig cmdlet configures the DNS server and search domain details of all VMware Aria Automation
+        appliances to the values passed as parameters. The cmdlet connects to SDDC Manager using the -server, -user,
         and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures all vRealize Automation appliance DNS configuration to the values passed to the function using 
+        - Configures all VMware Aria Automation appliance DNS configuration to the values passed to the function using
         -dnsServers and -dnsSearchDomains.
 
         .EXAMPLE
         Set-vRADnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env -dnsServers "172.16.11.4 172.17.11.4" -dnsSearchDomains rainpole.io
-        This example configures the vRealize Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.17.11.4 as its DNS servers and rainpole.io as its search domain
+        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.17.11.4 as its DNS servers and rainpole.io as its search domain
     #>
 
     Param (
@@ -3425,7 +3425,7 @@ Function Set-vRADnsConfig {
                                             } Catch [System.Net.WebException] {
                                                 $PSCmdlet.ThrowTerminatingError(
                                                     [System.Management.Automation.ErrorRecord]::new(
-                                                        ([System.Management.Automation.GetValueException]"Retrieving vRealize Automation appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
+                                                        ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Automation appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
                                                         'Get-vRSLCMProductNode',
                                                         [System.Management.Automation.ErrorCategory]::ReadError,
                                                         ""
@@ -3436,17 +3436,17 @@ Function Set-vRADnsConfig {
                                             if ((Get-VM -Name $productVMs[0].vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                                 if ($dnsServers) {
                                                     $scriptCommand = "cat /etc/resolv.conf"
-                                                    $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
+                                                    $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                     [Array]$dnsServersArray = $dnsServers.Split(" ")
                                                     $alreadyConfigured = @()
                                                     Foreach ($dnsServer in $dnsServersArray) {
                                                         if ($output.ScriptOutput -Match $dnsServer) {
                                                             $alreadyConfigured += $dnsServer
                                                         }
-                                                    }                               
+                                                    }
                                                     $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
                                                     if (!$compareArrays) {
-                                                        Write-Warning "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers) already done: SKIPPED"
+                                                        Write-Warning "Configuring VMware Aria Automation appliances to use DNS Server(s) ($dnsServers) already done: SKIPPED"
                                                     } else {
                                                         $dnsServers = $dnsServers.Split(" ") -Join(",")
                                                         $scriptCommand = "vracli network dns set --servers $dnsServers"
@@ -3462,30 +3462,30 @@ Function Set-vRADnsConfig {
                                                                 }
                                                             }
                                                         }
-                                                        $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured        
+                                                        $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
                                                         if ($compareArrays){
-                                                            Write-Error "Unable to validate vRealize Automation appliances using DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                            Write-Error "Unable to validate VMware Aria Automation appliances using DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                                             Break
                                                         } else {
                                                             $dnsServersVracliValidated = $true
                                                             $scriptCommand = "cat /etc/resolv.conf"
-                                                            $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
+                                                            $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                             [Array]$dnsServersArray = $dnsServers.Split(",")
                                                             $alreadyConfigured = @()
                                                             Foreach ($dnsServer in $dnsServersArray) {
                                                                 if ($output.ScriptOutput -Match $dnsServer) {
                                                                     $alreadyConfigured += $dnsServer
                                                                 }
-                                                            }                               
+                                                            }
                                                             $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
                                                             if ($compareArrays) {
-                                                                Write-Error "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                                Write-Error "Configuring VMware Aria Automation appliances to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
                                                                 Break
                                                             } else {
                                                                 $dnsServersResolvConfValidated = $true
-                                                                Write-Output "Configuring vRealize Automation appliances to use DNS Server(s) ($dnsServers): SUCCESSFUL"
+                                                                Write-Output "Configuring VMware Aria Automation appliances to use DNS Server(s) ($dnsServers): SUCCESSFUL"
                                                             }
-                                                        } 
+                                                        }
                                                     }
                                                 }
                                                 if ($dnsSearchDomains) {
@@ -3493,7 +3493,7 @@ Function Set-vRADnsConfig {
                                                         $scriptCommand = "cat /etc/resolv.conf"
                                                         $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                         if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
-                                                            Write-Warning "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED" 
+                                                            Write-Warning "Configuring VMware Aria Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED"
                                                         } else {
                                                             $scriptCommand = "cat /etc/systemd/resolved.conf"
                                                             $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
@@ -3501,21 +3501,21 @@ Function Set-vRADnsConfig {
                                                                 $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
                                                             } else {
                                                                 $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                                            } 
-                                                            $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn   
+                                                            }
+                                                            $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                             $scriptCommand = "cat /etc/resolv.conf"
                                                             $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                             if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
                                                                 $dnsSearchDomainsResolvConfValidated = $true
-                                                                Write-Output "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL" 
+                                                                Write-Output "Configuring VMware Aria Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
                                                             } else {
-                                                                Write-Error "Configuring vRealize Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                                                Write-Error "Configuring VMware Aria Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                                             }
                                                         }
                                                     }
                                                 }
                                                 if (($dnsServers -and $dnsServersVracliValidated -eq $true -and $dnsServersResolvConfValidated -eq $true) -or ($dnsSearchDomains -and $dnsSearchDomainsResolvConfValidated -eq $true)) {
-                                                    Write-Output "Restarting vRealize Automation appliances and starting services upon bootup. This can take quite a while."
+                                                    Write-Output "Restarting VMware Aria Automation appliances and starting services upon bootup. This can take quite a while."
                                                     $scriptCommand = "/opt/scripts/svc-stop.sh"
                                                     $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                     $scriptCommand = "/opt/scripts/deploy.sh --shutdown"
@@ -3557,9 +3557,9 @@ Function Set-vRADnsConfig {
                                                 }
                                             } else {
                                                 Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                            } 
+                                            }
                                         }
-                                    }  
+                                    }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
                             }
@@ -3577,20 +3577,20 @@ Export-ModuleMember -Function Set-vRADnsConfig
 Function Undo-vRADnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on vRealize Automation appliances to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on VMware Aria Automation appliances to match SDDC Manager
 
         .DESCRIPTION
-        The Undo-vROPSDnsConfig cmdlet configures the DNS server and search domain details of vRealize Automation
-        appliances to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager using the -server, 
+        The Undo-vROPSDnsConfig cmdlet configures the DNS server and search domain details of VMware Aria Automation
+        appliances to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager using the -server,
         -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
         - Retrieves the DNS server and search domain values from SDDC Manager
-        - Configures vRealize Automation appliance DNS configuration to match the values retrieved from SDDC Manager
+        - Configures VMware Aria Automation appliance DNS configuration to match the values retrieved from SDDC Manager
 
         .EXAMPLE
         Undo-vRADnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcManagerRootPass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env
-        This example configures all vRealize Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
+        This example configures all VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
     #>
 
     Param (
@@ -3622,17 +3622,17 @@ Function Undo-vRADnsConfig {
                                             if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                                 if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                                                     Try {
-                                                        $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop                               
+                                                        $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
                                                     } Catch [System.Security.Authentication.InvalidCredentialException]{
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
-                                                        Write-Error "Unable to undo DNS configuration for vRealize Automation appliances: PRE_VALIDATION_FAILED"
+                                                        Write-Error "Unable to undo DNS configuration for VMware Aria Automation appliances: PRE_VALIDATION_FAILED"
                                                     } else {
                                                         Set-vRADnsConfig -server $server -user $user -pass $pass -vraUser $vraUser -vraPass $vraPass -environmentName $environmentName -dnsServers $sddcManagerDnsServers -dnsSearchDomains $sddcManagerSearchDomains -ErrorAction Stop
-                                                    }                                    
+                                                    }
                                                 } else {
-                                                    Write-Error "Unable connect to vRealize Automation appliances: PRE_VALIDATION_FAILED"
+                                                    Write-Error "Unable connect to VMware Aria Automation appliances: PRE_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
@@ -3656,20 +3656,20 @@ Export-ModuleMember -Function Undo-vRADnsConfig
 Function Set-vRANtpConfig {
     <#
 		.SYNOPSIS
-        Configure NTP servers on vRealize Automation appliances
+        Configure NTP servers on VMware Aria Automation appliances
 
         .DESCRIPTION
-        The Set-vRANtpConfig cmdlet configures the NTP server details of all vRealize Automation appliances to the 
-        values passed as parameters. The cmdlet connects to SDDC Manager using the -server, -user, and -password 
+        The Set-vRANtpConfig cmdlet configures the NTP server details of all VMware Aria Automation appliances to the
+        values passed as parameters. The cmdlet connects to SDDC Manager using the -server, -user, and -password
         values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures all vRealize Automation appliance NTP configuration to the values passed to the function using 
+        - Configures all VMware Aria Automation appliance NTP configuration to the values passed to the function using
         -ntpServers.
 
         .EXAMPLE
         Set-vRANtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env -ntpServers "ntp.sfo.rainpole.io ntp.lax.rainpole.io"
-        This example configures the vRealize Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use ntp.sfo.rainpole.io and ntp.lax.rainpole.io as their NTP servers
+        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use ntp.sfo.rainpole.io and ntp.lax.rainpole.io as their NTP servers
     #>
 
     Param (
@@ -3713,7 +3713,7 @@ Function Set-vRANtpConfig {
                                             } Catch [System.Net.WebException] {
                                                 $PSCmdlet.ThrowTerminatingError(
                                                     [System.Management.Automation.ErrorRecord]::new(
-                                                        ([System.Management.Automation.GetValueException]"Retrieving vRealize Automation appliance information from vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"),
+                                                        ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Automation appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
                                                         'Get-vRSLCMProductNode',
                                                         [System.Management.Automation.ErrorCategory]::ReadError,
                                                         ""
@@ -3723,7 +3723,7 @@ Function Set-vRANtpConfig {
                                             $vraRootPass = (Get-VCFCredential -ErrorAction Stop | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VRA" -and $_.resource.resourceName -match $productVMs[0].hostName}).password
                                             if ((Get-VM -Name $productVMs[0].vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                                 $scriptCommand = "vracli ntp show-config"
-                                                $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
+                                                $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                 $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\w\.\w"
                                                 if (!$outputComparison) {
                                                     $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
@@ -3737,8 +3737,8 @@ Function Set-vRANtpConfig {
                                                 if (($alreadyConfigured.Count -eq $outputComparison.Count) -and ($alreadyConfigured.Count -eq $ntpServersArray.Count) ) {
                                                     $compareArrays = Compare-Object -ReferenceObject $ntpServersArray -DifferenceObject $alreadyConfigured
                                                     if (!$compareArrays) {
-                                                        Write-Warning "Configuring vRealize Automation appliances to use NTP Server(s) ($ntpServers) already done: SKIPPED"
-                                                    } 
+                                                        Write-Warning "Configuring VMware Aria Automation appliances to use NTP Server(s) ($ntpServers) already done: SKIPPED"
+                                                    }
                                                 } elseif ($compareArrays -or ($alreadyConfigured.Count -ne $outputComparison.Count) -or ($alreadyConfigured.Count -ne $ntpServersArray.Count)) {
                                                     if ($ntpServersArray.Count -gt 1){
                                                         [String]$ntpServersString = $null
@@ -3757,7 +3757,7 @@ Function Set-vRANtpConfig {
                                                     $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\w\.\w"
                                                     if (!$outputComparison) {
                                                         $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
-                                                    }                                                    
+                                                    }
                                                     $alreadyConfigured = @()
                                                     Foreach ($ntpServer in $ntpServersArray) {
                                                         if ($outputComparison -Match $ntpServer) {
@@ -3767,17 +3767,17 @@ Function Set-vRANtpConfig {
                                                     if ($alreadyConfigured.Count -eq $outputComparison.Count) {
                                                         $compareArrays = Compare-Object -ReferenceObject $ntpServersArray -DifferenceObject $alreadyConfigured
                                                         if ($compareArrays) {
-                                                            Write-Error "Unable to configure vRealize Automation appliances to use NTP Server(s) ($ntpServers): POST_VALIDATION_FAILED"
+                                                            Write-Error "Unable to configure VMware Aria Automation appliances to use NTP Server(s) ($ntpServers): POST_VALIDATION_FAILED"
                                                         } else {
-                                                            Write-Output "Configuring vRealize Automation appliances to use NTP Server(s) ($ntpServers): SUCCESSFUL"
+                                                            Write-Output "Configuring VMware Aria Automation appliances to use NTP Server(s) ($ntpServers): SUCCESSFUL"
                                                         }
                                                     }
                                                 }
                                             } else {
                                                 Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                            } 
+                                            }
                                         }
-                                    }  
+                                    }
                                     Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
                             }
@@ -3795,19 +3795,19 @@ Export-ModuleMember -Function Set-vRANtpConfig
 Function Undo-vRANtpConfig {
     <#
 		.SYNOPSIS
-        Configure NTP settings for all vRealize Automation appliances to match SDDC Manager
+        Configure NTP settings for all VMware Aria Automation appliances to match SDDC Manager
 
         .DESCRIPTION
-        The Undo-vRANtpServer cmdlet removes any added NTP server(s) on all vRealize Automation appliances by
-        returning their configuration to match that of SDDC Manager. The cmdlet connects to SDDC Manager using the 
+        The Undo-vRANtpServer cmdlet removes any added NTP server(s) on all VMware Aria Automation appliances by
+        returning their configuration to match that of SDDC Manager. The cmdlet connects to SDDC Manager using the
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Configures all vRealize Automation appliances to the use NTP server(s) defined in SDDC Manager.
+        - Configures all VMware Aria Automation appliances to the use NTP server(s) defined in SDDC Manager.
 
         .EXAMPLE
         Undo-vRANtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env
-        This example configures the vRealize Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use the NTP server(s) defined in SDDC Manager.
+        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use the NTP server(s) defined in SDDC Manager.
     #>
 
     Param (
@@ -3858,8 +3858,8 @@ Function Add-SRMMapping {
         instances in Site Recovery Manager
 
         .DESCRIPTION
-        The Add-SRMMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the 
-        protected and failover VCF instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the 
+        The Add-SRMMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the
+        protected and failover VCF instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
@@ -3870,11 +3870,11 @@ Function Add-SRMMapping {
         .EXAMPLE
         Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
         This example creates a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
-        
+
         .EXAMPLE
         Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
         This example creates a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
-        
+
         .EXAMPLE
         Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
         This example creates a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
@@ -3913,14 +3913,14 @@ Function Add-SRMMapping {
                                                             Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
+                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         } elseif ($type -eq "Network") {
                                                             Try {
                                                                 $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
-                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
+                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
@@ -4002,7 +4002,7 @@ Function Add-SRMMapping {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
@@ -4014,7 +4014,7 @@ Function Add-SRMMapping {
                                                             }
                                                         } elseif ($type -eq "Resource") {
                                                             Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
@@ -4026,7 +4026,7 @@ Function Add-SRMMapping {
                                                                     $reverseMappingExists = $true
                                                                 }
                                                             }
-                                                        }  
+                                                        }
                                                         if (!$reverseMappingExists) {
                                                             if ($type -eq "Folder") {
                                                                 Try {
@@ -4097,8 +4097,8 @@ Function Undo-SRMMapping {
         instances in Site Recovery Manager
 
         .DESCRIPTION
-        The Undo-SRMMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the 
-        protected and failover VCF instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the 
+        The Undo-SRMMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the
+        protected and failover VCF instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
@@ -4109,11 +4109,11 @@ Function Undo-SRMMapping {
         .EXAMPLE
         Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
         This example removes a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
-        
+
         .EXAMPLE
         Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
         This example removes a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
-        
+
         .EXAMPLE
         Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
         This example removes a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
@@ -4152,14 +4152,14 @@ Function Undo-SRMMapping {
                                                             Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
                                                                 $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
+                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
                                                         } elseif ($type -eq "Network") {
                                                             Try {
                                                                 $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
-                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
+                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
                                                                 $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
@@ -4241,7 +4241,7 @@ Function Undo-SRMMapping {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
@@ -4253,7 +4253,7 @@ Function Undo-SRMMapping {
                                                             }
                                                         } elseif ($type -eq "Resource") {
                                                             Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
+                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             } Catch {
                                                                 $PSCmdlet.ThrowTerminatingError($PSItem)
                                                             }
@@ -4265,7 +4265,7 @@ Function Undo-SRMMapping {
                                                                     $reverseMappingExists = $true
                                                                 }
                                                             }
-                                                        }  
+                                                        }
                                                         if ($reverseMappingExists -eq $true) {
                                                             if ($type -eq "Folder") {
                                                                 Try {
@@ -4341,7 +4341,7 @@ Function New-SRMSitePair {
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
         - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Create a site pair between the Site Recovery Manager instances integrated with their respective vCenter 
+        - Create a site pair between the Site Recovery Manager instances integrated with their respective vCenter
         Server instances.
 
         .EXAMPLE
@@ -4445,13 +4445,13 @@ Function Undo-SRMSitePair {
         Removes an existing site pair between Site Recovery Manager instances
 
         .DESCRIPTION
-        The Undo-SRMSitePair cmdlet removes an existing site pair between Site Recovery Manager instances. The cmdlet 
-        connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
+        The Undo-SRMSitePair cmdlet removes an existing site pair between Site Recovery Manager instances. The cmdlet
+        connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn,
         -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
         - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes an existing site pair between the Site Recovery Manager instances integrated with their respective 
+        - Removes an existing site pair between the Site Recovery Manager instances integrated with their respective
         vCenter Server instances.
 
         .EXAMPLE
@@ -4643,7 +4643,7 @@ Function Undo-EsxiVrmsVMkernelPort {
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
                                 $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
                                 $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
-                                
+
                                 if (!(Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}) -ne $esxiHosts.Count) {
                                     For ($i=0; $i -lt $esxiHosts.Count; $i++) {
                                         if (Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] | Where-Object {$_.vSphereReplicationEnabled -eq $true}) {
@@ -4680,7 +4680,7 @@ Function Add-EsxiVrmsStaticRoute {
         Create a static route on ESXi hosts for vSphere Replication traffic
 
         .DESCRIPTION
-        The Add-EsxiVrmsStaticRoute cmdlet creates a static route on each ESXi hosts for vSphere Replication traffic. 
+        The Add-EsxiVrmsStaticRoute cmdlet creates a static route on each ESXi hosts for vSphere Replication traffic.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the vCenter Server instance
@@ -4749,7 +4749,7 @@ Function Undo-EsxiVrmsStaticRoute {
         Removes a static route from ESXi hosts for vSphere Replication traffic
 
         .DESCRIPTION
-        The Undo-EsxiVrmsStaticRoute cmdlet removes a static route on each ESXi hosts for vSphere Replication traffic. 
+        The Undo-EsxiVrmsStaticRoute cmdlet removes a static route on each ESXi hosts for vSphere Replication traffic.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the vCenter Server instance
@@ -4920,7 +4920,7 @@ Function Undo-SrmLicenseKey {
                                 $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                                 if (Test-SRMConnection -server $srmFqdn) {
                                     if (Test-SRMAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance 
+                                        $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance
                                         $licenseManager = Get-View -Server $vcfVcenterDetails.fqdn $serviceInstance.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $vcfVcenterDetails.fqdn}
                                         $licenseAssignmentManager = Get-View -Server $vcfVcenterDetails.fqdn $licenseManager.licenseAssignmentManager
                                         $srmSiteName = (($global:DefaultSrmServers | Where-Object {$_.Name -eq $srmFqdn}).ExtensionData.GetLocalSiteInfo()).SiteName
@@ -5164,7 +5164,7 @@ Export-ModuleMember -Function Add-PrefixList
 Function Undo-PrefixList {
     <#
         .SYNOPSIS
-        The Undo-PrefixList cmdlet removes the NSX Prefix List from NSX Manager. The cmdlet connects to SDDC Manager 
+        The Undo-PrefixList cmdlet removes the NSX Prefix List from NSX Manager. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
@@ -5447,8 +5447,8 @@ Function Undo-DatastoreTag {
                                 if (Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction Ignore | Where-Object { $_.Name -eq $tagName }) {
                                     Remove-Tag -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                     Remove-TagCategory -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
-                                    if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {                                            
-                                        Write-Output "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"                                        
+                                    if (!(Get-Tag -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $tagName })) {
+                                        Write-Output "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                     } else {
                                         Write-Error "Removing vSphere Tag ($tagName) and vSphere Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
@@ -5515,7 +5515,7 @@ Function Add-StoragePolicy {
                                         Write-Error "Unable to find vSphere Tag ($tagName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), already exists: SKIPPED"                                    
+                                    Write-Warning "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), already exists: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
@@ -5572,7 +5572,7 @@ Function Undo-StoragePolicy {
                                         Write-Error "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), does not exist: SKIPPED"                                    
+                                    Write-Warning "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), does not exist: SKIPPED"
                                 }
                             }
                             Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
@@ -5593,22 +5593,22 @@ Function Add-ContentLibrary {
     <#
         .SYNOPSIS
         Creates a content library
-    
+
         .DESCRIPTION
         The Add-ContentLibrary cmdlet creates a subscribed or published content library. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
         - Creates a content library
-    
+
         .EXAMPLE
         Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 -published
         This example creates published content library named sfo-w01-lib01 on the primary datastore in workload domain sfo-w01
-    
+
         .EXAMPLE
         Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01 -datastore sfo-w01-ds-nfs01 -published
         This example creates published content library named sfo-w01-lib01 on a specific datastore in workload domain sfo-w01
-    
+
         .EXAMPLE
         Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName Kubernetes -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json"
         This example creates subscribed content library named Kubernetes on the primary datastore in workload domain sfo-w01
@@ -5891,7 +5891,7 @@ Function Enable-SupervisorCluster {
                                                     if (!$checkManagementVirtualNetwork -or !$managementVirtualNetwork) {
                                                         Write-Error "Invalid Management Virtual Network ($ManagementVirtualNetwork): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
-                                                    } 
+                                                    }
                                                 }
                                                 # Validate Ephemeral Storage Policy exists
                                                 if ($ephemeralStoragePolicy){
@@ -5988,7 +5988,7 @@ Function Enable-SupervisorCluster {
                                                     if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
                                                         Write-Error "Invalid Content Library ($contentLibrary): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
-                                                    } 
+                                                    }
                                                 }
                                                 # Validate Distributed Virtual Switch exists
                                                 if ($distributedSwitch) {
@@ -6001,8 +6001,8 @@ Function Enable-SupervisorCluster {
                                                     if ($checkDistributedSwitch.Name -ne $distributedSwitch -or !$distributedSwitch) {
                                                         Write-Error "Invalid Virtual Distributed Switch ($distributedSwitch): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
-                                                    } 
-                                                } 
+                                                    }
+                                                }
                                                 # Validates Pod subnet inputs are formatted correctly and sized to meet minimum requirements
                                                 if ($podCIDRs) {
                                                     $checkPodCidr = $null
@@ -6112,7 +6112,7 @@ Function Enable-SupervisorCluster {
                                                 }
                                                 # If any of the prevalidation failed
                                                 if ($inputParameterValidation) {
-                                                    Write-Output "Pre-validation : SUCESSFULL" 
+                                                    Write-Output "Pre-validation : SUCESSFULL"
                                                 } else {
                                                     Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
                                                     Break
@@ -6324,8 +6324,8 @@ Function Request-SignedCertificate {
         output file.
 
         .EXAMPLE
-        Request-SignedCertificate -mscaComputerName dc-rpl01.rainpole.io -mscaName rainpole-DC-RPL01-CA -domainUsername "administrator@rainpole.io" -domainPassword "VMw@re1!" -certificateTemplate VMware -certificateRequestFile "c:\temp\SupervisorCluster.csr" -CertificateFile "c:\temp\SupervisorCluster.cer" 
-        This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer" 
+        Request-SignedCertificate -mscaComputerName dc-rpl01.rainpole.io -mscaName rainpole-DC-RPL01-CA -domainUsername "administrator@rainpole.io" -domainPassword "VMw@re1!" -certificateTemplate VMware -certificateRequestFile "c:\temp\SupervisorCluster.csr" -CertificateFile "c:\temp\SupervisorCluster.cer"
+        This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer"
     #>
 
     Param (
@@ -6997,7 +6997,7 @@ Function Add-NamespaceVmClass {
                                                 }
                                             } else {
                                                 Write-Warning "Adding Virtual Machine Class ($vmClass) to Namespace ($namespace), already exists: SKIPPED"
-                                            }                      
+                                            }
                                         } else {
                                             Write-Error "Unable to find Namespace ($namespace) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                         }
@@ -7089,8 +7089,8 @@ Function Undo-TanzuKubernetesCluster {
         - Removes a Tanzu Kubernetes Cluster
 
         .EXAMPLE
-        Undo-TanzuKubernetesCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01 
-        This example removes a Tanzu Kubernetes Cluster from the a Supervisor Cluster 
+        Undo-TanzuKubernetesCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01
+        This example removes a Tanzu Kubernetes Cluster from the a Supervisor Cluster
     #>
 
     Param (
@@ -7150,28 +7150,28 @@ Export-ModuleMember -Function Undo-TanzuKubernetesCluster
 Function Export-vRLIJsonSpec {
     <#
         .SYNOPSIS
-        Create vRealize Log Insight Deployment JSON specification using the Planning and Preparation workbook
+        Create VMware Aria Operations for Logs Deployment JSON specification using the Planning and Preparation workbook
 
         .DESCRIPTION
         The Export-vRLIJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy vRealize Log Insight using vRealize Suite Lifecycle Manager. The cmdlet connects to SDDC Manager
+        to deploy VMware Aria Operations for Logs using VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values.
         - Validates that the Planning and Preparation provided is available
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Suite Lifecycle Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
-        created in vRealize Suite Lifecycle Manager Locker
+        created in VMware Aria Suite Lifecycle Locker
         - Generates the deployment JSON specification file using the Planning and Preparation workbook and details
         from vRealize Suite Lifecycle Manager named '<management_domain_name>-vrliDeploymentSpec.json'
 
         .EXAMPLE
         Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON specification file for deploying vRealize Log Insight using the Planning and Preparation Workbook data
+        This example creates a JSON specification file for deploying VMware Aria Operations for Logs using the Planning and Preparation Workbook data
 
         .EXAMPLE
         Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.4
-        This example creates a JSON specification file for deploying vRealize Log Insight using a custom version and the Planning and Preparation Workbook data
+        This example creates a JSON specification file for deploying VMware Aria Operations for Logs using a custom version and the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -7194,7 +7194,7 @@ Function Export-vRLIJsonSpec {
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
-        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -7269,7 +7269,7 @@ Function Export-vRLIJsonSpec {
                                             'timeSyncMode'					= "ntp"
                                         }
 
-                                        #### Generate vRealize Log Insight Cluster Details
+                                        #### Generate VMware Aria Operations for Logs Cluster Details
                                         $clusterVipProperties = @()
                                         $clusterVipProperties += [pscustomobject]@{
                                             'hostName'	= $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
@@ -7319,8 +7319,8 @@ Function Export-vRLIJsonSpec {
                                             'properties'	= ($worker2Properties | Select-Object -Skip 0)
                                         }
 
-                                        #### Generate the vRealize Log Insight Properties Section
-                                        if (!$PsBoundParameters.ContainsKey("customVersion")) { 
+                                        #### Generate the VMware Aria Operations for Logs Properties Section
+                                        if (!$PsBoundParameters.ContainsKey("customVersion")) {
                                             if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0" }
                                             if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1" }
                                             if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
@@ -7338,25 +7338,25 @@ Function Export-vRLIJsonSpec {
                                             'version'		= $vrliVersion
                                             'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                             'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                            'nodes'			= $nodesObject	
+                                            'nodes'			= $nodesObject
                                         }
                                         $vrliDeploymentObject = @()
                                         $vrliDeploymentObject += [pscustomobject]@{
                                             'environmentName'                   = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
                                             'infrastructure'                    = ($infrastructureObject  | Select-Object -Skip 0)
-                                            'products'                          = $productsObject     
+                                            'products'                          = $productsObject
                                         }
                                         $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
                                         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-                                        Write-Output "Creation of Deployment JSON Specification file for vRealize Log Insight: SUCCESSFUL"
+                                        Write-Output "Creation of Deployment JSON Specification file for VMware Aria Operations for Logs: SUCCESSFUL"
                                     } else {
-                                        Write-Error "Unable to find Admin Password with alias ($($pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value)) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to find Admin Password with alias ($($pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value)) in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Unable to find Certificate with alias ($($pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value)) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find Certificate with alias ($($pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value)) in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Unable to find License key ($licenseKey) in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to find License key ($licenseKey) in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -7372,25 +7372,25 @@ Export-ModuleMember -Function Export-vRLIJsonSpec
 Function New-vRLIDeployment {
     <#
         .SYNOPSIS
-        Deploy vRealize Log Insight Cluster via vRealize Suite Lifecycle Manager
+        Deploy VMware Aria Operations for Logs Cluster via VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRLIDeployment cmdlet deploys vRealize Log Insight via vRealize Suite Lifecycle Manager. The cmdlet
+        The New-vRLIDeployment cmdlet deploys VMware Aria Operations for Logs via VMware Aria Suite Lifecycle. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that the Planning and Preparation provided is available
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Suite Lifecycle Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Validates that the environment does not already exist in vRealize Suite Lifecycle Manager
-        - Requests a new deployment of vRealize Log Insight via vRealize Suite Lifecycle Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment does not already exist in VMware Aria Suite Lifecycle
+        - Requests a new deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of vRealize Log Inisght via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.2
-        This example starts a deployment of a custom version of vRealize Log Inisght via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a deployment of a custom version of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -7436,10 +7436,10 @@ Function New-vRLIDeployment {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                                 } else {
-                                                    Write-Output "Deployment Request for vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                    Write-Output "Deployment Request for VMware Aria Operations for Logs Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
-                                                Write-Error "Request to deploy vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
+                                                Write-Error "Request to deploy VMware Aria Operations for Logs failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
                                             }
                                         } else {
                                             Write-Error "License with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
@@ -7451,11 +7451,11 @@ Function New-vRLIDeployment {
                                     Write-Error "Password with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])) does not exist in the locker: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Environment with name ($($jsonSpec.environmentName)) already exists in vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)) with a status of ($($environmentExists.environmentStatus)): SKIPPED"
+                                Write-Warning "Environment with name ($($jsonSpec.environmentName)) already exists in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with a status of ($($environmentExists.environmentStatus)): SKIPPED"
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -7467,19 +7467,19 @@ Export-ModuleMember -Function New-vRLIDeployment
 Function Undo-vRLIDeployment {
     <#
         .SYNOPSIS
-        Remove the vRealize Log Insight Environment from vRealize Suite Lifecycle Manager
+        Remove the VMware Aria Operations for Logs Environment from VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Undo-vRLIDeployment cmdlet removes vRealize Log Insight from vRealize Suite Lifecycle Manager. The cmdlet
+        The Undo-vRLIDeployment cmdlet removes VMware Aria Operations for Logs from VMware Aria Suite Lifecycle. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Validates that the environment exist in vRealize Suite Lifecycle Manager
-        - Requests a the deletion of vRealize Log Insight from vRealize Suite Lifecycle Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment exist in VMware Aria Suite Lifecycle
+        - Requests a the deletion of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Undo-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName sfo-region-env
-        This example starts a removal of vRealize Log Inisght from vRealize Suite Lifecycle Manager
+        This example starts a removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -7503,22 +7503,22 @@ Function Undo-vRLIDeployment {
                                         Start-Sleep 10
                                         Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                         if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName})) {
-                                            Write-Output "Removal of vRealize Log Insight from vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                            Write-Output "Removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Removal of vRealize Log Insight from vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Output "Removal request of vRealize Log Insight Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                        Write-Output "Removal request of VMware Aria Operations for Logs Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                     }
                                 } else {
-                                    Write-Error "Removel request of vRealize Log Insight failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
+                                    Write-Error "Removel request of VMware Aria Operations for Logs failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Environment with name ($environmentName) in vRealize Suite Lifecyle Manager ($($vcfVrslcmDetails.fqdn)), already removed: SKIPPED"
+                                Write-Warning "Environment with name ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already removed: SKIPPED"
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -7530,20 +7530,20 @@ Export-ModuleMember -Function Undo-vRLIDeployment
 Function Add-vRLISmtpConfiguration {
     <#
 		.SYNOPSIS
-        Configure SMTP settings in vRealize Log Insight
+        Configure SMTP settings in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLISmtpConfiguration cmdlet configures the SMTP sever settings in vRealize Log Insight. The cmdlet
+        The Add-vRLISmtpConfiguration cmdlet configures the SMTP sever settings in VMware Aria Operations for Logs. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity is possible to the SMTP server
-        - Configures SMTP server settings in vRealize Log Insight if not already configured
+        - Configures SMTP server settings in VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
         Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io
-        This example configures the SMTP server settings on vRealize Log Insight
+        This example configures the SMTP server settings on VMware Aria Operations for Logs
     #>
 
     Param (
@@ -7568,12 +7568,12 @@ Function Add-vRLISmtpConfiguration {
                                     Set-vRLISmtpConfiguration -smtpServer $smtpServer -port $port -sender $sender -username $smtpUser -password $smtpPass | Out-Null
                                     Start-Sleep 2
                                     if (Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer}) {
-                                        Write-Output "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
+                                        Write-Output "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): POST_VALIDATION_FAILED"
+                                        Write-Error "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
+                                    Write-Warning "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to communicate with SMTP Server ($smtpServer), check details: PRE_VALIDATION_FAILED"
@@ -7592,20 +7592,20 @@ Export-ModuleMember -Function Add-vRLISmtpConfiguration
 Function Add-vRLIAuthenticationWSA {
     <#
 		.SYNOPSIS
-        Configure vRealize Log Insight Intergration with Workspace ONE Access
+        Configure VMware Aria Operations for Logs Intergration with Workspace ONE Access
 
         .DESCRIPTION
         The Add-vRLIAuthenticationWSA cmdlet configures role assignments in NSX Manager. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity is possible to Workspace ONE Access
-        - Configures Workspace ONE Access Integration on vRealize Log Insight if not already configured
+        - Configures Workspace ONE Access Integration on VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
         Add-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example enables Workspace ONE Access integration on vRealize Suite Lifecycle Manager
+        This example enables Workspace ONE Access integration on VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -7628,12 +7628,12 @@ Function Add-vRLIAuthenticationWSA {
                                     Set-vRLIAuthenticationWSA -hostname $wsaFqdn -port 443 -redirectUrl $vcfVrliDetails.fqdn -username $wsaUser -password $wsaPass
                                     Start-Sleep 2
                                     if ((Get-vRLIAuthenticationWSA).enabled -eq $true) {
-                                        Write-Output "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): SUCCESSFUL"
+                                        Write-Output "Configuring Workspace ONE Access Integration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): POST_VALIDATION_FAILED"
+                                        Write-Error "Configuring Workspace ONE Access Integration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn), already exists: SKIPPED"
+                                    Write-Warning "Configuring Workspace ONE Access Integration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with ($wsaFqdn), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to communicate with Workspace ONE Access Instance ($wsaFqdn), check details: POST_VALIDATION_FAILED"
@@ -7642,7 +7642,7 @@ Function Add-vRLIAuthenticationWSA {
                     }
                 }
             }
-        } 
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -7652,22 +7652,22 @@ Export-ModuleMember -Function Add-vRLIAuthenticationWSA
 Function Install-vRLIPhotonAgent {
     <#
 		.SYNOPSIS
-        Install vRealize Log Insight Photon Agent in a Virtual Machine
+        Install VMware Aria Operations for Logs Photon Agent in a Virtual Machine
 
         .DESCRIPTION
-        The Install-vRLIPhotonAgent cmdlet installs and configures the vRealize Log Insight Photon Agent on a virtual
+        The Install-vRLIPhotonAgent cmdlet installs and configures the VMware Aria Operations for Logs Photon Agent on a virtual
         machine. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity and authentication is possible to vCenter Server
         - Validates that the Virtual Machine exists in the vCenter Server inventory
         - Downloads and Installs the Photon Agent on the Virtual Machne
-        - Configures the liagent.ini file to communicate with vRealize Log Insight
+        - Configures the liagent.ini file to communicate with VMware Aria Operations for Logs
 
         .EXAMPLE
         Install-vRLIPhotonAgent -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName sfo-wsa01 -vmRootPass VMw@re1!
-        This example installs and configures the vRealize Log Insight Agent on the virtual machine named 'sfo-wsa01'
+        This example installs and configures the VMware Aria Operations for Logs Agent on the virtual machine named 'sfo-wsa01'
     #>
 
     Param (
@@ -7690,7 +7690,7 @@ Function Install-vRLIPhotonAgent {
                                         if (Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
                                             $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                             if ($output.ScriptOutput.Contains("/lib/systemd/system/liagentd.service; enabled")) {
-                                                Write-Warning "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName), already exists: SKIPPED"
+                                                Write-Warning "Installing and Configuring VMware Aria Operations for Logs Agent Installed and Configured on ($vmName), already exists: SKIPPED"
                                             } else {
                                                 Invoke-VMScript -VM $vmName -ScriptText "rm /tmp/liagent.rpm && rm /tmp/installAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                                 $installAgent = @(
@@ -7716,12 +7716,12 @@ Function Install-vRLIPhotonAgent {
                                                     }
                                                     $output = Invoke-VMScript -VM $vmName -ScriptText "chmod 777 /tmp/configureAgent.sh && /tmp/configureAgent.sh" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                                     if ($output.ScriptOutput.Contains("active (running)")) {
-                                                        Write-Output "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): SUCCESSFUL"
+                                                        Write-Output "Installing and Configuring VMware Aria Operations for Logs Agent Installed and Configured on ($vmName): SUCCESSFUL"
                                                     } else {
-                                                        Write-Error "Installing and Configuring vRealize Log Insight Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
+                                                        Write-Error "Installing and Configuring VMware Aria Operations for Logs Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
                                                     }
                                                 } else {
-                                                    Write-Error "Enabling vRealize Log Insight Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
+                                                    Write-Error "Enabling VMware Aria Operations for Logs Agent Installed and Configured on ($vmName): POST_VALIDATION_FAILED"
                                                 }
                                             }
                                         } else {
@@ -7744,21 +7744,21 @@ Export-ModuleMember -Function Install-vRLIPhotonAgent
 Function Undo-vRLIPhotonAgent {
     <#
 		.SYNOPSIS
-        Removes the vRealize Log Insight Photon Agent from a Virtual Machine
+        Removes the VMware Aria Operations for Logs Photon Agent from a Virtual Machine
 
         .DESCRIPTION
-        The Undo-vRLIPhotonAgent cmdlet removes the vRealize Log Insight Photon Agent from a virtual
+        The Undo-vRLIPhotonAgent cmdlet removes the VMware Aria Operations for Logs Photon Agent from a virtual
         machine. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity and authentication is possible to vCenter Server
         - Validates that the Virtual Machine exists in the vCenter Server inventory
         - Removes the Photon Agent from the Virtual Machne
 
         .EXAMPLE
         Undo-vRLIPhotonAgent -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName sfo-wsa01 -vmRootPass VMw@re1!
-        This example removes the vRealize Log Insight Agent from the virtual machine named 'sfo-wsa01'
+        This example removes the VMware Aria Operations for Logs Agent from the virtual machine named 'sfo-wsa01'
     #>
 
     Param (
@@ -7783,12 +7783,12 @@ Function Undo-vRLIPhotonAgent {
                                             Invoke-VMScript -VM $vmName -ScriptText "curl -k -o /tmp/liagent.rpm https://$($vcfVrliDetails.fqdn)/api/v1/agent/packages/types/rpm; package=`$(rpm -q /tmp/liagent.rpm); rpm -e `$package; systemctl daemon-reload" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn | Out-Null
                                             $output = Invoke-VMScript -VM $vmName -ScriptText "systemctl status liagentd" -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
                                             if ($output.ScriptOutput.Contains("liagentd.service could not be found")) {
-                                                Write-Output "Removing vRealize Log Insight Agent from ($vmName): SUCCESSFUL"
+                                                Write-Output "Removing VMware Aria Operations for Logs Agent from ($vmName): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Removing vRealize Log Insight Agent from ($vmName): POST_VALIDATION_FAILED"
+                                                Write-Error "Removing VMware Aria Operations for Logs Agent from ($vmName): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Removing vRealize Log Insight Agent from ($vmName), already performed: SKIPPED"
+                                            Write-Warning "Removing VMware Aria Operations for Logs Agent from ($vmName), already performed: SKIPPED"
                                         }
                                     } else {
                                         Write-Error "Virtual Machine ($vmName), not Found in vCenter Server ($($vcfVcenterDetails.fqdn)) Inventory, check details and try again: PRE_VALIDATION_FAILED"
@@ -7809,23 +7809,23 @@ Export-ModuleMember -Function Undo-vRLIPhotonAgent
 Function Add-vRLIAgentGroup {
     <#
 		.SYNOPSIS
-        Creates an agent group in vRealize Log Insight
+        Creates an agent group in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLIAgentGroup cmdlet creates a new agent group in vRealize Log Insight. The cmdlet connects to SDDC
+        The Add-vRLIAgentGroup cmdlet creates a new agent group in VMware Aria Operations for Logs. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Creates an agent group in the vRealize Log Insight if not already configured
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Creates an agent group in the VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
         Add-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupType wsa -agentGroupName "Workspace ONE Access - Appliance Agent Group" -criteria "xint-wsa01a.rainpole.io","xint-wsa01b.rainpole.io","xint-wsa01c.rainpole.io"
-        This example creates an agent group for Workspace ONE Access in vRealize Log Insight and assigns the Cluster Virtual Machines
+        This example creates an agent group for Workspace ONE Access in VMware Aria Operations for Logs and assigns the Cluster Virtual Machines
 
         .EXAMPLE
         Add-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupType photon -agentGroupName "Photon OS - Appliance Agent Group" -criteria "sfo-vcf01.sfo.rainpole.io","xint-vrslcm01.rainpole.io","xint-wsa01a.rainpole.io","xint-wsa01b.rainpole.io","xint-wsa01c.rainpole.io"
-        This example creates an agent group for Photon OS in vRealize Log Insight and assigns the SDDC Manager, vRealize Suite Lifecycle Manager and Workspace ONE Access Cluster Virtual Machines
+        This example creates an agent group for Photon OS in VMware Aria Operations for Logs and assigns the SDDC Manager, VMware Aria Suite Lifecycle and Workspace ONE Access Cluster Virtual Machines
     #>
 
     Param (
@@ -7847,12 +7847,12 @@ Function Add-vRLIAgentGroup {
                                 New-vRLIAgentGroup -agentGroupType $agentGroupType -criteria $criteria -agentGroupName $agentGroupName | Out-Null
                                 Start-Sleep 2
                                 if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName}) {
-                                    Write-Output "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
+                                    Write-Output "Creating Agent Group in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
+                                    Write-Error "Creating Agent Group in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), already performed: SKIPPED"
+                                Write-Warning "Creating Agent Group in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for ($agentGroupName), already performed: SKIPPED"
                             }
                         }
                     }
@@ -7868,19 +7868,19 @@ Export-ModuleMember -Function Add-vRLIAgentGroup
 Function Undo-vRLIAgentGroup {
     <#
 		.SYNOPSIS
-        Deletes an agent group in vRealize Log Insight
+        Deletes an agent group in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Undo-vRLIAgentGroup cmdlet deletes an agent group from vRealize Log Insight. The cmdlet connects to SDDC
+        The Undo-vRLIAgentGroup cmdlet deletes an agent group from VMware Aria Operations for Logs. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Deletes an agent group from the vRealize Log Insight if not already configured
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Deletes an agent group from the VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
         Undo-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupName "Workspace ONE Access (IAM) - Appliance Agent Group"
-        This example deletes an agent group for Workspace ONE Access in vRealize Log Insight
+        This example deletes an agent group for Workspace ONE Access in VMware Aria Operations for Logs
     #>
 
     Param (
@@ -7899,12 +7899,12 @@ Function Undo-vRLIAgentGroup {
                             if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName}) {
                                 Remove-vRLIAgentGroup -groupName $agentGroupName | Out-Null
                                 if (!(Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName})) {
-                                    Write-Output "Deleting Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
+                                    Write-Output "Deleting Agent Group in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Deleting Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
+                                    Write-Error "Deleting Agent Group in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for ($agentGroupName): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Deleting Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName), does not exist: SKIPPED"
+                                Write-Warning "Deleting Agent Group in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for ($agentGroupName), does not exist: SKIPPED"
                             }
                         }
                     }
@@ -7920,24 +7920,24 @@ Export-ModuleMember -Function Undo-vRLIAgentGroup
 Function Register-vRLIWorkloadDomain {
     <#
 		.SYNOPSIS
-        Connect a Workload Domain to vRealize Log Insight
+        Connect a Workload Domain to VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Register-vRLIWorkloadDomain cmdlet connects a Workload Domain to vRealize Log Insight. The cmdlet connects
+        The Register-vRLIWorkloadDomain cmdlet connects a Workload Domain to VMware Aria Operations for Logs. The cmdlet connects
         to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Obtains the Workload Domain details from the SDDC Manager inventory
-        - Connects the Workload Domain with vRealize Log Insight if not already configured
+        - Connects the Workload Domain with VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
         Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status ENABLED
-        This example ENABLES the Workload Domain in vRealize Log Insight
+        This example ENABLES the Workload Domain in VMware Aria Operations for Logs
 
         .EXAMPLE
         Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
-        This example DISABLES the Workload Domain in vRealize Log Insight
+        This example DISABLES the Workload Domain in VMware Aria Operations for Logs
     #>
 
     Param (
@@ -7955,18 +7955,18 @@ Function Register-vRLIWorkloadDomain {
                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                         if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                             if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                                if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -ne $status) { 
+                                if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -ne $status) {
                                     Set-VCFvRLIConnection -domainId (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id -status $status | Out-Null
                                     Do {
                                         $configStatus = (Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status
                                     } Until ($configStatus -ne "IN_PROGRESS")
-                                    if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
-                                        Write-Output "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                    if ((Get-VCFvRLIConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) {
+                                        Write-Output "Workload Domain Intergration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                        Write-Error "Workload Domain Intergration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Workload Domain Intergration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain), already exists: SKIPPED"
+                                    Write-Warning "Workload Domain Intergration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for Workload Domain ($domain), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -7991,14 +7991,14 @@ Function Set-vRLISyslogEdgeCluster {
         The Set-vRLISyslogEdgeCluster cmdlet configures Syslog settings on NSX Edge Cluster The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Gathers the NSX Edge Node details from NSX Manager cluster
         - Configures the Syslog settings on the NSX Edge Node if not already configured
 
         .EXAMPLE
         Set-vRLISyslogEdgeCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -exportname SFO-VRLI
-        This example configures the Syslog settings for each NSX Edge node to sent logs to vRealize Log Insight
+        This example configures the Syslog settings for each NSX Edge node to sent logs to VMware Aria Operations for Logs
     #>
 
     Param (
@@ -8035,7 +8035,7 @@ Function Set-vRLISyslogEdgeCluster {
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -8053,7 +8053,7 @@ Function Undo-vRLISyslogEdgeCluster {
         The Undo-vRLISyslogEdgeCluster cmdlet removes the Syslog settings on NSX Edge Cluster. The cmdlet connects to
         SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
         - Gathers the NSX Edge Node details from NSX Manager cluster
         - Removes the Syslog settings on the NSX Edge Node
@@ -8079,7 +8079,7 @@ Function Undo-vRLISyslogEdgeCluster {
                         if (Test-NSXTAuthentication -server $nsxtManagerDetails.fqdn -user $nsxtManagerDetails.adminUser -pass $nsxtManagerDetails.AdminPass) {
                             [Array]$edgeNodeIds = (Get-NsxtEdgeCluster).members.transport_node_id
                             Foreach ($nodeId in $edgeNodeIds) {
-                                if (Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName}) { 
+                                if (Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName}) {
                                     Remove-NsxtSyslogExporter -transport -id $nodeId -exporterName $exportName | Out-Null
                                     if (!(Get-NsxtSyslogExporter -transport -id $nodeId | Where-Object {$_.exporter_name -eq $exportName})) {
                                         Write-Output "Removing Syslog Exporter ($exportName) on Edge Node ($nodeId): SUCCESSFUL"
@@ -8092,7 +8092,7 @@ Function Undo-vRLISyslogEdgeCluster {
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -8104,21 +8104,21 @@ Export-ModuleMember -Function Undo-vRLISyslogEdgeCluster
 Function Add-vRLILogArchive {
     <#
 		.SYNOPSIS
-        Configure log archiving in vRealize Log Insight
+        Configure log archiving in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLILogArchive cmdlet configure log archiving in vRealize Log Insight. The cmdlet connects to SDDC
+        The Add-vRLILogArchive cmdlet configure log archiving in VMware Aria Operations for Logs. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Configure an email address to send notifications to in vRealize Log Insight
-        - Configure the log retention threshold in vRealize Log Insight
-        - Configure log archive location in vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Configure an email address to send notifications to in VMware Aria Operations for Logs
+        - Configure the log retention threshold in VMware Aria Operations for Logs
+        - Configure log archive location in VMware Aria Operations for Logs
 
         .EXAMPLE
         Add-vRLILogArchive -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -emailAddress administrator@rainpole.io -retentionNotificationDays 1 -retentionInterval weeks -retentionPeriodDays 7 -archiveLocation "nfs://172.27.11.4/sfo-m01-vrli01-400GB"
-        This example configures the log archive and retention period in vRealize Log Insight
+        This example configures the log archive and retention period in VMware Aria Operations for Logs
     #>
 
     Param (
@@ -8142,7 +8142,7 @@ Function Add-vRLILogArchive {
                             Set-vRLIRetentionThreshold -enable true -interval $retentionNotificationDays -intervalUnit $retentionInterval | Out-Null
                             $partitionId = (Get-vRLIIndexPartition).id
                             Set-vRLILogArchive -id $partitionId -enable true -retentionPeriod $retentionPeriodDays -archiveEnable true -archiveLocation $archiveLocation
-                            Write-Output "Configuring Email Notifications, Retention Period and Archive Location in vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                            Write-Output "Configuring Email Notifications, Retention Period and Archive Location in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                         }
                     }
                 }
@@ -8157,21 +8157,21 @@ Export-ModuleMember -Function Add-vRLILogArchive
 Function Add-vRLIAuthenticationGroup {
     <#
 		.SYNOPSIS
-        Adds a group from the authentication provider in vRealize Log Insight
+        Adds a group from the authentication provider in VMware Aria Operations for Logs
 
         .DESCRIPTION
         The Add-vRLIAuthenticationGroup cmdlet assigns access to a group based on the authentication providor. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that integration with Workspace ONE Access has been enabled
-        - Validates that the group has not already been assigned access to vRealize Log Insight
-        - Adds the group to the access control assigning the role provided in vRealize Log Insight
+        - Validates that the group has not already been assigned access to VMware Aria Operations for Logs
+        - Adds the group to the access control assigning the role provided in VMware Aria Operations for Logs
 
         .EXAMPLE
         Add-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -role 'Super Admin'
-        This example adds the group gg-vrli-admins with Super Admin role in vRealize Log Insight
+        This example adds the group gg-vrli-admins with Super Admin role in VMware Aria Operations for Logs
     #>
 
     Param (
@@ -8194,18 +8194,18 @@ Function Add-vRLIAuthenticationGroup {
                                     if (!(Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain})) {
                                         Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
                                         if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
-                                            Write-Output "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
+                                            Write-Output "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                                            Write-Error "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "Adding Group to vRealize Log Insight ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
+                                        Write-Warning "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
                                     }
                                 } else {
-                                    Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier. Complete the process manually."
+                                    Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier. Complete the process manually."
                                 }
                             } else {
-                                Write-Error "Workspace ONE Integration on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
+                                Write-Error "Workspace ONE Integration on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -8221,23 +8221,23 @@ Export-ModuleMember -Function Add-vRLIAuthenticationGroup
 Function Add-vRLIAlertDatacenter {
     <#
 		.SYNOPSIS
-        Adds datacenter based alerts in vRealize Log Insight
+        Adds datacenter based alerts in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLIAlertsDatacenter cmdlet adds datacenter based alerts to vRealize Log Insight. The cmdlet connects
+        The Add-vRLIAlertsDatacenter cmdlet adds datacenter based alerts to VMware Aria Operations for Logs. The cmdlet connects
         to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Datacenter object provided is valid in the vCenter Server inventory
-        - Creates the alert in vRealize Log Insight for the Datacenter object if not already configured
-        - Integrates with vRealize Operations Manager if the -vropsIntegration switch is provided
+        - Creates the alert in VMware Aria Operations for Logs for the Datacenter object if not already configured
+        - Integrates with VMware Aria Operations if the -vropsIntegration switch is provided
 
         .EXAMPLE
-        Add-vRLIAlertDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -datacenterName sfo-m01-dc01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\vrli-vcf-datacenter.json" -vropsIntegration
+        Add-vRLIAlertDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -datacenterName sfo-m01-dc01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\operations-for-logs-vcf-datacenter.json" -vropsIntegration
         This example adds the alerts provided in the JSON file
     #>
 
@@ -8252,8 +8252,8 @@ Function Add-vRLIAlertDatacenter {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$vropsIntegration
     )
 
-    $adapter = "VMWARE" # Defines the vRealize Operations Manager Adapter type
-    $resource = "Datacenter" # Defines the vRealize Operations Manager Resource type associated with the Adapter
+    $adapter = "VMWARE" # Defines the VMware Aria Operations Adapter type
+    $resource = "Datacenter" # Defines the VMware Aria Operations Resource type associated with the Adapter
 
     Try {
         if (Test-Path -Path $alertTemplate) {
@@ -8273,7 +8273,7 @@ Function Add-vRLIAlertDatacenter {
                                 if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                                         if (Get-Datacenter $datacenterName -ErrorAction Ignore ) {
-                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
+                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                                                 $templateAlerts = (Get-Content -path $alertTemplate -Raw)
                                                 $templateAlerts = $templateAlerts -replace '!!datacenterName!!',$datacenterName
                                                 $templateAlerts = $templateAlerts -replace '!!email!!',$email
@@ -8293,7 +8293,7 @@ Function Add-vRLIAlertDatacenter {
                                                     }
                                                 }
                                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                                                Write-Output "Adding Datacenter Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
+                                                Write-Output "Adding Datacenter Alerts in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
                                         } else {
                                             Write-Error "Unable to find Datacenter ($datacenterName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -8302,7 +8302,7 @@ Function Add-vRLIAlertDatacenter {
                                 }
                             }
                         }
-                    }                       
+                    }
                 }
             }
         } else {
@@ -8317,24 +8317,24 @@ Export-ModuleMember -Function Add-vRLIAlertDatacenter
 Function Add-vRLIAlertVirtualMachine {
     <#
 		.SYNOPSIS
-        Adds virtual machine based alerts in vRealize Log Insight
+        Adds virtual machine based alerts in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLIAlertVirtualMachine cmdlet adds virtual machine based alerts to vRealize Log Insight. The cmdlet
+        The Add-vRLIAlertVirtualMachine cmdlet adds virtual machine based alerts to VMware Aria Operations for Logs. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Virtual Machine object provided is valid in the vCenter Server inventory
-        - Creates the alert in vRealize Log Insight for the Virtual Machine object if not already configured
-        - Integrates with vRealize Operations Manager if the -vropsIntegration switch is provided
+        - Creates the alert in VMware Aria Operations for Logs for the Virtual Machine object if not already configured
+        - Integrates with VMware Aria Operations if the -vropsIntegration switch is provided
 
         .EXAMPLE
-        Add-vRLIAlertVirtualMachine -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -vmName xint-vrslcm01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\vrli-vcf-vmVrslcm.json" -vropsIntegration
-        This example adds the alerts provided in the JSON file for the vRealize Suite Lifecycle Manager Virtual Machine
+        Add-vRLIAlertVirtualMachine -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -vmName xint-vrslcm01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\operations-for-logs-vcf-vm-lifecycle.json" -vropsIntegration
+        This example adds the alerts provided in the JSON file for the VMware Aria Suite Lifecycle Virtual Machine
     #>
 
     Param (
@@ -8348,8 +8348,8 @@ Function Add-vRLIAlertVirtualMachine {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$vropsIntegration
     )
 
-    $adapter = "VMWARE" # Defines the vRealize Operations Manager Adapter type
-    $resource = "VirtualMachine" # Defines the vRealize Operations Manager Resource type associated with the Adapter
+    $adapter = "VMWARE" # Defines the VMware Aria Operations Adapter type
+    $resource = "VirtualMachine" # Defines the VMware Aria Operations Resource type associated with the Adapter
 
     Try {
         if (Test-Path -Path $alertTemplate) {
@@ -8369,7 +8369,7 @@ Function Add-vRLIAlertVirtualMachine {
                                 if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                                         if (Get-VM $vmName -ErrorAction Ignore ) {
-                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
+                                            if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                                                 $templateAlerts = (Get-Content -path $alertTemplate -Raw)
                                                 $templateAlerts = $templateAlerts -replace '!!vmName!!',$vmName
                                                 $templateAlerts = $templateAlerts -replace '!!email!!',$email
@@ -8392,7 +8392,7 @@ Function Add-vRLIAlertVirtualMachine {
                                                     }
                                                 }
                                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                                                Write-Output "Adding Virtual Machine Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
+                                                Write-Output "Adding Virtual Machine Alerts in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) using template Alert JSON ($alertTemplate) for Workload Domain ($sddcDomainName): SUCCESSFUL"
                                             }
                                         } else {
                                             Write-Error "Unable to find Virtual Machine ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -8401,7 +8401,7 @@ Function Add-vRLIAlertVirtualMachine {
                                 }
                             }
                         }
-                    }                         
+                    }
                 }
             }
         } else {
@@ -8416,14 +8416,14 @@ Export-ModuleMember -Function Add-vRLIAlertVirtualMachine
 Function Undo-vRLIAlert {
     <#
 		.SYNOPSIS
-        Removes alerts from vRealize Log Insight
+        Removes alerts from VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Undo-vRLIAlert cmdlet removes datacenter based alerts from vRealize Log Insight. The cmdlet
+        The Undo-vRLIAlert cmdlet removes datacenter based alerts from VMware Aria Operations for Logs. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Deletes all alerts with the name provided in the title
 
         .EXAMPLE
@@ -8448,13 +8448,13 @@ Function Undo-vRLIAlert {
                                 Foreach ($alert in $allAlerts) {
                                     Remove-vRLIAlert -alertId $alert.id | Out-Null
                                 }
-                                Write-Output "Removing Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with name ($name): SUCCESSFUL"
+                                Write-Output "Removing Alerts in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with name ($name): SUCCESSFUL"
                             } else {
-                                Write-Warning "Removing Alerts in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for name ($name), none exist: SKIPPED"
+                                Write-Warning "Removing Alerts in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) for name ($name), none exist: SKIPPED"
                             }
                         }
                     }
-                }                         
+                }
             }
         }
     } Catch {
@@ -8592,23 +8592,23 @@ Export-ModuleMember -Function Disable-vRLIAlert
 Function Add-vRLILogForwarder {
     <#
 		.SYNOPSIS
-        Adds a log forwarder destination to vRealize Log Insight
+        Adds a log forwarder destination to VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLILogForwarder cmdlet adds log forwarder destination to vRealize Log Insight. The cmdlet connects to
+        The Add-vRLILogForwarder cmdlet adds log forwarder destination to VMware Aria Operations for Logs. The cmdlet connects to
         SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Adds a log forwarder destination to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Adds a log forwarder destination to VMware Aria Operations for Logs
 
         .EXAMPLE
         Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name "SFO to LAX" -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514 -transport TCP -acceptCert false -sslEnabled false -testConnection false
-        This example adds a log forwarder to vRealize Log Insight using syslog over TCP 514.
+        This example adds a log forwarder to VMware Aria Operations for Logs using syslog over TCP 514.
 
         .EXAMPLE
         Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name "SFO to LAX" -fqdn lax-vrli01.lax.rainpole.io -protocol CFAPI -port 9543 -acceptCert true -sslEnabled true -testConnection true
-        This example adds a log forwarder destination to vRealize Log Insight
+        This example adds a log forwarder destination to VMware Aria Operations for Logs
     #>
 
     Param (
@@ -8637,24 +8637,24 @@ Function Add-vRLILogForwarder {
                                 } elseif ($protocol -eq 'SYSLOG' -and ($PsBoundParameters.ContainsKey('transport'))) {
                                     Set-vRLILogForwarder -name $name -server $fqdn -protocol $protocol -port $port -transport $transport -acceptCert $acceptCert -sslEnabled $sslEnabled -testConnection $testConnection | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn}) {
-                                        Write-Output "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Adding log forwarder ($fqdn) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        Write-Warning "Adding log forwarder ($fqdn) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Set-vRLILogForwarder -name $name -server $fqdn -protocol $protocol -port $port -acceptCert $acceptCert -sslEnabled $sslEnabled -testConnection $testConnection | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object {$_.host -eq $fqdn}) {
-                                        Write-Output "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Adding log forwarder ($fqdn) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
-                                    }          
+                                        Write-Warning "Adding log forwarder ($fqdn) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
                                 }
                             } else {
-                                Write-Warning "Adding log forwarder ($fqdn) to vRealize Log Insight ($($vcfVrliDetails.fqdn)), already exist: SKIPPED"
+                                Write-Warning "Adding log forwarder ($fqdn) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), already exist: SKIPPED"
                             }
                         }
                     }
-                }                         
+                }
             }
         }
     } Catch {
@@ -8666,19 +8666,19 @@ Export-ModuleMember -Function Add-vRLILogForwarder
 Function Undo-vRLILogForwarder {
     <#
 		.SYNOPSIS
-        Removes a log forwarder destination to vRealize Log Insight
+        Removes a log forwarder destination to VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Undo-vRLILogForwarder cmdlet removes log forwarder destination to vRealize Log Insight. The cmdlet connects
+        The Undo-vRLILogForwarder cmdlet removes log forwarder destination to VMware Aria Operations for Logs. The cmdlet connects
         to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Removes a log forwarder destination from vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Removes a log forwarder destination from VMware Aria Operations for Logs
 
         .EXAMPLE
         Undo-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514
-        This example removes a log forwarder to vRealize Log Insight using syslog over TCP 514.
+        This example removes a log forwarder to VMware Aria Operations for Logs using syslog over TCP 514.
     #>
 
     Param (
@@ -8697,35 +8697,35 @@ Function Undo-vRLILogForwarder {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
-                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {                   
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                             if ($protocol -eq 'SYSLOG' -and (-not $PsBoundParameters.ContainsKey('transport'))) {
                                 Throw 'You must enter a transport for SYSLOG.'
                             } elseif ($protocol -eq 'SYSLOG' -and ($PsBoundParameters.ContainsKey('transport'))) {
                                 if ($response = Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port -and $_.transportProtocol -eq $transport}) {
                                     Remove-vRLILogForwarder -id $response.id | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object { $_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port -and $_.transportProtocol -eq $transport}) {
-                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Removing log forwarder ($fqdn) from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     } else {
-                                        Write-Output "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Removing log forwarder ($fqdn) from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     }
                                 } else {
-                                    Write-Warning "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)), configuration does not exist."
+                                    Write-Warning "Removing log forwarder ($fqdn) from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), configuration does not exist."
                                 }
                             } else {
                                 if ($response = Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port}) {
                                     Remove-vRLILogForwarder -id $response.id | Out-Null
                                     if (Get-vRlILogForwarder | Where-Object {$_.name -eq $name -and $_.host -eq $fqdn -and $_.protocol -eq $protocol -and $_.port -eq $port}) {
-                                        Write-Error "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Removing log forwarder ($fqdn) from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
                                     } else {
-                                        Write-Output "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Removing log forwarder ($fqdn) from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     }
                                 } else {
-                                    Write-Warning "Removing log forwarder ($fqdn) from vRealize Log Insight ($($vcfVrliDetails.fqdn)), configuration does not exist."
-                                }        
+                                    Write-Warning "Removing log forwarder ($fqdn) from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), configuration does not exist."
+                                }
                             }
                         }
                     }
-                }                         
+                }
             }
         }
     } Catch {
@@ -8737,25 +8737,25 @@ Export-ModuleMember -Function Undo-vRLILogForwarder
 Function Add-NsxtNodeProfileSyslogExporter {
     <#
         .SYNOPSIS
-        Sets a syslog exporter on an NSX node profile to vRealize Log Insight
+        Sets a syslog exporter on an NSX node profile to VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-NsxtNodeProfileSyslogExporter cmdlet adds a syslog exporter for vRealize Log Insight to an NSX node
-        profile for configuration of syslog on the NSX components included in the node profile. 
+        The Add-NsxtNodeProfileSyslogExporter cmdlet adds a syslog exporter for VMware Aria Operations for Logs to an NSX node
+        profile for configuration of syslog on the NSX components included in the node profile.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Adds a syslog exporter on the default (All NSX Nodes) or specified node profile for NSX
 
         .EXAMPLE
         Add-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
-        This example adds a syslog exporter to vRealize Log Insight for the default (All NSX Nodes) node profile.
+        This example adds a syslog exporter to VMware Aria Operations for Logs for the default (All NSX Nodes) node profile.
 
         .EXAMPLE
         Add-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -id "********-****-****-****-************"
-        This example adds a syslog exporter to vRealize Log Insight for a specific node profile with the -id parameter.
+        This example adds a syslog exporter to VMware Aria Operations for Logs for a specific node profile with the -id parameter.
     #>
 
     Param (
@@ -8785,7 +8785,7 @@ Function Add-NsxtNodeProfileSyslogExporter {
                                                         Write-Output "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($($profileExists.display_name)) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
                                                     } else {
                                                         Write-Error "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
-                                                    }     
+                                                    }
                                             } else {
                                                 Write-Warning "Adding the syslog exporter ($($vcfVrliDetails.fqdn)) to the NSX node profile ($($profileExists.display_name)) in NSX Manager ($($vcfNsxDetails.fqdn)), already exist: SKIPPED"
                                             }
@@ -8799,7 +8799,7 @@ Function Add-NsxtNodeProfileSyslogExporter {
                     }
                 }
             }
-        } 
+        }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -8812,8 +8812,8 @@ Function Undo-NsxtNodeProfileSyslogExporter {
         Removes all syslog exporters on an NSX node profile.
 
         .DESCRIPTION
-        The Undo-NsxtNodeProfileSyslogExporter cmdlet removes a syslog exporter for vRealize Log Insight from
-        an NSX node profile for configuration of syslog on the NSX components included in the node profile. 
+        The Undo-NsxtNodeProfileSyslogExporter cmdlet removes a syslog exporter for VMware Aria Operations for Logs from
+        an NSX node profile for configuration of syslog on the NSX components included in the node profile.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
@@ -8852,7 +8852,7 @@ Function Undo-NsxtNodeProfileSyslogExporter {
                                         Write-Output "Removing all syslog exporters from the NSX node profile ($($profileExists.display_name)) on NSX Manager ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
                                     } else {
                                         Write-Error "Removing all syslog exporters from the NSX node profile ($id) in NSX Manager ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
-                                    }     
+                                    }
                                 } else {
                                     Write-Warning "Removing all syslog exporters from the NSX node profile ($($profileExists.display_name)) in NSX Manager ($($vcfNsxDetails.fqdn)), already removed: SKIPPED"
                                 }
@@ -8873,19 +8873,19 @@ Export-ModuleMember -Function Undo-NsxtNodeProfileSyslogExporter
 Function Get-vROpsLogForwardingConfig {
     <#
         .SYNOPSIS
-        Gets the vRealize Operations Manager log forwarding configuration.
+        Gets the VMware Aria Operations log forwarding configuration.
 
         .DESCRIPTION
-        The Get-vROpsLogForwardingConfig cmdlet gets the vRealize Operations Manager logging forwarding configuration.
+        The Get-vROpsLogForwardingConfig cmdlet gets the VMware Aria Operations logging forwarding configuration.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Gets the vRealize Operations Manager logging forwarding configuration
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Gets the VMware Aria Operations logging forwarding configuration
 
         .EXAMPLE
         Get-vROpsLogForwardingConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example returns the log forwarding configuration on vRealize Operations.
+        This example returns the log forwarding configuration on VMware Aria Operations.
     #>
 
     Param (
@@ -8901,16 +8901,16 @@ Function Get-vROpsLogForwardingConfig {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ($vcfVropsDetails = Get-vROpsServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
-                                if (Test-vROpsConnection -server $vcfVropsDetails.loadBalancerFqdn) {   
+                                if (Test-vROpsConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                                     if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
                                         if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                                             if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                                                 $response = Get-vROpsLogForwarding
                                                 $response
                                                 if ($response.enabled -eq $false) {
-                                                    Write-Warning "vRealize Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to vRealize Log Insight status: Not enabled."
+                                                    Write-Warning "VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to VMware Aria Operations for Logs status: Not enabled."
                                                 } elseif ($response.enabled -eq $true -and $response.host -ne $vcfVrliDetails.fqdn) {
-                                                    Write-Warning "vRealize Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to vRealize Log Insight status: Not configured with $($vcfVrliDetails.fqdn)."                    
+                                                    Write-Warning "VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) logging configuration to VMware Aria Operations for Logs status: Not configured with $($vcfVrliDetails.fqdn)."
                                                 }
                                             }
                                         }
@@ -8931,20 +8931,20 @@ Export-ModuleMember -Function Get-vROpsLogForwardingConfig
 Function Get-vRAvRLIConfig {
     <#
 		.SYNOPSIS
-        Returns the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+        Returns the VMware Aria Operations for Logs logging configuration (CFAPI) on VMware Aria Automation.
 
         .DESCRIPTION
-        The Get-vRAvRLIConfig cmdlet returns the vRealize Log Insight logging configuration for vRealize Automation.
+        The Get-vRAvRLIConfig cmdlet returns the VMware Aria Operations for Logs logging configuration for VMware Aria Automation.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
-        vRealize Automation appliance using the -rootPass value.
+        VMware Aria Automation appliance using the -rootPass value.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Validates that network connectivity is possible to the first vRealize Automation appliance
-        - Returns the vRealize Log Insight configuration in vRealize Automation
+        - Validates that network connectivity is possible to the first VMware Aria Automation appliance
+        - Returns the VMware Aria Operations for Logs configuration in VMware Aria Automation
 
         .EXAMPLE
         Get-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
-        This example returns the vRealize Log Insight logging configuration on vRealize Automation.
+        This example returns the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
     #>
 
     Param (
@@ -8961,21 +8961,21 @@ Function Get-vRAvRLIConfig {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
-                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {   
+                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {
                                     $vmName = $vraDetails.fqdn | Select-Object -First 1
                                     $vmName = $vmName.Split(".")[0]
                                     if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                         $scriptCommand = "vracli vrli"
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains('No vRLI integration configured')) {
-                                            Write-Output "vRealize Automation integration with vRealize Log Insight status 'Not Configured'"
+                                            Write-Output "VMware Aria Automation integration with VMware Aria Operations for Logs status 'Not Configured'"
                                         } elseif (($output.ScriptOutput).Contains('agentId')) {
                                             $output.ScriptOutput | ConvertFrom-JSON
                                         } else {
-                                            Write-Error "Returning the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
+                                            Write-Error "Returning the VMware Aria Automation integration with VMware Aria Operations for Logs: POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
+                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                 }
                             }
@@ -8993,21 +8993,21 @@ Export-ModuleMember -Function Get-vRAvRLIConfig
 Function Set-vRAvRLIConfig {
     <#
 		.SYNOPSIS
-        Sets the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+        Sets the VMware Aria Operations for Logs logging configuration (CFAPI) on VMware Aria Automation.
 
         .DESCRIPTION
-        The Set-vRAvRLIConfig cmdlet sets the vRealize Log Insight logging configuration for vRealize Automation.
+        The Set-vRAvRLIConfig cmdlet sets the VMware Aria Operations for Logs logging configuration for VMware Aria Automation.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
-        vRealize Automation appliance using the -rootPass value.
+        VMware Aria Automation appliance using the -rootPass value.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Validates that network connectivity and authentication is possible to vRealize Log Insight
-        - Validates that network connectivity is possible to the first vRealize Automation appliance
-        - Sets the vRealize Log Insight configuration on vRealize Automation
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Validates that network connectivity is possible to the first VMware Aria Automation appliance
+        - Sets the VMware Aria Operations for Logs configuration on VMware Aria Automation
 
         .EXAMPLE
         Set-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -protocol HTTPS
-        This example sets the vRealize Log Insight logging configuration on vRealize Automation.
+        This example sets the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
     #>
 
     Param (
@@ -9048,7 +9048,7 @@ Function Set-vRAvRLIConfig {
                                                         $uriPort = $port
                                                     }
 
-                                                    # Set the uri to the vRealize Log Insight cluster FQDN
+                                                    # Set the uri to the VMware Aria Operations for Logs cluster FQDN
                                                     $uriHost = $vcfVrliDetails.fqdn
 
                                                     # Run commands based on the selected protocol
@@ -9060,16 +9060,16 @@ Function Set-vRAvRLIConfig {
                                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
                                                     }
 
-                                                    $status = Get-vRAvRLIConfig -server $server -user $user -pass $pass -rootPass $rootPass      
+                                                    $status = Get-vRAvRLIConfig -server $server -user $user -pass $pass -rootPass $rootPass
                                                     if (($status).Contains("`"host`": `"$uriHost`"") -and ($status).Contains("`"port`": $uriPort") -and ($status).Contains("`"scheme`": `"$uriProtocol`"")) {
-                                                        Write-Output 'Setting the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL'
+                                                        Write-Output 'Setting the VMware Aria Automation integration with VMware Aria Operations for Logs: SUCCESSFUL'
                                                     } elseif (($status).Contains('No vRLI integration configured')) {
-                                                        Write-Warning 'vRealize Automation integration with vRealize Log Insight configuration not set: SKIPPED'
+                                                        Write-Warning 'VMware Aria Automation integration with VMware Aria Operations for Logs configuration not set: SKIPPED'
                                                     } else {
-                                                        Write-Error 'Setting the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED'
+                                                        Write-Error 'Setting the VMware Aria Automation integration with VMware Aria Operations for Logs: POST_VALIDATION_FAILED'
                                                     }
                                                 } else {
-                                                    Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
+                                                    Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                                 }
                                             }
                                         }
@@ -9091,20 +9091,20 @@ Export-ModuleMember -Function Set-vRAvRLIConfig
 Function Remove-vRAvRLIConfig {
     <#
 		.SYNOPSIS
-        Removes the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
+        Removes the VMware Aria Operations for Logs logging configuration (CFAPI) on VMware Aria Automation.
 
         .DESCRIPTION
-        The Remove-vRAvRLIConfig cmdlet removes the vRealize Log Insight logging configuration for vRealize Automation.
+        The Remove-vRAvRLIConfig cmdlet removes the VMware Aria Operations for Logs logging configuration for VMware Aria Automation.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values and connects to the first
-        vRealize Automation appliance using the -rootPass value.
+        VMware Aria Automation appliance using the -rootPass value.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Validates that network connectivity is possible to the first vRealize Automation appliance
-        - Unsets the vRealize Log Insight configuration in vRealize Automation
+        - Validates that network connectivity is possible to the first VMware Aria Automation appliance
+        - Unsets the VMware Aria Operations for Logs configuration in VMware Aria Automation
 
         .EXAMPLE
         Remove-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
-        This example removes the vRealize Log Insight logging configuration on vRealize Automation.
+        This example removes the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
     #>
 
     Param (
@@ -9121,21 +9121,21 @@ Function Remove-vRAvRLIConfig {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ($vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop) {
-                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {   
+                                if (Test-vRAConnection -server $vRADetails.node1IpAddress) {
                                     $vmName = $vraDetails.fqdn | Select-Object -First 1
                                     $vmName = $vmName.Split(".")[0]
                                     if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                         $scriptCommand = "vracli vrli unset"
                                         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
                                         if (($output.ScriptOutput).Contains('Clearing vRLI integration configuration')) {
-                                            Write-Output "Clearing the vRealize Automation integration with vRealize Log Insight: SUCCESSFUL"
+                                            Write-Output "Clearing the VMware Aria Automation integration with VMware Aria Operations for Logs: SUCCESSFUL"
                                         } elseif (($output.ScriptOutput).Contains('No vRLI integration configured')) {
-                                            Write-Warning "vRealize Automation integration with vRealize Log Insight not set: SKIPPED"
+                                            Write-Warning "VMware Aria Automation integration with VMware Aria Operations for Logs not set: SKIPPED"
                                         } else {
-                                            Write-Warning "Clearing the vRealize Automation integration with vRealize Log Insight: POST_VALIDATION_FAILED"
+                                            Write-Warning "Clearing the VMware Aria Automation integration with VMware Aria Operations for Logs: POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
+                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
                                 }
                             }
@@ -9153,20 +9153,20 @@ Export-ModuleMember -Function Remove-vRAvRLIConfig
 Function Enable-vRLIContentPack {
     <#
         .SYNOPSIS
-        Enables the vRealize Log Insight content pack from the marketplace.
+        Enables the VMware Aria Operations for Logs content pack from the marketplace.
 
         .DESCRIPTION
-        The Enable-vRLIContentPack cmdlet installs a designated vRealize Log Insight content pack from the online
+        The Enable-vRLIContentPack cmdlet installs a designated VMware Aria Operations for Logs content pack from the online
         Content Pack Marketplace hosted on GitHub.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Validates that network connectivity is possible to vRealize Log Insight
-        - Installs the vRealize Log Insight content pack selected from the marketplace
+        - Validates that network connectivity is possible to VMware Aria Operations for Logs
+        - Installs the VMware Aria Operations for Logs content pack selected from the marketplace
 
         .EXAMPLE
         Enable-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -token <your_base64_github_token> -contentPack VRO
-        This examples installs the vRealize Orchestrator content pack from the marketplace.
+        This examples installs the VMware Aria Automation Orchestrator content pack from the marketplace.
         #>
 
     Param (
@@ -9193,7 +9193,7 @@ Function Enable-vRLIContentPack {
                             if ($contentPack -eq 'VRNI') {$contentPackNamespace = 'om.vmware.vrni'}
                             if ($contentPack -eq 'VRA') {$contentPackNamespace = 'com.vmware.vra.83'}
                             if ($contentPack -eq 'VRO') {$contentPackNamespace = 'com.vmware.vro.83'}
-                            if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}                            
+                            if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}
                             if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
                             if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
 
@@ -9211,21 +9211,21 @@ Function Enable-vRLIContentPack {
                             }
 
                             if (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName }) {
-                                Write-Warning "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)), already exists: SKIPPED"
+                                Write-Warning "Installing content pack ($contentPackName v$contentPackVersion) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), already exists: SKIPPED"
                             } else {
                                 if ($json) {
                                     Install-vRLIContentPack -json $json | Out-Null
                                     if ($contentPackStatus = (Get-vRLIContentPack | Where-Object { $_.name -eq $contentPackName })) {
-                                        Write-Output "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Installing content pack ($contentPackName v$contentPackVersion) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
-                                    }   
+                                        Write-Error "Installing content pack ($contentPackName v$contentPackVersion) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
                                 } else {
-                                    Write-Error "Installing content pack ($contentPackName v$contentPackVersion) to vRealize Log Insight ($($vcfVrliDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                    Write-Error "Installing content pack ($contentPackName v$contentPackVersion) to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
-                            }       
-                        }          
-                    }         
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -9238,20 +9238,20 @@ Export-ModuleMember -Function Enable-vRLIContentPack
 Function Update-vRLIContentPack {
     <#
         .SYNOPSIS
-        Updates the vRealize Log Insight content pack from the marketplace.
+        Updates the VMware Aria Operations for Logs content pack from the marketplace.
 
         .DESCRIPTION
-        The Update-vRLIContentPack cmdlet updates a designated vRealize Log Insight content pack from the online
+        The Update-vRLIContentPack cmdlet updates a designated VMware Aria Operations for Logs content pack from the online
         Content Pack Marketplace hosted on GitHub.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
-        - Validates that network connectivity is possible to vRealize Log Insight
-        - Updates the vRealize Log Insight content pack selected from the marketplace
+        - Validates that network connectivity is possible to VMware Aria Operations for Logs
+        - Updates the VMware Aria Operations for Logs content pack selected from the marketplace
 
         .EXAMPLE
         Update-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack NSX
-        This example updates the vRealize Log Insight content pack for NSX to the latest version from the marketplace.
+        This example updates the VMware Aria Operations for Logs content pack for NSX to the latest version from the marketplace.
         #>
 
     Param (
@@ -9277,7 +9277,7 @@ Function Update-vRLIContentPack {
                             if ($contentPack -eq 'VRNI') {$contentPackNamespace = 'om.vmware.vrni'}
                             if ($contentPack -eq 'VRA') {$contentPackNamespace = 'com.vmware.vra.83'}
                             if ($contentPack -eq 'VRO') {$contentPackNamespace = 'com.vmware.vro.83'}
-                            if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}                            
+                            if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}
                             if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
                             if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
 
@@ -9294,21 +9294,21 @@ Function Update-vRLIContentPack {
                                     if ($status.contentVersion -lt $contentPackVersion) {
                                         Install-vRLIContentPack -update -json $json | Out-Null
                                         if (Get-vRLIContentPack | Where-Object {$_.name -eq $contentPackName -and $_.contentVersion -eq $contentPackVersion}) {
-                                            Write-Output "Updating the content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                            Write-Output "Updating the content pack ($contentPackName) to version v$contentPackVersion on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Updating the content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
-                                        }   
+                                            Write-Error "Updating the content pack ($contentPackName) to version v$contentPackVersion on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
                                     } else {
-                                        Write-Warning "Updating the content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)), no update needed: SKIPPED"
+                                        Write-Warning "Updating the content pack ($contentPackName) to version v$contentPackVersion on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), no update needed: SKIPPED"
                                     }
                                 } else {
                                     Write-Error "Retrieving content pack ($contentPackFile) metadata from the marketplace: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Updating content pack ($contentPackName) to version v$contentPackVersion on vRealize Log Insight ($($vcfVrliDetails.fqdn)), not installed: PRE_VALIDATION_FAILED"
-                            }   
-                        }          
-                    }         
+                                Write-Error "Updating content pack ($contentPackName) to version v$contentPackVersion on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not installed: PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -9328,32 +9328,32 @@ Export-ModuleMember -Function Update-vRLIContentPack
 Function Export-vROPsJsonSpec {
     <#
         .SYNOPSIS
-        Create vRealize Operations Manager Deployment JSON specification
+        Create VMware Aria Operations Deployment JSON specification
 
         .DESCRIPTION
         The Export-vROPsJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy vRealize Operations Manager using vRealize Suite Lifecycle Manager. The cmdlet connects to SDDC Manager
+        to deploy VMware Aria Operations using VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values.
         - Validates that the Planning and Preparation provided is available
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Suite Lifecycle Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
-        created in vRealize Suite Lifecycle Manager Locker
+        created in VMware Aria Suite Lifecycle Locker
         - Generates the deployment JSON specification file using the Planning and Preparation workbook and details
         from vRealize Suite Lifecycle Manager named '<management_domain_name>-vropsDeploymentSpec.json'
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON specification file for deploying vRealize Operations Manager using the Planning and Preparation Workbook data
+        This example creates a JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
-        This example creates a reduce footprint JSON specification file for deploying vRealize Operations Manager using the Planning and Preparation Workbook data
+        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example creates a reduce footprint JSON specification file for deploying vRealize Operations Manager using a custom version and the Planning and Preparation Workbook data
+        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using a custom version and the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -9378,7 +9378,7 @@ Function Export-vROPsJsonSpec {
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
-        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -9470,7 +9470,7 @@ Function Export-vROPsJsonSpec {
                                                     'isCaEnabled'                   = "false"
                                                 }
 
-                                                #### Generate vRealize Operations Manager Cluster Details
+                                                #### Generate VMware Aria Operations Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
@@ -9485,7 +9485,7 @@ Function Export-vROPsJsonSpec {
                                                 'clusterVips'	= $clusterVipsObject
                                                 }
 
-                                                #### Generate vRealize Operations Manager Node Details
+                                                #### Generate VMware Aria Operations Node Details
                                                 $masterProperties = New-Object -TypeName psobject
                                                 $masterProperties | Add-Member -notepropertyname 'vmName' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
                                                 $masterProperties | Add-Member -notepropertyname 'hostName' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
@@ -9612,14 +9612,14 @@ Function Export-vROPsJsonSpec {
                                                     'version'		= $vropsVersion
                                                     'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'			= $nodesObject	
+                                                    'nodes'			= $nodesObject
                                                 }
-                                                if (!($xintEnvironment)) { 
+                                                if (!($xintEnvironment)) {
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
                                                         'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'products'              = $productsObject
                                                     }
                                                 } else {
                                                     $vropsDeploymentObject = @()
@@ -9627,7 +9627,7 @@ Function Export-vROPsJsonSpec {
                                                         'environmentId'         = $xintEnvironment.environmentId
                                                         'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'products'              = $productsObject
                                                     }
                                                 }
 
@@ -9637,20 +9637,20 @@ Function Export-vROPsJsonSpec {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist: PRE_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker: PRE_VALIDATION_FAILED"
+                                Write-Error "License with alias '$licenseKey' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
-                }    
+                }
             }
         }
         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
@@ -9663,28 +9663,28 @@ Export-ModuleMember -Function Export-vROPsJsonSpec
 Function New-vROPSDeployment {
     <#
         .SYNOPSIS
-        Deploy vRealize Operations to vRealize Suite Lifecycle Manager
+        Deploy VMware Aria Operations to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vROPSDeployment cmdlet deploys vRealize Operations via vRealize Suite Lifecycle Manager. The
+        The New-vROPSDeployment cmdlet deploys VMware Aria Operations via VMware Aria Suite Lifecycle. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Suite Lifecycle Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Validates that the environment does not already exist in vRealize Suite Lifecycle Manager
-        - Requests a new deployment of vRealize Operations via vRealize Suite Lifecycle Manager
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment does not already exist in VMware Aria Suite Lifecycle
+        - Requests a new deployment of VMware Aria Operations via VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of vRealize Operations via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
-        This example starts a reduce footprint deployment of vRealize Operations via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a reduce footprint deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example starts a deployment using a custom version of vRealize Operations via vRealize Suite Lifecycle Manager using the Planning and Preparation Workbook data
+        This example starts a deployment using a custom version of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -9745,23 +9745,23 @@ Function New-vROPSDeployment {
                                                     Write-Output "Deployment Request for vRealize Operations Manager Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
-                                                Write-Error "Request to deploy vRealize Operations Manager failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
+                                                Write-Error "Request to deploy VMware Aria Operations failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "License in vRealize Suite Lifecycle Manager ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                            Write-Error "License in VMware Aria Suite Lifecycle ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                        Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                    Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "vRealize Operations Manager in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                Write-Warning "VMware Aria Operations in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -9773,22 +9773,22 @@ Export-ModuleMember -Function New-vROPSDeployment
 Function Import-vROPSUserAccount {
     <#
         .SYNOPSIS
-        Import a user from Workspace ONE Access and assign access in vRealize Operations Manager
+        Import a user from Workspace ONE Access and assign access in VMware Aria Operations
 
         .DESCRIPTION
-        The Import-vROPSUserAccount cmdlet imports a user from Workspace ONE Access and assigns access in vRealize
-        Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        The Import-vROPSUserAccount cmdlet imports a user from Workspace ONE Access and assigns access in
+        VMware Aria Operations. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that Workspace ONE Access has been configured as an authentication source
-        - Validates the user account provided can be found in vRealize Operations Manager
-        - Validated the role exists within vRealize Operations Manager
-        - Imports the user and assigns the vRealize Operations Manager role
+        - Validates the user account provided can be found in VMware Aria Operations
+        - Validated the role exists within VMware Aria Operations
+        - Imports the user and assigns the VMware Aria Operations role
 
         .EXAMPLE
         Import-vROPSUserAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -userName nigel.mccloud -role Administrator
-        This example imports a user into vRealize Operations Manager and assigns the role
+        This example imports a user into VMware Aria Operations and assigns the role
     #>
 
     Param (
@@ -9812,21 +9812,21 @@ Function Import-vROPSUserAccount {
                                         if (Get-vROPSAuthRole -name $role -ErrorAction SilentlyContinue) {
                                             Add-vROPSUserAccount -sourceId (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}).id -userName $userAccount.name -lastName $userAccount.lastName -firstName $userAccount.firstName -distinguishedName $domain -role $role | Out-Null
                                             if (Get-vROPSUserAccount -username $userName) {
-                                                Write-Output "Importing user account into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)): SUCCESSFUL"
+                                                Write-Output "Importing user account into VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Importing user account into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)): POST_VALIDATION_FAILED"
+                                                Write-Error "Importing user account into VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Unable to locate role in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
+                                            Write-Error "Unable to locate role in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Unable to locate user account in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($userName): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to locate user account in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($userName): PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Unable to locate Authentication Source in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to locate Authentication Source in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Importing user account into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)), already performed: SKIPPED"
+                                Write-Warning "Importing user account into VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($userName + '@' + $domain)), already performed: SKIPPED"
                             }
                         }
                     }
@@ -9842,22 +9842,22 @@ Export-ModuleMember -Function Import-vROPSUserAccount
 Function Import-vROPSUserGroup {
     <#
         .SYNOPSIS
-        Import a Group from Workspace ONE Access and assign access in vRealize Operations Manager
+        Import a Group from Workspace ONE Access and assign access in VMware Aria Operations
 
         .DESCRIPTION
-        The Import-vROPSUserGroup cmdlet imports a Group from Workspace ONE Access and assigns access in vRealize
-        Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        The Import-vROPSUserGroup cmdlet imports a Group from Workspace ONE Access and assigns access in
+        VMware Aria Operations. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that Workspace ONE Access has been configured as an authentication source
-        - Validates the user group provided can be found in vRealize Operations Manager
-        - Validated the role exists within vRealize Operations Manager
-        - Imports the group and assigns the vRealize Operations Manager role
+        - Validates the user group provided can be found in VMware Aria Operations
+        - Validated the role exists within VMware Aria Operations
+        - Imports the group and assigns the VMware Aria Operations role
 
         .EXAMPLE
         Import-vROPSUserGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -groupName gg-vrops-admins -role Administrator
-        This example imports a group into vRealize Operations Manager and assigns the role
+        This example imports a group into VMware Aria Operations and assigns the role
     #>
 
     Param (
@@ -9881,21 +9881,21 @@ Function Import-vROPSUserGroup {
                                         if (Get-vROPSAuthRole -name $role -ErrorAction SilentlyContinue) {
                                             Add-vROPSUserGroup -sourceId (Get-vROPSAuthSource | Where-Object {$_.name -eq "vIDMAuthSource"}).id -userGroup ($groupName + '@' + $domain) -role $role | Out-Null
                                             if (Get-vROPSUserGroup -name ($groupName + '@' + $domain)) {
-                                                Write-Output "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): SUCCESSFUL"
+                                                Write-Output "Importing User Group into VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): POST_VALIDATION_FAILED"
+                                                Write-Error "Importing User Group into VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Unable to locate Role in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
+                                            Write-Error "Unable to locate Role in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($role): PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Unable to locate User Group in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($groupName): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to locate User Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($groupName): PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Unable to locate Authentication Source in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to locate Authentication Source in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) type (vIDMAuthSource): PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Importing User Group into vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)), already performed: SKIPPED"
+                                Write-Warning "Importing User Group into VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($groupName + '@' + $domain)), already performed: SKIPPED"
                             }
                         }
                     }
@@ -9911,24 +9911,24 @@ Export-ModuleMember -Function Import-vROPSUserGroup
 Function Register-vROPSWorkloadDomain {
     <#
 		.SYNOPSIS
-        Connect a Workload Domain to vRealize Operations Manager
+        Connect a Workload Domain to VMware Aria Operations
 
         .DESCRIPTION
-        The Register-vROPSWorkloadDomain cmdlet connects a Workload Domain to vRealize Operations Manager. The cmdlet
+        The Register-vROPSWorkloadDomain cmdlet connects a Workload Domain to VMware Aria Operations. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates if the Workload Domain is already connected to vRealize Operations Manager
-        - Enables/Disables connecting the Workload Domain to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates if the Workload Domain is already connected to VMware Aria Operations
+        - Enables/Disables connecting the Workload Domain to VMware Aria Operations
 
         .EXAMPLE
         Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status ENABLED
-        This example ENABLES the Workload Domain in vRealize Opertations Manager
+        This example ENABLES the Workload Domain in VMware Aria Operations
 
         .EXAMPLE
         Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
-        This example DISABLES the Workload Domain in vRealize Opertations Manager
+        This example DISABLES the Workload Domain in VMware Aria Operations
     #>
 
     Param (
@@ -9944,19 +9944,19 @@ Function Register-vROPSWorkloadDomain {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
-                        if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -ne $status) { 
+                        if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -ne $status) {
                             Set-VCFvROPSConnection -domainId (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id -status $status | Out-Null
                             Start-Sleep 10
                             Do {
                                 $configStatus = (Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status
                             } Until ($configStatus -ne "IN_PROGRESS")
-                            if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) { 
-                                Write-Output "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): SUCCESSFUL"
+                            if ((Get-VCFvROPSConnection | Where-Object {$_.domainId -eq (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).id}).status -eq $status) {
+                                Write-Output "Enabling Workload Domain Intergation with VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): SUCCESSFUL"
                             } else {
-                                Write-Error "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): POST_VALIDATION_FAILED"
+                                Write-Error "Enabling Workload Domain Intergation with VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain): POST_VALIDATION_FAILED"
                             }
                         } else {
-                            Write-Warning "Enabling Workload Domain Intergation with vRealize Opertations Manager ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain), already enabled: SKIPPED"
+                            Write-Warning "Enabling Workload Domain Intergation with VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) for domain ($domain), already enabled: SKIPPED"
                         }
                     } else {
                         Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -9973,22 +9973,22 @@ Export-ModuleMember -Function Register-vROPSWorkloadDomain
 Function Add-vROPSGroupRemoteCollectors {
     <#
 		.SYNOPSIS
-        Creates a Remote Collectors Group and assigns nodes in vRealize Operations Manager
+        Creates a Remote Collectors Group and assigns nodes in VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSGroupRemoteCollectors cmdlet creates a Remote Collector Group in vRealize Operations Manager and
+        The Add-vROPSGroupRemoteCollectors cmdlet creates a Remote Collector Group in VMware Aria Operations and
         assigns the remote collector nodes. The cmdlet connects to SDDC Manager using the -server, -user, and -password
         values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Gathers the Remote Collector node details
-        - Creates a new Remote Collector Group in vRealize Operations Manager
-        - Assigns the deployed Remote Collector nodes to the Remote Collector Group in vRealize Operations Manager
+        - Creates a new Remote Collector Group in VMware Aria Operations
+        - Assigns the deployed Remote Collector nodes to the Remote Collector Group in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSGroupRemoteCollectors -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creats a Remote Collector Group called 'sfo-remote-collectors' and assigns the Remove Collector Nodes in vRealize Opertations Manager
+        This example creats a Remote Collector Group called 'sfo-remote-collectors' and assigns the Remove Collector Nodes in VMware Aria Operations
     #>
 
     Param (
@@ -10034,14 +10034,14 @@ Function Update-vROPSAdapterVcenter {
 
         .DESCRIPTION
         The Update-vROPSAdapterVcenter cmdlet updates the assigned Remote Collector Group for all vCenter Adapters in
-        vRealize Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        VMware Aria Operations. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Remote Collector Group exits in vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that the Remote Collector Group exits in VMware Aria Operations
         - Gathers the unique ID of the Remote Collector Group
-        - Gathers the vCenter Adapter details from vRelize Operations Manager
-        - Updates the assigned Remote Collector Group for the vCenter Adapter in vRelize Operations Manager
+        - Gathers the vCenter Adapter details from VMware Aria Operations
+        - Updates the assigned Remote Collector Group for the vCenter Adapter in VMware Aria Operations
 
         .EXAMPLE
         Update-vROPSAdapterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
@@ -10108,7 +10108,7 @@ Function Update-vROPSAdapterVcenter {
                                     Remove-Item .\updateAdapter.json -Force -Confirm:$false
                                 }
                             } else {
-                                Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                                Write-Error "Remote Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -10128,24 +10128,24 @@ Function Update-vROPSAdapterCollecterGroup {
 
         .DESCRIPTION
         The Update-vROPSAdapterCollecterGroup cmdlet updates the assigned Remote Collector Group for all Adapters in
-        vRealize Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        VMware Aria Operations. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates the Collector Group exits in vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates the Collector Group exits in VMware Aria Operations
         - Gathers the unique ID of the Remote Collector Group
-        - Gathers the given Adapter details from vRelize Operations Manager
-        - Updates the assigned Remote Collector Group for the Adapter in vRelize Operations Manager
-        
+        - Gathers the given Adapter details from VMware Aria Operations
+        - Updates the assigned Remote Collector Group for the Adapter in VMware Aria Operations
+
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "LogInsightAdapter"
         This example updates vRLI Adapter to use the Remote Collector Group named 'sfo-remote-collectors'
-        
+
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "VMWARE"
         This example updates all vCenter Adapters to use the Remote Collector Group named 'sfo-remote-collectors'
-        
-        .EXAMPLE    
+
+        .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors" -adaptertype "IdentityManagerAdapter" -adaptername "sfo-wsa01"
         This example updates Identity Manager Adapter with name "sfo-wsa01" to use the Remote Collector Group named 'sfo-remote-collectors'
 
@@ -10185,7 +10185,7 @@ Function Update-vROPSAdapterCollecterGroup {
                                                 $json.collectorGroupId=$collectorGroupId
                                                 #Remove collectorId as the request body can accept a collectorId or a collectorGroupId, but not both.
                                                 $json.PSObject.Properties.Remove('collectorId')
-                                                $json  | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json                                                
+                                                $json  | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json
                                                 Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
                                                 Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
                                                 Remove-Item .\updateAdapter.json -Force -Confirm:$false
@@ -10194,7 +10194,7 @@ Function Update-vROPSAdapterCollecterGroup {
                                             }
                                 }
                             } else {
-                                Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                                Write-Error "Remote Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -10210,20 +10210,20 @@ Export-ModuleMember -Function Update-vROPSAdapterCollecterGroup
 Function Add-vROPSCurrency {
     <#
 		.SYNOPSIS
-        Configures the currency in vRealize Operations Manager
+        Configures the currency in VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSCurrency cmdlet configures the currency in vRealize Operations Manager. The cmdlet connects to
+        The Add-vROPSCurrency cmdlet configures the currency in VMware Aria Operations. The cmdlet connects to
         SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates if a currency value has been configured
         - Configures the currency value based on the value provided
 
         .EXAMPLE
         Add-vROPSCurrency -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -currency USD
-        This example configures the currency to USD in vRealize Opertations Manager
+        This example configures the currency to USD in VMware Aria Operations
     #>
 
     Param (
@@ -10242,12 +10242,12 @@ Function Add-vROPSCurrency {
                             if (-not (($currentCurrency = Get-vROPSCurrency | Select-Object code)).code) {
                                 Set-vROPSCurrency -currency $currency | Out-Null
                                 if (((Get-vROPSCurrency | Select-Object code)).code -eq $currency) {
-                                    Write-Output "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): SUCCESSFUL"
+                                    Write-Output "Configuring currency in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): POST_VALIDATION_FAILED"
+                                    Write-Error "Configuring currency in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Configuring currency in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency), ($($currentCurrency.code)) already set: SKIPPED"
+                                Write-Warning "Configuring currency in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) to ($currency), ($($currentCurrency.code)) already set: SKIPPED"
                             }
                         }
                     }
@@ -10263,22 +10263,22 @@ Export-ModuleMember -Function Add-vROPSCurrency
 Function Enable-vROPSManagementPack {
     <#
 		.SYNOPSIS
-        Install a Management Pack in vRealize Operations Manager
+        Install a Management Pack in VMware Aria Operations
 
         .DESCRIPTION
-        The Enable-vROPSManagementPack cmdlet uploads and installs a management pack in vRealize Operations Manager.
+        The Enable-vROPSManagementPack cmdlet uploads and installs a management pack in VMware Aria Operations.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates the path to the Management Pack (.pak) file
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates the Management Pack does not exist in vRealize Operations Manager
-        - Uploads the Management Pack file to vRealize Operations Manager
-        - Installs the Management Pack to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates the Management Pack does not exist in VMware Aria Operations
+        - Uploads the Management Pack file to VMware Aria Operations
+        - Installs the Management Pack to VMware Aria Operations
 
         .EXAMPLE
         Enable-vROPSManagementPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -packType "SDDC Health" -pakfile .\management.pak
-        This example installs the SDDC Health Management Pack in vRealize Operations Manager
+        This example installs the SDDC Health Management Pack in VMware Aria Operations
     #>
 
     Param (
@@ -10313,15 +10313,15 @@ Function Enable-vROPSManagementPack {
                                         $status = Get-vROPSManagementPackStatus -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass -pakId $pakId
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
-                                        Write-Output "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                        Write-Output "Installing '$pakFile' Management Pack to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Installing '$pakFile' Management Pack to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Uploading '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
+                                    Write-Error "Uploading '$pakFile' Management Pack to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Installing '$pakFile' Management Pack to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
+                                Write-Warning "Installing '$pakFile' Management Pack to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                             }
                         }
                     }
@@ -10340,21 +10340,21 @@ Function Register-vROPSManagementPack {
         Enable / Disable a Management Pack
 
         .DESCRIPTION
-        The Register-vROPSManagementPack cmdlet activates or deactivates a management pack in vRealize Operations 
+        The Register-vROPSManagementPack cmdlet activates or deactivates a management pack in VMware Aria Operations
         Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates if the Management Pack is activated or deactivated in vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates if the Management Pack is activated or deactivated in VMware Aria Operations
         - Activates or deactivates the Management Pack
 
         .EXAMPLE
         Register-vROPSManagementPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -state enable -packType Ping
-        This example activates the Ping management pack in vRealize Operations Manager
+        This example activates the Ping management pack in VMware Aria Operations
 
         .EXAMPLE
         Register-vROPSManagementPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -state disable -packType Ping
-        This example deactivates the Ping management pack in vRealize Operations Manager
+        This example deactivates the Ping management pack in VMware Aria Operations
     #>
 
     Param (
@@ -10371,7 +10371,7 @@ Function Register-vROPSManagementPack {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                            # Connect to vRealize Operations Manager and extract the Management Pack Details
+                            # Connect to VMware Aria Operations and extract the Management Pack Details
                             $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $($vcfVropsDetails.adminUser), $($vcfVropsDetails.adminPass)))) # Create Basic Authentication Encoded Credentials
                             $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
                             $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
@@ -10386,12 +10386,12 @@ Function Register-vROPSManagementPack {
                                         $status = Invoke-RestMethod -Method GET -Uri $uri -Headers $vropsBasicHeaders
                                     } Until ( $status.cluster_pak_install_status -ne "CANDIDATE" )
                                     if ($status.cluster_pak_install_status -eq "COMPLETED") {
-                                        Write-Output "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                        Write-Output "Activating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Activating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Activating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
+                                    Write-Warning "Activating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                 }
                             } elseif ($state -eq "disable") {
                                 if (Get-vROPSSolution | Where-Object {$_.id -match $packType}) {
@@ -10400,12 +10400,12 @@ Function Register-vROPSManagementPack {
                                         $status = Get-vROPSManagementPackActivity -server $vcfVropsDetails.loadBalancerFqdn -username $vcfVropsDetails.adminUser -password $vcfVropsDetails.adminPass
                                     } Until ( $($status.current_pak_activity.pak_id) -ne $adapterDetails.pak_id )
                                     if (!(Get-vROPSSolution | Where-Object {$_.id -match $packType})) {
-                                        Write-Output "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                        Write-Output "Deactivating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Deactivating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Deactivating ($packType) Management Pack on vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
+                                    Write-Warning "Deactivating ($packType) Management Pack on VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                 }
                             }
                         }
@@ -10422,32 +10422,32 @@ Export-ModuleMember -Function Register-vROPSManagementPack
 Function Add-vROPSAdapterNsxt {
     <#
 		.SYNOPSIS
-        Adds an NSX Adapter to vRealize Operations Manager
+        Adds an NSX Adapter to VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSAdapterNsxt cmdlet adds an NSX Adapter for a Workload Domains NSX Manager cluster to vRealize
-        Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The Add-vROPSAdapterNsxt cmdlet adds an NSX Adapter for a Workload Domains NSX Manager cluster to
+        VMware Aria Operations. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
-        - Validates that the Remote Collector Group exits in vRealize Operations Manager
-        - Validates that the NSX Adapter and Credentials do not already exist in vRealize Operations Manager
-        - Validates that the credentials do not already exist in vRealize Operations Manager
-        - Creates a new NSX Adapter for the  Workload Domain using credentials from SDDC Manager inventory in vRealize Operations Manager
-        - Starts the collection of the NSX Adapter in vRealize Operations Manager
+        - Validates that the Remote Collector Group exits in VMware Aria Operations
+        - Validates that the NSX Adapter and Credentials do not already exist in VMware Aria Operations
+        - Validates that the credentials do not already exist in VMware Aria Operations
+        - Creates a new NSX Adapter for the  Workload Domain using credentials from SDDC Manager inventory in VMware Aria Operations
+        - Starts the collection of the NSX Adapter in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -collectorGroupName "sfo-remote-collectors"
-        This example creates an NSX Adapter for the Management Workload Domain named in vRealize Opertations Manager and assigns to the remote collector group defined
+        This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the remote collector group defined
 
         .EXAMPLE
         Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -collectorGroupName "sfo-remote-collectors"
-        This example creates an NSX Adapter for the VI Workload Domain named in vRealize Opertations Manager and assigns to the remote collector group defined
+        This example creates an NSX Adapter for the VI Workload Domain named in VMware Aria Operations and assigns to the remote collector group defined
 
         .EXAMPLE
         Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example creates an NSX Adapter for the Management Workload Domain named in vRealize Opertations Manager and assigns to the "Default collector group"
+        This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the "Default collector group"
     #>
 
     Param (
@@ -10508,22 +10508,22 @@ Function Add-vROPSAdapterNsxt {
                                         Set-vROPSAdapter -json .\patchAdapter.json -patch | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vcfNsxDetails.fqdn}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vcfNsxDetails.fqdn}).id | Out-Null
-                                            Write-Output "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
+                                            Write-Output "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                         Remove-Item .\createdAdapter.json -Force -Confirm:$false
-                                        Remove-Item .\patchAdapter.json -Force -Confirm:$false 
+                                        Remove-Item .\patchAdapter.json -Force -Confirm:$false
                                     } else {
-                                        Write-Warning "Adding NSX Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)), already exists: SKIPPED"
-                                    }      
+                                        Write-Warning "Adding NSX Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vcfNsxDetails.fqdn)), already exists: SKIPPED"
+                                    }
                                 } else {
-                                    Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                                    Write-Error "Remote Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
                                 }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                            }   
+                            }
                         }
                     }
                 }
@@ -10538,17 +10538,17 @@ Export-ModuleMember -Function Add-vROPSAdapterNsxt
 Function Add-vROPSAdapterPing {
     <#
 		.SYNOPSIS
-        Adds a Ping Adapter to vRealize Operations Manager
+        Adds a Ping Adapter to VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSAdapterPing cmdlet adds a Ping adapter to vRealize Operations Manager. The cmdlet connects to SDDC
+        The Add-vROPSAdapterPing cmdlet adds a Ping adapter to VMware Aria Operations. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Remote Collector Group exits in vRealize Operations Manager
-        - Validates that the Ping Adapter does not already exist in vRealize Operations Manager
-        - Creates a new Ping adapter in vRealize Operations Manager 
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that the Remote Collector Group exits in VMware Aria Operations
+        - Validates that the Ping Adapter does not already exist in VMware Aria Operations
+        - Creates a new Ping adapter in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapterPing -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -addressList "192.168.11.30,192.168.11.31,192.168.11.32,192.168.11.33" -adapterName xint-vrops01 -collectorGroupName "sfo-remote-collectors"
@@ -10586,39 +10586,39 @@ Function Add-vROPSAdapterPing {
                                                 "resourceIdentifiers": [
                                                     {
                                                         "name": "unique_name",
-                                                        "value": "'+ $adapterName +'"  
+                                                        "value": "'+ $adapterName +'"
                                                     },
                                                     {
                                                         "name": "address_list",
-                                                        "value": "'+ $addressList +'"  
+                                                        "value": "'+ $addressList +'"
                                                     },
                                                     {
                                                         "name": "batch_circle_interval",
-                                                        "value": "0"  
+                                                        "value": "0"
                                                     },
                                                     {
                                                         "name": "count",
-                                                        "value": "20"  
+                                                        "value": "20"
                                                     },
                                                     {
                                                         "name": "dns_resolving_interval",
-                                                        "value": "30"  
+                                                        "value": "30"
                                                     },
                                                     {
                                                         "name": "dont_fragment",
-                                                        "value": "false"  
+                                                        "value": "false"
                                                     },
                                                     {
                                                         "name": "generate_fqdn_children",
-                                                        "value": "false"  
+                                                        "value": "false"
                                                     },
                                                     {
                                                         "name": "packet_size",
-                                                        "value": "56"  
+                                                        "value": "56"
                                                     },
                                                     {
                                                         "name": "period",
-                                                        "value": "2000"  
+                                                        "value": "2000"
                                                     }
                                                 ]
                                         }'
@@ -10626,20 +10626,20 @@ Function Add-vROPSAdapterPing {
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
-                                            Write-Output "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
+                                            Write-Output "Adding Ping Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
+                                            Write-Error "Adding Ping Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                     } else {
-                                        Write-Warning "Adding Ping Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
+                                        Write-Warning "Adding Ping Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
                                     }
                                 } else {
-                                    Write-Error "The Ping Management Pack in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
+                                    Write-Error "The Ping Management Pack in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
-                            }   
+                                Write-Error "Remote Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                            }
                         }
                     }
                 }
@@ -10654,22 +10654,22 @@ Export-ModuleMember -Function Add-vROPSAdapterPing
 Function Update-vROPSAdapterSddcHealth {
     <#
 		.SYNOPSIS
-        Updates the SDDC Health Adapters names in vRealize Operations Manager
+        Updates the SDDC Health Adapters names in VMware Aria Operations
 
         .DESCRIPTION
-        The Update-vROPSAdapterSddcHealth cmdlet updates the names of the SDDC Health Adapters in vRealize Operations
+        The Update-vROPSAdapterSddcHealth cmdlet updates the names of the SDDC Health Adapters in VMware Aria Operations
         Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that SDDC Health Adapters exits in vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that SDDC Health Adapters exits in VMware Aria Operations
         - Gathers the unique ID of the Remote Collectors
         - Gathers the details of the SDDC Health Adapters
         - Updates the name of the SDDC Health Adapters
 
         .EXAMPLE
         Update-vROPSAdapterSddcHealth -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example updates all the name of all SDDC Health Adapters 
+        This example updates all the name of all SDDC Health Adapters
     #>
 
     Param (
@@ -10687,7 +10687,7 @@ Function Update-vROPSAdapterSddcHealth {
                             if ($adapters = Get-vROPSAdapter | Where-Object {$_.resourceKey.adapterKindKey -eq "SDDCHealthAdapter"}) {
                                 Foreach ($adapter in $adapters) {
                                     $collectorDetails = Get-vROPSCollector | Where-Object {$_.id -eq $adapter.collectorId}
-                                    $adapterName = (($adapter.resourceKey.name).Split("-"))[0] + "-" + ($collectorDetails.name -Split ("vRealize Operations Manager Collector-"))
+                                    $adapterName = (($adapter.resourceKey.name).Split("-"))[0] + "-" + ($collectorDetails.name -Split ("VMware Aria Operations Collector-"))
                                     if ($vropsVersion -lt "8.6.2") {
                                         $json = '{
                                             "resourceKey":  {
@@ -10695,7 +10695,7 @@ Function Update-vROPSAdapterSddcHealth {
                                                                 "adapterKindKey":  "SDDCHealthAdapter",
                                                                 "resourceKindKey":  "SDDCHealth Instance"
                                                             },
-                                            "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("VMware Aria Operations Collector-")) +'",
                                             "collectorId":  '+ $($collectorDetails.id) +',
                                             "monitoringInterval":  5,
                                             "id":  "'+ $($adapter.id) +'"
@@ -10704,7 +10704,7 @@ Function Update-vROPSAdapterSddcHealth {
                                         $json = '{
                                             "name":  "'+ $adapterName +'",
                                             "adapterKindKey":  "SDDCHealthAdapter",
-                                            "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "description":  "SDDC Health Adapter for'+ ($collectorDetails.name -Split ("VMware Aria Operations Collector-")) +'",
                                             "collectorId":  '+ $($collectorDetails.id) +',
                                             "monitoringInterval":  5,
                                             "id":  "'+ $($adapter.id) +'"
@@ -10720,7 +10720,7 @@ Function Update-vROPSAdapterSddcHealth {
                                     }
                                 }
                             } else {
-                                Write-Error "Unable to locate Adapters of type (SDDCHealthAdapter) in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to locate Adapters of type (SDDCHealthAdapter) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -10739,18 +10739,18 @@ Function Add-vROPSAdapterSddcHealth {
         Adds an SDDC Health Adapters for Remote Collectors
 
         .DESCRIPTION
-        The Add-vROPSAdapterSddcHealth cmdlet adds SDDC Health Adapters for the Remove Collectors in vRealize
-        Operations Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        The Add-vROPSAdapterSddcHealth cmdlet adds SDDC Health Adapters for the Remove Collectors in
+        VMware Aria Operations. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that SDDC Health Adapters do not exist in vRealize Operations Manager
-        - Gathers the Remote Collector details from vRealize Operations Manager
-        - Creates a new SDDC Health Adapter for each Remote Collector in vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that SDDC Health Adapters do not exist in VMware Aria Operations
+        - Gathers the Remote Collector details from VMware Aria Operations
+        - Creates a new SDDC Health Adapter for each Remote Collector in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapterSddcHealth -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example creates an SDDC Health Adapter for each Remote Collector Node found in vRealize Operations Manager
+        This example creates an SDDC Health Adapter for each Remote Collector Node found in VMware Aria Operations
     #>
 
     Param (
@@ -10790,22 +10790,22 @@ Function Add-vROPSAdapterSddcHealth {
                                         }'
                                     }
                                     $json | Out-File .\addAdapter.json
-                                    if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName})) {                   
+                                    if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName})) {
                                         Add-vROPSAdapter -json .\addAdapter.json | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
-                                            Write-Output "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                            Write-Output "Adding Adapter ($adapterName) to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Adding Adapter ($adapterName) to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "Adding Adapter ($adapterName) to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already performed: SKIPPED"
+                                        Write-Warning "Adding Adapter ($adapterName) to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already performed: SKIPPED"
                                     }
                                     Remove-Item .\addAdapter.json -Force -Confirm:$false
                                 }
                             } else {
-                                Write-Error "Unable to locate Remote Collectors in vealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
-                            } 
+                                Write-Error "Unable to locate Remote Collectors in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
+                            }
                         }
                     }
                 }
@@ -10820,17 +10820,17 @@ Export-ModuleMember -Function Add-vROPSAdapterSddcHealth
 Function Add-vROPSAdapterIdentityManager {
     <#
 		.SYNOPSIS
-        Adds an Identity Manager adapter to vRealize Operations Manager
+        Adds an Identity Manager adapter to VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSAdapterIdentityManager cmdlet adds a Identity Manager adapter to vRealize Operations Manager. The
+        The Add-vROPSAdapterIdentityManager cmdlet adds a Identity Manager adapter to VMware Aria Operations. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Collector Group exits in vRealize Operations Manager
-        - Validates that the Identity Manager adapter does not already exist in vRealize Operations Manager
-        - Creates a new Identity Manager adapter in vRealize Operations Manager 
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that the Collector Group exits in VMware Aria Operations
+        - Validates that the Identity Manager adapter does not already exist in VMware Aria Operations
+        - Creates a new Identity Manager adapter in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapterIdentityManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1! -collectorGroupName "sfo-remote-collectors"
@@ -10906,21 +10906,21 @@ Function Add-vROPSAdapterIdentityManager {
                                         Set-vROPSAdapter -json .\patchAdapter.json -patch | Out-Null
                                         if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq "IdentityManagerAdapter"}) {
                                             Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName}).id | Out-Null
-                                            Write-Output "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
+                                            Write-Output "Adding Identity Manager Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
+                                            Write-Error "Adding Identity Manager Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName)): POST_VALDATION_FAILED"
                                         }
                                         Remove-Item .\addAdapter.json -Force -Confirm:$false
                                         Remove-Item .\patchAdapter.json -Force -Confirm:$false
                                     } else {
-                                        Write-Warning "Adding Identity Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
+                                        Write-Warning "Adding Identity Manager Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), already exists: SKIPPED"
                                     }
                                 } else {
-                                    Write-Error "The Identity Manager Management Pack in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
+                                    Write-Error "The Identity Manager Management Pack in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), not activated: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
-                            }   
+                                Write-Error "Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                            }
                         }
                     }
                 }
@@ -10935,23 +10935,23 @@ Export-ModuleMember -Function Add-vROPSAdapterIdentityManager
 Function Add-vROPSAdapterSrm {
     <#
 		.SYNOPSIS
-        Adds a Site Recovery Manager Adapter to vRealize Operations Manager
+        Adds a Site Recovery Manager Adapter to VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSAdapterSrm cmdlet adds an Site Recovery Manager Adapter to vRealize Operations Manager. The cmdlet
+        The Add-vROPSAdapterSrm cmdlet adds an Site Recovery Manager Adapter to VMware Aria Operations. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
-        - Validates that the Remote Collector Group exits in vRealize Operations Manager
-        - Validates that the Adapter and Credentials do not already exist in vRealize Operations Manager
-        - Creates a new Site Recovery Manager Adapter in vRealize Operations Manager
-        - Starts the collection of the Site Recovery Manager Adapter in vRealize Operations Manager
+        - Validates that the Remote Collector Group exits in VMware Aria Operations
+        - Validates that the Adapter and Credentials do not already exist in VMware Aria Operations
+        - Creates a new Site Recovery Manager Adapter in VMware Aria Operations
+        - Starts the collection of the Site Recovery Manager Adapter in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapterSrm -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -srmFqdn sfo-m01-srm01.sfo.rainpole.io -srmUser vrops-srm -srmPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creates a Site Recovery Manager Adapter in vRealize Opertations Manager and assigns to the remote collector group defined
+        This example creates a Site Recovery Manager Adapter in VMware Aria Operations and assigns to the remote collector group defined
     #>
 
     Param (
@@ -11015,18 +11015,18 @@ Function Add-vROPSAdapterSrm {
                                     Set-vROPSAdapter -json .\patchAdapter.json -patch | Out-Null
                                     if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $srmFqdn}) {
                                         Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $srmFqdn}).id | Out-Null
-                                        Write-Output "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): SUCCESSFUL"
+                                        Write-Output "Adding Site Recovery Manager Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Adding Site Recovery Manager Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)): POST_VALIDATION_FAILED"
                                     }
                                     Remove-Item .\addAdapter.json -Force -Confirm:$false
-                                    Remove-Item .\patchAdapter.json -Force -Confirm:$false 
+                                    Remove-Item .\patchAdapter.json -Force -Confirm:$false
                                 } else {
-                                    Write-Warning "Adding Site Recovery Manager Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)), already exists: SKIPPED"
-                                }      
+                                    Write-Warning "Adding Site Recovery Manager Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($srmFqdn)), already exists: SKIPPED"
+                                }
                             } else {
-                                Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
-                            }  
+                                Write-Error "Remote Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                            }
                         }
                     }
                 }
@@ -11041,23 +11041,23 @@ Export-ModuleMember -Function Add-vROPSAdapterSrm
 Function Add-vROPSAdapterVr {
     <#
 		.SYNOPSIS
-        Adds a vSphere Replication Adapter to vRealize Operations Manager
+        Adds a vSphere Replication Adapter to VMware Aria Operations
 
         .DESCRIPTION
-        The Add-vROPSAdapterVr cmdlet adds an vSphere Replication Adapter to vRealize Operations Manager. The cmdlet
+        The Add-vROPSAdapterVr cmdlet adds an vSphere Replication Adapter to VMware Aria Operations. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Workload Domain is valid and then obtains the NSX Manager cluster details
-        - Validates that the Remote Collector Group exits in vRealize Operations Manager
-        - Validates that the Adapter and Credentials do not already exist in vRealize Operations Manager
-        - Creates a new vSphere Replication Adapter in vRealize Operations Manager
-        - Starts the collection of the vSphere Replication Adapter in vRealize Operations Manager
+        - Validates that the Remote Collector Group exits in VMware Aria Operations
+        - Validates that the Adapter and Credentials do not already exist in VMware Aria Operations
+        - Creates a new vSphere Replication Adapter in VMware Aria Operations
+        - Starts the collection of the vSphere Replication Adapter in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapterVr -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vrFqdn sfo-m01-vrms01.sfo.rainpole.io -vrUser vrops-vr@vsphere.local -vrPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creates a vSphere Replication Adapter in vRealize Opertations Manager and assigns to the remote collector group defined
+        This example creates a vSphere Replication Adapter in VMware Aria Operations and assigns to the remote collector group defined
     #>
 
     Param (
@@ -11120,18 +11120,18 @@ Function Add-vROPSAdapterVr {
                                     Set-vROPSAdapter -json .\patchAdapter.json -patch | Out-Null
                                     if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vrFqdn}) {
                                         Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $vrFqdn}).id | Out-Null
-                                        Write-Output "Adding vSphere Replication Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)): SUCCESSFUL"
+                                        Write-Output "Adding vSphere Replication Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Adding vSphere Replication Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)): POST_VALIDATION_FAILED"
+                                        Write-Error "Adding vSphere Replication Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)): POST_VALIDATION_FAILED"
                                     }
                                     Remove-Item .\addAdapter.json -Force -Confirm:$false
-                                    Remove-Item .\patchAdapter.json -Force -Confirm:$false 
+                                    Remove-Item .\patchAdapter.json -Force -Confirm:$false
                                 } else {
-                                    Write-Warning "Adding vSphere Replication Adapter in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)), already exists: SKIPPED"
-                                }      
+                                    Write-Warning "Adding vSphere Replication Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($vrFqdn)), already exists: SKIPPED"
+                                }
                             } else {
-                                Write-Error "Remote Collector Group in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
-                            }  
+                                Write-Error "Remote Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                            }
                         }
                     }
                 }
@@ -11146,16 +11146,16 @@ Export-ModuleMember -Function Add-vROPSAdapterVr
 Function Undo-vROPSAdapter {
     <#
 		.SYNOPSIS
-        Removes an adapter from vRealize Operations Manager
+        Removes an adapter from VMware Aria Operations
 
         .DESCRIPTION
-        The Undo-vROPSAdapter cmdlet adds a Identity Manager adapter to vRealize Operations Manager. The
+        The Undo-vROPSAdapter cmdlet adds a Identity Manager adapter to VMware Aria Operations. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Adapter is present
-        - Deletes the adapter from vRealize Operations Manager 
+        - Deletes the adapter from VMware Aria Operations
 
         .EXAMPLE
         Undo-vROPSAdapter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -adapterName sfo-wsa01.sfo.rainpole.io -adapterType IdentityManagerAdapter
@@ -11183,13 +11183,13 @@ Function Undo-vROPSAdapter {
                                     Start-Sleep 2
                                 } While (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq $adapterType})
                                 if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $adapterName -and $_.resourceKey.adapterKindKey -eq $adapterType})) {
-                                    Write-Output "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
+                                    Write-Output "Removing adapter of type ($adapterType) from VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing adapter of type ($adapterType) from VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Removing adapter of type ($adapterType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), does not exist: SKIPPED"
-                            }   
+                                Write-Warning "Removing adapter of type ($adapterType) from VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($adapterName), does not exist: SKIPPED"
+                            }
                         }
                     }
                 }
@@ -11204,16 +11204,16 @@ Export-ModuleMember -Function Undo-vROPSAdapter
 Function Undo-vROPSCredential {
     <#
 		.SYNOPSIS
-        Removes a credential from vRealize Operations Manager
+        Removes a credential from VMware Aria Operations
 
         .DESCRIPTION
-        The Undo-vROPSCredential cmdlet removes a credential from vRealize Operations Manager. The cmdlet connects to
+        The Undo-vROPSCredential cmdlet removes a credential from VMware Aria Operations. The cmdlet connects to
         SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the Credential is present
-        - Deletes the credential from vRealize Operations Manager 
+        - Deletes the credential from VMware Aria Operations
 
         .EXAMPLE
         Undo-vROPSCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credentialName sfo-wsa01.sfo.rainpole.io -credentialType IdentityManagerAdapter
@@ -11238,16 +11238,16 @@ Function Undo-vROPSCredential {
                                 if (!(Get-vROPSCredential -credentialId (Get-vROPSCredential -adapter | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType}).id -adapter)) {
                                     Remove-vROPSCredential -credentialId (Get-vROPSCredential | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType}).Id | Out-Null
                                     if (!(Get-vROPSCredential | Where-Object {$_.name -eq $credentialName -and $_.adapterKindKey -eq $credentialType})) {
-                                        Write-Output "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
+                                        Write-Output "Removing credential of type ($credentialType) from VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
+                                        Write-Error "Removing credential of type ($credentialType) from VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
                                     Write-Error "Credential of type ($credentialType) named ($credentialName) still assigned to an adapter: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Removing credential of type ($credentialType) from vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), does not exist: SKIPPED"
-                            }   
+                                Write-Warning "Removing credential of type ($credentialType) from VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), does not exist: SKIPPED"
+                            }
                         }
                     }
                 }
@@ -11265,21 +11265,21 @@ Function Add-vROPSAlertPluginEmail {
         Adds an Email based Alert Plugin
 
         .DESCRIPTION
-        The Add-vROPSAlertPluginEmail cmdlet adds an Email based Alert Plugin in vRealize Operations Manager. The
+        The Add-vROPSAlertPluginEmail cmdlet adds an Email based Alert Plugin in VMware Aria Operations. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that the Email Alert Plugin does not exist in vRealize Operations Manager
-        - Creates a new Email Alert Plugin and enables it in vRealize Operations Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that the Email Alert Plugin does not exist in VMware Aria Operations
+        - Creates a new Email Alert Plugin and enables it in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAlertPluginEmail -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -pluginName "Email-Alert-Plugin" -smtpServer smtp.rainpole.io -smtpPort 25 -senderAddress "vrops-alerts@rainpole.io" -secureConnection true -protocol TLS -authentication false
-        This example creates and enables an Email Alert Plugin in vRealize Operations Manager without authentication
+        This example creates and enables an Email Alert Plugin in VMware Aria Operations without authentication
 
         .EXAMPLE
         Add-vROPSAlertPluginEmail -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -pluginName "Email-Alert-Plugin" -smtpServer smtp.rainpole.io -smtpPort 25 -senderAddress "vrops-alerts@rainpole.io" -secureConnection true -protocol TLS -authentication true -authUser administrator -authPass VMw@re1!
-        This example creates and enables an Email Alert Plugin in vRealize Operations Manager with authentication
+        This example creates and enables an Email Alert Plugin in VMware Aria Operations with authentication
     #>
 
     Param (
@@ -11368,13 +11368,13 @@ Function Add-vROPSAlertPluginEmail {
                                 Add-vROPSAlertPlugin -json .\addAlertPlugin.json | Out-Null
                                 if (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $pluginName}) {
                                     Set-vROPSAlertPluginStatus -pluginId (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $pluginName}).pluginId -status true
-                                    Write-Output "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): SUCCESSFUL"
+                                    Write-Output "Adding Alert Plugin to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): POST_VALIDATION_FAILED"
+                                    Write-Error "Adding Alert Plugin to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName): POST_VALIDATION_FAILED"
                                 }
                                 Remove-Item .\addAlertPlugin.json -Force -Confirm:$false
                             } else {
-                                Write-Warning "Adding Alert Plugin to vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName), already exists: SKIPPED"
+                                Write-Warning "Adding Alert Plugin to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($pluginName), already exists: SKIPPED"
                             }
                         }
                     }
@@ -11390,20 +11390,20 @@ Export-ModuleMember -Function Add-vROPSAlertPluginEmail
 Function Import-vROPSNotification {
     <#
 		.SYNOPSIS
-        Adds notifications to vRealize Operations
+        Adds notifications to VMware Aria Operations
 
         .DESCRIPTION
-        The Import-vROPSNotification cmdlet adds notifications in vRealize Operations. The cmdlet connects to SDDC
+        The Import-vROPSNotification cmdlet adds notifications in VMware Aria Operations. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
         - Validates that the .csv provided exists
-        - Adds notifications based on a .csv file into vRealize Operations Manager
+        - Adds notifications based on a .csv file into VMware Aria Operations
 
         .EXAMPLE
-        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\vrops-vcf-notifications.csv
-        This example adds notifications based on the comma seperated value file provided to vRealize Operations
+        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\operations-vcf-notifications.csv
+        This example adds notifications based on the comma seperated value file provided to VMware Aria Operations
     #>
 
     Param (
@@ -11431,7 +11431,7 @@ Function Import-vROPSNotification {
                             if ( $ErrorMsg ) {
                                 Write-Error "$ErrorMsg"
                             } else {
-                                Write-Output "Adding Notifications to vRealize Operations ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Separated Value File ($csvPath): SUCCESSFUL"
+                                Write-Output "Adding Notifications to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) using Comma Separated Value File ($csvPath): SUCCESSFUL"
                             }
                         }
                     }
@@ -11447,22 +11447,22 @@ Export-ModuleMember -Function Import-vROPSNotification
 Function Test-vROPsAdapterStatusByType {
     <#
 		.SYNOPSIS
-        Validates the integration status of vRealize Operations Adapters.
+        Validates the integration status of VMware Aria Operations Adapters.
 
         .DESCRIPTION
-        The Test-vROPsAdapterStatusByType cmdlet tests the integration status between vRealize Operations Manager and configured adapter.
+        The Test-vROPsAdapterStatusByType cmdlet tests the integration status between VMware Aria Operations and configured adapter.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates the integration status between vRealize Operations Manager and configured adapter     
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates the integration status between VMware Aria Operations and configured adapter
 
         .EXAMPLE
         Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind NSXTAdapter
-        This example validates the integration status between vRealize Operations Manager and the NSX adapter.
+        This example validates the integration status between VMware Aria Operations and the NSX adapter.
 
         .EXAMPLE
         Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind CASAdapter
-        This example validates the integration status between vRealize Operations Manager and vRealize Automation adapter.
+        This example validates the integration status between VMware Aria Operations and VMware Aria Automation adapter.
     #>
 
     Param (
@@ -11476,21 +11476,21 @@ Function Test-vROPsAdapterStatusByType {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {   
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                            if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {  
-                                if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {  
-                                    $adapterJson = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind } 
+                            if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {
+                                if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {
+                                    $adapterJson = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind }
                                     $adapterJson | ForEach-Object {
                                         Test-vROPSAdapterStatus -resourceId $_.id
                                     }
                                 } else {
-                                    Write-Error "'$($adapterKind)' Adapter is not configured" 
+                                    Write-Error "'$($adapterKind)' Adapter is not configured"
                                 }
-                            } else { 
-                                Write-Error "Unable to find '$($adapterKind)' Adapter" 
+                            } else {
+                                Write-Error "Unable to find '$($adapterKind)' Adapter"
                             }
-                        }                                          
+                        }
                     }
                 }
             }
@@ -11504,24 +11504,24 @@ Export-ModuleMember -Function Test-vROPsAdapterStatusByType
 Function Update-vROPSvRAAdapterCredential {
     <#
 		.SYNOPSIS
-        Update the credential of vRealize Automation adapter in vRealize Operations Manager
+        Update the credential of VMware Aria Automation adapter in VMware Aria Operations
 
         .DESCRIPTION
-        The Update-vROPSvRAAdapterCredential cmdlet update the credential of vRealize Automation adapter in vRealize Operations Manager. The
+        The Update-vROPSvRAAdapterCredential cmdlet update the credential of VMware Aria Automation adapter in VMware Aria Operations. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Operations Manager has been deployed in VMware Cloud Foundation aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
-        - Validates that network connectivity is possible to vRealize Automation
-        - Validates that the vRealize Automation adapter exists and configured in vRealize Operations Manager
-        - Validates that the credential name of vRealize Automation adapter does not already exist in vRealize Operations Manager
-        - Validates that the given credential is valid and updates vRealize Automation adapter in vRealize Operations Manager 
-        - Verifies the vRealize Automation adapter status in vRealize Operations Manager after updating the credential
+        - Validates that VMware Aria Operations has been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Validates that network connectivity is possible to VMware Aria Automation
+        - Validates that the VMware Aria Automation adapter exists and configured in VMware Aria Operations
+        - Validates that the credential name of VMware Aria Automation adapter does not already exist in VMware Aria Operations
+        - Validates that the given credential is valid and updates VMware Aria Automation adapter in VMware Aria Operations
+        - Verifies the VMware Aria Automation adapter status in VMware Aria Operations after updating the credential
 
         .EXAMPLE
-        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "vRealize Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! -adapterKind CASAdapter
-        This example update the credential of vRealize Automation adapter with name "vRealize Automation Credentials" in vRealize Operations Manager
+        Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "VMware Aria Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! -adapterKind CASAdapter
+        This example update the credential of VMware Aria Automation adapter with name "VMware Aria Automation Credentials" in VMware Aria Operations
     #>
 
     Param (
@@ -11538,17 +11538,17 @@ Function Update-vROPSvRAAdapterCredential {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {   
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
-                                if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {  
+                                if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                                     if (Get-vROPSSolution | Where-Object { $_.adapterKindKeys -eq $adapterKind }) {
                                         if ((Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind })) {
                                             if (!(Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) {
                                                 $credentialJson = ' {
                                                                         "name" : "'+ $credential_displayname + '",
                                                                         "adapterKindKey" : "'+ $adapterKind + '",
-                                                                        "credentialKindKey" : "CMPCREDENTIALS",                                                                    
+                                                                        "credentialKindKey" : "CMPCREDENTIALS",
                                                                             "fields" : [ {
                                                                                 "name" : "USERNAME",
                                                                                 "value" : "'+ $credential_username + '"
@@ -11560,9 +11560,9 @@ Function Update-vROPSvRAAdapterCredential {
                                                 $credentialJson | Out-File .\addCredential.json
                                                 Add-vROPSCredential -json .\addCredential.json | Out-Null
                                                 Remove-Item .\addCredential.json -Force -Confirm:$false
-                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) { 
-                                                    Write-Output "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
-                                                    $vraAdapterObj = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind } 
+                                                if ((Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname })) {
+                                                    Write-Output "Adding VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                    $vraAdapterObj = Get-vROPSAdapter | Where-Object { $_.resourceKey.adapterKindKey -eq $adapterKind }
                                                     $vraAdapterId = $vraAdapterObj.id
                                                     $adapterName = $vraAdapterObj.resourceKey.name
                                                     $credid = (Get-vROPSCredential | Where-Object { $_.name -eq $credential_displayname }).id
@@ -11577,25 +11577,25 @@ Function Update-vROPSvRAAdapterCredential {
                                                     $vraAdapterObj | Add-Member -NotePropertyName adapter-certificates -NotePropertyValue ([Array]$certificates)
                                                     $vraAdapterObj | ConvertTo-Json -Depth 4 | Out-File .\vraadapter.json
                                                     $testresponse = Test-vROPSAdapterConnection -json .\vraadapter.json -patch
-                                                    if ($testresponse.Count) { 
-                                                        Write-Output "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                    if ($testresponse.Count) {
+                                                        Write-Output "Validating VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                                         Set-vROPSAdapter -json .\vraadapter.json | Out-Null
-                                                        Write-Output "Updating vRealize Automation adapter named ($adapterName) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                        Write-Output "Updating VMware Aria Automation adapter named ($adapterName) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                                         Start-vROPSAdapter -adapterId $vraAdapterId | Out-Null
                                                         Start-Sleep 5
-                                                        Write-Output "Verifying vRealize Automation adapter status... $(Test-vROPsAdapterStatus -resourceId $vraAdapterId)"
+                                                        Write-Output "Verifying VMware Aria Automation adapter status... $(Test-vROPsAdapterStatus -resourceId $vraAdapterId)"
                                                     } else {
-                                                        Write-Error "Validating vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
+                                                        Write-Error "Validating VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
                                                         Remove-vROPSCredential -credentialId $credid
-                                                        Write-Output "Removing vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"    
+                                                        Write-Output "Removing VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): SUCCESSFUL"
                                                     }
-                                                    Remove-Item .\vraadapter.json -Force -Confirm:$false 
+                                                    Remove-Item .\vraadapter.json -Force -Confirm:$false
                                                 } else {
-                                                    Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
+                                                    Write-Error "Adding VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)): POST_VALDATION_FAILED"
                                                     Break
                                                 }
                                             } else {
-                                                Write-Error "Adding vRealize Automation credential named ($credential_displayname) in vRealize Operations Manager ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
+                                                Write-Error "Adding VMware Aria Automation credential named ($credential_displayname) in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)), already exists: SKIPPED"
                                                 Break
                                             }
                                         } else {
@@ -11626,23 +11626,23 @@ Export-ModuleMember -Function Update-vROPSvRAAdapterCredential
 Function Export-vRAJsonSpec {
     <#
         .SYNOPSIS
-        Create vRealize Automation Deployment JSON specification
+        Create VMware Aria Automation Deployment JSON specification
 
         .DESCRIPTION
         The Export-vRAJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy vRealize Automation using vRealize Suite Lifecycle Manager:
+        to deploy VMware Aria Automation using VMware Aria Suite Lifecycle:
         - Validates that the Planning and Preparation is available
-        - Validates that network connectivity is available to vRealize Suite Lifecycle Manager
-        - Makes a connection to the vRealize Suite Lifecycle Manager instance and validates that authentication possible
-        - Generates the JSON specification file using the Planning and Preparation workbook and details from vRealize Suite Lifecycle Manager
+        - Validates that network connectivity is available to VMware Aria Suite Lifecycle
+        - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
+        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON deployment specification of vRealize Automation using the Planning and Preparation Workbook
+        This example creates a JSON deployment specification of VMware Aria Automation using the Planning and Preparation Workbook
 
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example creates a JSON deployment specification of vRealize Automation using a custom version and the Planning and Preparation Workbook
+        This example creates a JSON deployment specification of VMware Aria Automation using a custom version and the Planning and Preparation Workbook
     #>
 
     Param (
@@ -11666,7 +11666,7 @@ Function Export-vRAJsonSpec {
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
-        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -11680,7 +11680,7 @@ Function Export-vRAJsonSpec {
                                 $licenseKey = $pnpWorkbook.Workbook.Names["vrs_license"].Value
                             }
                             $vraLicense = Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $licenseKey}
-                            if ($vraLicense.key -eq $licenseKey) { 
+                            if ($vraLicense.key -eq $licenseKey) {
                                 $vraCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value}
                                 if ($vraCertificate.alias) {
                                     $defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value
@@ -11746,7 +11746,7 @@ Function Export-vRAJsonSpec {
                                                     'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
 
-                                                #### Generate vRealize Automation Cluster Details
+                                                #### Generate VMware Aria Automation Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
@@ -11761,7 +11761,7 @@ Function Export-vRAJsonSpec {
                                                 'clusterVips'	= $clusterVipsObject
                                                 }
 
-                                                #### Generate vRealize Automation Node Details
+                                                #### Generate VMware Aria Automation Node Details
                                                 $vraPrimaryProperties = @()
                                                 $vraPrimaryProperties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value
@@ -11794,7 +11794,7 @@ Function Export-vRAJsonSpec {
                                                     'properties'	= ($vraSecondary2Properties | Select-Object -Skip 0)
                                                 }
 
-                                                #### Generate the vRealize Automation Properties Section
+                                                #### Generate the VMware Aria Automation Properties Section
                                                 if (!$PsBoundParameters.ContainsKey("customVersion")) {
                                                     if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1" }
                                                     if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0" }
@@ -11813,14 +11813,14 @@ Function Export-vRAJsonSpec {
                                                     'version'		= $vraVersion
                                                     'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'			= $nodesObject	
+                                                    'nodes'			= $nodesObject
                                                 }
-                                                if (!($xintEnvironment)) { 
+                                                if (!($xintEnvironment)) {
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
                                                         'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'products'              = $productsObject
                                                     }
                                                 } else {
                                                     $vraDeploymentObject = @()
@@ -11828,7 +11828,7 @@ Function Export-vRAJsonSpec {
                                                         'environmentId'         = $xintEnvironment.environmentId
                                                         'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
                                                         'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'products'              = $productsObject
                                                     }
                                                 }
                                                 $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
@@ -11837,16 +11837,16 @@ Function Export-vRAJsonSpec {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
                                             }
                                         } else {
-                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                         }
                                     } else {
-                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                     }
                                 } else {
-                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                                 }
                             } else {
-                                Write-Error "License with alias '$licenseKey' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
+                                Write-Error "License with alias '$licenseKey' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
                             }
                         }
                     }
@@ -11863,22 +11863,22 @@ Export-ModuleMember -Function Export-vRAJsonSpec
 Function New-vRADeployment {
     <#
         .SYNOPSIS
-        Deploy vRealize Automation to vRealize Suite Lifecycle Manager
+        Deploy VMware Aria Automation to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRADeployment cmdlet deploys vRealize Automation via vRealize Suite Lifecycle Manager. The cmdlet
+        The New-vRADeployment cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has not been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Requests a new deployment of vRealize Automation
+        - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Requests a new deployment of VMware Aria Automation
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of vRealize Automation using the Planning and Preparation Workbook
+        This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example starts a deployment of vRealize Automation using a custom version and the Planning and Preparation Workbook
+        This example starts a deployment of VMware Aria Automation using a custom version and the Planning and Preparation Workbook
     #>
 
     Param (
@@ -11930,23 +11930,23 @@ Function New-vRADeployment {
                                                     Write-Output "Deployment Request for vRealize Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
-                                                Write-Error "Request to deploy vRealize Automation failed, check the vRealize Suite Lifecycle Manager UI"
+                                                Write-Error "Request to deploy VMware Aria Automation failed, check the VMware Aria Suite Lifecycle UI"
                                             }
                                         } else {
-                                            Write-Error "License in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
+                                            Write-Error "License in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: FAILED"
                                         }
                                     } else {
-                                        Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
+                                        Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
                                     }
                                 } else {
-                                    Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
+                                    Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: FAILED"
                                 }
                             } else {
-                                Write-Warning "vRealize Automation in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                Write-Warning "VMware Aria Automation in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -11961,11 +11961,11 @@ Function Update-vRAOrganizationDisplayName {
         Configures the organization name
 
         .DESCRIPTION
-        The Update-vRAOrganizationDisplayName cmdlet configures the organization display name in vRealize Automation. The
+        The Update-vRAOrganizationDisplayName cmdlet configures the organization display name in VMware Aria Automation. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Verifies if the organization name is already configured based on the input
         - Configures the organization name
 
@@ -11993,12 +11993,12 @@ Function Update-vRAOrganizationDisplayName {
                             if (!((Get-vRAOrganizationDisplayName -orgId $orgId).displayname -eq $displayName)) {
                                 Set-vRAOrganizationDisplayName -orgId $orgId -displayName $displayName | Out-Null
                                 if ((Get-vRAOrganizationDisplayName -orgId $orgId).displayname -eq $displayName) {
-                                    Write-Output "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                    Write-Output "Updating Organization Display Name in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
+                                    Write-Error "Updating Organization Display Name in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
                                 }
                             } else {
-                                Write-Warning "Updating Organization Display Name in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)), already defined: SKIPPED"
+                                Write-Warning "Updating Organization Display Name in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)), already defined: SKIPPED"
                             }
                         }
                     }
@@ -12017,17 +12017,17 @@ Function New-vRACloudAccount {
         Creates vSphere and NSX Cloud Accounts
 
         .DESCRIPTION
-        The New-vRACloudAccount cmdlet creates the vSphere and NSX Cloud Accounts for a Workload Domain in vRealize
-        Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The New-vRACloudAccount cmdlet creates the vSphere and NSX Cloud Accounts for a Workload Domain in
+        VMware Aria Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Retrives details from SDDC Manager for the vCenter Server and NSX Manager cluster
         - Adds a Cloud Account for vCenter Server and NSX Manager cluster
 
         .EXAMPLE
         New-vRACloudAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -capabilityTab private
-        This example creates vSphere and NSX Cloud Accounts in vRealize Automation
+        This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation
     #>
 
     Param (
@@ -12066,16 +12066,16 @@ Function New-vRACloudAccount {
                                         }'
                                         Add-vRACloudAccount -type vsphere -json $vcenterCloudAccount | Out-Null
                                         if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
-                                            Write-Output "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            Write-Output "Creating vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Creating vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Error "Unable to connect to vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                     }
                                     Disconnect-VIServer $($vcfVcenterDetails.fqdn) -Confirm:$false -WarningAction SilentlyContinue
                                 } else {
-                                    Write-Warning "Creating vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
+                                    Write-Warning "Creating vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                 }
                                 if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
                                     $nsxtCloudAccount = '{
@@ -12089,12 +12089,12 @@ Function New-vRACloudAccount {
                                     }'
                                     Add-vRACloudAccount -type nsx-t -json $nsxtCloudAccount | Out-Null
                                     if (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}) {
-                                        Write-Output "Creating NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
+                                        Write-Output "Creating NSX Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Creating NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
+                                        Write-Error "Creating NSX Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Creating NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), already exists: SKIPPED"
+                                    Write-Warning "Creating NSX Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -12116,17 +12116,17 @@ Function Undo-vRACloudAccount {
         Removes the vSphere and NSX Cloud Accounts
 
         .DESCRIPTION
-        The Undo-vRACloudAccount cmdlet removes the vSphere and NSX Cloud Accounts for a Workload Domain in vRealize
-        Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The Undo-vRACloudAccount cmdlet removes the vSphere and NSX Cloud Accounts for a Workload Domain in
+        VMware Aria Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Retrives details from SDDC Manager for the vCenter Server and NSX Manager cluster
         - Removes the Cloud Accounts for vCenter Server and NSX Manager cluster
 
         .EXAMPLE
         Undo-vRACloudAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1!
-        This example creates vSphere and NSX Cloud Accounts in vRealize Automation
+        This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation
     #>
 
     Param (
@@ -12150,22 +12150,22 @@ Function Undo-vRACloudAccount {
                                 if (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}) {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type nsx-t | Where-object {$_.name -eq ($vcfNsxtDetails.fqdn).Split(".")[0]})) {
-                                        Write-Output "Removing NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
+                                        Write-Output "Removing NSX Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
+                                        Write-Error "Removing NSX Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])): POST_VALIDATED_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing NSX Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), does not exist: SKIPPED"
+                                    Write-Warning "Removing NSX Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($(($vcfNsxtDetails.fqdn).Split(".")[0])), does not exist: SKIPPED"
                                 }
                                 if (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}) {
                                     Remove-vRACloudAccount -id (Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)}).id | Out-Null
                                     if (!(Get-vRACloudAccount -type vsphere | Where-object {$_.name -eq $($vcfVcenterDetails.vmName)})) {
-                                        Write-Output "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                        Write-Output "Removing vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
-                                    } 
+                                        Write-Error "Removing vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
                                 } else {
-                                    Write-Warning "Removing vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
+                                    Write-Warning "Removing vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -12188,13 +12188,13 @@ Function Update-vRACloudAccountZone {
 
         .DESCRIPTION
         The Update-vRACloudAccountZone cmdlet updated the Cloud Zone with folder and tags on the resource pool for a
-        Workload Domain in vRealize Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        Workload Domain in VMware Aria Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates the Workload Domain is available in the SDDC Manager Inventory
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
-        - Validates that a Cloud Account exists for the Workload Domain in vRealize Automation instance
-        - Validates that the Resource Pool is availble in vRealize Automation as a Compute Resource
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
+        - Validates that a Cloud Account exists for the Workload Domain in VMware Aria Automation instance
+        - Validates that the Resource Pool is availble in VMware Aria Automation as a Compute Resource
         - Adds the tag to the Resource Pool Compute Resource
         - Adds the folder to the Cloud Account Zone as a target
         - Adds a dynamic filter to use the defined tags
@@ -12202,11 +12202,11 @@ Function Update-vRACloudAccountZone {
 
         .EXAMPLE
         Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -tagKey enabled -tagValue true -folder "sfo-w01-fd-workload" -resourcePool "sfo-w01-cl01-rp-workload"
-        This example updates the Cloud Zone for the Workload Domain with a default folder and adds tags to the resource pool for dynamic provisioning in vRealize Automation
-        
+        This example updates the Cloud Zone for the Workload Domain with a default folder and adds tags to the resource pool for dynamic provisioning in VMware Aria Automation
+
         .EXAMPLE
         Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -placementPolicy ADVANCED
-        This example updates the placement policy for the Cloud Zone to ADVANCED in vRealize Automation
+        This example updates the placement policy for the Cloud Zone to ADVANCED in VMware Aria Automation
     #>
 
     Param (
@@ -12232,29 +12232,29 @@ Function Update-vRACloudAccountZone {
                             $vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                             if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
                                 if (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }) {
-                                    if ($PsBoundParameters.ContainsKey("resourcePool")) { 
+                                    if ($PsBoundParameters.ContainsKey("resourcePool")) {
                                         $cluster = (Get-VCFCluster | Where-Object { $_.id -eq ((Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }).clusters.id) }).Name
                                         if (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }) {
                                             $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
                                             Add-vRAResourceComputeTag -id (Get-vRAResourceCompute | Where-Object { $_.name -eq ($cluster + " / " + $resourcePool) }).id -tagKey $tagKey -tagValue $tagValue | Out-Null
                                             Update-VRACloudZone -id $cloudZoneDetails.id -folder $folder | Out-Null
                                             Update-VRACloudZone -id $cloudZoneDetails.id -tagKey $tagKey -tagValue $tagValue | Out-Null
-                                            Write-Output "Updating Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
+                                            Write-Output "Updating Cloud Zone Configuration in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($($cluster + " / " + $resourcePool)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Unable to find Resource Pool in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool): PRE_VALIDATION_FAILED"
-                                        } 
-                                    } 
-                                    if ($PsBoundParameters.ContainsKey("placementPolicy")) { 
+                                            Write-Error "Unable to find Resource Pool in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn) named ($resourcePool): PRE_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    if ($PsBoundParameters.ContainsKey("placementPolicy")) {
                                         $cloudZoneDetails = Get-vRACloudZone | Where-Object { $_.cloudAccountId -eq (Get-vRACloudAccount -type vsphere | Where-Object { $_.name -eq $($vcfVcenterDetails.vmName) }).id }
                                         Update-VRACloudZone -id $cloudZoneDetails.id -placementPolicy $placementPolicy | Out-Null
-                                        Write-Output "Updating placement policy to $placementPolicy in Cloud Zone Configuration in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                        Write-Output "Updating placement policy to $placementPolicy in Cloud Zone Configuration in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     }
                                 } else {
-                                    Write-Error "Unable to find vSphere Cloud Account in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find vSphere Cloud Account in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn) named ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                                 }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                            }   
+                            }
                         }
                     }
                 }
@@ -12269,20 +12269,20 @@ Export-ModuleMember -Function Update-vRACloudAccountZone
 Function Add-vROvCenterServer {
     <#
         .SYNOPSIS
-        Adds a vCenter Server instance to an embedded vRealize Orchestrator.
+        Adds a vCenter Server instance to an embedded VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
-        The Add-vROvCenterServer cmdlet invokes the workflow in vRealize Orchestrator to add a vCenter Server.
+        The Add-vROvCenterServer cmdlet invokes the workflow in VMware Aria Automation Orchestrator to add a vCenter Server.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
         to return the workload domain vCenter Server details from its inventory and then:
-        - Makes a connection to the embedded vRealize Orchestrator using the -vraUser and -vraPass values.
+        - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values.
         - Verifies the workflow exists.
-        - Verifies that the vCenter Server instance exists in the vRealize Orchestrator catalog.
+        - Verifies that the vCenter Server instance exists in the VMware Aria Automation Orchestrator catalog.
         - Adds the vCenter Server instance using the -vcUser and -vcPass values.
 
         .EXAMPLE
         Add-vROvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -vcUser administrator@vsphere.local -vcPass VMw@re1!
-        This example adds the vCenter Server instance from the "sfo-w01" workload domain from the embedded vRealize Orchestrator catalog.
+        This example adds the vCenter Server instance from the "sfo-w01" workload domain from the embedded VMware Aria Automation Orchestrator catalog.
     #>
 
     Param (
@@ -12305,11 +12305,11 @@ Function Add-vROvCenterServer {
                     if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain                    
+                                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                                 $checkExists = (Invoke-RestMethod -Method 'GET' -URI "https://$($vcfVraDetails.loadBalancerFqdn)/vco/api/catalog/VC" -headers $vraHeaders)
                                 if ((($checkExists.relations.link.attributes | Where-Object { $_.name -eq "id" }).value) -ne "$($vcenter.fqdn)") {
                                     if ($workflow = Get-vROWorkflow -name $workflowName) {
-                                        $parameters =  
+                                        $parameters =
                                         @"
 {"parameters":
     [
@@ -12426,25 +12426,25 @@ Function Add-vROvCenterServer {
     ]
 }
 "@
-                                        $response = Invoke-vROWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters 
-                                        if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) { 
+                                        $response = Invoke-vROWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters
+                                        if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) {
                                             Do {
                                                 $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
                                             }  Until ($workflowStatus -ne "running")
-                                            if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) { 
-                                                Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                            if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) {
+                                                Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
+                                                Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
+                                            Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
                                         }
                                     } else {
-                                        Write-Error "Unable to find the workflow named ($workflowName) to embedded vRealize Orcherator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to find the workflow named ($workflowName) to embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), already exists: SKIPPED"
-                                }                                
+                                    Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), already exists: SKIPPED"
+                                }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
@@ -12462,20 +12462,20 @@ Export-ModuleMember -Function Add-vROvCenterServer
 Function Remove-vROvCenterServer {
     <#
         .SYNOPSIS
-        Removes a vCenter Server instance from an embedded vRealize Orchestrator.
+        Removes a vCenter Server instance from an embedded VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
-        The Remove-vROvCenterServer cmdlet invokes the workflow in vRealize Orchestrator to remove a vCenter Server.
+        The Remove-vROvCenterServer cmdlet invokes the workflow in VMware Aria Automation Orchestrator to remove a vCenter Server.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
         to return the workload domain vCenter Server details from its inventory and then:
-        - Makes a connection to the embedded vRealize Orchestrator using the -vraUser and -vraPass values.
+        - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values.
         - Verifies the workflow exists.
-        - Verifies that the vCenter Server instance exists in the vRealize Orchestrator catalog.
+        - Verifies that the vCenter Server instance exists in the VMware Aria Automation Orchestrator catalog.
         - Removes the vCenter Server instance.
 
         .EXAMPLE
         Remove-vROvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1!
-        This example removes the vCenter Server instance from the "sfo-w01" workload domain from the embedded vRealize Orchestrator catalog.
+        This example removes the vCenter Server instance from the "sfo-w01" workload domain from the embedded VMware Aria Automation Orchestrator catalog.
     #>
 
     Param (
@@ -12496,11 +12496,11 @@ Function Remove-vROvCenterServer {
                     if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain                    
+                                $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                                 $checkExists = (Invoke-RestMethod -Method 'GET' -URI "https://$($vcfVraDetails.loadBalancerFqdn)/vco/api/catalog/VC" -headers $vraHeaders)
                                 if ((($checkExists.relations.link.attributes | Where-Object { $_.name -eq "id" }).value) -eq "$($vcenter.fqdn)") {
                                     if ($workflow = Get-vROWorkflow -name $workflowName) {
-                                        $parameters =  
+                                        $parameters =
                                         @"
 {"parameters":
     [
@@ -12517,25 +12517,25 @@ Function Remove-vROvCenterServer {
     ]
 }
 "@
-                                        $response = Invoke-vROWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters 
-                                        if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) { 
+                                        $response = Invoke-vROWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters
+                                        if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -ne "failed"}) {
                                             Do {
                                                 $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
                                             } Until ($workflowStatus -ne "running")
-                                            if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) { 
-                                                Write-Output "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
+                                            if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object {$_.Execution -eq "completed"}) {
+                                                Write-Output "Removing vCenter Server ($($vcenter.fqdn)) from embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                                Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
+                                            Write-Error "Removing vCenter Server ($($vcenter.fqdn)) from embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain): FAILED"
                                         }
                                     } else {
-                                        Write-Error "Unable to find the workflow named ($workflowName) in embedded vRealize Orcherator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
+                                        Write-Error "Unable to find the workflow named ($workflowName) in embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing vCenter Server ($($vcenter.fqdn)) from embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), does not exist: SKIPPED"
-                                }                                
+                                    Write-Warning "Removing vCenter Server ($($vcenter.fqdn)) from embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)) for Workload Domain ($domain), does not exist: SKIPPED"
+                                }
                             } else {
                                 Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                             }
@@ -12553,18 +12553,18 @@ Export-ModuleMember -Function Remove-vROvCenterServer
 Function Add-vROTrustedCertificate {
     <#
         .SYNOPSIS
-        Adds a trusted certificate to an embedded vRealize Orchestrator.
+        Adds a trusted certificate to an embedded VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
-        The Add-vROTrustedCertificate cmdlet invokes a workflow in vRealize Orchestrator to add trusted certificate.
+        The Add-vROTrustedCertificate cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add trusted certificate.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
-        - Makes a connection to the embedded vRealize Orchestrator using the -vraUser and -vraPass values.
+        - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values.
         - Verifies the workflow exists.
         - Adds the trusted certificate using the -certFile value.
 
         .EXAMPLE
         Add-vROTrustedCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -certFile "C:\Root64.pem"
-        This example adds a trusted certificate in PEM-encoded format to the embedded vRealize Orchestrator.
+        This example adds a trusted certificate in PEM-encoded format to the embedded VMware Aria Automation Orchestrator.
     #>
 
     Param (
@@ -12592,11 +12592,11 @@ Function Add-vROTrustedCertificate {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
-                        if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {         
+                        if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             if ($workflow = Get-vROWorkflow -name $workflowName) {
                                 $certName = Split-Path -Path "$certFile" -Leaf
                                 $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$certFile"))
-                                $parameters =  
+                                $parameters =
                                 @"
 {"parameters":
     [
@@ -12613,20 +12613,20 @@ Function Add-vROTrustedCertificate {
     ]
 }
 "@
-                                $response = Invoke-vROWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters 
+                                $response = Invoke-vROWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters
                                 if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -ne "failed" }) {
                                     Do {
                                         $workflowStatus = (Get-vROWorkflowExecutionState -executionStateRef $response.Execution).Execution
                                     }  Until ($workflowStatus -ne "running")
-                                    if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -eq "completed" }) { 
-                                        Write-Output "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                    if (Get-vROWorkflowExecutionState -executionStateRef $response.Execution | Where-Object { $_.Execution -eq "completed" }) {
+                                        Write-Output "Adding trusted certificate ($certFile) to the embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)), check certificate format: POST_VALIDATION_FAILED"
+                                        Write-Error "Adding trusted certificate ($certFile) to the embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)), check certificate format: POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Adding trusted certificate ($certFile) to the embedded vRealize Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
+                                    Write-Error "Adding trusted certificate ($certFile) to the embedded VMware Aria Automation Orchestrator ($($vcfVraDetails.loadBalancerFqdn)): FAILED"
                                 }
-                            }                             
+                            }
                         }
                     }
                 }
@@ -12641,19 +12641,19 @@ Export-ModuleMember -Function Add-vROTrustedCertificate
 Function Add-vRANotification {
     <#
         .SYNOPSIS
-        Adds notification settings in vRealize Automation.
+        Adds notification settings in VMware Aria Automation.
 
         .DESCRIPTION
-        The Add-vRANotification cmdlet adds notification settings to vRealize Automation. The cmdlet connects to SDDC
+        The Add-vRANotification cmdlet adds notification settings to VMware Aria Automation. The cmdlet connects to SDDC
         Manager using the -server, -user, -password, and -domain values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - MValidates that network connectivity and authentication is possible to vRealize Automation
-        - Adds notifications settings to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - MValidates that network connectivity and authentication is possible to VMware Aria Automation
+        - Adds notifications settings to VMware Aria Automation
 
         .EXAMPLE
         Add-vRANotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -smtpServer smtp.raipole.io -emailAddress vra-no-reply@rainpole.io -sender "Rainpole Cloud" -connection NONE
-        This example adds notifications settings for vRealize Automation.
+        This example adds notifications settings for VMware Aria Automation.
     #>
 
     Param (
@@ -12676,9 +12676,9 @@ Function Add-vRANotification {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             New-vRANotification -name $smtpServer -serverName $smtpServer -emailAddress $emailAddress -sender $sender -trustCert true -connection $connection -authentication false | Out-Null
                             if (Get-vRANotification | Where-Object {$_.name -eq $smtpServer}) {
-                                Write-Output "Configuring Notification settings in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): SUCCESSFUL"
+                                Write-Output "Configuring Notification settings in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): SUCCESSFUL"
                             } else {
-                                Write-Output "Configuring Notification settings in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): POST_VALIDATION_FAILED"
+                                Write-Output "Configuring Notification settings in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) named ($smtpServer): POST_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -12697,16 +12697,16 @@ Function Add-vRAUser {
         Adds user access in an organization.
 
         .DESCRIPTION
-        The Add-vRAUser cmdlet adds user access in vRealize Automation. The cmdlet connects to SDDC Manager 
+        The Add-vRAUser cmdlet adds user access in VMware Aria Automation. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Adds the user to both an organization role and a service role
 
         .EXAMPLE
         Add-vRAUser -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -email jdoe@rainpole.io -orgRole org_member -serviceRole automationservice:cloud_admin
-        This example adds user access in vRealize Automation by userId and orgId along with the required orgRole and serviceRole.
+        This example adds user access in VMware Aria Automation by userId and orgId along with the required orgRole and serviceRole.
 
         Note: This cmdlet currently only supports a single serviceRole.
     #>
@@ -12736,15 +12736,15 @@ Function Add-vRAUser {
                                 if (!(Get-vRAUserRoles -userId $userId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoles.name -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId})) {
                                     New-vRAUser -userId $userId -orgId $orgId -orgRole $orgRole -serviceRole $serviceRole -serviceDefinitionId $serviceDefinitionId | Out-Null
                                     if (Get-vRAUserRoles -userId $userId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoles.name -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId}) {
-                                        Write-Output "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: SUCCESSFUL"
+                                        Write-Output "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation: SUCCESSFUL"
                                     } else {
-                                        Write-Error "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
+                                        Write-Error "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation, already exists: SKIPPED"
+                                    Write-Warning "Assigning user email ($email) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation, already exists: SKIPPED"
                                 }
                             } else {
-                                Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check user synchronization or email: PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to find user email ($email) in Workspace ONE Access for VMware Aria Automation, check user synchronization or email: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -12763,16 +12763,16 @@ Function Undo-vRAUser {
         Removes user access from an organization.
 
         .DESCRIPTION
-        The Undo-vRAUser cmdlet removes user access in vRealize Automation. The cmdlet connects to SDDC Manager 
+        The Undo-vRAUser cmdlet removes user access in VMware Aria Automation. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Removes the user from an organization role and all service roles
 
         .EXAMPLE
         Undo-vRAUser -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -email jdoe@rainpole.io
-        This example removes user access from vRealize Automation by email.
+        This example removes user access from VMware Aria Automation by email.
     #>
 
     Param (
@@ -12812,12 +12812,12 @@ Function Undo-vRAUser {
                                         $serviceRole = $serviceRoles -join ', '
                                     }
                                     if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.organizationRoles.name -eq $null -and $_.serviceRoles.serviceRoles.name -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
-                                        Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: SUCCESSFUL"
+                                        Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in VMware Aria Automation: SUCCESSFUL"
                                     } else {
-                                        Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
+                                        Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check email variable: PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find user email ($email) in Workspace ONE Access for VMware Aria Automation, check email variable: PRE_VALIDATION_FAILED"
                                 }
                             } elseif (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email -and $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
                                 if ($objectCheck = Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.user.email -eq $email }) {
@@ -12840,15 +12840,15 @@ Function Undo-vRAUser {
                                         $serviceRole = $serviceRoles -join ', '
                                     }
                                     if (Get-vRAUser -orgId $orgId -email $email | Where-Object { $_.organizationRoles.name -eq $null -and $_.serviceRoles.serviceRoles.name -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
-                                        Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: SUCCESSFUL"
+                                        Write-Output "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in VMware Aria Automation: SUCCESSFUL"
                                     } else {
-                                        Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
+                                        Write-Warning "Removing user email ($email) from organization role ($orgRole) and service roles(s) ($serviceRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Unable to find user email ($email) in Workspace ONE Access for vRealize Automation, check email variable: PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find user email ($email) in Workspace ONE Access for VMware Aria Automation, check email variable: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Removing user email ($email) from organization role and service roles(s) in vRealize Automation, no roles assigned: PRE_VALIDATION_FAILED"
+                                Write-Warning "Removing user email ($email) from organization role and service roles(s) in VMware Aria Automation, no roles assigned: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -12867,20 +12867,20 @@ Function Add-vRAGroup {
         Adds a group in an organization.
 
         .DESCRIPTION
-        The Add-vRAGroup cmdlet adds a group in vRealize Automation. The cmdlet connects to SDDC Manager 
+        The Add-vRAGroup cmdlet adds a group in VMware Aria Automation. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Adds the group to an organization role and a service role
 
         .EXAMPLE
         Add-vRAGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -displayName gg-vra-org-owners@rainpole.io -orgRole org_owner
-        This example adds a group to vRealize Automation by groupId and orgId along with the required orgRole.
+        This example adds a group to VMware Aria Automation by groupId and orgId along with the required orgRole.
 
         .EXAMPLE
         Add-vRAGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -displayName gg-vra-cloud-assembly-admins@rainpole.io -orgRole org_member -serviceRole automationservice:cloud_admin
-        This example adds a group to vRealize Automation by groupId and orgId along with the required orgRole and serviceRole.
+        This example adds a group to VMware Aria Automation by groupId and orgId along with the required orgRole and serviceRole.
 
         Note: This cmdlet currently only supports a single serviceRole.
     #>
@@ -12904,40 +12904,40 @@ Function Add-vRAGroup {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
                             if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.displayName -eq $displayName }) {
-                                $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id 
+                                $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id
                                 if ($PsBoundParameters.ContainsKey("orgRole") -and ($PsBoundParameters.ContainsKey("serviceRole"))) {
                                     $services = (Get-vRAServices -orgId $orgId)
                                     $serviceDefinitionId = (($services.serviceRoles | Where-Object {$_.name -eq $serviceRole -and $_.displayName -ne $serviceRole}).serviceDefinitionLink -Split("external/"))[-1]
                                     if (!(Get-vRAGroupRoles -groupId $groupId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoleNames -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId})) {
                                         New-vRAGroup -groupId $groupId -orgId $orgId -orgRole $orgRole -serviceRole $serviceRole -serviceDefinitionId $serviceDefinitionId | Out-Null
                                         if (Get-vRAGroupRoles -groupId $groupId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoleNames -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId}) {
-                                            Write-Output "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: SUCCESSFUL"
+                                            Write-Output "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation: SUCCESSFUL"
                                         }
                                         else {
-                                            Write-Error "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation: POST_VALIDATION_FAILED"
+                                            Write-Error "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                         }
                                     }
                                     else {
-                                        Write-Warning "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in vRealize Automation, already exists: SKIPPED"
+                                        Write-Warning "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation, already exists: SKIPPED"
                                     }
                                 }
                                 elseif (!$PsBoundParameters.ContainsKey("serviceRole")) {
                                     if (!(Get-vRAGroupRoles -groupId $groupId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoleNames -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null})) {
                                         New-vRAGroup -groupId $groupId -orgId $orgId -orgRole $orgRole | Out-Null
                                         if (Get-vRAGroupRoles -groupId $groupId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoleNames -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
-                                            Write-Output "Assigning group ($displayName) the organization role ($orgRole) in vRealize Automation: SUCCESSFUL"
+                                            Write-Output "Assigning group ($displayName) the organization role ($orgRole) in VMware Aria Automation: SUCCESSFUL"
                                         }
                                         else {
-                                            Write-Error "Assigning group ($displayName) the organization role ($orgRole) in vRealize Automation: POST_VALIDATION_FAILED"
+                                            Write-Error "Assigning group ($displayName) the organization role ($orgRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                         }
                                     }
                                     else {
-                                        Write-Warning "Assigning group ($displayName) the organization role ($orgRole) in vRealize Automation, already exists: SKIPPED"
+                                        Write-Warning "Assigning group ($displayName) the organization role ($orgRole) in VMware Aria Automation, already exists: SKIPPED"
                                     }
                                 }
                             }
                             else {
-                                Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to find group ($displayName) in Workspace ONE Access for VMware Aria Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -12957,16 +12957,16 @@ Function Undo-vRAGroup {
         Removes a group in an organization.
 
         .DESCRIPTION
-        The Undo-vRAGroup cmdlet removes a group in vRealize Automation. The cmdlet connects to SDDC Manager 
+        The Undo-vRAGroup cmdlet removes a group in VMware Aria Automation. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
         - Removes the group from an organization role and all service roles
 
         .EXAMPLE
         Undo-vRAGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -displayName gg-vra-cloud-assembly-admins@rainpole.io
-        This example removes a group from vRealize Automation by displayName.
+        This example removes a group from VMware Aria Automation by displayName.
     #>
 
     Param (
@@ -12986,19 +12986,19 @@ Function Undo-vRAGroup {
                         if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
                             $orgId = (Get-vRAOrganizationId).Split("orgs/")[-1]
                             if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.displayName -eq $displayName }) {
-                                $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id 
+                                $groupId = (Get-vRAGroup -orgId $orgId -displayName $displayName).id
                                 if (Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -or $_.serviceRoles.serviceDefinitionId -ne $null}) {
                                     Remove-vRAGroupRoles -groupId $groupId -orgId $orgId | Out-Null
                                     if (!(Get-vRAGroup -orgId $orgId -displayName $displayName | Where-Object { $_.organizationRoles.name -ne $null -and $_.serviceRoles.serviceRoleNames -ne $null -and $_.serviceRoles.serviceDefinitionId -ne $null})) {
-                                        Write-Output "Removing group ($displayName) from vRealize Automation: SUCCESSFUL"
+                                        Write-Output "Removing group ($displayName) from VMware Aria Automation: SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing group ($displayName) from vRealize Automation:: POST_VALIDATION_FAILED"
+                                        Write-Error "Removing group ($displayName) from VMware Aria Automation:: POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing group ($displayName) from vRealize Automation:, does not exist: SKIPPED"
+                                    Write-Warning "Removing group ($displayName) from VMware Aria Automation:, does not exist: SKIPPED"
                                 }
                             } else {
-                                Write-Error "Unable to find group ($displayName) in Workspace ONE Access for vRealize Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to find group ($displayName) in Workspace ONE Access for VMware Aria Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -13014,20 +13014,20 @@ Export-ModuleMember -Function Undo-vRAGroup
 Function New-vRAvROPSIntegrationItem {
     <#
         .SYNOPSIS
-        Creates new vRealize Operations Manager integration in vRealize Automation
+        Creates new VMware Aria Operations integration in VMware Aria Automation
 
         .DESCRIPTION
-        The New-vRAvROPSIntegrationItem cmdlet creates an integration in vRealize Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The New-vRAvROPSIntegrationItem cmdlet creates an integration in VMware Aria Automation. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Creates vRealize Operations Manager integration in vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Creates VMware Aria Operations integration in VMware Aria Automation
 
         .EXAMPLE
-        New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "vRealize Operations Manager"
-        This example creates vRealize Operations Manager integration with name "vRealize Operations Manager" in vRealize Automation
+        New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
+        This example creates VMware Aria Operations integration with name "VMware Aria Operations" in VMware Aria Automation
     #>
 
     Param (
@@ -13050,15 +13050,15 @@ Function New-vRAvROPSIntegrationItem {
                             if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                                 if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                                     if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                                        $response = Add-vRAIntegrationItem -integrationType "vrops" -integrationName $vropsIntegrationName -integrationUser $vropsIntegrationUser -integrationPassword $vropsIntegrationPass #| Out-Null                               
+                                        $response = Add-vRAIntegrationItem -integrationType "vrops" -integrationName $vropsIntegrationName -integrationUser $vropsIntegrationUser -integrationPassword $vropsIntegrationPass #| Out-Null
                                         if ($response.status -eq "FINISHED") {
                                             if (Get-vRAIntegrationDetail -integrationType "vrops"  -integrationName $vropsIntegrationName -getIntegrationID) {
-                                                Write-Output "Creating vRealize Operations Manager integration with name '$vropsIntegrationName' in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                                Write-Output "Creating VMware Aria Operations integration with name '$vropsIntegrationName' in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Creating vRealize Operations Manager integration with name '$vropsIntegrationName' in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED" 
+                                                Write-Error "Creating VMware Aria Operations integration with name '$vropsIntegrationName' in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Creating vRealize Operations Manager integration with name '$vropsIntegrationName' in vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)) failed with '$($response.message)': FAILED"
+                                            Write-Error "Creating VMware Aria Operations integration with name '$vropsIntegrationName' in VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)) failed with '$($response.message)': FAILED"
                                         }
                                     }
                                 }
@@ -13077,26 +13077,26 @@ Export-ModuleMember -Function New-vRAvROPSIntegrationItem
 Function Undo-vRAvROPsIntegrationItem {
     <#
         .SYNOPSIS
-        Deletes vRealize Operations Manager from vRealize Automation
+        Deletes VMware Aria Operations from VMware Aria Automation
 
         .DESCRIPTION
-        The Undo-vRAvROPsIntegrationItem cmdlet deletes vRealize Operations Manager integration from vRealize Automation.The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The Undo-vRAvROPsIntegrationItem cmdlet deletes VMware Aria Operations integration from VMware Aria Automation.The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that vRealize Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
-        - Validates that network connectivity and authentication is possible to vRealize Automation
-        - Validates that vRealize Operations Manager has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to vRealize Operations Manager
-        - Deletes vRealize Operations Manager integration from vRealize Automation
+        - Validates that VMware Aria Automation has been deployed in VMware Cloud Foundation aware mode and retrives its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Automation
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Deletes VMware Aria Operations integration from VMware Aria Automation
 
         .EXAMPLE
-        Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re1!" -vropsIntegrationName "vRealize Operations Manager"
-        This example deletes vRealize Operations Manager in vRealize Automation
+        Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
+        This example deletes VMware Aria Operations in VMware Aria Automation
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass, 
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vraPass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vropsIntegrationName
@@ -13112,13 +13112,13 @@ Function Undo-vRAvROPsIntegrationItem {
                                 if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                                     if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                                         if ($null -eq (Get-vRAIntegrationDetail -integrationType "vrops"  -integrationName $vropsIntegrationName -getIntegrationID ) ) {
-                                            Write-Warning "vRealize Operations Manager Integration with name '$vropsIntegrationName' not found...: SKIPPED" 
+                                            Write-Warning "VMware Aria Operations Integration with name '$vropsIntegrationName' not found...: SKIPPED"
                                             break
                                         }
                                         Remove-vRAIntegrationItem -integrationType vrops -integrationId (Get-vRAIntegrationDetail -integrationType vrops -integrationName $vropsIntegrationName -getIntegrationID) | Out-Null
                                     }
                                     if ($null -eq (Get-vRAIntegrationDetail -integrationType "vrops"  -integrationName $vropsIntegrationName -getIntegrationID) ) {
-                                        Write-Output "Removing vRealize Operations Manager Integration with name '$vropsIntegrationName' from vRealize Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
+                                        Write-Output "Removing VMware Aria Operations Integration with name '$vropsIntegrationName' from VMware Aria Automation ($($vcfVraDetails.loadBalancerFqdn)): SUCCESSFUL"
                                     }
                                 }
                             }
@@ -13143,7 +13143,7 @@ Function Add-vCenterGlobalPermission {
     <#
 		.SYNOPSIS
         Adds a Global Permission to a user or group
-        
+
         .DESCRIPTION
         The Add-vCenterGlobalPermission cmdlets assigns the vCenter Server Global Permission to the user or group provided.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
@@ -13264,7 +13264,7 @@ Function Undo-vCenterGlobalPermission {
     <#
 		.SYNOPSIS
         Removes a Global Permission to a user or group
-        
+
         .DESCRIPTION
         The Undo-vCenterGlobalPermission cmdlets removes the vCenter Server Global Permission for the user or group provided.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
@@ -13492,13 +13492,13 @@ Function Add-SsoPermission {
                                                             $ldapGroup | Add-GroupToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                             if (Get-SsoGroup -Group $targetGroup -Name $principal) {
                                                                 Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                            } else {  
+                                                            } else {
                                                                 Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
-                                                        } else { 
+                                                        } else {
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                         }
-                                                    } else { 
+                                                    } else {
                                                         Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                     }
                                                 } elseif ($type -eq "user") {
@@ -13515,7 +13515,7 @@ Function Add-SsoPermission {
                                                         } else {
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
                                                         }
-                                                    } else { 
+                                                    } else {
                                                         Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
                                                     }
                                                 }
@@ -13580,7 +13580,7 @@ Function Add-SsoPermission {
                             }
                         }
                     }
-                }   
+                }
             }
         }
     } Catch {
@@ -13642,7 +13642,7 @@ Function Undo-SsoPermission {
                                                     } else {
                                                         Write-Error "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                     }
-                                                } else { 
+                                                } else {
                                                     Write-Warning "Removing SSO Group ($ssoGroup) from vCenter Server ($($vcfVcenterDetails.vmName)) for $type ($principal) for domain ($domain), already removed: SKIPPED"
                                                 }
                                             } elseif ($type -eq "user") {
@@ -13716,7 +13716,7 @@ Function Undo-SsoPermission {
                             }
                         }
                     }
-                }   
+                }
             }
         }
     } Catch {
@@ -13770,7 +13770,7 @@ Function Add-SsoUser {
                             Disconnect-SsoAdminServer $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                         }
                     }
-                }                             
+                }
             }
         }
     } Catch {
@@ -14099,7 +14099,7 @@ Function Add-ResourcePool {
         .DESCRIPTION
         The Add-ResourcePool cmdlet creates a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
         to retrive the vCenter Server details from the SDDC Manager inventory and then:
-        - Connects to the vCenter Server 
+        - Connects to the vCenter Server
         - Verifies that the resource pool has not already been created
         - Creates the resource pool
 
@@ -14157,7 +14157,7 @@ Function Undo-ResourcePool {
         .DESCRIPTION
         The Undo-ResourcePool cmdlet removes a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
         to retrive the vCenter Server details from the SDDC Manager inventory and then:
-        - Connects to the vCenter Server 
+        - Connects to the vCenter Server
         - Verifies that the resource pool exists in the vCenter Server inventory
         - Removes the resource pool
 
@@ -14252,7 +14252,7 @@ Function Add-AntiAffinityRule {
                                         Write-Error "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED" 
+                                    Write-Warning "Adding Anti-Affinity Rule to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
@@ -14374,7 +14374,7 @@ Function Add-ClusterGroup {
                                     }
                                 } else {
                                     Write-Warning "Adding vSphere DRS Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), already exists: SKIPPED"
-                                    
+
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
@@ -14435,7 +14435,7 @@ Function Undo-ClusterGroup {
                                         }
                                     } else {
                                         Write-Warning "Removing vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), already removed: SKIPPED"
-                                        
+
                                     }
                                 } else {
                                     Write-Error "Unable to remove vSphere DRS Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($drsGroupName), in use by VM to VM Group: PRE_VALIDATION_FAILED"
@@ -14621,7 +14621,7 @@ Function Move-VMtoFolder {
                     if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
                         if (Get-Folder | Where-Object {$_.Name -eq $folder}) {
                             $vmNames = $vmList.split(",")
-                            foreach ($vm in $vmNames) { 
+                            foreach ($vm in $vmNames) {
                                 if (Get-VM -Name $vm -ErrorAction SilentlyContinue) {
                                     Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null
                                     Write-Output "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
@@ -14734,7 +14734,7 @@ Function Undo-VdsPortGroup {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup}) {
-                                Remove-VDPortGroup -Server $vcfVcenterDetails.fqdn -VDPortGroup $portGroup -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null         
+                                Remove-VDPortGroup -Server $vcfVcenterDetails.fqdn -VDPortGroup $portGroup -Confirm:$false -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
                                 if (!(Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $portgroup})) {
                                     Write-Output "Removing vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($($portgroup)): SUCCESSFUL"
                                 } else {
@@ -14758,15 +14758,15 @@ Export-ModuleMember -Function Undo-VdsPortGroup
 Function Import-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Add a certificate to the vRealize Suite Lifecycle Manager Locker
+        Add a certificate to the VMware Aria Suite Lifecycle Locker
 
         .DESCRIPTION
-        The Import-vRSLCMLockerCertificate cmdlet imports a PEM encoded chain file to the vRealize Suite Lifecycle
+        The Import-vRSLCMLockerCertificate cmdlet imports a PEM encoded chain file to the VMware Aria Suite Lifecycle
         Manager Locker. The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Verifies that the certificate is not present in the vRealize Suite Lifecycle Manager Locker
-        - Imports the certificate chain to the vRealize Suite Lifecycle Manager Locker
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the certificate is not present in the VMware Aria Suite Lifecycle Locker
+        - Imports the certificate chain to the VMware Aria Suite Lifecycle Locker
 
         .EXAMPLE
         Import-vRSLCMLockerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -certificateAlias "xint-vrops01" -certificatePassphrase "VMw@re1!"
@@ -14805,12 +14805,12 @@ Function Import-vRSLCMLockerCertificate {
                                     Add-vRSLCMLockerCertificate -vrslcmFQDN $vcfVrslcmDetails.fqdn -certificateAlias $certificateAlias -certChainPath $certChainPath | Out-Null
                                 }
                                 if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
-                                    Write-Output "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
+                                    Write-Output "Importing Certificate to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
+                                    Write-Error "Importing Certificate to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Importing Certificate to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), already exist: SKIPPED"
+                                Write-Warning "Importing Certificate to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), already exist: SKIPPED"
                             }
                         }
                     }
@@ -14826,19 +14826,19 @@ Export-ModuleMember -Function Import-vRSLCMLockerCertificate
 Function Undo-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Remove a certificate from the vRealize Suite Lifecycle Manager Locker
+        Remove a certificate from the VMware Aria Suite Lifecycle Locker
 
         .DESCRIPTION
-        The Undo-vRSLCMLockerCertificate cmdlet removes a certificate from the vRealize Suite Lifecycle Manager Locker.
+        The Undo-vRSLCMLockerCertificate cmdlet removes a certificate from the VMware Aria Suite Lifecycle Locker.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Verifies that the certificate is present in the vRealize Suite Lifecycle Manager Locker
-        - Removes the certificate from vRealize Suite Lifecycle Manager Locker
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the certificate is present in the VMware Aria Suite Lifecycle Locker
+        - Removes the certificate from VMware Aria Suite Lifecycle Locker
 
         .EXAMPLE
         Undo-vRSLCMLockerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -certificateAlias "xint-vrops01"
-        This example removes a certificate with an alias of 'xint-vrops01' from the vRealize Suite Lifecycle Manager Locker
+        This example removes a certificate with an alias of 'xint-vrops01' from the VMware Aria Suite Lifecycle Locker
     #>
 
     Param (
@@ -14858,12 +14858,12 @@ Function Undo-vRSLCMLockerCertificate {
                             if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias}) {
                                 Remove-vRSLCMLockerCertificate -vmid (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias}).vmid | Out-Null
                                 if ((Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $certificateAlias})) {
-                                    Write-Error "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing Certificate from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
                                 } else {
-                                    Write-Output "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
+                                    Write-Output "Removing Certificate from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): SUCCESSFUL"
                                 }
                             } else {
-                                Write-Warning "Removing Certificate from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), does not exist: SKIPPED"
+                                Write-Warning "Removing Certificate from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), does not exist: SKIPPED"
                             }
                         }
                     }
@@ -14879,19 +14879,19 @@ Export-ModuleMember -Function Undo-vRSLCMLockerCertificate
 Function New-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Add a password to the vRealize Suite Lifecycle Manager Locker Locker
+        Add a password to the VMware Aria Suite Lifecycle Locker Locker
 
         .DESCRIPTION
-        The New-vRSLCMLockerPassword cmdlet adds a password to the vRealize Suite Lifecycle Manager Locker Locker. The 
-        cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
+        The New-vRSLCMLockerPassword cmdlet adds a password to the VMware Aria Suite Lifecycle Locker.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Verifies that the password is not present in the vRealize Suite Lifecycle Manager Locker
-        - Adds the password to the vRealize Suite Lifecycle Manager Locker
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the password is not present in the VMware Aria Suite Lifecycle Locker
+        - Adds the password to the VMware Aria Suite Lifecycle Locker
 
         .EXAMPLE
-        New-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin -password VMw@re1! -description "vRealize Operations Admin" -userName xint-vrops01-admin
-        This example adds a password with an alias of 'xint-vrops01-admin' to the vRealize Suite Lifecycle Manager Locker
+        New-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin -password VMw@re1! -description "VMware Aria Operations Admin" -userName xint-vrops01-admin
+        This example adds a password with an alias of 'xint-vrops01-admin' to the VMware Aria Suite Lifecycle Locker
     #>
 
     Param (
@@ -14917,12 +14917,12 @@ Function New-vRSLCMLockerPassword {
                                     $lockerPassword = Add-vRSLCMLockerPassword -alias $alias -password $password -userName $userName
                                 }
                                 if ((Get-vRSLCMLockerPassword -alias $alias)) {
-                                    Write-Output "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                                    Write-Output "Adding Password to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
+                                    Write-Error "Adding Password to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Adding Password to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
+                                Write-Warning "Adding Password to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                             }
                         }
                     }
@@ -14938,19 +14938,19 @@ Export-ModuleMember -Function New-vRSLCMLockerPassword
 Function Undo-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Remove a password from the vRealize Suite Lifecycle Manager Locker
+        Remove a password from the VMware Aria Suite Lifecycle Locker
 
         .DESCRIPTION
-        The Undo-vRSLCMLockerPassword cmdlet removes a password from the vRealize Suite Lifecycle Manager Locker. The
+        The Undo-vRSLCMLockerPassword cmdlet removes a password from the VMware Aria Suite Lifecycle Locker. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Verifies that the password is present in the vRealize Suite Lifecycle Manager Locker
-        - Removes the password from the vRealize Suite Lifecycle Manager Locker
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the password is present in the VMware Aria Suite Lifecycle Locker
+        - Removes the password from the VMware Aria Suite Lifecycle Locker
 
         .EXAMPLE
         Undo-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin
-        This example removes a password with an alias of 'xint-vrops01-admin' from the vRealize Suite Lifecycle Manager Locker
+        This example removes a password with an alias of 'xint-vrops01-admin' from the VMware Aria Suite Lifecycle Locker
     #>
 
     Param (
@@ -14969,12 +14969,12 @@ Function Undo-vRSLCMLockerPassword {
                             if (Get-vRSLCMLockerPassword -alias $alias) {
                                 Remove-vRSLCMLockerPassword -vmid (Get-vRSLCMLockerPassword -alias $alias).vmid | Out-Null
                                 if ((Get-vRSLCMLockerPassword -alias $alias)) {
-                                    Write-Error "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing Password from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                 } else {
-                                    Write-Output "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                                    Write-Output "Removing Password from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
                             } else {
-                                Write-Warning "Removing Password from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
+                                Write-Warning "Removing Password from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
                             }
                         }
                     }
@@ -14990,19 +14990,19 @@ Export-ModuleMember -Function Undo-vRSLCMLockerPassword
 Function New-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Add a license to the vRealize Suite Lifecycle Manager Locker
+        Add a license to the VMware Aria Suite Lifecycle Locker
 
         .DESCRIPTION
-        The New-vRSLCMLockerLicense cmdlet adds a license to the vRealize Suite Lifecycle Manager Locker. The cmdlet
+        The New-vRSLCMLockerLicense cmdlet adds a license to the VMware Aria Suite Lifecycle Locker. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - CValidates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Verifies that the license is not present in the vRealize Suite Lifecycle Manager Locker
-        - Adds the license to the vRealize Suite Lifecycle Manager Locker
+        - CValidates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the license is not present in the VMware Aria Suite Lifecycle Locker
+        - Adds the license to the VMware Aria Suite Lifecycle Locker
 
         .EXAMPLE
-        New-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "vRealize Automation" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-        This example adds a license with an alias of 'vRealize Automation' to the vRealize Suite Lifecycle Manager Locker
+        New-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "VMware Aria Automation" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+        This example adds a license with an alias of 'VMware Aria Automation' to the VMware Aria Suite Lifecycle Locker
     #>
 
     Param (
@@ -15026,18 +15026,18 @@ Function New-vRSLCMLockerLicense {
                                     $status = Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                     if ($status -match "COMPLETED") {
                                         if ((Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license})) {
-                                            Write-Output "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                                            Write-Output "Adding License to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
+                                            Write-Error "Adding License to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Error "$status"
                                     }
                                 } else {
-                                    Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
+                                    Write-Warning "Adding License to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), already exists: SKIPPED"
                                 }
                             } else {
-                                Write-Warning "Adding License to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with license ($license), already exists: SKIPPED"
+                                Write-Warning "Adding License to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with license ($license), already exists: SKIPPED"
                             }
                         }
                     }
@@ -15053,19 +15053,19 @@ Export-ModuleMember -Function New-vRSLCMLockerLicense
 Function Undo-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Remove a license to the vRealize Suite Lifecycle Manager Locker
+        Remove a license to the VMware Aria Suite Lifecycle Locker
 
         .DESCRIPTION
-        The Undo-vRSLCMLockerLicense cmdlet removes a license from the vRealize Suite Lifecycle Manager Locker. The
+        The Undo-vRSLCMLockerLicense cmdlet removes a license from the VMware Aria Suite Lifecycle Locker. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
-        - Verifies that the license is present in the vRealize Suite Lifecycle Manager Locker
-        - Removes the license to the vRealize Suite Lifecycle Manager Locker
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the license is present in the VMware Aria Suite Lifecycle Locker
+        - Removes the license to the VMware Aria Suite Lifecycle Locker
 
         .EXAMPLE
-        Undo-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "vRealize Automation"
-        This example removes a license with an alias of 'vRealize Automation' from the vRealize Suite Lifecycle Manager Locker
+        Undo-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "VMware Aria Automation"
+        This example removes a license with an alias of 'VMware Aria Automation' from the VMware Aria Suite Lifecycle Locker
     #>
 
     Param (
@@ -15084,12 +15084,12 @@ Function Undo-vRSLCMLockerLicense {
                             if (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias}) {
                                 Remove-vRSLCMLockerLicense -vmid (Get-vRSLCMLockerLicense | Where-Object {$_.alias -eq $alias}).vmid | Out-Null
                                 if (Get-vRSLCMLockerLicense | Where-Object {$_.key -eq $license}) {
-                                    Write-Error "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing License from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): POST_VALIDATION_FAILED"
                                 } else {
-                                    Write-Output "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
+                                    Write-Output "Removing License from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias): SUCCESSFUL"
                                 }
                             } else {
-                                Write-Warning "Removing License from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
+                                Write-Warning "Removing License from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($alias), does not exist: SKIPPED"
                             }
                         }
                     }
@@ -15105,19 +15105,19 @@ Export-ModuleMember -Function Undo-vRSLCMLockerLicense
 Function New-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Adds a datacenter to vRealize Suite Lifecycle Manager
+        Adds a datacenter to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRSLCMDatacenter cmdlet adds a datacenter to the vRealize Suite Lifecycle Manager inventory. The
+        The New-vRSLCMDatacenter cmdlet adds a datacenter to the VMware Aria Suite Lifecycle inventory. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the datacenter has not already been created in the inventory
         - Creates the datacenter in the inventory
 
         .EXAMPLE
         New-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -location "San Francisco, California, US"
-        This example adds a datacenter to the vRealize Suite Lifecycle Manager inventory
+        This example adds a datacenter to the VMware Aria Suite Lifecycle inventory
     #>
 
     Param (
@@ -15133,20 +15133,20 @@ Function New-vRSLCMDatacenter {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
                                 Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location | Out-Null
                                 if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
-                                    Write-Output "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
+                                    Write-Output "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
+                                    Write-Error "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
                                 }
                             }   else {
-                                Write-Warning "Adding Datacenter to the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
+                                Write-Warning "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
                             }
                         }
                     }
-                }                         
+                }
             }
         }
     } Catch {
@@ -15158,19 +15158,19 @@ Export-ModuleMember -Function New-vRSLCMDatacenter
 Function New-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Adds a vCenter Server to a Datacenter to vRealize Suite Lifecycle Manager
+        Adds a vCenter Server to a Datacenter to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRSLCMDatacenterVcenter cmdlet adds a vCenter Server to a Datacenter to the vRealize Suite Lifecycle
+        The New-vRSLCMDatacenterVcenter cmdlet adds a vCenter Server to a Datacenter to the VMware Aria Suite Lifecycle
         Manager inventory. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the vCenter Server has not already been added to the Datacenter
         - Adds the vCenter Server to the Datacenter
 
         .EXAMPLE
         New-vRSLCMDatacenterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -userLockerAlias sfo-m01-vc01-sfo-m01-dc01
-        This example adds a vCenter Server to a Datacenter in vRealize Suite Lifecycle Manager
+        This example adds a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -15187,29 +15187,29 @@ Function New-vRSLCMDatacenterVcenter {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
                                 if (Get-vRSLCMLockerPassword -alias $userLockerAlias) {
                                     if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName  ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue)) {
                                         Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
                                         Start-Sleep 5
                                         if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
-                                            Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
+                                            Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                            Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "Adding vCenter Server to Datacenter ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])), already exists: SKIPPED"
+                                        Write-Warning "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])), already exists: SKIPPED"
                                     }
                                 } else {
-                                    Write-Error "Unable to find Password alias in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) named ($userLockerAlias): PRE_VALIDATION_FAILED"
+                                    Write-Error "Unable to find Password alias in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($userLockerAlias): PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "Unable to find Datacenter named ($datacenterName) in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                Write-Error "Unable to find Datacenter named ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
                             }
                         }
                     }
-                }                         
+                }
             }
         }
     } Catch {
@@ -15221,19 +15221,19 @@ Export-ModuleMember -Function New-vRSLCMDatacenterVcenter
 Function Undo-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Deletes a datacenter from vRealize Suite Lifecycle Manager
+        Deletes a datacenter from VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Undo-vRSLCMDatacenter cmdlet deletes a datacenter from the vRealize Suite Lifecycle Manager inventory. The
+        The Undo-vRSLCMDatacenter cmdlet deletes a datacenter from the VMware Aria Suite Lifecycle inventory. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the datacenter has not already been removed from the inventory
         - Deletes the datacenter from the inventory
 
         .EXAMPLE
         Undo-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01
-        This example deletes a datacenter from the vRealize Suite Lifecycle Manager inventory
+        This example deletes a datacenter from the VMware Aria Suite Lifecycle inventory
     #>
 
     Param (
@@ -15248,21 +15248,21 @@ Function Undo-vRSLCMDatacenter {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
                                 Remove-vRSLCMDatacenter -datacenterVmid ((Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid) | Out-Null
                                 Start-Sleep 2
                                 if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
-                                    Write-Output "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): SUCCESSFUL"
+                                    Write-Output "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
                                 }
                             }   else {
-                                Write-Warning "Removing Datacenter from the vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
+                                Write-Warning "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
                             }
                         }
                     }
-                }                         
+                }
             }
         }
     } Catch {
@@ -15338,7 +15338,7 @@ Function Add-VmGroup {
 
         .EXAMPLE
         Add-VmGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -name "primary_az_vmgroup" -vmList "xint-vra01a,xint-vra01b,xint-vra01c"
-        This example adds the vRealize Automation cluster VMs to the VM Group called primary_az_vmgroup
+        This example adds the VMware Aria Automation cluster VMs to the VM Group called primary_az_vmgroup
     #>
 
     Param (
@@ -15414,7 +15414,7 @@ Function Add-WorkspaceOneDirectoryGroup {
                             $groupName = ($existingGroup.displayname.Split("@"))[0]
                             $configuredGroups.Add($groupName)
                             $allGroups.Add($groupName)
-                        }                    
+                        }
                         $missingGroups = Compare-Object $adGroups $configuredGroups |  Where-Object { $_.SideIndicator -eq '<=' } | Foreach-Object { $_.InputObject }
                         foreach ($newGroup in $missingGroups) {
                             $allGroups.Add($newGroup)
@@ -15455,7 +15455,7 @@ Function Add-WorkspaceOneDirectoryGroup {
                             'identityGroupInfo'         = ($identityGroupObject | Select-Object -Skip 0)
                             'excludeNestedGroupMembers' = $false
                         }
-                        $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10 
+                        $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10
 
                         $adGroupJson | Out-File -Encoding UTF8 -FilePath .\adGroups.json
 
@@ -15514,7 +15514,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
                         foreach ($existingGroup in $existingGroupList) {
                             $groupName = ($existingGroup.displayname.Split("@"))[0]
                             $configuredGroups.Add($groupName)
-                        }                    
+                        }
                         $requiredGroups = Compare-Object $adGroups $configuredGroups | Foreach-Object { $_.InputObject } #|  Where-Object { $_.SideIndicator -eq '==' } | Foreach-Object { $_.InputObject }
                         foreach ($newGroup in $requiredGroups) {
                             $allGroups.Add($newGroup)
@@ -15554,7 +15554,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
                             'identityGroupInfo'         = ($identityGroupObject | Select-Object -Skip 0)
                             'excludeNestedGroupMembers' = $false
                         }
-                        $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10 
+                        $adGroupJson = $adGroupObject | ConvertTo-Json -Depth 10
                         $adGroupJson | Out-File -Encoding UTF8 -FilePath .\adGroups.json
                         Set-WSADirectoryGroup -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId -json $adGroupJson | Out-Null
                         Start-WSADirectorySync -directoryId (Get-WSADirectory | Where-Object { ($_.name -eq $domain) }).directoryId | Out-Null
@@ -15603,7 +15603,7 @@ Function Add-WorkspaceOneDirectoryConnector {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfWsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-WSAConnection -server $vcfWsaDetails.loadBalancerFqdn) {
-                        if (Test-WSAAuthentication -server $vcfWsaDetails.loadBalancerFqdn -user $wsaUser -pass $wsaPass) { 
+                        if (Test-WSAAuthentication -server $vcfWsaDetails.loadBalancerFqdn -user $wsaUser -pass $wsaPass) {
                             if ($directoryId = (Get-WSADirectory | Where-Object {$_.name -eq $domain}).directoryId) {
                                 if (Get-WSAConnector | Where-Object {$_.host -eq $wsaNode}) {
                                     if (!(Get-WSADirectory -directoryId $directoryId -connector | Where-Object {$_.host -eq $wsaNode})) {
@@ -15674,7 +15674,7 @@ Function Update-SddcDeployedFlavor {
                             }
                             $newFlavours += $vvsTag
                             $newFlavours = $newFlavours | Sort-Object
-                            [String]$updatedFlavour = $newFlavours -Join ", " 
+                            [String]$updatedFlavour = $newFlavours -Join ", "
                             Set-AdvancedSetting -AdvancedSetting $advancedSetting -Value $updatedFlavour -Confirm:$false | Out-Null
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue | Out-Null
                         }
@@ -15893,7 +15893,7 @@ Function Get-vCenterServerDetail {
                     $vcenterServer | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcenterServerDetails.fqdn
                     $vcenterServer | Add-Member -notepropertyname 'vmName' -notepropertyvalue $vcenterServerDetails.fqdn.Split(".")[0]
                     $vcenterServer | Add-Member -notepropertyname 'ssoDomain' -notepropertyvalue $ssoDomainName
-                    
+
                     if ( ($vcfDetail.version).Split("-")[0] -ge "4.1.0.0") {
                         $vcenterServer | Add-Member -notepropertyname 'ssoAdmin' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).username
                         $vcenterServer | Add-Member -notepropertyname 'ssoAdminPass' -notepropertyvalue ($pscCredentialDetails | Where-Object { ($_.credentialType -eq "SSO" -and $_.accountType -eq "SYSTEM") }).password
@@ -15971,7 +15971,7 @@ Function Get-NsxtServerDetail {
 
                     $nsxtCluster = New-Object -TypeName PSCustomObject
                     $nsxtCluster | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $nsxtServerDetails.vipFqdn
-                    $nsxtCluster | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username 
+                    $nsxtCluster | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username
                     $nsxtCluster | Add-Member -notepropertyname 'adminPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
                     $nsxtCluster | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).username
                     $nsxtCluster | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($nsxtCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM" -and $_.resource.domainName -eq $vcfWorkloadDomainDetails.name) }).password
@@ -15996,15 +15996,15 @@ Export-ModuleMember -Function Get-NsxtServerDetail
 Function Get-vRSLCMServerDetail {
     <#
         .SYNOPSIS
-        Get vRealize Suite Lifecycle Manager details from SDDC Manager
+        Get VMware Aria Suite Lifecycle details from SDDC Manager
 
         .DESCRIPTION
-        The Get-WSAServerDetail cmdlet retrieves the FQDN, root and admin credentials of vRealize Suite Lifecycle
+        The Get-WSAServerDetail cmdlet retrieves the FQDN, root and admin credentials of VMware Aria Suite Lifecycle
         Manager from SDDC Manager.
 
         .EXAMPLE
         Get-vRSLCMServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrives the vRealize Suite Lifecycle Manager details from SDDC Manager
+        This example retrives the VMware Aria Suite Lifecycle details from SDDC Manager
     #>
 
     Param (
@@ -16039,7 +16039,7 @@ Function Get-vRSLCMServerDetail {
                     $vrslcmDetails
                 }
                 else {
-                    Write-Error "Unable to obtain vRealize Suite Lifecycle Manager details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to obtain VMware Aria Suite Lifecycle details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -16110,15 +16110,15 @@ Export-ModuleMember -Function Get-WSAServerDetail
 Function Get-vRAServerDetail {
     <#
         .SYNOPSIS
-        Get vRealize Automation details from SDDC Manager
+        Get VMware Aria Automation details from SDDC Manager
 
         .DESCRIPTION
-        The Get-vRAServerDetail cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of vRealize Automation
+        The Get-vRAServerDetail cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of VMware Aria Automation
         from SDDC Manager.
 
         .EXAMPLE
         Get-vRAServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrives the vRealize Automation details from SDDC Manager
+        This example retrives the VMware Aria Automation details from SDDC Manager
     #>
 
     Param (
@@ -16153,7 +16153,7 @@ Function Get-vRAServerDetail {
                     $vraDetails
                 }
                 else {
-                    Write-Error "Unable to obtain vRealize Automation details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to obtain VMware Aria Automation details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -16167,15 +16167,15 @@ Export-ModuleMember -Function Get-vRAServerDetail
 Function Get-vROPsServerDetail {
     <#
         .SYNOPSIS
-        Get vRealize Operations details from SDDC Manager
+        Get VMware Aria Operations details from SDDC Manager
 
         .DESCRIPTION
-        The Get-vROPsServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of vRealize
-        Operations from SDDC Manager.
+        The Get-vROPsServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of
+        VMware Aria Operations from SDDC Manager.
 
         .EXAMPLE
         Get-vROPsServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrives the vRealize Operations details from SDDC Manager
+        This example retrives the VMware Aria Operations details from SDDC Manager
     #>
 
     Param (
@@ -16218,7 +16218,7 @@ Function Get-vROPsServerDetail {
                     $vropsDetails
                 }
                 else {
-                    Write-Error "Unable to obtain vRealize Operations Manager details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to obtain VMware Aria Operations details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -16232,15 +16232,15 @@ Export-ModuleMember -Function Get-vROPsServerDetail
 Function Get-vRLIServerDetail {
     <#
         .SYNOPSIS
-        Get vRealize Log Insight details from SDDC Manager
+        Get VMware Aria Operations for Logs details from SDDC Manager
 
         .DESCRIPTION
-        The Get-vRLIServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of vRealize
-        Log Insight from SDDC Manager.
+        The Get-vRLIServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of
+        VMware Aria Operations for Logs from SDDC Manager.
 
         .EXAMPLE
         Get-vRLIServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrives the vRealize Log Insight details from SDDC Manager
+        This example retrives the VMware Aria Operations for Logs details from SDDC Manager
     #>
 
     Param (
@@ -16279,7 +16279,7 @@ Function Get-vRLIServerDetail {
                     $vrliDetail
                 }
                 else {
-                    Write-Error "Unable to obtain vRealize Log Insight details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
+                    Write-Error "Unable to obtain VMware Aria Operations for Logs details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -16543,7 +16543,7 @@ public static class Placeholder {
     }
 }
 "@
-} 
+}
         [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [placeholder]::GetDelegate()
     }
 
@@ -16589,10 +16589,10 @@ Function Connect-vSphereMobServer {
     <#
         .SYNOPSIS
         Connect to the vSphere Managed Object Browser (MOB)
-        
+
         .DESCRIPTION
         The Connect-vSphereMobServer cmdlet is used to connect to the vSphere Managed Object Browser (MOB)
-        
+
         .EXAMPLE
         Connect-vSphereMobServer -server sfo-m01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
     #>
@@ -16627,7 +16627,7 @@ Function Connect-vSphereMobServer {
         }
         else {
             Throw "Failed to login to vSphere MOB Server ($($Global:DefaultMobServer.Server))"
-        } 
+        }
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -16639,10 +16639,10 @@ Function Disconnect-vSphereMobServer {
     <#
         .SYNOPSIS
         Disconnects from the vSphere Managed Object Browser (MOB)
-        
+
         .DESCRIPTION
         The Disconnect-vSphereMobServer cmdlet is used to disconnect from the vSphere Managed Object Browser (MOB)
-        
+
         .EXAMPLE
         Disconnect-vSphereMobServer
     #>
@@ -16840,7 +16840,7 @@ Function Set-VcenterRootPasswordExpiration {
         if ($PsBoundParameters.ContainsKey("neverexpire")) {
             $body = '{"config":{"password_expires": false}}'
         } else {
-            
+
             $body = '{"config":{"password_expires": true, "email": "'+ $email+ '", "max_days_between_password_change": "' + $maxDays + '", "warn_days_before_password_expiration": "' + $warnDays + '"}}'
         }
         $uri = "https://$vcApiServer/rest/appliance/local-accounts/root"
@@ -17000,8 +17000,8 @@ Function Get-LocalPasswordComplexity {
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
         )
 
-        if ($PsBoundParameters.ContainsKey('drift')) { 
-            if ($PsBoundParameters.ContainsKey('policyFile')) { 
+        if ($PsBoundParameters.ContainsKey('drift')) {
+            if ($PsBoundParameters.ContainsKey('policyFile')) {
                 $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.passwordComplexity"
             } else {
                 $command = "(Get-PasswordPolicyConfig -version $version).$product.passwordComplexity"
@@ -17063,7 +17063,7 @@ Function Set-LocalPasswordComplexity {
         This example updates the vCenter Server sfo-w01-vc01 with the default values
 
         .EXAMPLE
-        Set-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx -minLength 15 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 0 -history 5 
+        Set-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx -minLength 15 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 0 -history 5
         This example updates the NSX Manager sfo-w01-nsx01a with the values
     #>
     Param (
@@ -17187,8 +17187,8 @@ Function Get-LocalAccountLockout {
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
         )
 
-        if ($PsBoundParameters.ContainsKey('drift')) { 
-            if ($PsBoundParameters.ContainsKey('policyFile')) { 
+        if ($PsBoundParameters.ContainsKey('drift')) {
+            if ($PsBoundParameters.ContainsKey('policyFile')) {
                 $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.accountLockout"
             } else {
                 $command = "(Get-PasswordPolicyConfig -version $version).$product.accountLockout"
@@ -17305,7 +17305,7 @@ Function Get-GlobalPermission {
         $table = $html.getElementsByTagName("table")[3]
         $td = $table.getElementsByTagName("tr")[4].getElementsByTagName("td")[2]
         $li = $td.getElementsByTagName("ul")[0].getElementsByTagName("li")
-            
+
         foreach ($item in $li) {
             if ($item.innerHTML.StartsWith("<TABLE")) {
                 $principalTable = $item.getElementsByTagName("tr")[3].getElementsByTagName("td")[2].getElementsByTagName("table")[0]
@@ -17317,7 +17317,7 @@ Function Get-GlobalPermission {
                 }
                 $role = $item.getElementsByTagName("tr")[10].getElementsByTagName("li")[0].innerText
                 $propagate = $item.getElementsByTagName("tr")[9].getElementsByTagName("td")[2].innerText
-    
+
                 [PSCustomObject] @{
                     Principal = $principal
                     Type = $type
@@ -17408,7 +17408,7 @@ Function Remove-GlobalPermission {
         }
         else {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&principals=%3Cprincipals%3E%0D%0A+++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A+++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A%3C%2Fprincipals%3E"
-        }     
+        }
         $params = @{
             Uri = $uri
             WebSession = $Global:DefaultMobServer.WebSession
@@ -17498,7 +17498,7 @@ Function Remove-DrsVmToVmGroup {
         $spec.RulesSpec[0] = New-Object VMware.Vim.ClusterRuleSpec
         $spec.RulesSpec[0].RemoveKey = (Get-DrsVmToVmGroup -name $name -cluster $cluster).Key
         $spec.RulesSpec[0].Operation = 'remove'
-    
+
         $ClusterToReconfig = Get-View -Id $updateCluster.ExtensionData.MoRef
         $ClusterToReconfig.ReconfigureComputeResource_Task($spec, $true)
     }
@@ -17550,7 +17550,7 @@ Function Get-VcLicense {
         The Get-VcLicense cmdlet gets a list of licenses in vCenter Server
 
         .EXAMPLE
-        Get-VcLicense 
+        Get-VcLicense
         This example shows how to get a list of licenses in vCenter Server
     #>
 
@@ -17635,14 +17635,14 @@ Function Get-SubscribedLibrary {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
     )
 
-    Try {    
-        $body = '{ "name": "' + $name + '", "type": "SUBSCRIBED" }' 
+    Try {
+        $body = '{ "name": "' + $name + '", "type": "SUBSCRIBED" }'
         $subscribedLibraryId = Invoke-RestMethod -Method POST -Uri "https://$vcApiServer/api/content/library?action=find" -Headers $vcApiHeaders -body $body
         $return = Invoke-RestMethod -Method GET -URI "https://$vcApiServer/api/content/subscribed-library/$subscribedLibraryId" -Headers $vcApiHeaders
         $return
     }
     Catch {
-        Write-Error $_.Exception.Message 
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-SubscribedLibrary
@@ -17780,9 +17780,9 @@ Function Get-VsanHealthTest {
     $clusterView = (Get-Cluster -Name $cluster).ExtensionData.MoRef
     $results = $vsanClusterHealthSystem.VsanQueryVcClusterHealthSummary($clusterView,$null,$null,$true,$null,$null,'defaultView')
     $healthCheckGroups = $results.groups
-    
+
     $healthTests = New-Object System.Collections.ArrayList
-    
+
     foreach ($healthCheckGroup in $healthCheckGroups) {
         foreach ($test in $healthCheckGroup.GroupTests) {
             $testResult = [pscustomobject] @{
@@ -17793,7 +17793,7 @@ Function Get-VsanHealthTest {
             $healthTests += $testResult
         }
     }
-    $healthTests 
+    $healthTests
 }
 Export-ModuleMember -Function Get-VsanHealthTest
 
@@ -18936,7 +18936,7 @@ Function Set-WsaAccountLockout {
         Set configuration of the account lockout policy for Workspace ONE Access
 
         .EXAMPLE
-        Set-WsaAccountLockout -numAttempts 5 -attemptInterval 15 -unlockInterval 15 
+        Set-WsaAccountLockout -numAttempts 5 -attemptInterval 15 -unlockInterval 15
     #>
 
     Param (
@@ -19107,7 +19107,7 @@ public static class Placeholder {
     }
 }
 "@
-} 
+}
         [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [placeholder]::GetDelegate()
     }
 
@@ -19856,7 +19856,7 @@ Function New-NsxtPrefixList {
         The New-NsxtPrefixList cmdlet creates a Prefix List on a specified Tier-0 Gateway
 
         .EXAMPLE
-        New-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01 -subnetCIDR 192.168.20.0/24 -action PERMIT 
+        New-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01 -subnetCIDR 192.168.20.0/24 -action PERMIT
         This example creates a new IP Prefix List on a Tier 0 Gateway
     #>
 
@@ -20443,7 +20443,7 @@ Function Set-NsxtManagerAuthPolicy {
         [Parameter (Mandatory = $false)] [ValidateRange(0, 128)] [int]$max_sequence,
         [Parameter (Mandatory = $false)] [ValidateRange(0, 128)] [int]$minimum_unique_chars,
         [Parameter (Mandatory = $false)] [ValidateSet("sha512", "sha256")] [string]$hash_algorithm,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$password_remembrance 
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$password_remembrance
 	)
 
 	$authPolicyBody = @{}
@@ -20482,7 +20482,7 @@ Function Set-NsxtManagerAuthPolicy {
 	}
 	if ($PsBoundParameters.ContainsKey("minimum_unique_chars")) {
 		$authPolicyBody += @{minimum_unique_chars = $minimum_unique_chars}
-	} 
+	}
     if ($PsBoundParameters.ContainsKey("max_repeats")) {
 		$authPolicyBody += @{max_repeats = $max_repeats}
 	}
@@ -20753,16 +20753,16 @@ Export-ModuleMember -Function Remove-NsxtSyslogExporter
 Function Copy-vRealizeLoadBalancer {
     <#
         .SYNOPSIS
-        Creates a Load Balancer for vRealize component failover
+        Creates a Load Balancer for VMware Aria component failover
 
         .DESCRIPTION
-        Creates a new loadbalancer in a secondary VMware Cloud Foundation instance by duplicating the settings of the existing load balancer in the instance where the vRealize components are currently running
+        Creates a new loadbalancer in a secondary VMware Cloud Foundation instance by duplicating the settings of the existing load balancer in the instance where the VMware Aria components are currently running
 
         .EXAMPLE
         Copy-vRealizeLoadBalancer -sddcManagerAFQDN sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPassword VMw@re1! -sddcManagerBFQDN lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPassword VMw@re1! -serviceInterfaceIP 192.168.11.3 -wsaCertName xint-wsa01
         This example copies settings from Load Balancer in SDDC A to a new Load Balancer in SDDC B
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [String]$sddcManagerAFqdn,
         [Parameter (Mandatory = $true)] [String]$sddcManagerAUser,
@@ -20784,7 +20784,7 @@ Function Copy-vRealizeLoadBalancer {
         Request-VCFToken -fqdn $sddcManagerBFqdn -Username $sddcManagerBUser -Password $sddcManagerBPassword | Out-Null
         $mgmtNsxtClusterID = (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "Management"}).nsxtCluster.id
         $edgeClusterName = (Get-VCFEdgeCluster | Where-Object {$_.nsxtCluster.id -eq $mgmtNsxtClusterID}).Name
-        
+
         #Retrieve Segment, WSA, VRA and vROPS  Details from SDDC Manager A
         Request-VCFToken -fqdn $sddcManagerAFqdn -Username $sddcManagerAUser -Password $sddcManagerAPassword | Out-Null
         $xintSegmentDetails = Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}
@@ -20801,12 +20801,12 @@ Function Copy-vRealizeLoadBalancer {
     } Catch {
         Debug-ExceptionWriter -object $_
     }
-    
+
     Try {
         if ((!$edgeClusterName) -OR (!$xintSegmentDetails) -OR (!$wsaDetailsObject) -OR ((!$vraDetailsObject) -AND (!$vropsDetailsObject))) {
             Write-Output "Requirements for Copying Load Balancer not Met".
             if (!$wsaDetailsObject) {Write-Output "Clustered Workspace ONE Access was not discovered in the source SDDC Manager instance"}
-            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) {Write-Output "Neither vRealize Automation nor vRealize Operations Manager was discovered in the source SDDC Manager instance"}
+            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) {Write-Output "Neither VMware Aria Automation nor VMware Aria Operations was discovered in the source SDDC Manager instance"}
             if (!$xintSegmentDetails) {Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance"}
             if (!$edgeClusterName) {Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance"}
         } else {    
@@ -20820,7 +20820,7 @@ Function Copy-vRealizeLoadBalancer {
             }
 
             $wsaCertPresent = Add-CertToNsxCertificateStore -certName $wsaCertName
-        
+
             if ($wsaCertPresent -eq $true) {
                 $ConfigJson = $lbCustomObject.t1_spec.gw | ConvertTo-Json
                 New-NsxtTier1 -tier1Gateway $t1Name -json $ConfigJson
@@ -20844,7 +20844,7 @@ Function Copy-vRealizeLoadBalancer {
                             "ip_address": "'+ $lbCustomObject.t1_spec.static_routes.next_hops.ip_address + '",
                             "admin_distance": '+ $lbCustomObject.t1_spec.static_routes.next_hops.admin_distance + ',
                             "scope": [
-                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope +'"                    
+                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope +'"
                             ]
                         }
                     ],
@@ -20936,7 +20936,7 @@ Function New-vRealizeLoadBalancerSpec {
         $xintVropsNode3Ip = $vropsDetailsObject.node3IpAddress
         $xintVropsNode1Name = $vropsDetailsObject.fqdn[0].split(".")[0]
         $xintVropsNode2Name = $vropsDetailsObject.fqdn[1].split(".")[0]
-        $xintVropsNode3Name = $vropsDetailsObject.fqdn[2].split(".")[0]    
+        $xintVropsNode3Name = $vropsDetailsObject.fqdn[2].split(".")[0]
     }
 
     If ($vraDetailsObject) {
@@ -20946,7 +20946,7 @@ Function New-vRealizeLoadBalancerSpec {
         $xintVraNode3Ip = $vraDetailsObject.node3IpAddress
         $xintVraNode1Name = $vraDetailsObject.fqdn[0].split(".")[0]
         $xintVraNode2Name = $vraDetailsObject.fqdn[1].split(".")[0]
-        $xintVraNode3Name = $vraDetailsObject.fqdn[2].split(".")[0]   
+        $xintVraNode3Name = $vraDetailsObject.fqdn[2].split(".")[0]
     }
 
     $lbJson += '{'
@@ -21062,7 +21062,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-http-app-profile-redirect",'
-                    $lbJson += '"description": "Cross-Instance vRealize Operations Manager redirect HTTP to HTTPs",'
+                    $lbJson += '"description": "Cross-Instance VMware Aria Operations redirect HTTP to HTTPs",'
                     $lbJson += '"resource_type": "LBHttpProfile",'
                     $lbJson += '"idle_timeout": "1800",'
                     $lbJson += '"request_header_size": "1024",'
@@ -21073,7 +21073,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '},'
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-tcp-app-profile",'
-                    $lbJson += '"description": "vRealize Operations Manager TCP App Profile",'
+                    $lbJson += '"description": "VMware Aria Operations TCP App Profile",'
                     $lbJson += '"resource_type": "LBFastTcpProfile",'
                     $lbJson += '"idle_timeout": "1800",'
                     $lbJson += '"ha_flow_mirroring_enabled": "False",'
@@ -21083,7 +21083,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vraDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-tcp-app-profile",'
-                    $lbJson += '"description": "vRealize Automation TCP App Profile",'
+                    $lbJson += '"description": "VMware Aria Automation TCP App Profile",'
                     $lbJson += '"resource_type": "LBFastTcpProfile",'
                     $lbJson += '"idle_timeout": "1800",'
                     $lbJson += '"ha_flow_mirroring_enabled": "False",'
@@ -21091,7 +21091,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '},'
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-http-app-profile-redirect",'
-                    $lbJson += '"description": "vRealize Automation Profile to redirect HTTP to HTTPs",'
+                    $lbJson += '"description": "VMware Aria Automation Profile to redirect HTTP to HTTPs",'
                     $lbJson += '"resource_type": "LBHttpProfile",'
                     $lbJson += '"idle_timeout": "1800",'
                     $lbJson += '"request_header_size": "1024",'
@@ -21129,7 +21129,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-source-ip-persistence-profile",'
-                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster Source IP Persistence Profile",'
+                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster Source IP Persistence Profile",'
                     $lbJson += '"resource_type": "LBSourceIpPersistenceProfile",'
                     $lbJson += '"persistence_shared": "False",'
                     $lbJson += '"purge": "FULL",'
@@ -21151,7 +21151,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-server-pool",'
-                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster Server Pool",'
+                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster Server Pool",'
                     $lbJson += '"algorithm": "LEAST_CONNECTION",'
                     $lbJson += '"active_monitor_paths": ['
                         $lbJson += '"/infra/lb-monitor-profiles/vrops-https-monitor"'
@@ -21190,7 +21190,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vraDetailsObject) {    
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-server-pool",'
-                    $lbJson += '"description": "vRealize Automation Cluster Pool",'
+                    $lbJson += '"description": "VMware Aria Automation Cluster Pool",'
                     $lbJson += '"algorithm": "LEAST_CONNECTION",'
                     $lbJson += '"active_monitor_paths": ['
                         $lbJson += '"/infra/lb-monitor-profiles/vra-http-monitor"'
@@ -21268,7 +21268,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-https",'
-                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster UI",'
+                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster UI",'
                     $lbJson += '"resource_type": "LBVirtualServer",'
                     $lbJson += '"enabled": "true",'
                     $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/vrops-source-ip-persistence-profile",'
@@ -21282,7 +21282,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '},'
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-http-redirect",'
-                    $lbJson += '"description": "vRealize Operations Manager Analytics Cluster HTTP to HTTPS Redirect",'
+                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster HTTP to HTTPS Redirect",'
                     $lbJson += '"resource_type": "LBVirtualServer",'
                     $lbJson += '"enabled": "true",'
                     $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-http-app-profile-redirect",'
@@ -21296,7 +21296,7 @@ Function New-vRealizeLoadBalancerSpec {
             If ($vraDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-https",'
-                    $lbJson += '"description": "vRealize Automation Cluster UI",'
+                    $lbJson += '"description": "VMware Aria Automation Cluster UI",'
                     $lbJson += '"resource_type": "LBVirtualServer",'
                     $lbJson += '"enabled": "true",'
                     $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-tcp-app-profile",'
@@ -21309,7 +21309,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '},'
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-http-redirect",'
-                    $lbJson += '"description": "vRealize Automation HTTP to HTTPS Redirect",'
+                    $lbJson += '"description": "VMware Aria Automation HTTP to HTTPS Redirect",'
                     $lbJson += '"resource_type": "LBVirtualServer",'
                     $lbJson += '"enabled": "true",'
                     $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-http-app-profile-redirect",'
@@ -21440,23 +21440,23 @@ Function Add-CertToNsxCertificateStore {
     } Catch {
         Write-Error $_.Exception.Message
     }
-    
+
     $certAlreadyImported = ""
-    
+
     #check for existing certificate
     Try {
         $certAlreadyImported = Get-NsxtCertificate -certificateName $certName -ErrorAction SilentlyContinue
     } Catch {
         $certAlreadyImported = $false
     }
-    
+
     # report on existing cert or install new cert
     if ($certAlreadyImported) {
         $wsaCertPresent = $true
     } else {
             $pemContent = (Get-Content $pemFile) -join "\n"
             $keyContent = (Get-Content $keyFile) -join "\n"
-            $body = 
+            $body =
             '{
                 "pem_encoded": "<!--REPLACE WITH PEM DATA-->",
                 "private_key": "<!--REPLACE WITH KEY DATA-->" 
@@ -21471,7 +21471,7 @@ Function Add-CertToNsxCertificateStore {
                 $wsaCertPresent = $true
             } Catch {
                 Debug-ExceptionWriter -object $_
-            }   
+            }
     }
     Return $wsaCertPresent
 }
@@ -21481,10 +21481,10 @@ Function Get-NsxtEdgeCluster {
     <#
         .SYNOPSIS
         Gets NSX-T Edge Cluster Id
-    
+
         .DESCRIPTION
         The Get-NsxtEdgeCluster cmdlet gets the NSX Edge Cluster Id
-    
+
         .EXAMPLE
         Get-NsxtEdgeCluster
         This example returns the NSX Edge Cluster Id
@@ -21504,10 +21504,10 @@ Function New-NsxtTier1 {
     <#
         .SYNOPSIS
         Creates a Tier 1 Gateway
-    
+
         .DESCRIPTION
         The New-NsxtTier1 cmdlet creates a Teir 1 Gateway
-    
+
         .EXAMPLE
         New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
         This example creates a new Tier 1 Gateway
@@ -21532,10 +21532,10 @@ Function Set-NsxtTier1 {
     <#
         .SYNOPSIS
         Configures Tier 1 Gateway
-    
+
         .DESCRIPTION
         The Set-NsxtTier1 cmdlet configures a Tier 1 Gateway
-    
+
         .EXAMPLE
         Set-NsxtTier1 -tier1Gateway -json
         This example sets the configuration on a Tier 1 Gateway
@@ -21557,13 +21557,13 @@ Function Set-NsxtTier1 {
 Export-ModuleMember -Function Set-NsxtTier1
 
 Function New-NsxtTier1ServiceInterface {
-    <#        
+    <#
         .SYNOPSIS
         Creates Service Interface on Tier 1 Gateway
-    
+
         .DESCRIPTION
         The New-NsxtTier1ServiceInterface cmdlet configures a Service Interface on Tier 1 Gateway
-    
+
         .EXAMPLE
         New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
         This example configures a Service Interface on a Tier 1 Gateway
@@ -21589,10 +21589,10 @@ Function New-NsxtTier1StaticRoute {
     <#
         .SYNOPSIS
         Creates Static Route on Tier 1 Gateway
-    
+
         .DESCRIPTION
         The New-New-NsxtTier1StaticRoute cmdlet creates a static route on Tier 1 Gateway
-    
+
         .EXAMPLE
         New-NsxtTier1StaticRoute -tier1Gateway -segment -json
         This example configures a Service Interface on a Tier 1 Gateway
@@ -21617,11 +21617,11 @@ Export-ModuleMember -Function New-NsxtTier1StaticRoute
 Function New-NsxtLoadBalancer {
     <#
         .SYNOPSIS
-        Creates a Load Balancer 
-    
+        Creates a Load Balancer
+
         .DESCRIPTION
-        The New-NsxtLoadBalancer cmdlet creates a load balancer 
-    
+        The New-NsxtLoadBalancer cmdlet creates a load balancer
+
         .EXAMPLE
         New-NsxtLoadBalancer -lbName -json
         This example creates a load balancer
@@ -21642,14 +21642,14 @@ Function New-NsxtLoadBalancer {
 }
 Export-ModuleMember -Function New-NsxtLoadBalancer
 
-Function New-NsxtLBServiceMonitor { 
+Function New-NsxtLBServiceMonitor {
     <#
         .SYNOPSIS
         Creates a Load Balancer Service Monitor
-    
+
         .DESCRIPTION
         The New-NsxtLBServiceMonitor cmdlet creates a Load Balancer Service Monitor
-    
+
         .EXAMPLE
         New-NsxtLBServiceMonitor -monitorName -json
         This example creates a Load Balancer Serviec Monitor
@@ -21674,10 +21674,10 @@ Function New-NsxtLBAppProfile {
     <#
         .SYNOPSIS
         Creates a Load Balancer Application Profile
-    
+
         .DESCRIPTION
         The New-NsxtLBAppProfile cmdlet creates a Load Balancer Application Profile
-    
+
         .EXAMPLE
         New-NsxtLBAppProfile -appProfileName -json
         This example creates a Load Balancer Application Profile
@@ -21687,7 +21687,7 @@ Function New-NsxtLBAppProfile {
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
-    
+
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-app-profiles/$($appProfileName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
@@ -21702,10 +21702,10 @@ Function New-NsxtLBPersistenceAppProfile {
     <#
         .SYNOPSIS
         Creates a Load Balancer Persistence Application Profile
-    
+
         .DESCRIPTION
         The New-NsxtLBPersistenceAppProfile cmdlet creates a Load Balancer Persistence Application Profile
-    
+
         .EXAMPLE
         New-NsxtLBPersistenceAppProfile -appProfileName -json
         This example creates a Load Balancer Persistence Application Profile
@@ -21715,7 +21715,7 @@ Function New-NsxtLBPersistenceAppProfile {
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
     )
-    
+
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-persistence-profiles/$($appProfileName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
@@ -21730,10 +21730,10 @@ Function New-NsxtLBPool {
     <#
         .SYNOPSIS
         Creates a Load Balancer Pool
-    
+
         .DESCRIPTION
         The New-NsxtLBPool cmdlet creates a Load Balancer Pool
-    
+
         .EXAMPLE
         New-NsxtLBPool -poolName -json
         This example creates a Load Balancer Pool
@@ -21758,10 +21758,10 @@ Function New-NsxtLBVirtualServer {
     <#
         .SYNOPSIS
         Creates a Load Balancer Virtual Server
-    
+
         .DESCRIPTION
         The New-NsxtLBVirtualServer cmdlet creates a Load Balancer Virtual Server
-    
+
         .EXAMPLE
         New-NsxtLBVirtualServer -virtualServerName -json
         This example creates a Load Balancer Virtual Server
@@ -21770,7 +21770,7 @@ Function New-NsxtLBVirtualServer {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$virtualServerName,
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
-    ) 
+    )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-virtual-servers/$($virtualServerName)"
@@ -21786,10 +21786,10 @@ Function Get-NsxtCertificate {
     <#
         .SYNOPSIS
         Gets NSX Certificates
-    
+
         .DESCRIPTION
         The Get-NsxtCertificates cmdlet gets certificates installed in NSX
-    
+
         .EXAMPLE
         Get-NsxtCertificates
         This example gets the certificates installed in NSX
@@ -21819,10 +21819,10 @@ Function Set-NsxtCertificate {
     <#
         .SYNOPSIS
         Installs a Certificate in NSX
-    
+
         .DESCRIPTION
         The Set-NsxtCertificates cmdlet installs certificates in NSX
-    
+
         .EXAMPLE
         Set-NsxtCertificates
         This example installs the certificates in NSX
@@ -22293,7 +22293,7 @@ Function Get-NsxtTransportNodeStatus {
 
         .EXAMPLE
         Get-NsxtTransportNodeStatus -type host
-        This example returns the status of the host transport nodes.   
+        This example returns the status of the host transport nodes.
     #>
 
     Param (
@@ -23130,7 +23130,7 @@ Function Get-TanzuKubernetesCluster {
         This example retrieves all Tanzu Kubernetes Clusters from all Namespaces
 
         .EXAMPLE
-        Get-TanzuKubernetesCluster -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01 
+        Get-TanzuKubernetesCluster -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01
         This example retrieves a Tanzu Kubernetes Cluster named "sfo-w01-tkc01" from the Namespace specified "sfo-w01-tkc01"
     #>
 
@@ -23212,15 +23212,15 @@ Function Get-VMClass {
         The Get-VMClass cmdlet retrieves information on a Virtual Machine class
 
         .EXAMPLE
-        Get-VMClass 
+        Get-VMClass
         This example retrieves all Virtual Machine classes
 
         .EXAMPLE
-        Get-VMClass -vmClass guaranteed-small 
+        Get-VMClass -vmClass guaranteed-small
         This example retrieves information on the Virtual Machine Class guaranteed-small
 
         .EXAMPLE
-        Get-VMClass -namespace sfo-w01-tkc01 
+        Get-VMClass -namespace sfo-w01-tkc01
         This example retrieves Virtual Machine Classes assigned to the namespace sfo-w01-tkc01
     #>
 
@@ -23289,7 +23289,7 @@ Function Add-VMClass {
         }
 
         $uri = "https://$vcApiServer/api/vcenter/namespaces/instances/$namespace"
-        $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vcApiHeaders -body $body 
+        $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vcApiHeaders -body $body
         $response
     }
     Catch {
@@ -23323,7 +23323,7 @@ Function Get-WMLicenseStatus {
 
     }
     Catch {
-        Debug-ExceptionWriter -object $_ 
+        Debug-ExceptionWriter -object $_
     }
 }
 Export-ModuleMember -Function Get-WMLicenseStatus
@@ -23356,7 +23356,7 @@ Function Request-WMClusterCSR {
     Try {
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters"
         $clusterId = (Invoke-RestMethod -Method GET -URI $uri -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $cluster }).cluster
-        
+
         $output = New-Object -TypeName PSCustomObject
         $output | Add-Member -notepropertyname 'common_name' -notepropertyvalue $commonName
         $output | Add-Member -notepropertyname 'organization_name' -notepropertyvalue $organization
@@ -23422,7 +23422,7 @@ Function Install-WMClusterCertificate {
             Write-Error "Error parsing TLS certificate"
             Break
         }
-        $body = '{ "tls_endpoint_certificate": "'+ $certificateFormatted +'" }' 
+        $body = '{ "tls_endpoint_certificate": "'+ $certificateFormatted +'" }'
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters"
         $clusterId = (Invoke-RestMethod -Method GET -URI $uri -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $cluster }).cluster
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters/$clusterId/"
@@ -23473,7 +23473,7 @@ Function Watch-WmClusterConfigStatus {
             $wmCluster = (Get-WMCluster -Cluster $wmClusterName -ErrorAction SilentlyContinue)
             Start-Sleep $sleepTime
             $try++
-        } 
+        }
         Until (($wmCluster.ConfigStatus -ne "Configuring") -or ($try -gt $retriesCount))
         if ($try -gt $retriesCount) {
             Write-Error "Retries exeeded max count $retriesCount : CONFIGURATION_FAILED"
@@ -23496,20 +23496,20 @@ Export-ModuleMember -Function Watch-WmClusterConfigStatus
 #####################################################################
 
 #####################################################################
-#Region     Start vRealize Suite Lifecycle Manager Functions   ######
+#Region     Start VMware Aria Suite Lifecycle Functions   ######
 
 Function Request-vRSLCMToken {
     <#
         .SYNOPSIS
-        Connects to the specified vRealize Suite Lifecycle Manager and obtains authorization token
+        Connects to the specified VMware Aria Suite Lifecycle and obtains authorization token
 
         .DESCRIPTION
-        The Request-vRSLCMToken cmdlet connects to the specified vRealize Suite Lifecycle Manager and
+        The Request-vRSLCMToken cmdlet connects to the specified VMware Aria Suite Lifecycle and
         obtains an authorization token. It is required once per session before running all other cmdlets.
 
         .EXAMPLE
         Request-vRSLCMToken -fqdn xreg-vrslcm.rainpole.io -username admin@local -password VMware1!
-        This example shows how to connect to the vRealize Suite Lifecycle Manager appliance
+        This example shows how to connect to the VMware Aria Suite Lifecycle appliance
     #>
 
     Param (
@@ -23537,7 +23537,7 @@ Function Request-vRSLCMToken {
             $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -UseBasicParsing
         }
         if ($vrslcmResponse.StatusCode -eq 200) {
-            Write-Output "Successfully connected to the vRealize Suite Lifecycle Manager Appliance: $vrslcmAppliance"
+            Write-Output "Successfully connected to the VMware Aria Suite Lifecycle Appliance: $vrslcmAppliance"
         }
     }
     Catch {
@@ -23549,14 +23549,14 @@ Export-ModuleMember -Function Request-vRSLCMToken
 Function Get-vRSLCMHealth {
     <#
         .SYNOPSIS
-        Check vRealize Suite Lifecycle Manager Health Status
+        Check VMware Aria Suite Lifecycle Health Status
 
         .DESCRIPTION
-        The Get-vRSLCMHealth cmdlet checks vRealize Suite Lifecycle Manager Health Status
+        The Get-vRSLCMHealth cmdlet checks VMware Aria Suite Lifecycle Health Status
 
         .EXAMPLE
         Get-vRSLCMHealth
-        This example checks vRealize Suite Lifecycle Manager Health Status
+        This example checks VMware Aria Suite Lifecycle Health Status
     #>
 
     Try {
@@ -23655,7 +23655,7 @@ Function Add-vRSLCMLockerPassword {
                 "alias": "'+ $alias +'",
                 "password": "'+ $password +'",
                 "userName": "'+ $userName +'"
-            }'           
+            }'
         }
 
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
@@ -23847,7 +23847,7 @@ Function Get-vRSLCMLockerLicense {
         This example gets the details of a license based on the vmid
 
         .EXAMPLE
-        Get-vRSLCMLockerLicense -alias "vRealize Operations Manager"
+        Get-vRSLCMLockerLicense -alias "VMware Aria Operations"
         This example gets the details of a license based on the alias name
     #>
 
@@ -23888,7 +23888,7 @@ Function Add-vRSLCMLockerLicense {
         The Add-vRSLCMLockerLicense cmdlet adds as new license to the Locker
 
         .EXAMPLE
-        Add-vRSLCMLockerLicense -alias "vRealise Operations Manager" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
+        Add-vRSLCMLockerLicense -alias "VMware Aria Operations" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
         This example adds a license to the Locker
     #>
 
@@ -23902,7 +23902,7 @@ Function Add-vRSLCMLockerLicense {
         $body = '{
             "alias": "'+ $alias +'",
             "serialKey": "'+ $license +'"
-        }'           
+        }'
 
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
@@ -23944,14 +23944,14 @@ Export-ModuleMember -Function Remove-vRSLCMLockerLicense
 Function Get-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Get paginated list of datacenters in vRealize Suite Lifecycle Manager
+        Get paginated list of datacenters in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Get-vRSLCMDatacenter cmdlet gets a paginated list of datacenters in vRealize Suite Lifecycle Manager
+        The Get-vRSLCMDatacenter cmdlet gets a paginated list of datacenters in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMDatacenter
-        This example gets all datacenters in vRealize Suite Lifecycle Manager
+        This example gets all datacenters in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMDatacenter -vmid 2b54b028-9eba-4d2f-b6ee-66428ea2b297
@@ -23993,14 +23993,14 @@ Export-ModuleMember -Function Get-vRSLCMDatacenter
 Function Add-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Add a datacenter in vRealize Suite Lifecycle Manager
+        Add a datacenter in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Add-vRSLCMDatacenter cmdlet adds a datacenter in vRealize Suite Lifecycle Manager
+        The Add-vRSLCMDatacenter cmdlet adds a datacenter in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMDatacenter -datacenterName xint-m01-dc01 -location "San Francisco;California;US;37.77493;-122.41942"
-        This example adds a datacenter in vRealize Suite Lifecycle Manager
+        This example adds a datacenter in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24013,7 +24013,7 @@ Function Add-vRSLCMDatacenter {
         $body = '{
             "dataCenterName": "'+ $datacenterName +'",
             "primaryLocation": "'+ $location +'"
-        }'  
+        }'
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
 }
@@ -24026,14 +24026,14 @@ Export-ModuleMember -Function Add-vRSLCMDatacenter
 Function Remove-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Remove a datacenter from vRealize Suite Lifecycle Manager
+        Remove a datacenter from VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Remove-vRSLCMDatacenter cmdlet removes a datacenter from vRealize Suite Lifecycle Manager
+        The Remove-vRSLCMDatacenter cmdlet removes a datacenter from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMDatacenter -datacenterVmid <datacenter_vmid>
-        This example removes a datacenter from vRealize Suite Lifecycle Manager
+        This example removes a datacenter from VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24054,10 +24054,10 @@ Export-ModuleMember -Function Remove-vRSLCMDatacenter
 Function Get-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Get paginated list of vCenter Servers in vRealize Suite Lifecycle Manager
+        Get paginated list of vCenter Servers in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Get-vRSLCMDatacenterVcenter cmdlet gets a paginated list of vCenter Servers in vRealize Suite Lifecycle Manager
+        The Get-vRSLCMDatacenterVcenter cmdlet gets a paginated list of vCenter Servers in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid>
@@ -24104,10 +24104,10 @@ Export-ModuleMember -Function Get-vRSLCMDatacenterVcenter
 Function Add-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Add a vCenter Server to a Datacenter in vRealize Suite Lifecycle Manager
+        Add a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Add-vRSLCMDatacenterVcenter cmdlet adds a vCenter Servers to a Datacenter in vRealize Suite Lifecycle Manager
+        The Add-vRSLCMDatacenterVcenter cmdlet adds a vCenter Servers to a Datacenter in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterFqdn <vcenter_fqdn> -userLockerAlias <user_alias>
@@ -24141,14 +24141,14 @@ Export-ModuleMember -Function Add-vRSLCMDatacenterVcenter
 Function Get-vRSLCMEnvironment {
     <#
         .SYNOPSIS
-        Get paginated list of environments in vRealize Suite Lifecycle Manager
+        Get paginated list of environments in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Get-vRSLCMEnvironment cmdlet gets a paginated list of environments in vRealize Suite Lifecycle Manager
+        The Get-vRSLCMEnvironment cmdlet gets a paginated list of environments in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMEnvironment
-        This example gets all environments in vRealize Suite Lifecycle Manager
+        This example gets all environments in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24176,18 +24176,18 @@ Export-ModuleMember -Function Get-vRSLCMEnvironment
 Function Add-vRSLCMEnvironment {
     <#
         .SYNOPSIS
-        Create an environment in vRealize Suite Lifecycle Manager
+        Create an environment in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Add-vRSLCMEnvironment cmdlet to create an environment in vRealize Suite Lifecycle Manager
+        The Add-vRSLCMEnvironment cmdlet to create an environment in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json)
-        This example creates an environment in vRealize Suite Lifecycle Manager
+        This example creates an environment in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json) -vmid c907c25b-1c61-465b-b7cb-4100ac1ce331 -addProduct
-        This example adds a new product to an existing environment in vRealize Suite Lifecycle Manager
+        This example adds a new product to an existing environment in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24217,14 +24217,14 @@ Export-ModuleMember -Function Add-vRSLCMEnvironment
 Function Remove-vRSLCMEnvironment {
     <#
         .SYNOPSIS
-        Remove an environment from vRealize Suite Lifecycle Manager
+        Remove an environment from VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Remove-vRSLCMEnvironment cmdlet removes an environment from vRealize Suite Lifecycle Manager
+        The Remove-vRSLCMEnvironment cmdlet removes an environment from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMEnvironment -environmentId <environmentId>
-        This example removes an environment from vRealize Suite Lifecycle Manager
+        This example removes an environment from VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24249,19 +24249,19 @@ Function Get-vRSLCMRequest {
         Get all Requests
 
         .DESCRIPTION
-        The Get-vRSLCMRequest cmdlet gets all requests in vRealize Suite Lifecycle Manager
+        The Get-vRSLCMRequest cmdlet gets all requests in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMRequest
-        This example gets all requests vRealize Suite Lifecycle Manager
-        
+        This example gets all requests VMware Aria Suite Lifecycle
+
         .EXAMPLE
         Get-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398
-        This example gets the request by id from vRealize Suite Lifecycle Manager
-        
+        This example gets the request by id from VMware Aria Suite Lifecycle
+
         .EXAMPLE
         Get-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398 -errorCauses
-        This example gets the errors for a request by id from vRealize Suite Lifecycle Manager
+        This example gets the errors for a request by id from VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24298,11 +24298,11 @@ Function Remove-vRSLCMRequest {
         Delete a Request
 
         .DESCRIPTION
-        The Remove-vRSLCMRequest cmdlet removes a request from vRealize Suite Lifecycle Manager
+        The Remove-vRSLCMRequest cmdlet removes a request from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMRequest -requestId <id>
-        This example removes a request from vRealize Suite Lifecycle Manager
+        This example removes a request from VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24326,11 +24326,11 @@ Function Watch-vRSLCMRequest {
         Poll request
 
         .DESCRIPTION
-        The Watch-vRSLCMRequest cmdlet polls a request in vRealize Suite Lifecycle Manager
+        The Watch-vRSLCMRequest cmdlet polls a request in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Watch-vRSLCMRequest -vmid <vmid>
-        This example polls the request in vRealize Suite Lifecycle Manager
+        This example polls the request in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24340,9 +24340,9 @@ Function Watch-vRSLCMRequest {
     Try {
         Do {
             $requestStatus = (Get-vRSLCMRequest | Where-Object {$_.vmid -eq $vmid}).state
-        } 
+        }
         Until ($requestStatus -ne "INPROGRESS")
-        Write-Output "vRealize Suite Lifecycle Manager request: $vmid completed with the following state: $requestStatus"
+        Write-Output "VMware Aria Suite Lifecycle request: $vmid completed with the following state: $requestStatus"
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -24359,7 +24359,7 @@ Function Resume-vRSLCMRequest {
         The Resume-vRSLCMRequest cmdlet reties a request
 
         .EXAMPLE
-        Resume-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398 
+        Resume-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398
         This example reties the request based on the request ID provided
     #>
 
@@ -24385,11 +24385,11 @@ Function Export-WsaJsonSpec {
 
         .DESCRIPTION
         The Export-WsaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy Clustered Workspace ONE Access using vRealize Suite Lifecycle Manager:
+        to deploy Clustered Workspace ONE Access using VMware Aria Suite Lifecycle:
         - Validates that the Planning and Preparation is available
-        - Validates that network connectivity is available to vRealize Suite Lifecycle Manager
-        - Makes a connection to the vRealize Suite Lifecycle Manager instance and validates that authentication possible
-        - Generates the JSON specification file using the Planning and Preparation workbook and details from vRealize Suite Lifecycle Manager
+        - Validates that network connectivity is available to VMware Aria Suite Lifecycle
+        - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
+        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
@@ -24429,17 +24429,17 @@ Function Export-WsaJsonSpec {
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
-        ### Obtain Configuration Information from vRealize Suite Lifecycle Manager
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                     $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value}) {
-                                if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
-                                    if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
+                                if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) {
+                                    if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) {
                                         if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
                                             if ($vcfVersion -ge "4.5.0") {
                                                 $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
@@ -24504,7 +24504,7 @@ Function Export-WsaJsonSpec {
                                                         'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
                                                         'lockerCertificate'     = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
                                                     }
-                                                
+
                                                     $clusterDelegateObject = @()
                                                     $clusterDelegateObject += [pscustomobject]@{
                                                         'ip'			= $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
@@ -24531,7 +24531,7 @@ Function Export-WsaJsonSpec {
                                                     }
                                                 }
 
-                                                #### Generate vRealize Log Insight Node Details
+                                                #### Generate VMware Aria Operations for Logs Node Details
                                                 $wsaPrimaryProperties = @()
                                                 $wsaPrimaryProperties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
@@ -24588,16 +24588,18 @@ Function Export-WsaJsonSpec {
                                                     'version'		= $wsaVersion
                                                     'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'			= $nodesObject	
+                                                    'nodes'			= $nodesObject
                                                 }
-                                                
+
                                                 $wsaDeploymentObject = @()
                                                 $wsaDeploymentObject += [pscustomobject]@{
                                                     'environmentId'         = "globalenvironment"
                                                     'environmentName'       = "globalenvironment"
                                                     'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
                                                     'products'              = $productsObject
-                                                } 
+                                                }
+
+                                                $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "wsaDeploymentSpec.json"
 
                                                 $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
                                                 Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
@@ -24606,7 +24608,6 @@ Function Export-WsaJsonSpec {
                                             }
                                         } else {
                                             Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
-                                        }
                                     } else {
                                         Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                     }
@@ -24615,9 +24616,7 @@ Function Export-WsaJsonSpec {
                                 }
                             } else {
                                 Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
-                            }
-                        }
-                    }
+                    } else {
                 }
             }
         }
@@ -24632,14 +24631,14 @@ Export-ModuleMember -Function Export-WsaJsonSpec
 Function New-WSADeployment {
     <#
         .SYNOPSIS
-        Deploy Clustered Workspace ONE Access to vRealize Suite Lifecycle Manager
+        Deploy Clustered Workspace ONE Access to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-WSADeployment cmdlet deploys Clustered Workspace ONE Access via vRealize Suite Lifecycle Manager. The
+        The New-WSADeployment cmdlet deploys Clustered Workspace ONE Access via VMware Aria Suite Lifecycle. The
         cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity is available to the SDDC Manager instance
         - Makes a connection to the SDDC Manager instance and validates that authentication possible
-        - Validates that Clustered Workspace ONE Access has not been deployed in VMware Cloud Foundation aware mode 
+        - Validates that Clustered Workspace ONE Access has not been deployed in VMware Cloud Foundation aware mode
         - Requests a new deployment of Clustered Workspace ONE Access
 
         .EXAMPLE
@@ -24712,8 +24711,7 @@ Function New-WSADeployment {
                                                 }
                                             } else {
                                                 Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI"
-                                            }
-                                            
+                                            }                  
                                         } else {
                                             Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
                                         }
@@ -24728,7 +24726,7 @@ Function New-WSADeployment {
                             }
                         }
                     }
-                } 
+                }
             }
         }
     } Catch {
@@ -24784,14 +24782,14 @@ Export-ModuleMember -Function Set-WorkspaceOneApplianceNtpConfig
 Function New-vRSLCMAdapterOperation {
     <#
         .SYNOPSIS
-        Add a vRealize Operations Adapter via vRealize Suite Lifecycle Manager
+        Add a VMware Aria Operations Adapter via VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRSLCMAdapterOperation cmdlet to create a vRealize Operations Manager Afapter in vRealize Suite Lifecycle Manager
+        The New-vRSLCMAdapterOperation cmdlet to create a VMware Aria Operations Afapter in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vRSLCMAdapterOperation -json .\addAdapter.json
-        This example creates an adapter in vRealize Operations via vRealize Suite Lifecycle Manager
+        This example creates an adapter in VMware Aria Operations via VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24822,14 +24820,14 @@ Export-ModuleMember -Function New-vRSLCMAdapterOperation
 Function Get-vRSLCMProductNtpServer {
     <#
         .SYNOPSIS
-        Get paginated list of product NTP servers in vRealize Suite Lifecycle Manager
+        Get paginated list of product NTP servers in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Get-vRSLCMProductNtpServer cmdlet gets a paginated list of product NTP servers in vRealize Suite Lifecycle Manager
+        The Get-vRSLCMProductNtpServer cmdlet gets a paginated list of product NTP servers in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMProductNtpServer
-        This example gets all product NTP servers in vRealize Suite Lifecycle Manager
+        This example gets all product NTP servers in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24857,14 +24855,14 @@ Export-ModuleMember -Function Get-vRSLCMProductNtpServer
 Function Remove-vRSLCMProductNtpServer {
     <#
         .SYNOPSIS
-        Removes a specified NTP server from vRealize Suite Lifecycle Manager
+        Removes a specified NTP server from VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Remove-vRSLCMProductNtpServer cmdlet removes a specified NTP server from vRealize Suite Lifecycle Manager
+        The Remove-vRSLCMProductNtpServer cmdlet removes a specified NTP server from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMProductNtpServer -ntpServer ntp.lax.rainpole.io
-        This example gets all product NTP servers in vRealize Suite Lifecycle Manager
+        This example gets all product NTP servers in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24885,15 +24883,15 @@ Export-ModuleMember -Function Remove-vRSLCMProductNtpServer
 Function Get-vRSLCMApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Get appliance NTP configuration in vRealize Suite Lifecycle Manager
+        Get appliance NTP configuration in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Get-vRSLCMApplianceNtpConfig cmdlet gets appliance NTP configuration in vRealize Suite Lifecycle Manager
+        The Get-vRSLCMApplianceNtpConfig cmdlet gets appliance NTP configuration in VMware Aria Suite Lifecycle
 
 
         .EXAMPLE
         Get-vRSLCMApplianceNtpConfig
-        This example gets the appliance NTP configuration in vRealize Suite Lifecycle Manager
+        This example gets the appliance NTP configuration in VMware Aria Suite Lifecycle
     #>
 
     Try {
@@ -24911,14 +24909,14 @@ Export-ModuleMember -Function Get-vRSLCMApplianceNtpConfig
 Function Add-vRSLCMProductNtpServer {
     <#
         .SYNOPSIS
-        Add a server to product NTP configuration in vRealize Suite Lifecycle Manager
+        Add a server to product NTP configuration in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Add-vRSLCMProductNtpServer cmdlet adds a server tp product NTP configuration in vRealize Suite Lifecycle Manager
+        The Add-vRSLCMProductNtpServer cmdlet adds a server tp product NTP configuration in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMProductNtpServer -ntpServer "ntp.lax.rainpole.io" -ntpServerDesc "VCF NTP Server 2"
-        This adds the server ntp.lax.rainpole.io to the product NTP configuration in vRealize Suite Lifecycle Manager
+        This adds the server ntp.lax.rainpole.io to the product NTP configuration in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24947,14 +24945,14 @@ Export-ModuleMember -Function Add-vRSLCMProductNtpServer
 Function Add-vRSLCMApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Add a server to appliance NTP configuration in vRealize Suite Lifecycle Manager
+        Add a server to appliance NTP configuration in VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Add-vRSLCMApplianceNtpConfig cmdlet adds a server to appliance NTP configuration in vRealize Suite Lifecycle Manager
+        The Add-vRSLCMApplianceNtpConfig cmdlet adds a server to appliance NTP configuration in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMApplianceNtpConfig -ntpServer ntp.lax.rainpole.io
-        This adds the server ntp.lax.rainpole.io to the appliance NTP configuration in vRealize Suite Lifecycle Manager
+        This adds the server ntp.lax.rainpole.io to the appliance NTP configuration in VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -24985,14 +24983,14 @@ Export-ModuleMember -Function Add-vRSLCMApplianceNtpConfig
 Function Set-vRSLCMApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Sets the appliance NTP configuration in vRealize Suite Lifecycle Manager to use only a specified NTP server
+        Sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server
 
         .DESCRIPTION
-        The Set-vRSLCMApplianceNtpConfig cmdlet sets the appliance NTP configuration in vRealize Suite Lifecycle Manager to use only a specified NTP server
+        The Set-vRSLCMApplianceNtpConfig cmdlet sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server
 
         .EXAMPLE
         Add-vRSLCMApplianceNtpConfig -ntpServer ntp.sfo.rainpole.io
-        This sets the appliance NTP configuration in vRealize Suite Lifecycle Manager to use only NTP server ntp.sfo.rainpole.io.
+        This sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only NTP server ntp.sfo.rainpole.io.
     #>
 
     Param (
@@ -25020,14 +25018,14 @@ Export-ModuleMember -Function Set-vRSLCMApplianceNtpConfig
 Function Get-vRSLCMProductNode {
     <#
         .SYNOPSIS
-        Gets the nodes in the vRealize Suite Lifecycle Manager inventory for a specified environment and product
+        Gets the nodes in the VMware Aria Suite Lifecycle inventory for a specified environment and product
 
         .DESCRIPTION
-        The Get-vRSLCMProductNode cmdlet gets the nodes in the vRealize Suite Lifecycle Manager inventory for a specified environment and product
+        The Get-vRSLCMProductNode cmdlet gets the nodes in the VMware Aria Suite Lifecycle inventory for a specified environment and product
 
         .EXAMPLE
         Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
-        This returns a list of nodes in the Workspace ONE Access instance managed by vRealize Suite Lifecycle Manager
+        This returns a list of nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -25051,14 +25049,14 @@ Export-ModuleMember -Function Get-vRSLCMProductNode
 Function Stop-vRSLCMProductNode {
     <#
         .SYNOPSIS
-        Shuts down nodes in a vRealize Suite Lifecycle Manager-managed product
+        Shuts down nodes in a VMware Aria Suite Lifecycle-managed product
 
         .DESCRIPTION
-        The Stop-vRSLCMProductNode cmdlet shuts down nodes in a vRealize Suite Lifecycle Manager-managed product
+        The Stop-vRSLCMProductNode cmdlet shuts down nodes in a VMware Aria Suite Lifecycle-managed product
 
         .EXAMPLE
         Stop-vRSLCMProductNode -environment globalenvironment -product vidm
-        This example shuts down all nodes in the Workspace ONE Access instance managed by vRealize Suite Lifecycle Manager
+        This example shuts down all nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -25080,14 +25078,14 @@ Export-ModuleMember -Function Stop-vRSLCMProductNode
 Function Start-vRSLCMProductNode {
     <#
         .SYNOPSIS
-        Starts nodes in a vRealize Suite Lifecycle Manager-managed product
+        Starts nodes in a VMware Aria Suite Lifecycle-managed product
 
         .DESCRIPTION
-        The Start-vRSLCMProductNode cmdlet starts nodes in a vRealize Suite Lifecycle Manager-managed product
+        The Start-vRSLCMProductNode cmdlet starts nodes in a VMware Aria Suite Lifecycle-managed product
 
         .EXAMPLE
         Start-vRSLCMProductNode -environment globalenvironment -product vidm
-        This example starts all nodes in the Workspace ONE Access instance managed by vRealize Suite Lifecycle Manager
+        This example starts all nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle
     #>
 
     Param (
@@ -25262,24 +25260,24 @@ Export-ModuleMember -Function Register-vRSLCMProductBinary
 #####################################################################
 
 #####################################################################
-#Region     Start vRealize Automation Functions               ######
+#Region     Start VMware Aria Automation Functions               ######
 
 Function Request-vRAToken {
     <#
         .SYNOPSIS
-        Connects to the specified vRealize Automation and obtains authorization token
+        Connects to the specified VMware Aria Automation and obtains authorization token
 
         .DESCRIPTION
-        The Request-vRAToken cmdlet connects to the specified vRealize Automation and obtains an authorization token.
+        The Request-vRAToken cmdlet connects to the specified VMware Aria Automation and obtains an authorization token.
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
         Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1!
-        This example shows how to connect to the vRealize Automation appliance
+        This example shows how to connect to the VMware Aria Automation appliance
 
         .EXAMPLE
         Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1! -displayToken
-        This example shows how to connect to the vRealize Automation appliance and display the token needed for Terraform
+        This example shows how to connect to the VMware Aria Automation appliance and display the token needed for Terraform
     #>
 
     Param (
@@ -25321,7 +25319,7 @@ Function Request-vRAToken {
             $vraHeaders.Add("Accept", "application/json")
             $vraHeaders.Add("Content-Type", "application/json")
             $vraHeaders.Add("Authorization", "Bearer " + $vraResponse.Headers.'Csp-Auth-Token')
-            Write-Output "Successfully connected to vRealize Automation: $vraAppliance"
+            Write-Output "Successfully connected to VMware Aria Automation: $vraAppliance"
             if ($PsBoundParameters.ContainsKey("displayToken")) {
                 Write-Output "`n---------Refresh Token---------"
                 ((Select-String -InputObject $vraResponse -Pattern '"refresh_token":') -Split ('"'))[3]
@@ -25535,11 +25533,11 @@ Function Get-vRANotification {
         Get notification configuration
 
         .DESCRIPTION
-        The Get-vRANotification cmdlet gets the notification configuation from vRealize Automation
+        The Get-vRANotification cmdlet gets the notification configuation from VMware Aria Automation
 
         .EXAMPLE
         Get-vRANotification
-        This example gets the current notification configuration from vRealize Automation
+        This example gets the current notification configuration from VMware Aria Automation
     #>
 
     Try {
@@ -25559,15 +25557,15 @@ Function New-vRANotification {
         Add notification configuration
 
         .DESCRIPTION
-        The New-vRANotification cmdlet adds the notification configuation in vRealize Automation
+        The New-vRANotification cmdlet adds the notification configuation in VMware Aria Automation
 
         .EXAMPLE
         New-vRANotification -name smtp.rainpole.io -serverName smtp.rainpole.io -emailAddress vra-no-reply@rainpole.io -sender administrator -trustCert true -connection NONE -authentication false
-        This example adds the notification configuration in vRealize Automation without authentication
+        This example adds the notification configuration in VMware Aria Automation without authentication
 
         .EXAMPLE
         New-vRANotification -name smtp.rainpole.io -serverName smtp.rainpole.io -emailAddress vra-no-reply@rainpole.io -sender administrator -trustCert true -connection NONE -authentication true -username administrator -password VMw@re1!
-        This example adds the notification configuration in vRealize Automation with authentication
+        This example adds the notification configuration in VMware Aria Automation with authentication
     #>
 
     Param (
@@ -25580,7 +25578,7 @@ Function New-vRANotification {
         [Parameter (Mandatory = $true)] [ValidateSet("true","false")] [ValidateNotNullOrEmpty()] [String]$authentication,
         [Parameter (ParameterSetName = "auth", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$userName,
         [Parameter (ParameterSetName = "auth", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
-        
+
     )
 
     Try {
@@ -25613,11 +25611,11 @@ Function Remove-vRANotification {
         Remove notification configuration
 
         .DESCRIPTION
-        The Remove-vRANotification cmdlet removes the notification configuation from vRealize Automation
+        The Remove-vRANotification cmdlet removes the notification configuation from VMware Aria Automation
 
         .EXAMPLE
         Remove-vRANotification
-        This example removes the current notification configuration from vRealize Automation
+        This example removes the current notification configuration from VMware Aria Automation
     #>
 
     Try {
@@ -25637,15 +25635,15 @@ Function Get-vRAResourceCompute {
         Get compute resources
 
         .DESCRIPTION
-        The Get-vRAResourceCompute cmdlet gets a list of known compute resources from vRealize Automation
+        The Get-vRAResourceCompute cmdlet gets a list of known compute resources from VMware Aria Automation
 
         .EXAMPLE
         Get-vRAResourceCompute
-        This example gets all known compute resources from vRealize Automation
+        This example gets all known compute resources from VMware Aria Automation
 
         .EXAMPLE
         Get-vRAResourceCompute -id <compute_resource_id>
-        This example gets a compute resource from vRealize Automation by id
+        This example gets a compute resource from VMware Aria Automation by id
     #>
 
     Param (
@@ -25676,11 +25674,11 @@ Function Add-vRAResourceComputeTag {
         Add a compute resource tag
 
         .DESCRIPTION
-        The Add-vRAResourceComputeTag cmdlet adds a tag to a compute resources in vRealize Automation
+        The Add-vRAResourceComputeTag cmdlet adds a tag to a compute resources in VMware Aria Automation
 
         .EXAMPLE
         Add-vRAResourceComputeTag -id <compute_resource_id> -tagKey enabled -tagValue true
-        This example adds a new tag to a compute resourcein vRealize Automation
+        This example adds a new tag to a compute resourcein VMware Aria Automation
     #>
 
     Param (
@@ -25733,19 +25731,19 @@ Function Get-vRACloudZone {
         Get Cloud Zones
 
         .DESCRIPTION
-        The Get-vRACloudZone cmdlet gets a list of known Cloud Zones from vRealize Automation
+        The Get-vRACloudZone cmdlet gets a list of known Cloud Zones from VMware Aria Automation
 
         .EXAMPLE
         Get-vRACloudZone
-        This example gets all known Cloud Zones from vRealize Automation
+        This example gets all known Cloud Zones from VMware Aria Automation
 
         .EXAMPLE
         Get-vRACloudZone -id <cloud_zone_id>
-        This example gets a Cloud Zone from vRealize Automation by id
+        This example gets a Cloud Zone from VMware Aria Automation by id
 
         .EXAMPLE
         Get-vRACloudZone -id <cloud_zone_id> -compute
-        This example gets a Cloud Zone Compute details from vRealize Automation
+        This example gets a Cloud Zone Compute details from VMware Aria Automation
     #>
 
     Param (
@@ -25779,18 +25777,18 @@ Export-ModuleMember -Function Get-vRACloudZone
 Function Get-vRAAPIVersion {
     <#
         .SYNOPSIS
-        Retrieve the vRealize Automation version information
-        
+        Retrieve the VMware Aria Automation version information
+
         .DESCRIPTION
         The Get-vRAAPIVersion cmdlet returns the latest version of the API
 
         .EXAMPLE
-        Get-vRAAPIVersion 
+        Get-vRAAPIVersion
     #>
     Try {
         $uri = "https://$vraAppliance/iaas/api/about"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
-        $response.latestApiVersion         
+        $response.latestApiVersion
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -25801,17 +25799,17 @@ Export-ModuleMember -Function Get-vRAAPIVersion
 Function Get-vRAIntegrationDetail {
     <#
         .SYNOPSIS
-        Get an integration detail of an item from vRealize Automation
+        Get an integration detail of an item from VMware Aria Automation
 
         .DESCRIPTION
-        The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from vRealize Automation
+        The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from VMware Aria Automation
 
         .EXAMPLE
         Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
-        This example returns the ids of the vCenter Server instances managed by the vRealize Operations Manager
+        This example returns the ids of the vCenter Server instances managed by the VMware Aria Operations
 
-        Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "vRealize Operations Manager" -getIntegrationID
-        This example returns the integration id of vRealize Operations Manager which is integrated with the vRealize Automation
+        Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "VMware Aria Operations" -getIntegrationID
+        This example returns the integration id of VMware Aria Operations which is integrated with the VMware Aria Automation
     #>
 
     Param (
@@ -25822,14 +25820,14 @@ Function Get-vRAIntegrationDetail {
     )
     Try {
         $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
-        $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"        
+        $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"
         $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
         if ($getVCID) {
             ($response.content | Where-Object integrationType -Match $integrationType).customProperties.vcIds
         }
         if ($getIntegrationID) {
             if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
-                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match "\b$integrationName\b").id        
+                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match "\b$integrationName\b").id
             }
         }
     }
@@ -25845,19 +25843,19 @@ Function Update-vRACloudZone {
         Update a Cloud Zones
 
         .DESCRIPTION
-        The Update-vRACloudZone cmdlet updates a Cloud Zones in vRealize Automation
+        The Update-vRACloudZone cmdlet updates a Cloud Zones in VMware Aria Automation
 
         .EXAMPLE
         Update-vRACloudZone -id <cloud_zone_id> -folder sfo-w01-fd-workload
-        This example adds a folder to theCloud Zone in vRealize Automation by id
+        This example adds a folder to theCloud Zone in VMware Aria Automation by id
 
         .EXAMPLE
         Update-vRACloudZone -id <cloud_zone_id> -tagKey enabled -tagValue true
-        This example adds tags that should be used to dynamically obtain resources for a Cloud Zone in vRealize Automation by id
+        This example adds tags that should be used to dynamically obtain resources for a Cloud Zone in VMware Aria Automation by id
 
         .EXAMPLE
         Update-vRACloudZone -id <cloud_zone_id> placementPolicy ADVANCED
-        This example updates the placement policy for Cloud Zones to ADVANCED in vRealize Automation by id
+        This example updates the placement policy for Cloud Zones to ADVANCED in VMware Aria Automation by id
     #>
 
     Param (
@@ -25884,11 +25882,11 @@ Function Update-vRACloudZone {
                     $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
                 }
                 else {
-                    Write-Error "vRealize Operations Manager is not integrated with vRealize Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
+                    Write-Error "VMware Aria Operations is not integrated with VMware Aria Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
                     break
                 }
             }
-            else {   
+            else {
                 $cloudZoneDetails.placementPolicy = $placementPolicy
                 $cloudZoneDetails.customProperties.PSObject.Properties.Remove('__ignoreAdvancedPolicyFailure')
                 $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
@@ -25910,11 +25908,11 @@ Function Remove-vRACloudZone {
         Remove Cloud Zones
 
         .DESCRIPTION
-        The Remove-vRACloudZone cmdlet deletes a Cloud Zones from vRealize Automation
+        The Remove-vRACloudZone cmdlet deletes a Cloud Zones from VMware Aria Automation
 
         .EXAMPLE
         Remove-vRACloudZone -id <cloud_zone_id>
-        This example deletes a Cloud Zone from vRealize Automation by id
+        This example deletes a Cloud Zone from VMware Aria Automation by id
     #>
 
     Param (
@@ -25938,11 +25936,11 @@ Function Get-vRAServices {
         Get the services.
 
         .DESCRIPTION
-        The Get-vRAServices cmdlet returns the services information from an organization in vRealize Automation.
+        The Get-vRAServices cmdlet returns the services information from an organization in VMware Aria Automation.
 
         .EXAMPLE
-        Get-vRAServices 
-        This example returns the services information from vRealize Automation by orgId.
+        Get-vRAServices
+        This example returns the services information from VMware Aria Automation by orgId.
     #>
 
     Param (
@@ -25967,11 +25965,11 @@ Function Get-vRAUser {
         Get the user in an organization.
 
         .DESCRIPTION
-        The Get-vRAUser cmdlet returns the user information from an organization in vRealize Automation.
+        The Get-vRAUser cmdlet returns the user information from an organization in VMware Aria Automation.
 
         .EXAMPLE
         Get-vRAUser -orgId $orgId -email jdoe@rainpole.io
-        This example returns the user information for an organization in vRealize Automation by orgId and email.
+        This example returns the user information for an organization in VMware Aria Automation by orgId and email.
     #>
 
     Param (
@@ -25997,11 +25995,11 @@ Function New-vRAUser {
         Adds a user in an organization.
 
         .DESCRIPTION
-        The New-vRAUser cmdlet adds a user in vRealize Automation.
+        The New-vRAUser cmdlet adds a user in VMware Aria Automation.
 
         .EXAMPLE
         New-vRAUser -userId $userId -orgId $serviceRole -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole> -serviceRole $serviceRole>
-        This example adds a user to vRealize Automation by userId and orgId and assisgnes the required orgRole and serviceRole.
+        This example adds a user to VMware Aria Automation by userId and orgId and assisgnes the required orgRole and serviceRole.
     #>
 
     Param (
@@ -26046,11 +26044,11 @@ Function Get-vRAGroup {
         Get the group in an organization.
 
         .DESCRIPTION
-        The Get-vRAGroup cmdlet returns the group information from an organization in vRealize Automation.
+        The Get-vRAGroup cmdlet returns the group information from an organization in VMware Aria Automation.
 
         .EXAMPLE
         Get-vRAGroup -orgId $orgId -displayName gg-vra-cloud-assemhly-admins@rainpole.io
-        This example returns the group information from vRealize Automation by orgId and displayName.
+        This example returns the group information from VMware Aria Automation by orgId and displayName.
     #>
 
     Param (
@@ -26076,15 +26074,15 @@ Function New-vRAGroup {
         Adds a group in an organization.
 
         .DESCRIPTION
-        The New-vRAGroup cmdlet adds a group in vRealize Automation.
+        The New-vRAGroup cmdlet adds a group in VMware Aria Automation.
 
         .EXAMPLE
         New-vRAGroup -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole-serviceRole $serviceRole
-        This example adds a group in vRealize Automation by groupId and orgId and assisgnes both the required orgRole and serviceRole.
+        This example adds a group in VMware Aria Automation by groupId and orgId and assisgnes both the required orgRole and serviceRole.
 
         .EXAMPLE
         New-vRAGroup -groupId $orgId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole -serviceRole $serviceRole
-        This example adds a group in vRealize Automation by groupId and orgId and assisgnes the required orgRole only.
+        This example adds a group in VMware Aria Automation by groupId and orgId and assisgnes the required orgRole only.
 
         Note: This cmdlet currently only supports a single serviceRole.
     #>
@@ -26101,10 +26099,10 @@ Function New-vRAGroup {
         if ($PsBoundParameters.ContainsKey("serviceRole") -and $PsBoundParameters.ContainsKey("serviceDefinitionId")) {
             $body = '{
                     "ids":[
-                        "' + $groupId +'" 
+                        "' + $groupId +'"
                         ],
                     "organizationRoleNames":[
-                        "' + $orgRole +'" 
+                        "' + $orgRole +'"
                         ],
                     "serviceRoles":[
                         {
@@ -26120,14 +26118,14 @@ Function New-vRAGroup {
         }
         elseif ($PsBoundParameters.ContainsKey("serviceRole") -or $PsBoundParameters.ContainsKey("serviceDefinitionId")) {
             Write-Error "Only one of serviceRole and serviceDefinitionId provided."
-        }  
+        }
         else {
             $body = '{
                     "ids":[
-                        "' + $groupId +'" 
+                        "' + $groupId +'"
                         ],
                     "organizationRoleNames":[
-                        "' + $orgRole +'" 
+                        "' + $orgRole +'"
                         ]
                     }'
             $uri = "https://$vraAppliance/csp/gateway/portal/api/orgs/$orgId/groups"
@@ -26147,11 +26145,11 @@ Function Get-vRAUserRoles {
         Get the user roles.
 
         .DESCRIPTION
-        The Get-vRAUser Roles cmdlet returns a user's roles in vRealize Automation.
+        The Get-vRAUser Roles cmdlet returns a user's roles in VMware Aria Automation.
 
         .EXAMPLE
         Get-vRAUserRoles -userId $userId -orgId $orgId
-        This example returns a user's roles from vRealize Automation by userId and orgId.
+        This example returns a user's roles from VMware Aria Automation by userId and orgId.
     #>
 
     Param (
@@ -26177,11 +26175,11 @@ Function Get-vRAGroupRoles {
         Get the group roles.
 
         .DESCRIPTION
-        The Get-vRAGroupRoles cmdlet returns a group's roles in vRealize Automation.
+        The Get-vRAGroupRoles cmdlet returns a group's roles in VMware Aria Automation.
 
         .EXAMPLE
         Get-vRAGroupRoles -groupId $groupId -orgId $orgId
-        This example returns a group's roles from vRealize Automation by groupId and orgId.
+        This example returns a group's roles from VMware Aria Automation by groupId and orgId.
     #>
 
     Param (
@@ -26207,11 +26205,11 @@ Function Remove-vRAGroupRoles {
         Remove the group roles.
 
         .DESCRIPTION
-        The Remove-vRAGroupRoles cmdlet removes a group's roles in vRealize Automation.
+        The Remove-vRAGroupRoles cmdlet removes a group's roles in VMware Aria Automation.
 
         .EXAMPLE
         Remove-vRAGroupRoles -groupId $groupId -orgId $orgId
-        This example removes a group's roles from vRealize Automation by groupId and orgId.
+        This example removes a group's roles from VMware Aria Automation by groupId and orgId.
     #>
 
     Param (
@@ -26241,15 +26239,15 @@ Function Set-vRAGroupOrgRole {
         Set the group organization role.
 
         .DESCRIPTION
-        The Set-vRAGroupOrgRole cmdlet sets a group's organization roles in vRealize Automation.
+        The Set-vRAGroupOrgRole cmdlet sets a group's organization roles in VMware Aria Automation.
 
         .EXAMPLE
         Set-vRAGroupOrgRole -groupId $groupId -orgId $orgId -orgRole org_owner
-        This example sets the group as an organization owner in vRealize Automation by groupId and orgId.
+        This example sets the group as an organization owner in VMware Aria Automation by groupId and orgId.
 
         .EXAMPLE
         Set-vRAGroupOrgRole -groupId $groupId -orgId $orgId -orgRole org_member
-        This example sets the group as an organization member in vRealize Automation by groupId and orgId.
+        This example sets the group as an organization member in VMware Aria Automation by groupId and orgId.
     #>
 
     Param (
@@ -26283,15 +26281,15 @@ Function Remove-vRAGroupOrgRole {
         Remove the group organization role.
 
         .DESCRIPTION
-        The Remove-vRAGroupOrgRole cmdlet a removes a group's organization role in vRealize Automation.
+        The Remove-vRAGroupOrgRole cmdlet a removes a group's organization role in VMware Aria Automation.
 
         .EXAMPLE
         Remove-vRAGroupOrgRole -groupId $groupId -orgId $orgId -orgRole org_owner
-        This example removes the group as an organization owner in vRealize Automation by groupId and orgId.
+        This example removes the group as an organization owner in VMware Aria Automation by groupId and orgId.
 
         .EXAMPLE
         Remove-vRAGroupOrgRole -groupId $groupId -orgId $orgId -orgRole org_member
-        This example removes the group as an organization member in vRealize Automation by groupId and orgId.
+        This example removes the group as an organization member in VMware Aria Automation by groupId and orgId.
     #>
 
     Param (
@@ -26324,11 +26322,11 @@ Function Set-vRAGroupServiceRole {
         Set the group service role.
 
         .DESCRIPTION
-        The Set-vRAGroupServiceRole cmdlet adds a group's service role in vRealize Automation.
+        The Set-vRAGroupServiceRole cmdlet adds a group's service role in VMware Aria Automation.
 
         .EXAMPLE
         Set-vRAGroupServiceRole -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
-        This example adds the group to a service role in vRealize Automation by groupId and orgId.
+        This example adds the group to a service role in VMware Aria Automation by groupId and orgId.
     #>
 
     Param (
@@ -26370,11 +26368,11 @@ Function Remove-vRAGroupServiceRole {
         Remove the group service role.
 
         .DESCRIPTION
-        The Remove-vRAGroupServiceRole cmdlet removes a group's service role in vRealize Automation.
+        The Remove-vRAGroupServiceRole cmdlet removes a group's service role in VMware Aria Automation.
 
         .EXAMPLE
         Remove-vRAGroupServiceRole -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
-        This example removes the group from a service role in vRealize Automation by groupId and orgId.
+        This example removes the group from a service role in VMware Aria Automation by groupId and orgId.
     #>
 
     Param (
@@ -26416,15 +26414,15 @@ Function Set-vRAUserOrgRole {
         Set the user organization role.
 
         .DESCRIPTION
-        The Set-vRAUserOrgRole cmdlet sets a user's organization role in vRealize Automation.
+        The Set-vRAUserOrgRole cmdlet sets a user's organization role in VMware Aria Automation.
 
         .EXAMPLE
         Set-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole org_owner
-        This example sets the user as an organization owner in vRealize Automation by userId and orgId.
+        This example sets the user as an organization owner in VMware Aria Automation by userId and orgId.
 
         .EXAMPLE
         Set-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole org_member
-        This example sets the user as an organization member in vRealize Automation by userId and orgId.
+        This example sets the user as an organization member in VMware Aria Automation by userId and orgId.
     #>
 
     Param (
@@ -26458,15 +26456,15 @@ Function Remove-vRAUserOrgRole {
         Remove the user organization role.
 
         .DESCRIPTION
-        The Remove-vRAUserOrgRole cmdlet a user's organization role in vRealize Automation.
+        The Remove-vRAUserOrgRole cmdlet a user's organization role in VMware Aria Automation.
 
         .EXAMPLE
         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole org_owner
-        This example removes the user as an organization owner in vRealize Automation by userId and orgId.
+        This example removes the user as an organization owner in VMware Aria Automation by userId and orgId.
 
         .EXAMPLE
         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole org_member
-        This example removes the user as an organization member in vRealize Automation by userId and orgId.
+        This example removes the user as an organization member in VMware Aria Automation by userId and orgId.
     #>
 
     Param (
@@ -26500,11 +26498,11 @@ Function Set-vRAUserServiceRole {
         Set the user service role.
 
         .DESCRIPTION
-        The Set-vRAUserServiceRole cmdlet adds a user's service role in vRealize Automation.
+        The Set-vRAUserServiceRole cmdlet adds a user's service role in VMware Aria Automation.
 
         .EXAMPLE
         Set-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
-        This example adds the user to a service role in vRealize Automation by userId and orgId.
+        This example adds the user to a service role in VMware Aria Automation by userId and orgId.
     #>
 
     Param (
@@ -26542,11 +26540,11 @@ Function Remove-vRAUserServiceRole {
         Remove the user service role.
 
         .DESCRIPTION
-        The Remove-vRAUserServiceRole cmdlet removes a user's service role in vRealize Automation.
+        The Remove-vRAUserServiceRole cmdlet removes a user's service role in VMware Aria Automation.
 
         .EXAMPLE
         Remove-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
-        This example removes the user from a service role in vRealize Automation by userId and orgId.
+        This example removes the user from a service role in VMware Aria Automation by userId and orgId.
     #>
 
     Param (
@@ -26581,14 +26579,14 @@ Export-ModuleMember -Function Remove-vRAUserServiceRole
 Function Add-vRAIntegrationItem {
     <#
         .SYNOPSIS
-        Add external systems to vRealize Automation
+        Add external systems to VMware Aria Automation
 
         .DESCRIPTION
-        The Add-vRAIntegrationItem cmdlet adds external systems to vRealize Automation
+        The Add-vRAIntegrationItem cmdlet adds external systems to VMware Aria Automation
 
         .EXAMPLE
-        Add-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
-        This example creates vRealize Operations Manager integration with name "vRealize Operations Manager" in vRealize Automation
+        Add-vRAIntegrationItem -integrationType "vrops" -integrationName "VMware Aria Operations" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
+        This example creates VMware Aria Operations integration with name "VMware Aria Operations" in VMware Aria Automation
     #>
 
     Param (
@@ -26597,9 +26595,9 @@ Function Add-vRAIntegrationItem {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
     )
-    
+
     Try {
-        $json = Test-vRAIntegrationItem -integrationType $integrationType -integrationName $integrationName -integrationUser $integrationUser -integrationPassword $integrationPassword 
+        $json = Test-vRAIntegrationItem -integrationType $integrationType -integrationName $integrationName -integrationUser $integrationUser -integrationPassword $integrationPassword
         $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
         $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $json
@@ -26617,25 +26615,25 @@ Export-ModuleMember -Function Add-vRAIntegrationItem
 Function Test-vRAIntegrationItem {
     <#
         .SYNOPSIS
-        Test an Integration Item in vRealize Automation
+        Test an Integration Item in VMware Aria Automation
 
         .DESCRIPTION
         The Test-vRAIntegrationItem cmdlet validates the given credential and certificate of an intergarion item
 
         .EXAMPLE
-        Test-vRAIntegrationItem -integrationType "vrops" -integrationName "vRealize Operations Manager" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"   
-        This example validates vRealize Operations Manager integration in vRealize Automation
+        Test-vRAIntegrationItem -integrationType "vrops" -integrationName "VMware Aria Operations" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
+        This example validates VMware Aria Operations integration in VMware Aria Automation
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
     )
-    
+
     if ($PsBoundParameters.ContainsKey("integrationType")) {
-        if ($integrationType -eq "vrops") { $vropsuri = "https://$vropsAppliance/suite-api" } 
+        if ($integrationType -eq "vrops") { $vropsuri = "https://$vropsAppliance/suite-api" }
         $jsonObj = [PSCustomObject]@{
             integrationType       = $integrationType
             name                  = $integrationName
@@ -26644,40 +26642,40 @@ Function Test-vRAIntegrationItem {
             integrationProperties = @{hostName = $vropsuri }
         }
         $json = $jsonObj | ConvertTo-Json -Depth 2
-        Try { 
+        Try {
             $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
-            $uri = "https://$vraAppliance/iaas/api/integrations?validateOnly&$vraapiVersion"        
+            $uri = "https://$vraAppliance/iaas/api/integrations?validateOnly&$vraapiVersion"
             $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $json
             Start-Sleep 5
             $id = $response.selfLink
-            $uri = "https://$vraAppliance$id"   
+            $uri = "https://$vraAppliance$id"
             $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
-            if (($response.status -eq "FAILED") -and ($response.message -eq "unable to find valid certification")) {        
-                $certid = $response.resources 
-                $uri = "https://$vraAppliance$certid" + "?$vraapiVersion" 
+            if (($response.status -eq "FAILED") -and ($response.message -eq "unable to find valid certification")) {
+                $certid = $response.resources
+                $uri = "https://$vraAppliance$certid" + "?$vraapiVersion"
                 $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
-                $certificatevalue = $response.certificate 
+                $certificatevalue = $response.certificate
                 Write-Host (($response.certificateErrorDetail) + ($response.properties | Out-String ))
                 $certinput = Read-Host "Do you want to accept the above certificate (yes/no)"
                 if (($certinput -eq "yes") -or ($certinput -eq "y")) {
                     $jsonObj.integrationProperties += @{certificate = $certificatevalue }
-                    $json = $jsonObj | ConvertTo-Json -Depth 2 
-                    return  $json    
+                    $json = $jsonObj | ConvertTo-Json -Depth 2
+                    return  $json
                 } else {
-                    Write-Output "Exiting..." 
-                    Break 
-                }               
-            } elseif ($response.status -eq "FINISHED") { 
-                Write-Host "Certificate is already present in the system..."  
-                $json = $jsonObj | ConvertTo-Json -Depth 2 
-                return  $json     
+                    Write-Output "Exiting..."
+                    Break
+                }
+            } elseif ($response.status -eq "FINISHED") {
+                Write-Host "Certificate is already present in the system..."
+                $json = $jsonObj | ConvertTo-Json -Depth 2
+                return  $json
             } else {
                 Write-Error "Error "$response.message
-                Break        
+                Break
             }
         } Catch {
             Write-Error $_.Exception.Message
-            Break  
+            Break
         }
     }
 }
@@ -26686,24 +26684,24 @@ Export-ModuleMember -Function Test-vRAIntegrationItem
 Function Remove-vRAIntegrationItem {
     <#
         .SYNOPSIS
-        Remove an Integration Item from vRealize Automation
+        Remove an Integration Item from VMware Aria Automation
 
         .DESCRIPTION
-        The Remove-vRAIntegrationItem cmdlet removes the given Integration Item from vRealize Automation
+        The Remove-vRAIntegrationItem cmdlet removes the given Integration Item from VMware Aria Automation
 
         .EXAMPLE
-        Remove-vRAIntegrationItem -integrationType vrops -integrationId "instacenID" 
-        This example removes vRealize Operations Manager integration from vRealize Automation
+        Remove-vRAIntegrationItem -integrationType vrops -integrationId "instacenID"
+        This example removes VMware Aria Operations integration from VMware Aria Automation
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationId
     )
-    
+
     Try {
         $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
-        $uri = "https://$vraAppliance/iaas/api/integrations/$integrationId" + "?$vraapiVersion"     
+        $uri = "https://$vraAppliance/iaas/api/integrations/$integrationId" + "?$vraapiVersion"
         $response = Invoke-RestMethod -Method Delete -Uri $uri -Headers $vraHeaders
         Start-Sleep 5
         $id = $response.selfLink
@@ -26711,7 +26709,7 @@ Function Remove-vRAIntegrationItem {
         $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
         if ( $response.status -eq "FAILED") {
             Write-Host "Error "$response.message
-            Break        
+            Break
         }
         if ( $response.status -eq "FINISHED") {
             $response.message
@@ -26722,23 +26720,23 @@ Function Remove-vRAIntegrationItem {
 }
 Export-ModuleMember -Function Remove-vRAIntegrationItem
 
-#EndRegion  End vRealize Automation Functions                  ######
+#EndRegion  End VMware Aria Automation Functions                  ######
 #####################################################################
 
 #####################################################################
-#Region     Start vRealize Orchestrator (Embedded) Functions   ######
+#Region     Start VMware Aria Automation Orchestrator (Embedded) Functions   ######
 
 Function Invoke-vRORestMethod {
     <#
         .SYNOPSIS
-        A wrapper for Invoke-RestMethod for use with vRealize Orchestrator
+        A wrapper for Invoke-RestMethod for use with VMware Aria Automation Orchestrator
 
         .DESCRIPTION
-        The Invoke-RestMethod cmdlet is a wrapper for Invoke-RestMethod use with vRealize Orchestrator 
-        
+        The Invoke-RestMethod cmdlet is a wrapper for Invoke-RestMethod use with VMware Aria Automation Orchestrator
+
         .EXAMPLE
         Invoke-vRORestMethod -Method 'GET' -Uri '/vco/api/workflows'
-        
+
         .EXAMPLE
 
         $method = "POST"
@@ -26820,21 +26818,21 @@ Export-ModuleMember -Function Invoke-vRORestMethod
 function Get-vROVersion {
     <#
         .SYNOPSIS
-        Retrieve the vRealize Orchestrator version information
-        
+        Retrieve the VMware Aria Automation Orchestrator version information
+
         .DESCRIPTION
-        The Get-vROVersion cmdlest retrieves the vRealize Orchestrator version information
+        The Get-vROVersion cmdlest retrieves the VMware Aria Automation Orchestrator version information
 
         .EXAMPLE
-        Get-vROVersion 
+        Get-vROVersion
 
         .NOTES
         Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
     #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
-    
-    Param ()              
+
+    Param ()
     Try {
         $uri = "/vco/api/about"
         $response = Invoke-vRORestMethod -method 'GET' -uri $uri
@@ -26855,10 +26853,10 @@ Export-ModuleMember -Function Get-vROVersion
 function Get-vROWorkflow {
     <#
         .SYNOPSIS
-        Get vRealize Orchestrator workflows
+        Get VMware Aria Automation Orchestrator workflows
 
         .DESCRIPTION
-        The Get-vROWorkflow cmdlet returns details for vRealize Orchestrator workflows
+        The Get-vROWorkflow cmdlet returns details for VMware Aria Automation Orchestrator workflows
 
         .EXAMPLE
         Get-vROWorkflow
@@ -26926,7 +26924,7 @@ function Get-vROWorkflow {
                 break
             }
         }
-        # Filter by tag, if needed    
+        # Filter by tag, if needed
         if ($PSBoundParameters.ContainsKey('tag')) {
             $uri += if ($PSCmdlet.ParameterSetName -eq 'all') { '?' } else { '&' }
             $newParams = @()
@@ -27010,10 +27008,10 @@ Export-ModuleMember -Function Get-vROWorkflow
 function Invoke-vROWorkflow {
     <#
         .SYNOPSIS
-        Invoke a vRealize Orchestrator workflow
+        Invoke a VMware Aria Automation Orchestrator workflow
 
         .DESCRIPTION
-        The Invoke-vROWorkflow cmdlet starts a vRealize Orchestrator workflow
+        The Invoke-vROWorkflow cmdlet starts a VMware Aria Automation Orchestrator workflow
 
         .EXAMPLE
         Invoke-vROWorkflow -ID 3f23f186-158a-4869-b464-b7271fc216ba
@@ -27128,10 +27126,10 @@ Export-ModuleMember -Function Invoke-vROWorkflow
 function New-vROParameterDefinition {
     <#
         .SYNOPSIS
-        Create a parameter definition for use with a vRealize Orchestrator workflow
-        
+        Create a parameter definition for use with a VMware Aria Automation Orchestrator workflow
+
         .DESCRIPTION
-        The New-vROParameterDefinition cmdlet create a parameter definition for use with a vRealize Orchestrator workflow
+        The New-vROParameterDefinition cmdlet create a parameter definition for use with a VMware Aria Automation Orchestrator workflow
 
         .EXAMPLE
         $param1 = New-vROParameterDefinition -name 'foo' -value 'bar' -type string -scope LOCAL
@@ -27147,11 +27145,11 @@ function New-vROParameterDefinition {
     Param (
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$value,
-    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$type,   
+    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$type,
     [Parameter (Mandatory = $false)] [ValidateSet("LOCAL", "TOKEN")] [String]$scope = "LOCAL"
-    )  
+    )
 
-    Begin {} 
+    Begin {}
     Process {
         Try {
             if ($PSCmdlet.ShouldProcess("WorkflowParameterDefinition")){
@@ -27172,7 +27170,7 @@ function New-vROParameterDefinition {
             Write-Error $_.Exception.Message
         }
     }
-    End {    
+    End {
     }
 }
 Export-ModuleMember -Function New-vROParameterDefinition
@@ -27180,10 +27178,10 @@ Export-ModuleMember -Function New-vROParameterDefinition
 function Get-vROWorkflowExecution {
     <#
         .SYNOPSIS
-        Get vRealize orchestrator Wwrkflow executions
+        Get VMware Aria Automation Orchestrator Wwrkflow executions
 
         .DESCRIPTION
-        The Get-vROWorkflowExecution cmdlet returns the execution runs for a vRealize Orchestrator workflow
+        The Get-vROWorkflowExecution cmdlet returns the execution runs for a VMware Aria Automation Orchestrator workflow
 
         .EXAMPLE
         Get-vROWorkflowExecution -id 697c8755-15c0-44fc-b409-5c562cf2984e
@@ -27200,10 +27198,10 @@ function Get-vROWorkflowExecution {
 
     [CmdletBinding(DefaultParametersetName = "Name")][OutputType('System.Management.Automation.PSObject')]
 
-    Param (   
+    Param (
         [Parameter (Mandatory = $true, ValueFromPipelinebyPropertyName = $true, ParameterSetName = "id")] [String]$id,
         [Parameter (Mandatory = $true, ParameterSetName = "name")] [String]$name
-    )    
+    )
 
     Begin {}
     Process {
@@ -27215,7 +27213,7 @@ function Get-vROWorkflowExecution {
             $response = Invoke-vRORestMethod -method 'GET' -uri $uri -verbose:$VerbosePreference
             $data = $response.relations.link | Where-Object { $_.attributes }
             Foreach ($execution in $data) {
-                [PSCustomObject]@{                                
+                [PSCustomObject]@{
                     Name      = ($execution.attributes | Where-Object { $_.name -eq 'name' }).value
                     ID        = ($execution.attributes | Where-Object { $_.name -eq 'id' }).value
                     Execution = "$uri/$(($execution.attributes | Where-Object {$_.name -eq 'id'}).value)/"
@@ -27238,10 +27236,10 @@ Export-ModuleMember -Function Get-vROWorkflowExecution
 function Get-vROWorkflowExecutionState {
     <#
         .SYNOPSIS
-        Get vRealize Orchestrator workflow execution state
+        Get VMware Aria Automation Orchestrator workflow execution state
 
         .DESCRIPTION
-        The Get-vROWorkflowExecutionState cmdlet returns the status of vRealize Orchestrator workflow execution runs
+        The Get-vROWorkflowExecutionState cmdlet returns the status of VMware Aria Automation Orchestrator workflow execution runs
 
         .EXAMPLE
         Get-vROWorkflowExecutionState -executionStateRef '/vco/api/workflows/697c8755-15c0-44fc-b409-5c562cf2984e/executions/cda43353730b4f8ba1815979ef8a932a'
@@ -27255,18 +27253,18 @@ function Get-vROWorkflowExecutionState {
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
-    Param (   
+    Param (
         [Parameter (Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelinebyPropertyName = $true)] [Alias("execution")] [ValidateNotNullOrEmpty()][String]$executionStateRef
     )
 
     Begin {}
     Process {
         Try {
-            Foreach ($reference in $executionStateRef) {        
+            Foreach ($reference in $executionStateRef) {
                 $uri = $reference + "state"
                 $response = Invoke-vRORestMethod -method 'GET' -uri $uri -webRequest -verbose:$VerbosePreference
-                [pscustomobject]@{                                             
-                    ExecutionStateRef = $reference         
+                [pscustomobject]@{
+                    ExecutionStateRef = $reference
                     StatusCode        = $response.StatusCode
                     StatusDescription = $response.StatusDescription
                     Execution         = ($response.Content | ConvertFrom-Json).Value
@@ -27285,10 +27283,10 @@ Export-ModuleMember -Function Get-vROWorkflowExecutionState
 function Get-vROWorkflowExecutionResult {
     <#
         .SYNOPSIS
-        Get vRealize Orchestrator workflow execution result
+        Get VMware Aria Automation Orchestrator workflow execution result
 
         .DESCRIPTION
-        The Get-vROWorkflowExecutionResult cmdlet returns the results of vRealize Orchestrator workflow execution runs
+        The Get-vROWorkflowExecutionResult cmdlet returns the results of VMware Aria Automation Orchestrator workflow execution runs
 
         .EXAMPLE
         Get-vROWorkflowExecutionResult -executionRef '/vco/api/workflows/697c8755-15c0-44fc-b409-5c562cf2984e/executions/cda43353730b4f8ba1815979ef8a932a'
@@ -27303,25 +27301,25 @@ function Get-vROWorkflowExecutionResult {
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
     Param (
-        [Parameter (Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelinebyPropertyName = $true)] [Alias("execution")] [ValidateNotNullOrEmpty()] [String]$executionRef 
+        [Parameter (Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelinebyPropertyName = $true)] [Alias("execution")] [ValidateNotNullOrEmpty()] [String]$executionRef
     )
 
     Begin {}
-    Process {  
+    Process {
         Try {
-            Foreach ($reference in $executionRef) {   
+            Foreach ($reference in $executionRef) {
                 $response = Invoke-vRORestMethod -method 'GET' -uri $reference -webRequest -verbose:$VerbosePreference
                 $json = $response.Content | ConvertFrom-Json
                 Foreach ($outputParameter in $json.'output-parameters') {
                     $type = $outputParameter.type
-                    [pscustomobject]@{                                 
-                        ExecutionRef = $reference      
+                    [pscustomobject]@{
+                        ExecutionRef = $reference
                         Name         = $outputParameter.name
                         Scope        = $outputParameter.scope
                         Type         = $outputParameter.type
                         Value        = $outputParameter.value.$type.value
                     }
-                } 
+                }
             }
         }
         Catch {
@@ -27333,24 +27331,24 @@ function Get-vROWorkflowExecutionResult {
 }
 Export-ModuleMember -Function Get-vROWorkflowExecutionResult
 
-#EndRegion  End vRealize Orchestrator (Embedded) Functions     ######
+#EndRegion  End VMware Aria Automation Orchestrator (Embedded) Functions     ######
 #####################################################################
 
 #####################################################################
-#Region     Start vRealize Operations Manager Functions        ######
+#Region     Start VMware Aria Operations Functions        ######
 
 Function Request-vROPSToken {
     <#
         .SYNOPSIS
-        Connects to the specified vRealize Operations Manager and obtains authorization token
+        Connects to the specified VMware Aria Operations and obtains authorization token
 
         .DESCRIPTION
-        The Request-vROPSToken cmdlet connects to the specified vRealize Operations Manager and obtains an authorization token.
+        The Request-vROPSToken cmdlet connects to the specified VMware Aria Operations and obtains an authorization token.
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
         Request-vROPSToken -fqdn xint-vrops01.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the vRealize Operations Manager appliance
+        This example shows how to connect to the VMware Aria Operations appliance
     #>
 
     Param (
@@ -27377,7 +27375,7 @@ Function Request-vROPSToken {
         `n  `"authSource`" : `"LOCAL`",
         `n  `"password`" : `"$password`"
         `n}"
-        
+
         if ($PSEdition -eq 'Core') {
             $vropsResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vropsHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         }
@@ -27387,7 +27385,7 @@ Function Request-vROPSToken {
 
         if ($vropsResponse.token) {
             $vropsHeaders.Add("Authorization", "vRealizeOpsToken " + $vropsResponse.token)
-            Write-Output "Successfully connected to vRealize Operations Manager: $vropsAppliance"
+            Write-Output "Successfully connected to VMware Aria Operations: $vropsAppliance"
         }
     }
     Catch {
@@ -27402,10 +27400,10 @@ Function Get-vROPSVersion {
         Get version informartion
 
         .DESCRIPTION
-        The Get-vROPSVersion cmdlet gets version information for vRealize Operations Manager
+        The Get-vROPSVersion cmdlet gets version information for VMware Aria Operations
 
         .EXAMPLE
-        Get-vROPSVersion 
+        Get-vROPSVersion
         This example gets the current version of the service
 
         .EXAMPLE
@@ -27441,7 +27439,7 @@ Function Get-vROPSCollector {
         Get list of collectors
 
         .DESCRIPTION
-        The Get-vROPSCollector cmdlet gets a list of collectors in vRealize Operations Manager
+        The Get-vROPSCollector cmdlet gets a list of collectors in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSCollector
@@ -27480,7 +27478,7 @@ Function Get-vROPSCollectorGroup {
         Get list of collector groups
 
         .DESCRIPTION
-        The Get-vROPSCollectorGroup cmdlet gets a list of collector groups in vRealize Operations Manager
+        The Get-vROPSCollectorGroup cmdlet gets a list of collector groups in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSCollectorGroup
@@ -27519,7 +27517,7 @@ Function Add-vROPSCollectorGroup {
         Add a collector groups
 
         .DESCRIPTION
-        The Add-vROPSCollectorGroup cmdlet adds a new collector groups in vRealize Operations Manager
+        The Add-vROPSCollectorGroup cmdlet adds a new collector groups in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSCollectorGroup -name sfo-remote-collectors -description "Remote Collector Group for SFO" -collectorIds "1,2"
@@ -27555,10 +27553,10 @@ Function Remove-vROPSCollectorGroup {
         Delete a collector group
 
         .DESCRIPTION
-        The Remove-vROPSCollectorGroup cmdlet deletes a collector group in vRealize Operations Manager
+        The Remove-vROPSCollectorGroup cmdlet deletes a collector group in VMware Aria Operations
 
         .EXAMPLE
-        Remove-vROPSCollectorGroup -id 
+        Remove-vROPSCollectorGroup -id
         This example deletes a gollector group
     #>
 
@@ -27582,7 +27580,7 @@ Function Get-vROPSAdapter {
         Get list of adapters
 
         .DESCRIPTION
-        The Get-vROPSAdapter cmdlet gets a list of adapters in vRealize Operations Manager
+        The Get-vROPSAdapter cmdlet gets a list of adapters in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAdapter
@@ -27621,7 +27619,7 @@ Function Set-vROPSAdapter {
         Update an adapter
 
         .DESCRIPTION
-        The Set-vROPSAdapter cmdlet updates the adapters configuration in vRealize Operations Manager
+        The Set-vROPSAdapter cmdlet updates the adapters configuration in VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSAdapter -json .\adapterJson
@@ -27665,7 +27663,7 @@ Function Add-vROPSAdapter {
         Add an adapter
 
         .DESCRIPTION
-        The Add-vROPSAdapter cmdlet adds an adapter to vRealize Operations Manager
+        The Add-vROPSAdapter cmdlet adds an adapter to VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapter -json .\addAdapter.json
@@ -27702,7 +27700,7 @@ Function Remove-vROPSAdapter {
         Delete an adapters
 
         .DESCRIPTION
-        The Remove-vROPSAdapter cmdlet deletes an adapters from vRealize Operations Manager
+        The Remove-vROPSAdapter cmdlet deletes an adapters from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSAdapter -id <id>
@@ -27730,14 +27728,14 @@ Function Test-vROPSAdapterConnection {
         Test adapter connection
 
         .DESCRIPTION
-        The Test-vROPSAdapterConnection cmdlet tests the connection in vRealize Operations Manager
+        The Test-vROPSAdapterConnection cmdlet tests the connection in VMware Aria Operations
 
         .EXAMPLE
         Test-vROPSAdapterConnection -json <json>
         This example tests the connection based on the JSON file provided
 
         .EXAMPLE
-        Test-vROPSAdapterConnection -json <json> -patch 
+        Test-vROPSAdapterConnection -json <json> -patch
         This example patches the adapter based on the response from the test in JSON format
     #>
 
@@ -27779,7 +27777,7 @@ Function Start-vROPSAdapter {
         Starts collection of adapter
 
         .DESCRIPTION
-        The Start-vROPSAdapter cmdlet starts the collection of an adapter in vRealize Operations Manager
+        The Start-vROPSAdapter cmdlet starts the collection of an adapter in VMware Aria Operations
 
         .EXAMPLE
         Start-vROPSAdapter -adpaterId <id>
@@ -27806,7 +27804,7 @@ Function Stop-vROPSAdapter {
         Stops collection of adapter
 
         .DESCRIPTION
-        The Stop-vROPSAdapter cmdlet starts the collection of an adapter in vRealize Operations Manager
+        The Stop-vROPSAdapter cmdlet starts the collection of an adapter in VMware Aria Operations
 
         .EXAMPLE
         Stop-vROPSAdapter -adpaterId <id>
@@ -27834,7 +27832,7 @@ Function Get-vROPSAdapterKind {
         Get list of adapter kinds
 
         .DESCRIPTION
-        The Get-vROPSAdapterKind cmdlet gets a list of adapter kinds in vRealize Operations Manager
+        The Get-vROPSAdapterKind cmdlet gets a list of adapter kinds in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAdapterKind
@@ -27873,7 +27871,7 @@ Function Get-vROPSResourceDetail {
         Get resource detail
 
         .DESCRIPTION
-        The Get-vROPSResourceDetail cmdlet gets the details for a resource from vRealize Operations Manager
+        The Get-vROPSResourceDetail cmdlet gets the details for a resource from VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSResourceDetail -adapter VMWARE -resource Datacenter -objectName sfo-m01-dc01
@@ -27903,11 +27901,11 @@ Function Get-vROPSCredential {
         Get credentials
 
         .DESCRIPTION
-        The Get-vROPSCredential cmdlet gets credentials from vRealize Operations Manager
+        The Get-vROPSCredential cmdlet gets credentials from VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSCredential
-        This example gets all credentials from vRealize Operations Manager
+        This example gets all credentials from VMware Aria Operations
     #>
 
     Param (
@@ -27950,7 +27948,7 @@ Function Add-vROPSCredential {
         Add a credential
 
         .DESCRIPTION
-        The Add-vROPSCredential cmdlet adds a credential to vRealize Operations Manager
+        The Add-vROPSCredential cmdlet adds a credential to VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSCredential -json .\credentialJson
@@ -27986,7 +27984,7 @@ Function Remove-vROPSCredential {
         Delete a credential
 
         .DESCRIPTION
-        The Remove-vROPSCredential cmdlet deletes a credential from vRealize Operations Manager
+        The Remove-vROPSCredential cmdlet deletes a credential from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSCredential -credentialId <id>
@@ -28013,11 +28011,11 @@ Function Get-vROPSCurrency {
         Get the currency configuration
 
         .DESCRIPTION
-        The Get-vROPSCurrency cmdlet gets the currency configuration for vRealize Operations Manager
+        The Get-vROPSCurrency cmdlet gets the currency configuration for VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSCurrency
-        This example gets the currency configuration for vRealize Operations Manager
+        This example gets the currency configuration for VMware Aria Operations
     #>
 
     Try {
@@ -28037,12 +28035,12 @@ Function Set-vROPSCurrency {
         Applies the currency configuration
 
         .DESCRIPTION
-        The Set-vROPSCurrency cmdlet applies the currency configuration for vRealize Operations Manager. NOTE: Once
+        The Set-vROPSCurrency cmdlet applies the currency configuration for VMware Aria Operations. NOTE: Once
         applied for an instance it cannot be changed.
 
         .EXAMPLE
         Set-vROPSCurrency
-        This example gets the currency configuration for vRealize Operations Manager
+        This example gets the currency configuration for VMware Aria Operations
     #>
 
     Param (
@@ -28069,7 +28067,7 @@ Function Get-vROPSSolution {
         Get list of solutions
 
         .DESCRIPTION
-        The Get-vROPSSolution cmdlet gets a list of solutions in vRealize Operations Manager
+        The Get-vROPSSolution cmdlet gets a list of solutions in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSSolution
@@ -28120,11 +28118,11 @@ Function Import-vROPSManagementPack {
         Upload a management pack
 
         .DESCRIPTION
-        The Import-vROPSManagementPack cmdlet uploads a management pack into vRealize Operations Manager
+        The Import-vROPSManagementPack cmdlet uploads a management pack into VMware Aria Operations
 
         .EXAMPLE
         Import-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pak .\managementPack.pak
-        This example uploads the management pack provided to vRealize Operations Manager
+        This example uploads the management pack provided to VMware Aria Operations
     #>
 
     Param (
@@ -28140,7 +28138,7 @@ Function Import-vROPSManagementPack {
                 Throw "Management Pack file $pak not found"
             }
         }
-        
+
         $uri = "https://$server/casa/upgrade/cluster/pak/reserved/operation/upload?pak_handling_advice=CLOBBER"
         $contentType = "application/octet-stream"
 
@@ -28152,7 +28150,7 @@ Function Import-vROPSManagementPack {
         $httpClient = New-Object System.Net.Http.Httpclient $httpClientHandler
 
         $packageFileStream = New-Object System.IO.FileStream @($pak, [System.IO.FileMode]::Open)
-                
+
         $fileHeaderValue = New-Object System.Net.Http.Headers.ContentDispositionHeaderValue "form-data"
         $fileHeaderValue.Name = "contents"
         $fileHeaderValue.FileName = (Split-Path $pak -leaf)
@@ -28185,11 +28183,11 @@ Function Install-vROPSManagementPack {
         Install a management pack
 
         .DESCRIPTION
-        The Install-vROPSManagementPack cmdlet installs a management pack in vRealize Operations Manager
+        The Install-vROPSManagementPack cmdlet installs a management pack in VMware Aria Operations
 
         .EXAMPLE
         Install-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId SDDCHealth-8115995854
-        This example installs the management pack in vRealize Operations Manager
+        This example installs the management pack in VMware Aria Operations
     #>
 
     Param (
@@ -28220,14 +28218,14 @@ Function Set-vROPSManagementPack {
         Activate / Deactivate a management pack
 
         .DESCRIPTION
-        The Set-vROPSManagementPack cmdlet activates or deactivates a management pack in vRealize Operations Manager
+        The Set-vROPSManagementPack cmdlet activates or deactivates a management pack in VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId PingAdapter -version "8.4.0.17863953" -status enable
-        This example activates the Ping management pack in vRealize Operations Manager
+        This example activates the Ping management pack in VMware Aria Operations
 
         Set-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId PingAdapter -version "8.4.0.17863953" -status disable
-        This example deactivates the Ping management pack in vRealize Operations Manager
+        This example deactivates the Ping management pack in VMware Aria Operations
     #>
 
     Param (
@@ -28265,11 +28263,11 @@ Function Get-vROPSManagementPack {
         Get installed management packs
 
         .DESCRIPTION
-        The Get-vROPSManagementPack cmdlet gets a list of installed management packs in vRealize Operations Manager
+        The Get-vROPSManagementPack cmdlet gets a list of installed management packs in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1!
-        This example gets a list of all the management packs installed in vRealize Operations Manager
+        This example gets a list of all the management packs installed in VMware Aria Operations
     #>
 
     Param (
@@ -28299,11 +28297,11 @@ Function Get-vROPSManagementPackStatus {
         Get install status of management pack
 
         .DESCRIPTION
-        The Get-vROPSManagementPackStatus cmdlet gets the status of the install of a management pack in vRealize Operations Manager
+        The Get-vROPSManagementPackStatus cmdlet gets the status of the install of a management pack in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSManagementPackStatus -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId SDDCHealth-8115995854
-        This example uploads the management pack provided to vRealize Operations Manager
+        This example uploads the management pack provided to VMware Aria Operations
     #>
 
     Param (
@@ -28333,11 +28331,11 @@ Function Get-vROPSManagementPackActivity {
         Get current activity
 
         .DESCRIPTION
-        The Get-vROPSManagementPackActivity cmdlet gets the current activity for management packs in vRealize Operations Manager
+        The Get-vROPSManagementPackActivity cmdlet gets the current activity for management packs in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSManagementPackActivity -server xint-vrops01.rainpole.io -username admin -password VMw@re1!
-        This example gets the current management pack activity in vRealize Operations Manager
+        This example gets the current management pack activity in VMware Aria Operations
     #>
 
     Param (
@@ -28367,11 +28365,11 @@ Function Get-vROPSAlertPlugin {
         Get the alert plugins
 
         .DESCRIPTION
-        The Get-vROPSAlertPlugin cmdlet gets the configured alert plugins in vRealize Operations Manager
+        The Get-vROPSAlertPlugin cmdlet gets the configured alert plugins in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAlertPlugin
-        This example gets a list of the alert plugins configure in vRealize Operations Manager
+        This example gets a list of the alert plugins configure in VMware Aria Operations
     #>
 
     Try {
@@ -28391,11 +28389,11 @@ Function Add-vROPSAlertPlugin {
         Create an alert plugin
 
         .DESCRIPTION
-        The Add-vROPSAlertPlugin cmdlet creates a new alert plugin in vRealize Operations Manager
+        The Add-vROPSAlertPlugin cmdlet creates a new alert plugin in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAlertPlugin -json .\alertPlugin.json
-        This example adds a new alert plugin based on the JSON provide to vRealize Operations Manager
+        This example adds a new alert plugin based on the JSON provide to VMware Aria Operations
     #>
 
     Param (
@@ -28427,11 +28425,11 @@ Function Set-vROPSAlertPlugin {
         Updates an alert plugin
 
         .DESCRIPTION
-        The Set-vROPSAlertPlugin cmdlet updates an existing alert plugin in vRealize Operations Manager
+        The Set-vROPSAlertPlugin cmdlet updates an existing alert plugin in VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSAlertPlugin -json .\alertPluginUpdate.json
-        This example updates the configuration of an existing alert plugin based on the JSON provide to vRealize Operations Manager
+        This example updates the configuration of an existing alert plugin based on the JSON provide to VMware Aria Operations
     #>
 
     Param (
@@ -28464,11 +28462,11 @@ Function Remove-vROPSAlertPlugin {
         Delete an alert plugin
 
         .DESCRIPTION
-        The Remove-vROPSAlertPlugin cmdlet deletes an existing alert plugin from vRealize Operations Manager
+        The Remove-vROPSAlertPlugin cmdlet deletes an existing alert plugin from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSAlertPlugin -plugId <plugin_id>
-        This example deletes the alert plugin with the plugin ID provide to vRealize Operations Manager
+        This example deletes the alert plugin with the plugin ID provide to VMware Aria Operations
     #>
 
     Param (
@@ -28492,7 +28490,7 @@ Function Get-vROPSAlertDefinition {
         Get collection of alert definitions matching the search criteria specified
 
         .DESCRIPTION
-        The Get-vROPSAlertDefinition cmdlet gets collection of alert definitions matching the search criteria specified in vRealize Operations
+        The Get-vROPSAlertDefinition cmdlet gets collection of alert definitions matching the search criteria specified in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAlertDefinition
@@ -28550,11 +28548,11 @@ Function Set-vROPSAlertPluginStatus {
         Enable/Disable alert plugin
 
         .DESCRIPTION
-        The Set-vROPSAlertPluginStatus cmdlet Enables/Disables an existing alert plugin from vRealize Operations Manager
+        The Set-vROPSAlertPluginStatus cmdlet Enables/Disables an existing alert plugin from VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSAlertPluginStatus -plugId <plugin_id> -status true
-        This example deletes the alert plugin with the plugin ID provide to vRealize Operations Manager
+        This example deletes the alert plugin with the plugin ID provide to VMware Aria Operations
     #>
 
     Param (
@@ -28579,7 +28577,7 @@ Function Get-vROPSAuthSource {
         Get all the available authentication sources in the system
 
         .DESCRIPTION
-        The Get-vROPSAuthSource cmdlet gets all the available authentication sources in vRealize Operations Manager
+        The Get-vROPSAuthSource cmdlet gets all the available authentication sources in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAuthSource
@@ -28618,7 +28616,7 @@ Function Get-vROPSAuthRole {
         Get all the roles available in the system
 
         .DESCRIPTION
-        The Get-vROPSAuthRole cmdlet gets all the roles available in vRealize Operations Manager
+        The Get-vROPSAuthRole cmdlet gets all the roles available in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAuthRole
@@ -28653,7 +28651,7 @@ Function Get-vROPSUserAccount {
         Get list of local user accounts using identifiers or/and names.
 
         .DESCRIPTION
-        The Get-vROPSUserAccount cmdlet gets a user account in vRealize Operations Manager
+        The Get-vROPSUserAccount cmdlet gets a user account in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSUserAccount
@@ -28708,7 +28706,7 @@ Function Get-vROPSUserGroup {
         Get list of local user groups using identifiers or/and names
 
         .DESCRIPTION
-        The Get-vROPSUserGroup cmdlet gets list of local user groups in vRealize Operations Manager
+        The Get-vROPSUserGroup cmdlet gets list of local user groups in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSUserGroup
@@ -28758,7 +28756,7 @@ Function Add-vROPSUserAccount {
         Imports a user account from an authentication source.
 
         .DESCRIPTION
-        The Add-vROPSUserAccount cmdlet imports a user account from the authentication source into vRealize Operations
+        The Add-vROPSUserAccount cmdlet imports a user account from the authentication source into VMware Aria Operations
         Manager.
 
         .EXAMPLE
@@ -28805,7 +28803,7 @@ Function Add-vROPSUserGroup {
         Import user group from an authentication source
 
         .DESCRIPTION
-        The Add-vROPSUserGroup cmdlet imports a user group from the authentication source into vRealize Operations
+        The Add-vROPSUserGroup cmdlet imports a user group from the authentication source into VMware Aria Operations
         Manager
 
         .EXAMPLE
@@ -28844,11 +28842,11 @@ Function Remove-vROPSUserAccount {
         Deletes a user account.
 
         .DESCRIPTION
-        The Remove-vROPSUserAccount cmdlet deletes a user account from vRealize Operations Manager.
+        The Remove-vROPSUserAccount cmdlet deletes a user account from VMware Aria Operations.
 
         .EXAMPLE
         Remove-vROPSUserAccount -id <userAccount_Id>
-        This example deletes a user account from vRealize Operations Manager.
+        This example deletes a user account from VMware Aria Operations.
     #>
 
     Param (
@@ -28872,11 +28870,11 @@ Function Remove-vROPSUserGroup {
         Deletes a user group
 
         .DESCRIPTION
-        The Remove-vROPSUserGroup cmdlet deletes a user group from vRealize Operations Manager
+        The Remove-vROPSUserGroup cmdlet deletes a user group from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSUserGroup -id <userGroup_Id>
-        This example deletes a user group from vRealize Operations Manager
+        This example deletes a user group from VMware Aria Operations
     #>
 
     Param (
@@ -28900,7 +28898,7 @@ Function Search-vROPSUserAccount {
         Search for a user account in the source.
 
         .DESCRIPTION
-        The Search-vROPSUserAccount cmdlet searches for a user account in the source in vRealize Operations Manager.
+        The Search-vROPSUserAccount cmdlet searches for a user account in the source in VMware Aria Operations.
 
         .EXAMPLE
         Search-vROPSUserAccount -sourceId 6d971ad0-a979-4dc1-81af-e77f6c8c158c -domain sfo.rainpole.io -userName "nigel.mccloud"
@@ -28915,7 +28913,7 @@ Function Search-vROPSUserAccount {
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/auth/sources/$sourceId/users/search"
-        
+
         $body = '{
                 "domain": "' + $domain + '",
                 "name": "' + $nameName + '"
@@ -28935,7 +28933,7 @@ Function Search-vROPSUserGroup {
         Search for a user group in the source
 
         .DESCRIPTION
-        The Search-vROPSUserGroup cmdlet searches for a user group in the source in vRealize Operations Manager
+        The Search-vROPSUserGroup cmdlet searches for a user group in the source in VMware Aria Operations
 
         .EXAMPLE
         Search-vROPSUserGroup -sourceId 6d971ad0-a979-4dc1-81af-e77f6c8c158c -domain sfo.rainpole.io -groupName "gg-vrops-read-only@sfo.rainpole.io"
@@ -28950,7 +28948,7 @@ Function Search-vROPSUserGroup {
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/auth/sources/$sourceId/usergroups/search"
-        
+
         $body = '{
                 "domain": "' + $domain + '",
                 "name": "' + $groupName + '"
@@ -28970,11 +28968,11 @@ Function Update-vROPSUserAccount {
         Updates a user account.
 
         .DESCRIPTION
-        The Update-vROPSUserAccount cmdlet updates a user account in vRealize Operations Manager.
+        The Update-vROPSUserAccount cmdlet updates a user account in VMware Aria Operations.
 
         .EXAMPLE
         Updates-vROPSUserAccount -id <userAccount_Id>
-        This example updateds a user account in vRealize Operations Manager.
+        This example updateds a user account in VMware Aria Operations.
     #>
 
     Param (
@@ -28995,14 +28993,14 @@ Export-ModuleMember -Function Update-vROPSUserAccount
 Function Get-vROpsLogForwarding {
     <#
         .SYNOPSIS
-        Gets the vRealize Operations Manager logging forwarding configuration.
+        Gets the VMware Aria Operations logging forwarding configuration.
 
         .DESCRIPTION
-        The Get-vROpsLogForwarding cmdlet gets the vRealize Operations Manager logging forwarding configuration.
+        The Get-vROpsLogForwarding cmdlet gets the VMware Aria Operations logging forwarding configuration.
 
         .EXAMPLE
         Get-vROpsLogForwarding
-        This example returns the logging forwarding configuration on vRealize Operations.
+        This example returns the logging forwarding configuration on VMware Aria Operations.
     #>
 
     Try {
@@ -29010,7 +29008,7 @@ Function Get-vROpsLogForwarding {
         if ($PSEdition -eq 'Core') {
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck
         } else {
-            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
+            $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
         }
         $response
     }
@@ -29026,7 +29024,7 @@ Function Get-vROPSNotification {
         Get list of all notifications
 
         .DESCRIPTION
-        The Get-vROPSNotification cmdlet gets list of all notifications in vRealize Operations Manager
+        The Get-vROPSNotification cmdlet gets list of all notifications in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSNotification
@@ -29063,14 +29061,14 @@ Export-ModuleMember -Function Get-vROPSNotification
 Function New-vROPSNotification {
     <#
         .SYNOPSIS
-        Create notifications in vRealize Operations
+        Create notifications in VMware Aria Operations
 
         .DESCRIPTION
-        The New-vROPSNotification cmdlet creates notifications in vRealize Operations
+        The New-vROPSNotification cmdlet creates notifications in VMware Aria Operations
 
         .EXAMPLE
         New-vROPSNotification -csvPath .\SampleNotifications\vropsNotifications-vcf.csv
-        This example adds all the notifications in the csv file to vRealize Operations
+        This example adds all the notifications in the csv file to VMware Aria Operations
     #>
 
     Param (
@@ -29139,7 +29137,7 @@ Function Remove-vROPSNotification {
         Delete a notification
 
         .DESCRIPTION
-        The Remove-vROPSNotification cmdlet deletes a notifications in vRealize Operations Manager
+        The Remove-vROPSNotification cmdlet deletes a notifications in VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSNotification -id <id>
@@ -29165,16 +29163,16 @@ Export-ModuleMember -Function Remove-vROPSNotification
 Function Test-vROPsAdapterStatus {
     <#
         .SYNOPSIS
-        Validates the integration status of a vRealize Operations adapter through adapter's ID
-        
+        Validates the integration status of a VMware Aria Operations adapter through adapter's ID
+
         .DESCRIPTION
-        The Test-vROPsAdapterStatus cmdlet validates the integration status between vRealize Operations Manager and configured adapter.
-    
+        The Test-vROPsAdapterStatus cmdlet validates the integration status between VMware Aria Operations and configured adapter.
+
         .EXAMPLE
         Test-vROPsAdapterStatus -resourceId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
-        This example validates the integration status between vRealize Operations Manager and configured adapter through its ID. 
+        This example validates the integration status between VMware Aria Operations and configured adapter through its ID.
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
     )
@@ -29186,11 +29184,11 @@ Function Test-vROPsAdapterStatus {
         if ($PSEdition -eq 'Core') {
             $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         } else {
-            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
+            $vropsresponse = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
         }
         if ($vropsresponse.resourceHealth -eq "GREEN") {
-            Write-Output "Adapter Name : $($name), Health Status: GREEN" 
-        } else { 
+            Write-Output "Adapter Name : $($name), Health Status: GREEN"
+        } else {
             Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
         }
     }
@@ -29200,24 +29198,24 @@ Function Test-vROPsAdapterStatus {
 }
 Export-ModuleMember -Function Test-vROPsAdapterStatus
 
-#EndRegion  End vRealize Operations Manager Functions          ######
+#EndRegion  End VMware Aria Operations Functions          ######
 #####################################################################
 
 #####################################################################
-#Region     Start vRealize Log Insight Functions               ######
+#Region     Start VMware Aria Operations for Logs Functions               ######
 
 Function Request-vRLIToken {
     <#
         .SYNOPSIS
-        Connects to the specified vRealize Log Insight instance and obtains authorization token
+        Connects to the specified VMware Aria Operations for Logs instance and obtains authorization token
 
         .DESCRIPTION
-        The Request-vRLIToken cmdlet connects to the specified vRealize Log Insight instance and obtains an authorization token.
+        The Request-vRLIToken cmdlet connects to the specified VMware Aria Operations for Logs instance and obtains an authorization token.
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
         Request-vRLIToken -fqdn sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the vRealize Log Insight instance
+        This example shows how to connect to the VMware Aria Operations for Logs instance
     #>
 
     Param (
@@ -29265,14 +29263,14 @@ Export-ModuleMember -Function Request-vRLIToken
 Function Get-vRLIVersion {
     <#
         .SYNOPSIS
-        Get vRealize Log Insight version information
+        Get VMware Aria Operations for Logs version information
 
         .DESCRIPTION
-        The Get-vRLIVersion cmdlet gets the vRealize Log Insight version information
+        The Get-vRLIVersion cmdlet gets the VMware Aria Operations for Logs version information
 
         .EXAMPLE
         Get-vRLIVersion
-        This example gets the vRealize Log Insight version information
+        This example gets the VMware Aria Operations for Logs version information
     #>
 
     Try {
@@ -29348,9 +29346,9 @@ Function Set-vRLIAuthenticationWSA {
             'port'          = $port
             'redirectURL'   = $redirectUrl
             'username'      = $username
-            'password'      = $password 
+            'password'      = $password
         }
-        
+
         $body = $jsonSpec | ConvertTo-Json -Depth 12
         $uri = "https://$vrliAppliance/api/v1/vidm"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
@@ -29378,7 +29376,7 @@ Function Remove-vRLIAuthenticationWSA {
         $jsonSpec += [pscustomobject]@{
             'enabled'       = $false
         }
-        
+
         $body = $jsonSpec | ConvertTo-Json -Depth 12
         $uri = "https://$vrliAppliance/api/v1/vidm"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
@@ -29531,7 +29529,7 @@ Function Get-vRLISmtpConfiguration {
         Get SMTP server settings
 
         .DESCRIPTION
-        The Get-vRLISmtpConfiguration cmdlet gets the SMTP server configuration in vRealize Log Insight
+        The Get-vRLISmtpConfiguration cmdlet gets the SMTP server configuration in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLISmtpConfiguration
@@ -29555,7 +29553,7 @@ Function Set-vRLISmtpConfiguration {
         Configure the SMTP server settings
 
         .DESCRIPTION
-        The Set-vRLISmtpConfiguration cmdlet configures the SMTP server settings in vRealize Log Insight
+        The Set-vRLISmtpConfiguration cmdlet configures the SMTP server settings in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLISmtpConfiguration -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io -username administrator@rainpole.io -password VMw@re1!
@@ -29601,7 +29599,7 @@ Function Get-vRLIRetentionThreshold {
         Get the retention threshold configuration
 
         .DESCRIPTION
-        The Get-vRLIRetentionThreshold cmdlet gets the retention configuration in vRealize Log Insight
+        The Get-vRLIRetentionThreshold cmdlet gets the retention configuration in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIRetentionThreshold
@@ -29625,7 +29623,7 @@ Function Set-vRLIRetentionThreshold {
         Configuer the retention threshold settings
 
         .DESCRIPTION
-        The Set-vRLIRetentionThreshold cmdlet configures the retention settings in vRealize Log Insight
+        The Set-vRLIRetentionThreshold cmdlet configures the retention settings in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLIRetentionThreshold -enable true -interval 1 -intervalUnit weeks
@@ -29659,7 +29657,7 @@ Function Get-vRLIIndexPartition {
         Get the index partitions
 
         .DESCRIPTION
-        The Get-vRLIIndexPartition cmdlet gets a list of index partitions in vRealize Log Insight
+        The Get-vRLIIndexPartition cmdlet gets a list of index partitions in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIIndexPartition
@@ -29683,7 +29681,7 @@ Function Set-vRLILogArchive {
         Configuer the index partitions
 
         .DESCRIPTION
-        The Set-vRLILogArchive cmdlet configures the log archive location for a partition in vRealize Log Insight
+        The Set-vRLILogArchive cmdlet configures the log archive location for a partition in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLILogArchive -id d41d8cd9-8f00-3204-a980-0998ecf8427e -enable true -retentionPeriod 7 -archiveEnable true -archiveLocation nfs://172.27.11.4/sfo-m01-vrli01-400GB
@@ -29723,7 +29721,7 @@ Function Get-vRLIEmailNotification {
         Get list of email address for notifications
 
         .DESCRIPTION
-        The Get-vRLIEmailNotification cmdlet gets a list of the emails notifications will be sent to in vRealize Log Insight
+        The Get-vRLIEmailNotification cmdlet gets a list of the emails notifications will be sent to in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIEmailNotification
@@ -29747,7 +29745,7 @@ Function Set-vRLIEmailNotification {
         Configure email address for notifications
 
         .DESCRIPTION
-        The Set-vRLIEmailNotification cmdlet configures the emails addresses for notifications in vRealize Log Insight
+        The Set-vRLIEmailNotification cmdlet configures the emails addresses for notifications in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLIEmailNotification -emailAddress "administrator@rainpole.io"
@@ -29756,7 +29754,7 @@ Function Set-vRLIEmailNotification {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
-    )  
+    )
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/email"
@@ -29779,11 +29777,11 @@ Function Get-vRLIRole {
         Get list of roles
 
         .DESCRIPTION
-        The Get-vRLIRole cmdlet gets a list of roles in vRealize Log Insight
+        The Get-vRLIRole cmdlet gets a list of roles in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIRole
-        This example gets a list of roles in vRealize Log Insight
+        This example gets a list of roles in VMware Aria Operations for Logs
     #>
     Try {
         $uri = "https://$vrliAppliance/api/v1/roles"
@@ -29822,7 +29820,7 @@ Function Get-vRLIGroup {
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
             $response.authProviderGroups
         } else {
-            Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier"
+            Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier"
         }
     }
     Catch {
@@ -29859,7 +29857,7 @@ Function Add-vRLIGroup {
             $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
             $response
         } else {
-            Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier"
+            Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -29892,7 +29890,7 @@ Function Remove-vRLIGroup {
             $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
             $response
         } else {
-            Write-Warning "API only supported with vRealize Log Insight 8.6.2 or earlier"
+            Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -29910,7 +29908,7 @@ Function Get-vRLIAlert {
 
         .EXAMPLE
         Get-vRLIGroup
-        This example gets a list alerts from vRealize Log Insight
+        This example gets a list alerts from VMware Aria Operations for Logs
     #>
 
     Try {
@@ -29932,11 +29930,11 @@ Function New-vRLIAlert {
         Create an alert
 
         .DESCRIPTION
-        The New-vRLIAlert cmdlet creates an alert in vRealize Log Insight
+        The New-vRLIAlert cmdlet creates an alert in VMware Aria Operations for Logs
 
         .EXAMPLE
         New-vRLIAlert -json (Get-Content -Raw .\vrliAlert.json)
-        This example creates an alert in vRealize Log Insight based on the contents of the JSON
+        This example creates an alert in VMware Aria Operations for Logs based on the contents of the JSON
     #>
 
     Param (
@@ -29946,7 +29944,7 @@ Function New-vRLIAlert {
     Try {
         $uri = "https://$vrliAppliance/api/v1/alerts"
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
-        $response   
+        $response
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -29964,7 +29962,7 @@ Function Remove-vRLIAlert {
 
         .EXAMPLE
         Get-vRLIGroup -alertId <alert_id>
-        This example deletes an alert from vRealize Log Insight
+        This example deletes an alert from VMware Aria Operations for Logs
     #>
 
     Param (
@@ -30063,15 +30061,15 @@ Function Get-vRLILogForwarder {
         Get list of log forwarders.
 
         .DESCRIPTION
-        The Get-vRLILogForwarder cmdlet returns log forwarders from vRealize Log Insight.
+        The Get-vRLILogForwarder cmdlet returns log forwarders from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Get-vRLILogForwarder
-        This example gets a list of log forwarders from vRealize Log Insight.
+        This example gets a list of log forwarders from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Get-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022"
-        This example gets a log forwarder from vRealize Log Insight by ID.
+        This example gets a log forwarder from VMware Aria Operations for Logs by ID.
     #>
 
     Param (
@@ -30101,15 +30099,15 @@ Function Set-vRLILogForwarder {
         Adds a log forwarder destination.
 
         .DESCRIPTION
-        The Set-vRLILogForwarder cmdlet adds a log forwarder destination to vRealize Log Insight.
+        The Set-vRLILogForwarder cmdlet adds a log forwarder destination to VMware Aria Operations for Logs.
 
         .EXAMPLE
         Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol SYSLOG -port 514 -transport TCP -acceptCert false -sslEnabled false -testConnection false
-        This example adds a log forwarder to vRealize Log Insight using syslog over TCP 514.
+        This example adds a log forwarder to VMware Aria Operations for Logs using syslog over TCP 514.
 
         .EXAMPLE
         Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol CFAPI -port 9543 acceptCert true -sslEnabled true -testConnection true
-        This example adds a log forwarder to vRealize Log Insight using the Ingestion API and SSL enabled.
+        This example adds a log forwarder to VMware Aria Operations for Logs using the Ingestion API and SSL enabled.
     #>
 
     Param (
@@ -30164,15 +30162,15 @@ Function Remove-vRLILogForwarder {
         Remove a log forwarder.
 
         .DESCRIPTION
-        The Remove-vRLILogForwarder cmdlet removes a log forwarder destination from vRealize Log Insight.
+        The Remove-vRLILogForwarder cmdlet removes a log forwarder destination from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Remove-vRLILogForwarder
-        This example removes a log forwarder destination from vRealize Log Insight.
+        This example removes a log forwarder destination from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Remove-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022"
-        This example removes a log forwarder destination from vRealize Log Insight by ID.
+        This example removes a log forwarder destination from VMware Aria Operations for Logs by ID.
     #>
 
     Param (
@@ -30195,15 +30193,15 @@ Function Update-vRLILogForwarder {
         Updates a log forwarder.
 
         .DESCRIPTION
-        The Updates-vRLILogForwarder cmdlet updates s a log forwarder destination from vRealize Log Insight.
+        The Updates-vRLILogForwarder cmdlet updates s a log forwarder destination from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Updates-vRLILogForwarder
-        This example updates a log forwarder destination from vRealize Log Insight.
+        This example updates a log forwarder destination from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Updates-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022" -json $json
-        This example updates a log forwarder destination from vRealize Log Insight.
+        This example updates a log forwarder destination from VMware Aria Operations for Logs.
     #>
 
     Param (
@@ -30226,11 +30224,11 @@ Function Test-vRLILogForwarder {
         Test a log forwarder destination endpoint.
 
         .DESCRIPTION
-        The Test-vRLILogForwarder cmdlet tests a log forwarder destination from vRealize Log Insight.
+        The Test-vRLILogForwarder cmdlet tests a log forwarder destination from VMware Aria Operations for Logs.
 
         .EXAMPLE
         Test-vRLILogForwarder -server "lax01-vrli01.lax.rainpole.io" -port 9000 -protocol CFAPI
-        This example tests a log forwarder destination from vRealize Log Insight.
+        This example tests a log forwarder destination from VMware Aria Operations for Logs.
     #>
 
     Param (
@@ -30255,19 +30253,19 @@ Function Get-vRLIMarketplaceMetadata {
         Returns metadate for available items in the Content Pack Marketplace.
 
         .DESCRIPTION
-        The Get-vRLIMarketplaceMetadata cmdlet returns the metadata for vRealize Log Insight content packs available in
+        The Get-vRLIMarketplaceMetadata cmdlet returns the metadata for VMware Aria Operations for Logs content packs available in
         the Content Pack Marketplace hosted on GitHub (https://github.com/vmw-loginsight/).
 
         .EXAMPLE
         Get-vRLIMarketplaceMetadata -token <your_base64_encoded_github_token>
-        This example returns the metadata for vRealize Log Insight content packs in the Content Pack MarketPlace.
+        This example returns the metadata for VMware Aria Operations for Logs content packs in the Content Pack MarketPlace.
     #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$index,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$token
     )
-    
+
     Try {
         # Get the headers with authorization to pull content pack from the GitHub repository
         createGitHubAuthHeader -token $token
@@ -30291,7 +30289,7 @@ Function Get-vRLIContentPack {
         Get list of installed content packs
 
         .DESCRIPTION
-        The Get-vRLIContentPack cmdlet gets a list of all content packs installed on vRealize Log Insight
+        The Get-vRLIContentPack cmdlet gets a list of all content packs installed on VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIContentPack
@@ -30312,18 +30310,18 @@ Export-ModuleMember -Function Get-vRLIContentPack
 Function Install-vRLIContentPack {
     <#
         .SYNOPSIS
-        Installs a content pack to vRealize Log Insight.
+        Installs a content pack to VMware Aria Operations for Logs.
 
         .DESCRIPTION
-        The Install-vRLIContentPack cmdlet installed a content pack to vRealize Log Insight.
+        The Install-vRLIContentPack cmdlet installed a content pack to VMware Aria Operations for Logs.
 
         .EXAMPLE
         Install-vRLIContentPack -json $json
-        This example installs a content pack to vRealize Log Insight from a JSON payload.
+        This example installs a content pack to VMware Aria Operations for Logs from a JSON payload.
 
         .EXAMPLE
         Insall-vRLIContentPack -update -json $json
-        This example updates a content pack in vRealize Log Insight from a JSON payload.
+        This example updates a content pack in VMware Aria Operations for Logs from a JSON payload.
     #>
 
     Param (
@@ -30344,11 +30342,11 @@ Function Install-vRLIContentPack {
 }
 Export-ModuleMember -Function Install-vRLIContentPack
 
-#EndRegion  End vRealize Log Insight Functions                 ######
+#EndRegion  End VMware Aria Operations for Logs Functions                 ######
 #####################################################################
 
 #####################################################################
-#Region    Start vRealize Cloud Services Functions             ######
+#Region    Start VMware Aria (SaaS) Services Functions             ######
 
 Function Request-CSPToken {
     <#
@@ -30370,7 +30368,7 @@ Function Request-CSPToken {
         .EXAMPLE
         Request-CSPToken -environment staging -apiToken <string> -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io
         This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token and set
-        set the fqdn for the Cloud Extensibility Proxy for vRealize Orchestrator configuration.
+        set the fqdn for the Cloud Extensibility Proxy for VMware Aria Automation Orchestrator configuration.
     #>
 
     Param (
@@ -30389,7 +30387,7 @@ Function Request-CSPToken {
         if ($PSBoundParameters.ContainsKey('extensibilityProxy')) {
             $Global:cepAppliance = $extensibilityProxy
         }
-        
+
         $Global:basicHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $basicHeader.Add("Content-Type", "application/x-www-form-urlencoded")
         $path = "/csp/gateway/am/api/auth/api-tokens/authorize?refresh_token=$apiToken"
@@ -30460,7 +30458,7 @@ Function Get-CloudProxy {
                     $baseUrl = 'https://api.mgmt.cloud.vmware.com'
                 } else {
                     $baseUrl = "https://$region.api.mgmt.cloud.vmware.com"
-                }       
+                }
             } else {
                 $baseUrl = "https://api.mgmt.cloud.vmware.com"
             }
@@ -30544,7 +30542,7 @@ Function Get-CloudProxyOtk {
                 }
                 else {
                     $baseUrl = "https://$region.api.mgmt.cloud.vmware.com"
-                }       
+                }
             } else {
                 $baseUrl = 'https://api.mgmt.cloud.vmware.com'
             }
@@ -30570,27 +30568,27 @@ Export-ModuleMember -Function Get-CloudProxyOtk
 Function Get-vROVersion {
     <#
         .SYNOPSIS
-        Retrieve the vRealize Orchestrator version details
-        
+        Retrieve the VMware Aria Automation Orchestrator version details
+
         .DESCRIPTION
-        The Get-vROVersion cmdlet retrieves the vRealize Orchestrator version information. It supports the following:
+        The Get-vROVersion cmdlet retrieves the VMware Aria Automation Orchestrator version information. It supports the following:
         (Requires an access token before a connection can be made)
-        - Standalone vRealize Orchestrator
-        - Embedded vRealize Orchestrator with vRealize Automation
-        - Cloud Extensibility Proxy with vRealize Orchestrator
+        - Standalone VMware Aria Automation Orchestrator
+        - Embedded VMware Aria Automation Orchestrator with VMware Aria Automation
+        - Cloud Extensibility Proxy with VMware Aria Automation Orchestrator
 
         .EXAMPLE
         Get-vROVersion -standalone
-        This examples retrieves the version details from a standlaone vRealize Orchestrator appliance
+        This examples retrieves the version details from a standlaone VMware Aria Automation Orchestrator appliance
 
         .EXAMPLE
         Get-vROVersion -embedded
-        This examples retrieves the version details from an embedded vRealize Orchestrator instance running within the
-        vRealize Automation appliances.
+        This examples retrieves the version details from an embedded VMware Aria Automation Orchestrator instance running within the
+        VMware Aria Automation appliances.
 
         .EXAMPLE
         Get-vROVersion -extensibility
-        This examples retrieves the version details from a vRealize Orchestrator instance running within the
+        This examples retrieves the version details from a VMware Aria Automation Orchestrator instance running within the
         vCloud Extensibility Proxy appliance.
     #>
 
@@ -30621,7 +30619,7 @@ Function Get-vROVersion {
         $path = "/vco/api/about"
         $uri = $baseUrl + $path
         Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
-    } 
+    }
     Catch {
         Write-Error $_.Exception.Message
     }
@@ -30631,10 +30629,10 @@ Export-ModuleMember -Function Get-vROVersion
 Function Get-CEPWorkflow {
     <#
         .SYNOPSIS
-        Get vRealize Orchestrator workflows
+        Get VMware Aria Automation Orchestrator workflows
 
         .DESCRIPTION
-        The Get-CEPWorkflow cmdlet returns details for vRealize Orchestrator workflows
+        The Get-CEPWorkflow cmdlet returns details for VMware Aria Automation Orchestrator workflows
 
         .EXAMPLE
         Get-CEPWorkflow
@@ -30699,7 +30697,7 @@ Function Get-CEPWorkflow {
                 break
             }
         }
-        # Filter by tag, if needed    
+        # Filter by tag, if needed
         if ($PSBoundParameters.ContainsKey('tag')) {
             $uri += if ($PSCmdlet.ParameterSetName -eq 'all') { '?' } else { '&' }
             $newParams = @()
@@ -30783,10 +30781,10 @@ Export-ModuleMember -Function Get-CEPWorkflow
 Function Invoke-CEPWorkflow {
     <#
         .SYNOPSIS
-        Invoke a vRealize Orchestrator workflow
+        Invoke a VMware Aria Automation Orchestrator workflow
 
         .DESCRIPTION
-        The Invoke-CEPWorkflow cmdlet starts a vRealize Orchestrator workflow
+        The Invoke-CEPWorkflow cmdlet starts a VMware Aria Automation Orchestrator workflow
 
         .EXAMPLE
         Invoke-CEPWorkflow -ID 3f23f186-158a-4869-b464-b7271fc216ba
@@ -30896,10 +30894,10 @@ Export-ModuleMember -Function Invoke-CEPWorkflow
 Function Get-CEPWorkflowExecution {
     <#
         .SYNOPSIS
-        Retrieve vRealize Orchestrator Workflow Status
+        Retrieve VMware Aria Automation Orchestrator Workflow Status
 
         .DESCRIPTION
-        The Get-CEPWorkflowExecution cmdlet returns the execution status for a vRealize Orchestrator workflow
+        The Get-CEPWorkflowExecution cmdlet returns the execution status for a VMware Aria Automation Orchestrator workflow
 
         .EXAMPLE
         Get-CEPWorkflowExecution -id 93a7bb21-0255-4750-9293-2437abe9d2e5
@@ -30915,7 +30913,7 @@ Function Get-CEPWorkflowExecution {
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
-    Param (   
+    Param (
         [Parameter (Mandatory = $false, ParameterSetName = "id")] [ValidateNotNullOrEmpty()] [String]$id,
         [Parameter (Mandatory = $false, ParameterSetName = "name")] [ValidateNotNullOrEmpty()] [String]$name
     )
@@ -30928,7 +30926,7 @@ Function Get-CEPWorkflowExecution {
         $response = Invoke-RESTMethod -Method 'GET' -Uri $uri -Headers $cspHeader
         $data = $response.relations.link | Where-Object { $_.attributes }
         Foreach ($execution in $data) {
-            [PSCustomObject]@{                                
+            [PSCustomObject]@{
                 Name      = ($execution.attributes | Where-Object { $_.name -eq 'name' }).value
                 ID        = ($execution.attributes | Where-Object { $_.name -eq 'id' }).value
                 Execution = "$uri/$(($execution.attributes | Where-Object {$_.name -eq 'id'}).value)/"
@@ -30948,23 +30946,23 @@ Export-ModuleMember -Function Get-CEPWorkflowExecution
 Function Get-CEPWorkflowExecutionState {
     <#
         .SYNOPSIS
-        Get a vRealize Orchestrator Workflow execution state
+        Get a VMware Aria Automation Orchestrator Workflow execution state
 
         .DESCRIPTION
-        The Get-CEPWorkflowExecutionState cmdlet returns the status of vRealize Orchestrator workflow execution runs
+        The Get-CEPWorkflowExecutionState cmdlet returns the status of VMware Aria Automation Orchestrator workflow execution runs
 
         .EXAMPLE
         Get-CEPWorkflowExecutionState -workflowId 93a7bb21-0255-4750-9293-2437abe9d2e5 -executionId 0f37aa69-b95c-4c80-8b63-b8e5085aa3fd
         The examples returns the execution status of a workflow based on the Workflow ID and Execution ID
     #>
 
-    Param (   
+    Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workflowId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$executionId
     )
 
     Try {
-        $uri = "https://$cepAppliance/vco/api/workflows/$workflowId/executions/$executionId/state"   
+        $uri = "https://$cepAppliance/vco/api/workflows/$workflowId/executions/$executionId/state"
         (Invoke-RestMethod -method 'GET' -uri $uri -Headers $cspHeader).value
     }
     Catch {
@@ -30976,18 +30974,18 @@ Export-ModuleMember -Function Get-CEPWorkflowExecutionState
 Function Add-CEPTrustedCertificate {
     <#
         .SYNOPSIS
-        Adds a trusted certificate to an embedded vRealize Orchestrator.
+        Adds a trusted certificate to an embedded VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
-        The Add-vROTrustedCertificateOnCEP cmdlet invokes a workflow in vRealize Orchestrator to add trusted certificate.
+        The Add-vROTrustedCertificateOnCEP cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add trusted certificate.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values and then:
-        - Makes a connection to the embedded vRealize Orchestrator using the -vraUser and -vraPass values.
+        - Makes a connection to the embedded VMware Aria Automation Orchestrator using the -vraUser and -vraPass values.
         - Verifies the workflow exists.
         - Adds the trusted certificate using the -certFile value.
 
         .EXAMPLE
         Add-CEPTrustedCertificate -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -environment staging -apiToken <string> -certFile "C:\Root64.pem"
-        This example adds a trusted certificate in PEM-encoded format to the Cloud Extensibility Proxy vRealize Orchestrator instance.
+        This example adds a trusted certificate in PEM-encoded format to the Cloud Extensibility Proxy VMware Aria Automation Orchestrator instance.
     #>
 
     Param (
@@ -31013,7 +31011,7 @@ Function Add-CEPTrustedCertificate {
         if ($workflow = Get-CEPWorkflow -name $workflowName) {
             $certName = Split-Path -Path "$certFile" -Leaf
             $certContent = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$certFile"))
-            $Global:parameters =  
+            $Global:parameters =
             @"
 {"parameters":
     [
@@ -31035,17 +31033,17 @@ Function Add-CEPTrustedCertificate {
             if (Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID | Where-Object { $_.State -ne "failed" }) {
                 Do {
                     $workflowStatus = Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID
-                } 
+                }
                 Until ($workflowStatus.State -ne "running")
-                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") { 
-                    Write-Output "Adding trusted certificate ($certFile) to the vRealize Orchestrator ($($extensibilityProxy)): SUCCESSFUL"
+                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") {
+                    Write-Output "Adding trusted certificate ($certFile) to the VMware Aria Automation Orchestrator ($($extensibilityProxy)): SUCCESSFUL"
                 } else {
-                    Write-Error "Adding trusted certificate ($certFile) to the vRealize Orchestrator ($($extensibilityProxy)), check certificate format: POST_VALIDATION_FAILED"
+                    Write-Error "Adding trusted certificate ($certFile) to the VMware Aria Automation Orchestrator ($($extensibilityProxy)), check certificate format: POST_VALIDATION_FAILED"
                 }
             } else {
-                Write-Error "Adding trusted certificate ($certFile) to the vRealize Orchestrator ($($extensibilityProxy)): FAILED"
+                Write-Error "Adding trusted certificate ($certFile) to the VMware Aria Automation Orchestrator ($($extensibilityProxy)): FAILED"
             }
-        } 
+        }
     }
     Catch {
         Debug-ExceptionWriter -object $_
@@ -31056,19 +31054,19 @@ Export-ModuleMember -Function Add-CEPTrustedCertificate
 Function Add-CEPvCenterServer {
     <#
         .SYNOPSIS
-        Adds a vCenter Server instance to an embedded vRealize Orchestrator.
+        Adds a vCenter Server instance to an embedded VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
-        The Add-vROvCenterServer cmdlet invokes the workflow in vRealize Orchestrator to add a vCenter Server.
+        The Add-vROvCenterServer cmdlet invokes the workflow in VMware Aria Automation Orchestrator to add a vCenter Server.
         The cmdlet connects to SDDC Manager using the -server, -user, -password, and -domain values
         to return the workload domain vCenter Server details from its inventory and then:
-        - Makes a connection to the Cloud Extensibility Proxy vRealize Orchestrator instance using the -apiToken.
+        - Makes a connection to the Cloud Extensibility Proxy VMware Aria Automation Orchestrator instance using the -apiToken.
         - Verifies the workflow exists.
         - Adds the vCenter Server instance using the -serviceAccount and -servicePassword values.
 
         .EXAMPLE
         Add-CEPvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -apiToken <string> -environment staging -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -serviceAccount svc-vro-vsphere@sfo.rainpole.io -servicePassword VMw@re1!
-        This example adds the vCenter Server instance from the "sfo-w01" workload domain to the Cloud Extensibility Proxy vRealize Orchestrator instance.
+        This example adds the vCenter Server instance from the "sfo-w01" workload domain to the Cloud Extensibility Proxy VMware Aria Automation Orchestrator instance.
     #>
 
     Param (
@@ -31089,12 +31087,12 @@ Function Add-CEPvCenterServer {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
-                    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain          
+                    $vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                     Request-CSPToken -environment $environment -apiToken $apiToken -extensibilityProxy $extensibilityProxy | Out-Null
                     $checkExists = (Invoke-RestMethod -Method 'GET' -URI "https://$cepAppliance/vco/api/catalog/VC" -headers $cspHeader)
                     if ((($checkExists.relations.link.attributes | Where-Object { $_.name -eq "id" }).value) -ne "$($vcenter.fqdn)") {
                         if ($workflow = Get-CEPWorkflow -name $workflowName) {
-                            $parameters =  
+                            $parameters =
                             @"
 {"parameters":
     [
@@ -31213,29 +31211,29 @@ Function Add-CEPvCenterServer {
 "@
                             Invoke-CEPWorkflow -id $($workflow.ID) -parameters ($parameters | ConvertFrom-Json).parameters | Out-Null
                             $workflowExecution = (Get-CEPWorkflowExecution -name $workflowName | Select-Object -last 1)
-                            if (Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID | Where-Object { $_.State -ne "failed" }) { 
+                            if (Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID | Where-Object { $_.State -ne "failed" }) {
                                 Do {
                                     $workflowStatus = Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID
-                                } 
+                                }
                                 Until ($workflowStatus -ne "running")
-                                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") { 
-                                    Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain): SUCCESSFUL"
+                                if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") {
+                                    Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain): SUCCESSFUL"
                                 }
                                 else {
-                                    Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
+                                    Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
                                 }
                             }
                             else {
-                                Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain): FAILED"
+                                Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain): FAILED"
                             }
                         }
                         else {
-                            Write-Error "Unable to find the workflow named ($workflowName) to vRealize Orcherator ($cepAppliance): PRE_VALIDATION_FAILED"
+                            Write-Error "Unable to find the workflow named ($workflowName) to VMware Aria Automation Orchestrator ($cepAppliance): PRE_VALIDATION_FAILED"
                         }
                     }
                     else {
-                        Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to vRealize Orchestrator ($cepAppliance) for Workload Domain ($domain), already exists: SKIPPED"
-                    }                                
+                        Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain), already exists: SKIPPED"
+                    }
                 }
                 else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -31249,7 +31247,7 @@ Function Add-CEPvCenterServer {
 }
 Export-ModuleMember -Function Add-CEPvCenterServer
 
-#EndRegion End vRealize Cloud Services Functions               ######
+#EndRegion End VMware Aria (SaaS) Services Functions               ######
 #####################################################################
 
 #####################################################################
@@ -31266,7 +31264,7 @@ Function Request-VrmsToken {
 
         .EXAMPLE
         Request-VrmsToken -fqdn sfo-m01-vrms01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the vRealize Suite Lifecycle Manager appliance
+        This example shows how to connect to the VMware Aria Suite Lifecycle appliance
     #>
 
     Param (
@@ -31621,7 +31619,7 @@ Function Get-VrmsConfiguration {
         Get-VrmsConfiguration -replication
         This example retrives the storage replication configuration for the vSphere Replication appliance
     #>
-    
+
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
     Param (
@@ -31657,7 +31655,7 @@ Function Set-VrmsConfiguration {
         Set-VrmsConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail vrms-administrator@rainpole.io -siteName SFO-M01
         This example configures the vCenter Server registration with the vSphere Replication appliance
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterInstanceId,
@@ -31748,7 +31746,7 @@ Function Set-VrmsReplication {
         Set-VrmsReplication -filterIp 172.18.111.125 -managementIp 172.18.95.125
         This example configures the vCenter Server registration with the vSphere Replication appliance
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filterIp,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementIp
@@ -31850,7 +31848,7 @@ Function Request-SrmToken {
 
         .EXAMPLE
         Request-SrmToken -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the vRealize Suite Lifecycle Manager appliance
+        This example shows how to connect to the VMware Aria Suite Lifecycle appliance
     #>
 
     Param (
@@ -32202,7 +32200,7 @@ Function Get-SrmConfiguration {
         Get-SrmConfiguration -reconfigure
         This example retrives the reconfiguration status for the Site Recovery Manager appliance
     #>
-    
+
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
     Param (
@@ -32235,7 +32233,7 @@ Function Set-SrmConfiguration {
         Set-SrmConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail srm-administrator@rainpole.io -siteName SFO-M01
         This example configures the vCenter Server registration with the vSphere Replication appliance
     #>
-    
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterInstanceId,
@@ -32477,7 +32475,7 @@ Function Get-ExternalDirectoryPath {
 
 Function cidrMaskLookup {
     Param (
-        [Parameter (Mandatory = $true)][ValidateSet("mask", "cidr")] [String]$source,  
+        [Parameter (Mandatory = $true)][ValidateSet("mask", "cidr")] [String]$source,
         [Parameter (Mandatory = $true)] [String]$value
     )
 
@@ -32514,7 +32512,7 @@ Function cidrMaskLookup {
         ($3 = @{ cidr = "3"; mask = "224.0.0.0" }),
         ($2 = @{ cidr = "2"; mask = "192.0.0.0" }),
         ($1 = @{ cidr = "1"; mask = "128.0.0.0" }),
-        ($0 = @{ cidr = "0"; mask = "0.0.0.0" })			
+        ($0 = @{ cidr = "0"; mask = "0.0.0.0" })
     )
     If ($source -eq "Mask")
     {
@@ -32525,7 +32523,7 @@ Function cidrMaskLookup {
     {
         $found = $subnetMasks | Where-Object { $_.'cidr' -eq $value }
         $returnValue = $found.mask
-    }   
+    }
     Return $returnValue
 }
 
@@ -32600,7 +32598,7 @@ Function Test-PowerValidatedSolutionsPrereq {
                 $message = "PowerShell Module: $($module.Name) $($moduleCurrentVersion) is installed and supports the minimum required version."
                 Show-PowerValidatedSolutionsOutput -type INFO -message $message
             }
-        } 
+        }
     }
     Catch {
         Write-Error $_.Exception.Message
@@ -32728,7 +32726,7 @@ Function Test-VCFAuthentication {
     if ($accessToken) {
         $vcfAuthentication = $True
         Return $vcfAuthentication
-    }   
+    }
     else {
         Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials: PRE_VALIDATION_FAILED"
         $vcfAuthentication = $False
@@ -32884,7 +32882,7 @@ Function Test-VsphereAuthentication {
         if ($DefaultVIServer.Name -eq $server) {
             $vsphereAuthentication = $True
             Return $vsphereAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to authenticate to vCenter Server ($server), check credentials: PRE_VALIDATION_FAILED"
             $vsphereAuthentication = $False
@@ -32951,7 +32949,7 @@ Function Test-SSOAuthentication {
         if ($DefaultSsoAdminServers.Name -eq $server) {
             $ssoAuthentication = $True
             Return $ssoAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to authenticate to Single-Sign-On Server ($server), check credentials: PRE_VALIDATION_FAILED"
             $ssoAuthentication = $False
@@ -32999,7 +32997,7 @@ Function Test-vSphereApiAuthentication {
         if ($response -match "Successfully Requested") {
             $vSphereApiAuthentication = $True
             Return $vSphereApiAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to authenticate to vSphere API Endpoint ($server), check credentials: PRE_VALIDATION_FAILED"
             $vSphereApiAuthentication = $False
@@ -33072,7 +33070,7 @@ Function Test-NSXTAuthentication {
         if ($response -match "Successfully Requested") {
             $nsxtAuthentication = $True
             Return $nsxtAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to obtain access token from NSX Manager ($server), check credentials: PRE_VALIDATION_FAILED"
             $nsxtAuthentication = $False
@@ -33145,7 +33143,7 @@ Function Test-vRSLCMAuthentication {
         if ((Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
             $vrslcmAuthentication = $True
             Return $vrslcmAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager instance ($server), check credentials: PRE_VALIDATION_FAILED"
             $vrslcmAuthentication = $False
@@ -33218,9 +33216,9 @@ Function Test-vROPSAuthentication {
         if ($vropsHeaders.Authorization) {
             $vropsAuthentication = $True
             Return $vropsAuthentication
-        }   
+        }
         else {
-            Write-Error "Unable to obtain access token from vRealize Operations Manager ($server), check credentials: PRE_VALIDATION_FAILED"
+            Write-Error "Unable to obtain access token from VMware Aria Operations ($server), check credentials: PRE_VALIDATION_FAILED"
             $vropsAuthentication = $False
             Return $vropsAuthentication
         }
@@ -33293,7 +33291,7 @@ Function Test-vRLIAuthentication {
             Return $vrliAuthentication
         }
         else {
-            Write-Error "Unable to obtain access token from vRealize Log Insight ($server), check credentials: PRE_VALIDATION_FAILED"
+            Write-Error "Unable to obtain access token from VMware Aria Operations for Logs ($server), check credentials: PRE_VALIDATION_FAILED"
             $vrliAuthentication = $False
             Return $vrliAuthentication
         }
@@ -33364,9 +33362,9 @@ Function Test-vRAAuthentication {
         if ($vraHeaders.Authorization) {
             $vraAuthentication = $True
             Return $vraAuthentication
-        }   
+        }
         else {
-            Write-Error "Unable to obtain access token from vRealize Automation ($server), check credentials: PRE_VALIDATION_FAILED"
+            Write-Error "Unable to obtain access token from VMware Aria Automation ($server), check credentials: PRE_VALIDATION_FAILED"
             $vraAuthentication = $False
             Return $vraAuthentication
         }
@@ -33437,7 +33435,7 @@ Function Test-WSAAuthentication {
         if ($sessionToken) {
             $wsaAuthentication = $True
             Return $wsaAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to obtain access token from Workspace ONE Access ($server), check credentials: PRE_VALIDATION_FAILED"
             $wsaAuthentication = $False
@@ -33506,7 +33504,7 @@ Function Test-VrmsVamiAuthentication {
         if ($vrmsHeader) {
             $vrmsVamiConnection = $True
             Return $vrmsVamiConnection
-        }   
+        }
         else {
             Write-Error $response
             $vrmsVamiConnection = $False
@@ -33575,7 +33573,7 @@ Function Test-SrmVamiAuthentication {
         if ($srmHeader) {
             $srmVamiConnection = $True
             Return $srmVamiConnection
-        }   
+        }
         else {
             Write-Error $response
             $srmVamiConnection = $False
@@ -33701,7 +33699,7 @@ Function Test-WMSubnetInput {
 
         .DESCRIPTION
         The Test-WMSubnetInput cmdlet tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
-        
+
         .EXAMPLE
         Test-WMSubnetInput -Subnet 192.168.21.0/24 -SubnetType Ingress
         This example will return as 'true'
@@ -33713,7 +33711,7 @@ Function Test-WMSubnetInput {
         [Parameter (Mandatory = $true)][ValidateSet("Pod", "Service", "Egress", "Ingress")] [String]$SubnetType
     )
 
-  
+
     Switch ($subnetType) {
         "Pod" {
             $subnetMinimum = 23
@@ -33736,8 +33734,8 @@ Function Test-WMSubnetInput {
             Break
         }
     }
-    
-    
+
+
     Try {
         $checkSubnet = $null
         $subnetStart = $null
@@ -33752,9 +33750,9 @@ Function Test-WMSubnetInput {
         }
 
         if ($checksubnet.IPAddressToString -ne $subnetStart -or !$checkSubnet) {
-            
+
             Write-Error "Improperly formatted subnet ($subnet) : VALIDATION_FAILED"
-            
+
         }
         else {
             $testElement = $true
@@ -33770,7 +33768,7 @@ Function Test-WMSubnetInput {
         $checkSuffix = [int[]]$suffix
         if ($checkSuffix -gt $subnetMinimum -or !$checkSuffix) {
             Write-Error "Improperly sized $subnetType subnet ($subnet). Host prefix length should be at least {$subnetminimum)"
-            
+
         }
         else {
             $testSufix = $true
@@ -33786,7 +33784,7 @@ Function Test-WMSubnetInput {
     else {
         Return $false
     }
-    
+
 }
 Export-ModuleMember -Function Test-WMSubnetInput
 
@@ -33822,11 +33820,11 @@ Function Test-IpAddress {
     for($i=0;$i -lt $subnetStartBinary.length;$i++){
         if($i -ge $suffix){
             $subnetStartBinary[$i] = "1"
-        } 
+        }
     }
 
     for ($i = 0;$i -lt $subnetStartBinary.length;$i++) {
-        $partSubnetStartBinary += $subnetStartBinary[$i] 
+        $partSubnetStartBinary += $subnetStartBinary[$i]
         if(($i+1)%8 -eq 0){
             $partSubnetStartBinary = $partSubnetStartBinary -join ""
             $subnetBroadcastBinary += $partSubnetStartBinary -join ""
@@ -33845,7 +33843,7 @@ Function Test-IpAddress {
             $suffixComparison[$i] = "1"
         }
     }
-        
+
     [string]$suffixBinaryString = $suffixComparison -join ""
     [char[]]$suffixBinary = $suffixBinaryString.ToCharArray()
     $comparison = $true
@@ -33853,7 +33851,7 @@ Function Test-IpAddress {
     for ($i=0; $i -le $subnetStartBinary.length; $i++){
         if($subnetStartBinary[$i] -ne $ipAddressBinary[$i] -and $suffixBinary[$i] -ne "0") {
             $comparison = $false
-        } 
+        }
     }
 
     $output = New-Object -TypeName PSCustomObject
@@ -33894,7 +33892,7 @@ Function Test-IPaddressArray {
         }
         Catch {
             Write-Error "Can not convert $ipAddress to valid IPv4 address."
-            Return $false 
+            Return $false
         }
         if (($convertToIPv4.IPAddressToString -ne $ipAddress) -or (!$convertToIPv4)) {
             Write-Error "Can not convert $ipAddress to valid IPv4 address due to missing octet"
@@ -33905,7 +33903,7 @@ Function Test-IPaddressArray {
         }
     }
     Return $testElement
-    
+
 }
 Export-ModuleMember -Function Test-IPaddressArray
 
@@ -33934,13 +33932,13 @@ Function Test-DnsServers {
     )
 
     if (Test-IPaddressArray -IPaddressArray $dnsServers) {
-    
+
         Foreach ($dnsServer in $dnsServers) {
             [bool]$resolveResult=$false
-                                                                
+
             Try {
                 $checkDnsServer = Resolve-DnsName -Name $domainName -Type A -Server $dnsServer -QuickTimeout -ErrorAction Stop
-            } 
+            }
             Catch [System.ComponentModel.Win32Exception] {
                 Write-Error "Can not resolve: $domainName using dns server: $dnsServer"
                 Return $false
@@ -33952,7 +33950,7 @@ Function Test-DnsServers {
             else {
                 $resolveResult = $true
             }
- 
+
         }
         Return $resolveResult
     }
@@ -33980,23 +33978,23 @@ Function Test-NtpServer {
     Try {
         [Byte[]]$NtpData = ,0 * 48
         $NtpData[0] = 0x1B
-    
+
         $Socket = New-Object Net.Sockets.Socket([Net.Sockets.AddressFamily]::InterNetwork,
                                                 [Net.Sockets.SocketType]::Dgram,
                                                 [Net.Sockets.ProtocolType]::Udp)
-    
+
         $Socket.ReceiveTimeout = 2000
         $Socket.SendTimeout = 2000
-    
+
         $Socket.Connect($Server,123)
-    
+
         [Void]$Socket.Send($NtpData)
-        [Void]$Socket.Receive($NtpData)  
+        [Void]$Socket.Receive($NtpData)
         $Socket.Close()
     }
     Catch {
         # Do nothing
-    }   
+    }
 
     if ($ntpData -eq 0x1B) {
         $ntpStatus = $false
