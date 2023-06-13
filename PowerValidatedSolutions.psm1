@@ -17611,6 +17611,59 @@ Function Get-VcenterTriggeredAlarm {
 }
 Export-ModuleMember -Function Get-VcenterTriggeredAlarm
 
+Function Get-ESXiAdminGroup {
+    <#
+        .SYNOPSIS
+        Retrieves Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host
+
+        .DESCRIPTION
+        Connects to specified ESXi Host and retrives the setting for Config.HostAgent.plugins.hostsvc.esxAdminsGroup
+
+        .EXAMPLE
+        Get-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$esxiHost
+    )
+    
+    if (-Not $Global:DefaultVIServer.IsConnected) {
+        Write-Error "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+    } else {
+        $esxAdminsGroupSettings = (Get-AdvancedSetting -Entity $esxiHost -Name Config.HostAgent.plugins.hostsvc.esxAdminsGroup).Value.toString()
+        $tmp = [pscustomobject] @{
+            Host = $esxiHost;
+            esxAdminsGroup = $esxAdminsGroupSettings;
+        }
+        $tmp
+    }
+}
+Export-ModuleMember -Function Get-ESXiAdminGroup
+    
+Function Set-ESXiAdminGroup {
+    <#
+        .SYNOPSIS
+        Configure Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host
+
+        .DESCRIPTION
+        Connects to specified ESXi Host and sets a new value for Config.HostAgent.plugins.hostsvc.esxAdminsGroup
+
+        .EXAMPLE
+        Set-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io -groupName ug-esxi-admins
+    #>
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$esxiHost,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$groupName
+    )
+    
+    if (-Not $Global:DefaultVIServer.IsConnected) {
+        Write-Error "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+    } else {
+        Get-AdvancedSetting -Entity $esxiHost -Name Config.HostAgent.plugins.hostsvc.esxAdminsGroup | Set-AdvancedSetting -Value $groupName -Confirm:$false
+    }
+}
+Export-ModuleMember -Function Set-ESXiAdminGroup
+
 #EndRegion  End vSphere API Endpoint Functions                 ######
 #####################################################################
 
