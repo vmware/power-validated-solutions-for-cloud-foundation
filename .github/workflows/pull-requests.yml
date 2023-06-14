@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Apply Labels
-        uses: actions/labeler@v4
+        uses: actions/labeler@9fcb2c2f5584144ca754f8bfe8c6f81e77753375 # v4.1.0
         if: github.event.action == 'opened' && env.IN_MAINTAINER_LIST == 'false'
         with:
           configuration-path: .github/labeler-pull-requests.yml
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Apply Size Label
-        uses: codelytv/pr-size-labeler@v1
+        uses: codelytv/pr-size-labeler@54ef36785e9f4cb5ecf1949cfc9b00dbb621d761 # v1.8.1
         with:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           xs_label: size/xs

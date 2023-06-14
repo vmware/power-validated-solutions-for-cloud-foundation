@@ -11,24 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Apply Issue Triage Labels
-        uses: github/issue-labeler@v3.0
+        uses: github/issue-labeler@e24a3eb6b2e28c8904d086302a2b760647f5f45c # v3.1
         with:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           configuration-path: .github/labeler-issues.yml
           enable-versioned-regex: 0
           include-title: 1
-#  first-interaction:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Add Comment for New Contributors
-#        uses: actions/first-interaction@v1
-#        with:
-#          repo-token: ${{ secrets.GITHUB_TOKEN }}
-#          issue-message: >-
-#            Hello, @${{github.actor}}. :wave:
-#              
-#            Thank you for your submitting an issue for the project. We will
-#            respond soon.
-#            
-#            If you want to contribute to this project, please review the
-#            contributing [guidelines](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/blob/main/CONTRIBUTING.md).
