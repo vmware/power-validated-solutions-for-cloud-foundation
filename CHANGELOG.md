@@ -18,6 +18,10 @@
 - Enhanced `Get-LocalPasswordComplexity` to handle VMware Cloud Foundation version parameter.
 - Enhanced `Get-LocalAccountLockout` to handle VMware Cloud Foundation version parameter.
 - Enhanced `Set-NsxtManagerAuthPolicy` cmdlet to handle `hash_algorithm` parameter for NSX 4.x.
+- Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.0.0 and Workspace ONE Access v3.3.7.
+- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Operations v8.10.2.
+- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Automation v8.11.2.
+- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Log Insight v8.10.2.
 
 ## v2.3.0 (2023-05-30)
 
