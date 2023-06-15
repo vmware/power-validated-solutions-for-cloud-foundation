@@ -7149,7 +7149,7 @@ Function Export-vRLIJsonSpec {
         - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
         created in vRealize Suite Lifecycle Manager Locker
         - Generates the deployment JSON specification file using the Planning and Preparation workbook and details
-        from vRealize Suite Lifecycle Manager named 'vrliDeploymentSpec.json'
+        from vRealize Suite Lifecycle Manager named '<management_domain_name>-vrliDeploymentSpec.json'
 
         .EXAMPLE
         Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
@@ -7185,6 +7185,7 @@ Function Export-vRLIJsonSpec {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrliDeploymentSpec.json")
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vrli_license"].Value) {
@@ -7269,7 +7270,7 @@ Function Export-vRLIJsonSpec {
                                         $clusterObject += [pscustomobject]@{
                                         'clusterVips'	= $clusterVipsObject
                                         }
-                                        
+
                                         #### Generate vRealize Log Insight Node Details
                                         $masterProperties = @()
                                         $masterProperties += [pscustomobject]@{
@@ -7311,7 +7312,8 @@ Function Export-vRLIJsonSpec {
                                             if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
-                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.8.2" }
+                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.10.2" }
+                                            if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.10.2" }
                                         } else {
                                             $vrliVersion = $customVersion
                                         }
@@ -7329,7 +7331,7 @@ Function Export-vRLIJsonSpec {
                                             'infrastructure'                    = ($infrastructureObject  | Select-Object -Skip 0)
                                             'products'                          = $productsObject     
                                         }
-                                        $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vrliDeploymentSpec.json" 
+                                        $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
                                         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
                                         Write-Output "Creation of Deployment JSON Specification file for vRealize Log Insight: SUCCESSFUL"
                                     } else {
@@ -7406,7 +7408,8 @@ Function New-vRLIDeployment {
                             } else {
                                 Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
                             }
-                            $json = (Get-Content -Raw .\vrliDeploymentSpec.json)
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrliDeploymentSpec.json")
+                            $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!($environmentExists = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $($jsonSpec.environmentName)}))) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
@@ -9194,7 +9197,7 @@ Function Export-vROPsJsonSpec {
         - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
         created in vRealize Suite Lifecycle Manager Locker
         - Generates the deployment JSON specification file using the Planning and Preparation workbook and details
-        from vRealize Suite Lifecycle Manager named 'vropsDeploymentSpec.json'
+        from vRealize Suite Lifecycle Manager named '<management_domain_name>-vropsDeploymentSpec.json'
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
@@ -9235,6 +9238,7 @@ Function Export-vROPsJsonSpec {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vropsDeploymentSpec.json")
                     $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
@@ -9443,7 +9447,8 @@ Function Export-vROPsJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
-                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.6.4"}
+                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.10.2"}
+                                                    if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.10.2"}
                                                 } else {
                                                     $vropsVersion = $customVersion
                                                 }
@@ -9472,7 +9477,7 @@ Function Export-vROPsJsonSpec {
                                                     }
                                                 }
 
-                                                $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vropsDeploymentSpec.json" 
+                                                $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Operations Manager: SUCCESSFUL"                            
                                             } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist: PRE_VALIDATION_FAILED"
@@ -9566,7 +9571,8 @@ Function New-vROPSDeployment {
                                     Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested -customVersion $customVersion | Out-Null
                                 }
                             }
-                            $json = (Get-Content -Raw .\vropsDeploymentSpec.json)
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vropsDeploymentSpec.json")
+                            $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
@@ -11511,6 +11517,7 @@ Function Export-vRAJsonSpec {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vraDeploymentSpec.json")
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if ($pnpWorkbook.Workbook.Names["vra_license"].Value) {
@@ -11640,7 +11647,8 @@ Function Export-vRAJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
-                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.9.1" }
+                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.11.2" }
+                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.11.2" }
                                                 } else {
                                                     $vraVersion = $customVersion
                                                 }
@@ -11668,8 +11676,7 @@ Function Export-vRAJsonSpec {
                                                         'products'              = $productsObject     
                                                     }
                                                 }
-                                                $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "vraDeploymentSpec.json" 
-                                                
+                                                $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
                                                 Write-Output "Creation of Deployment JSON Specification file for vRealize Automation: SUCCESSFUL"
                                             } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
@@ -11748,7 +11755,8 @@ Function New-vRADeployment {
                             } else {
                                 Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
                             }
-                            $json = (Get-Content -Raw .\vraDeploymentSpec.json)
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vraDeploymentSpec.json")
+                            $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
@@ -23987,6 +23995,7 @@ Function Export-WsaJsonSpec {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
                             if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value}) {
@@ -24128,7 +24137,8 @@ Function Export-WsaJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
                                                     if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
                                                     if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
-                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.6"}
+                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7"}
+                                                    if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7"}
                                                 } else {
                                                     $wsaVersion = $customVersion
                                                 }
@@ -24149,27 +24159,21 @@ Function Export-WsaJsonSpec {
                                                     'products'              = $productsObject
                                                 } 
 
-                                                $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath "wsaDeploymentSpec.json" 
-                                                
+                                                $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
                                                 Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
                                             }
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value)' not found in the vRealize Suite Lifecycle Manager Locker, add and retry"
                             }
                         }
@@ -24223,8 +24227,7 @@ Function New-WSADeployment {
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
         $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    }
-    else {
+    } else {
         if (!(Test-Path -Path $workbook)) {
             Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
             Break
@@ -24252,7 +24255,8 @@ Function New-WSADeployment {
                                     Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -standard -customVersion $customVersion | Out-Null
                                 }
                             }
-                            $json = (Get-Content -Raw .\wsaDeploymentSpec.json)
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
+                            $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
                             if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
@@ -24263,29 +24267,23 @@ Function New-WSADeployment {
                                                 if ($PsBoundParameters.ContainsKey("monitor")) {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                }
-                                                else {
+                                                } else {
                                                     Write-Output "Deployment Rquest for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI"
                                             }
                                             
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Certificate in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])), does not exist: FAILED"
                                     }
-                                }
-                                else {
+                                } else {
                                     Write-Error "Password in vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])), does not exist: FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
@@ -24293,8 +24291,7 @@ Function New-WSADeployment {
                 } 
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
