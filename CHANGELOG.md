@@ -22,6 +22,7 @@
 - Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Operations v8.10.2.
 - Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Automation v8.11.2.
 - Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Log Insight v8.10.2.
+- Enhanced `Export-vROPSJsonSpec` to identify when its VMware Cloud Foundation 4.5.1 or later and deploy Cloud Proxies instead of Remote Collectors.
 
 ## v2.3.0 (2023-05-30)
 
