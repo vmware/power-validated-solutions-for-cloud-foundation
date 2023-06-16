@@ -9386,8 +9386,10 @@ Function Export-vROPsJsonSpec {
                                                 }
                                                 if ($vcfVersion -ge "4.5.1") {
                                                     $deployOption = "smallcp"
+                                                    $type = "cloudproxy"
                                                 } else {
                                                     $deployOption = "smallrc"
+                                                    $type = "remotecollector"
                                                 }
                                                 $remoteCollector1Properties = @()
                                                 $remoteCollector1Properties += [pscustomobject]@{
@@ -9448,24 +9450,14 @@ Function Export-vROPsJsonSpec {
                                                         'properties'	= ($dataProperties | Select-Object -Skip 0)
                                                     }
                                                 }
-                                                if ($vcfVersion -ge "4.5.1") {
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'			= "cloudproxy"
-                                                        'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
-                                                    }
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'			= "cloudproxy"
-                                                        'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
-                                                    }
-                                                } else {
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'			= "remotecollector"
-                                                        'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
-                                                    }
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'			= "remotecollector"
-                                                        'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
-                                                    }
+
+                                                $nodesobject += [pscustomobject]@{
+                                                    'type'			= $type
+                                                    'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
+                                                }
+                                                $nodesobject += [pscustomobject]@{
+                                                    'type'			= $type
+                                                    'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
                                                 }
 
                                                 #### Generate the vRealize Operations Manager Properties Section
