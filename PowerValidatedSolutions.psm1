@@ -9262,6 +9262,18 @@ Function Export-vROPsJsonSpec {
                                                 $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
                                                 
+                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                    if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
+                                                    if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
+                                                    if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
+                                                    if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
+                                                    if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
+                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.10.2"}
+                                                    if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.10.2"}
+                                                } else {
+                                                    $vropsVersion = $customVersion
+                                                }
+                                                
                                                 # $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
@@ -9372,12 +9384,17 @@ Function Export-vROPsJsonSpec {
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
                                                     'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
                                                 }
+                                                if ($vcfVersion -ge "4.5.1") {
+                                                    $deployOption = "smallcp"
+                                                } else {
+                                                    $deployOption = "smallrc"
+                                                }
                                                 $remoteCollector1Properties = @()
                                                 $remoteCollector1Properties += [pscustomobject]@{
                                                     'vmName'	    = $pnpWorkbook.Workbook.Names["region_vropsca_hostname"].Value
                                                     'hostName'	    = $pnpWorkbook.Workbook.Names["region_vropsca_fqdn"].Value
                                                     'ip'		    = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value
-                                                    'deployOption'  = "smallrc"
+                                                    'deployOption'  = $deployOption
                                                     'gateway'       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
                                                     'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
                                                     'searchpath'    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
@@ -9399,7 +9416,7 @@ Function Export-vROPsJsonSpec {
                                                     'vmName'	= $pnpWorkbook.Workbook.Names["region_vropscb_hostname"].Value
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["region_vropscb_fqdn"].Value
                                                     'ip'		= $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
-                                                    'deployOption'  = "smallrc"
+                                                    'deployOption'  = $deployOption
                                                     'gateway'       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
                                                     'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
                                                     'searchpath'    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
@@ -9431,27 +9448,27 @@ Function Export-vROPsJsonSpec {
                                                         'properties'	= ($dataProperties | Select-Object -Skip 0)
                                                     }
                                                 }
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'			= "remotecollector"
-                                                    'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
-                                                }
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'			= "remotecollector"
-                                                    'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
+                                                if ($vcfVersion -ge "4.5.1") {
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "cloudproxy"
+                                                        'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
+                                                    }
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "cloudproxy"
+                                                        'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
+                                                    }
+                                                } else {
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "remotecollector"
+                                                        'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
+                                                    }
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'			= "remotecollector"
+                                                        'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
+                                                    }
                                                 }
 
                                                 #### Generate the vRealize Operations Manager Properties Section
-                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                    if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
-                                                    if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
-                                                    if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
-                                                    if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
-                                                    if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
-                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.10.2"}
-                                                    if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.10.2"}
-                                                } else {
-                                                    $vropsVersion = $customVersion
-                                                }
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vrops"
