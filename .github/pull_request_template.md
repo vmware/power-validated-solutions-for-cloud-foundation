@@ -1,57 +1,77 @@
-In order to have a good experience with our community, we recommend that you read the [contributing guidelines](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/blob/main/CONTRIBUTING.md) for making a pull request.
+<!-- markdownlint-disable first-line-h1 no-inline-html -->
 
-**Summary of Pull Request**
+<!--
+    In order to have the best experience with our community, we recommend that you read the code of conduct and contributing guidelines before submitting a pull request.
+    
+    By submitting this pull request, you confirm that you have read, understood, and agreed to the project's code of conduct and contributing guidelines.
+
+    Please use conventional commits to format the title of the pull request and the commit messages.
+    For more information, please refer to https://www.conventionalcommits.org.
+-->
+
+### Summary
 
 <!--
     Please provide a clear and concise description of the pull request.
 -->
 
-**Type of Pull Request**
+### Type
+
+<!--
+    Please check the one(s) that applies to this pull request using "x".
+-->
+
+- [ ] Bugfix
+- [ ] Enhancement or Feature
+- [ ] Code Style or Formatting
+- [ ] Documentation
+- [ ] Refactoring
+- [ ] Chore
+- [ ] Other
+        Please describe:
+
+### Breaking Changes?
 
 <!--
     Please check the one that applies to this pull request using "x".
--->
-
-- [ ] This is a bug fix.
-- [ ] This is an enhancement or feature.
-- [ ] This is a code style / formatting update.
-- [ ] This is a documentation update.
-- [ ] This is a refactoring update.
-- [ ] This is something else.
-      Please describe:
-
-**Context of the Pull Request***
-
-<!--
-    Please describe the current behavior that you are modifying or link to a relevant issue.
--->
-
-**Related to Existing Issues**
-
-<!--
-  Is this related to any GitHub issue(s)?
--->
-
-Issue Number: N/A
-
-**Test and Documentation Coverage**
-
-<!--
-    Please check the one that applies to this pull request using "x".
--->
-
-- [ ] Tests have been completed (for bug fixes / features).
-- [ ] Documentation has been added / updated (for bug fixes / features).
-
-**Breaking Changes?**
-
-<!--
-    Please check the one that applies to this pull request using "x".
+    If this pull request contains a breaking change, please describe the impact and mitigation path.
 -->
 
 - [ ] Yes, there are breaking changes.
 - [ ] No, there are no breaking changes.
 
+### Test and Documentation
+
 <!--
-    If this pull request contains a breaking change, please describe the impact and mitigation path.
+    Please check the one(s) that applies to this pull request using "x".
+    For bug fixes and enhancements/features, please ensure that tests and documentation have been completed and provide details.
+-->
+
+- [ ] Tests have been completed.
+- [ ] Documentation has been added or updated.
+
+<!--
+    Please describe the tests that have been completed and/or the documentation that has been added/updated.
+-->
+
+### Issue References
+
+<!--
+    Is this related to any GitHub issue(s)? If so, please provide the issue number(s) that are closed or resolved by this pull request.
+
+    For bug fixes and enhancements/features, please ensure that a GitHub issue has been created and provide the issue number(s) here.
+
+    Please use the 'Closes' keyword followed by the a hash and issue number.
+    This will link the pull request to the issue(s) and automatically close them when the pull request is merged.
+
+    Example:
+
+    Closes #000
+    Closes #001
+-->
+
+### Additional Information
+
+<!--
+    Please provide any additional information that may be helpful.
 -->

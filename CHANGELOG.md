@@ -1,6 +1,8 @@
 # Release History
 
-## v2.4.0 (Not Released)
+## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
+
+> Release Date: 2023-06-27
 
 - Added `Get-vRLIAuthenticationAD` cmdlet to retrieve the Active Directory configuration settings.
 - Added `Get-vRLIVersion` cmdlet to retrieve the vRealize Log Insight version information.
@@ -24,7 +26,9 @@
 - Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Log Insight v8.10.2.
 - Enhanced `Export-vROPSJsonSpec` to identify when its VMware Cloud Foundation 4.5.1 or later and deploy Cloud Proxies instead of Remote Collectors.
 
-## v2.3.0 (2023-05-30)
+## [v2.3.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.3.0)
+
+> Release Date: 2023-05-30
 
 - **Breaking Change** - Updated `Add-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
 - **Breaking Change** - Updated `Undo-vCenterGlobalPermission` cmdlet to require the `-sddcDomain` parameter to support isolated workload domains.
@@ -48,7 +52,9 @@
 - Updated `Export-vRAJsonSpec` to support VMware Cloud Foundation v4.5.1.
 - Updated versions to highest release supported for vRealize Suite Lifecycle Manager and PSPACK6.
 
-## v2.2.0 (2023-04-25)
+## [v2.2.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.2.0)
+
+> Release Date: 2023-04-25
 
 - Moved all Password Policy Configuration Functions to new `VMware.CloudFoundation.PasswordManagement` module.
 - Fixed `New-vRLIDeployment` cmdlet where in some scenarios it was failing to find the license alias.
@@ -77,13 +83,17 @@ Deprecation
 - Removed `Set-NsxtEdgeNodeAuthenticationPolicy`
 - Removed `Confirm-PSModule`
 
-## v2.1.1 (2023-11-04)
+## [v2.1.1](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.1.1)
+
+> Release Date: 2023-04-11
 
 - Fixed `Get-vCenterServerDetail` cmdlet to check for VMware Cloud Foundation version when looking up the vCenter Single Sign-On credentials.
 - Enhanced `New-vROPSNotification` cmdlet to check that the alert plugin is valid.
 - Enhanced `Import-vROPSNotification` cmdlet to handle output from low level functions.
 
-## v2.1.0 (2023-28-03)
+## [v2.1.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.1.0)
+
+> Release Date: 2023-03-28
 
 - Enhanced `Get-vCenterServerDetail` cmdlet to to support VCF 5.0 and isolated workload domains.
 - Enhanced `Add-IdentitySource` cmdlet to support VCF 5.0 and isolated workload domains.
@@ -94,7 +104,9 @@ Deprecation
 - Enhanced `Undo-vSphereRole` cmdlet to support VCF 5.0 and isolated workload domains.
 - Fixed `Get-GlobalPermission` cmdlet where UseBasicParsing was set to false but should be true.
 
-## v2.0.1 (2023-28-02)
+## [v2.0.1](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.0.1)
+
+> Release Date: 2023-02-28
 
 - Added `Convert-CssClassStyle` cmdlet to modify the CSS Style in the HTML output.
 - Added `cbl-vsphere-integration.role` role file to support adding the vRealize Log Insight Cloud to vSphere Integration role in vCenter Server.
@@ -102,7 +114,9 @@ Deprecation
 - Enhanced `Test-SSOAuthentication` cmdlet to include -SkipCertificateCheck parameter to handle platforms with self-signed certificates.
 - Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
 
-## v2.0.0 (2023-31-01)
+## [v2.0.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.0.0)
+
+> Release Date: 2023-01-31
 
 - Added `Request-EsxiPasswordExpiration` cmdlet to retrieve the password expiration policy for all ESXi hosts in a cluster.
 - Added `Request-EsxiPasswordComplexity` cmdlet to retrieve the password complexity policy for all ESXi hosts in a cluster.
@@ -212,7 +226,9 @@ Deprecation
 - Removed `createVAMIAuthHeader`
 - Removed `Request-VAMISessionId`
 
-## v1.10.0 (2022-29-11)
+## [v1.10.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.10.0)
+
+> Release Date: 2022-11-29
 
 - Enhanced `Install-SiteRecoveryManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath, and code improvements.
 - Enhanced `Install-vSphereReplicationManager` cmdlet to support an alternative path to the OVF Tool -vmwareOvfToolPath and code improvements.
@@ -269,7 +285,10 @@ Deprecation
 - Added `Add-EsxiVrmsStaticRoute` cmdlet to provide ESXi static route configuration flexibility.
 - Added `Undo-EsxiVrmsStaticRoute` cmdlet to provide ESXi static route removal flexibility.
 
-## v1.9.0 (2022-25-10)
+## [v1.9.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.9.0)
+
+
+> Release Date: 2022-10-25
 
 - Fixed `ilaDeployVrealizeLogInsight.ps1` where the call for cmdlet named Add-vRLISmtpConfiguration had a typo.
 - Enhanced `Export-WsaJsonSpec` cmdlet to support deploying a Standard (single node) Workspace ONE Access via vRealize Suite Lifecycle Manager.
@@ -328,7 +347,10 @@ Deprecation
 - Added Sample Scripts in the SampleScripts\iam folder, to configure Solution Interoperability for Identity and Access Management:
   - `iamSolutionInteroperability.ps1`
 
-## v1.8.0 (2022-27-09)
+## [v1.8.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.8.0)
+
+
+> Release Date: 2022-09-27
 
 - Enhanced `Request-CSPToken` cmdlet to request a token from VMware Cloud.
 - Enhanced `Update-vRACloudAccountZone` and `Update-vRACloudZone` cmdlets to support placement policy for cloud zones in vRealize Automation.
@@ -370,7 +392,10 @@ Deprecation
 - Added `Set-vRAvRLIConfig` cmdlet to configure the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 - Added `Remove-vRAvRLIConfig` cmdlet to remove the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 
-## v1.7.0 (2022-31-05)
+## [v1.7.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.7.0)
+
+
+> Release Date: 2022-05-31
 
 - Added `Set-vSRNetworkConfig` cmdlet to configure a secondary ethernet adapter and the required routing for vSphere Replication appliances in the protected and recovery sites
 - Added `Undo-vSRNetworkConfig` cmdlet to remove the secondary ethernet adapter and its configuration from vSphere Replication appliances in the protected and recovery sites
@@ -381,7 +406,9 @@ Deprecation
 - Added `Set-SRMLicenseConfig` cmdlet to configure the license for Site Recovery Manager in the protected and recovery sites.
 - Added `Undo-SRMLicenseConfig` cmdlet to remove the license configuration from Site Recovery Manager in the protected and recovery sites.
 
-## v1.6.0 (2022-28-04)
+## [v1.6.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.6.0)
+
+> Release Date: 2022-04-28
 
 - Fixed `Add-vROPSAdapterNsxt` cmdlet so that the description is maintained when validating the certificate of the NSX-T Adapter
 - Added `Add-vROPSAdapterIdentityManager` cmdlet to support adding a new Identity Manager Adapter in vRealize Operations Manager.
@@ -401,7 +428,9 @@ instances in Site Recovery Manager
 - Added `New-vSRPortGroup` cmdlet to create port groups for vSphere Replication appliances in the protected and recovery sites.
 - Added `Undo-vSRPortGroup` cmdlet to remove port groups for vSphere Replication appliances in the protected and recovery sites.
 
-## v1.5.0 (2022-29-03)
+## [v1.5.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.5.0)
+
+> Release Date: 2022-03-29
 
 - Enhanced `Add-SsoPermission` cmdlet to verify that the SSO Group exists in vCenter Single Sign-On.
 - Enhanced `Enable-SupervisorCluster` cmdlet additional enhancements around pre-validation of inputs.
@@ -441,7 +470,10 @@ instances in Site Recovery Manager
 Added Sample Scripts in the SampleScripts\ila folder, each script uses the Planning and Preparation Workbook as the input source:
     - `ilaUndoVrealizeLogInsight.ps1` automates the removal of Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
-## v1.4.0 (2022-22-02)
+## [v1.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.4.0)
+
+
+> Release Date: 2022-02-22
 
 - Enhanced all Developer Ready Infrastructure Solution cmdlets for better error handling and message output.
 - Added `Undo-NetworkSegment` cmdlet to remove an NSX segment from an NSX Management Cluster.
@@ -458,7 +490,9 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Add-NsxtNodeProfileSyslogExporter` cmdlet to add a syslog exporter to the default node profile or specified node profile id.
 - Added `Undo-NsxtNodeProfileSyslogExporter` cmdlet to remove all syslog exporter from the default node profile or specified node profile id.
 
-## v1.3.0 (2022-25-01)
+## [v1.3.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.3.0)
+
+> Release Date: 2022-01-25
 
 - Fixed `New-vRSLCMLockerLicense` cmdlet where depending on the speed of the system the license would be added but POST_VALIDATION would fail.
 - Enhanced all Identity and Access Management Solution cmdlets for better error handling and message output.
@@ -509,7 +543,9 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
   - `iomDeployVrealizeOperations.ps1` automates the install and config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
   - `iomConfigureVrealizeOperations.ps1` automates the integration config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
 
-## v1.2.0 (2021-30-11)
+## [v1.2.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.2.0)
+
+> Release Date: 2021-11-30
 
 - Fixed `Add-GlobalPermission` where an error is thrown when Internet Explorer has not been launched in the operating system.
 - Fixed `Set-DatastoreTag` where it was failing to create a single tag and category when multiple vCenter Servers in the Single-Sign On domain.
@@ -553,7 +589,9 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Add-SupervisorClusterCertificate` cmdlet to add a signed TLS certificate for the defined Supervisor Cluster.
 - Added `Add-NamespaceVmClass` cmdlet to add an existing VM Class to a Supervisor Namespace.
 
-## v1.1.0 (2021-05-10)
+## [v1.1.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.1.0)
+
+> Release Date: 2021-10-05
 
 - Fixed `Set-vCenterPermission` where a failure can occur if the workload domain does not follow the same naming as the vCenter Server.
 - Enhanced `Add-VmStartupRule` to check both VM Groups exists before attempting to create the VM-to-VM Group.
@@ -570,12 +608,16 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
   - `Restore-VMOvfProperties`
   - `Copy-vRealizeLoadBalancer`
 
-## v1.0.1 (2021-16-09)
+## [v1.0.1](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.0.1)
+
+> Release Date: 2021-08-16
 
 - Fixed the way Certificate file is read in `Add-WSALdapDirectory` to avoid truncation of certificate data.
 - Fixed `Add-ContentLibrary` where creation using subscription URL was failing.
 - Fixed `Add-VMFolder` where it was creating a folder in each vCenter Server in the Single Sign-On Domain.
 
-## v1.0.0 (2021-24-08)
+## [v1.0.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v1.0.0)
+
+> Release Date: 2021-08-24
 
 - Initial Module Release
