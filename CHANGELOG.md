@@ -8,6 +8,10 @@
 - Added `vcdr-vsphere-integration.role` file for VMware Cloud Disaster Recovery to vSphere Integration.
 - Added `Get-ESXiAdminGroup` cmdlet to retrieve the ESXi Admin Group configuration for an ESXi host.
 - Added `Set-ESXiAdminGroup` cmdlet to configure the ESXi Admin Group configuation for an ESXi host.
+- Added `New-NsxtTier0BgpNeighborConfig` cmdlet to configure or update a BGP neighbor config for NSX Tier-0 gateway.
+- Added `Get-NsxtLocaleService` cmdlet to get a paginated list of all Tier-0 locale-services.
+- Added `Get-VCenterCEIP` cmdlet to retrieve the current status of Customer Experience Improvement Program (CEIP) for vCenter Server.
+- Added `Set-VCenterCEIP` cmdlet to enable or disable Customer Experience Improvement Program (CEIP) for vCenter Server.
 - Enhanced `Get-vRLIAuthenticationWSA` cmdlet with a -status switch to retrieve the connection status with Workspace ONE Access.
 - Enhanced `Add-vRLIAuthenticationGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.
 - Enhanced `Get-vRLIGroup` cmdlet with a vRealize Log Insight version check to throw a warning message if API is missing.

@@ -17681,6 +17681,77 @@ Function Set-ESXiAdminGroup {
 }
 Export-ModuleMember -Function Set-ESXiAdminGroup
 
+Function Get-VCenterCEIP {
+    <#
+        .SYNOPSIS
+        Retrieves the the Customer Experience Improvement Program (CEIP) setting for vCenter Server
+
+        .DESCRIPTION
+        The Get-VCenterCEIP cmdlet retrieves the the CEIP setting for vCenter Server
+
+        .EXAMPLE
+        Get-VCenterCEIP
+    #>
+
+    if (-Not $Global:DefaultVIServer.IsConnected) {
+        Write-Host "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+    } else {
+        $ceipSettings = (Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData).Value.toString() | ConvertFrom-Json
+        $ceipEnabled = $ceipSettings.consentConfigurations[0].consentAccepted
+        $tmp = [pscustomobject] @{
+            FQDN = $Global:DefaultVIServer.Name;
+            CEIP = $ceipEnabled;
+        }
+        $tmp
+    }
+}
+Export-ModuleMember -Function Get-VCenterCEIP
+
+Function Set-VCenterCEIP {
+    <#
+        .SYNOPSIS
+        Enables or Disables the Customer Experience Improvement Program (CEIP) setting for vCenter Server
+
+        .DESCRIPTION
+        The Set-VCenterCEIP cmdlet enables or disables the CEIP setting for vCenter Server
+    
+        .EXAMPLE
+        Set-VCenterCEIP  -Enabled
+
+        .EXAMPLE
+        Set-VCenterCEIP  -Disabled
+    #>
+
+    Param (
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()][Switch]$Enabled,
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [Switch]$Disabled
+    )
+
+    If (-Not $Global:DefaultVIServer.IsConnected) {
+        Write-Host "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+    } else {
+        $ceipSettings = (Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData).Value.toString() | ConvertFrom-Json
+        If($Enabled) {
+            $originalVersion = $ceipSettings.version
+            $ceipSettings.version = [int]$originalVersion + 1
+            $ceipSettings.consentConfigurations[0].consentAccepted = $True
+            $ceipSettings.consentConfigurations[1].consentAccepted = $True
+            $updatedceipSettings = $ceipSettings | ConvertTo-Json
+            Write-Host "Enabling Customer Experience Improvement Program (CEIP) ..."
+            Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData | Set-AdvancedSetting -Value $updatedceipSettings -Confirm:$false
+        } else {
+            $originalVersion = $ceipSettings.version
+            $ceipSettings.version = [int]$originalVersion + 1
+            $ceipSettings.consentConfigurations[0].consentAccepted = $False
+            $ceipSettings.consentConfigurations[1].consentAccepted = $False
+            $updatedceipSettings = $ceipSettings | ConvertTo-Json
+            Write-Host "Disablng Customer Experience Improvement Program (CEIP) ..."
+            Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData | Set-AdvancedSetting -Value $updatedceipSettings -Confirm:$false
+        }
+    }
+}
+Export-ModuleMember -Function Set-VCenterCEIP
+
 #EndRegion  End vSphere API Endpoint Functions                 ######
 #####################################################################
 
@@ -21964,12 +22035,41 @@ Function Get-NsxtTier0BgpStatus {
         $uri = "https://$nsxtManager/policy/api/v1/infra/tier-0s/$id/locale-services/default/bgp/neighbors/status"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-NsxtTier0BgpStatus
+
+Function New-NsxtTier0BgpNeighborConfig {
+    <#
+        .SYNOPSIS
+        Create or update a BGP neighbor config for NSX Tier-0 gateways
+    
+        .DESCRIPTION
+        The New-NsxtTier0BgpNeighborConfig cmdlet configures or updates the BGP neighbor config for NSX Tier-0 gateways
+    
+        .EXAMPLE
+        New-NsxtTier0BgpNeighborConfig -id <guid> -localeservices $localeservices -neighborID $neighborID -json $bgpneighborJson
+        This example configures or updates the BGP neighbor config for NSX Tier-0 gateways
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$localeservices,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$neighborID,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+    
+    Try {		
+		$uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/$localeservices/bgp/neighbors/$neighborID"
+        $response = Invoke-RestMethod -Method PATCH -URI $uri -headers $nsxtHeaders -ContentType application/json -body $json
+		$response
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtTier0BgpNeighborConfig
 
 Function Get-NsxtEdgeNode {
     <#
@@ -22025,6 +22125,33 @@ Function Get-NsxtTier0LocaleServiceBgp {
     }
 }
 Export-ModuleMember -Function Get-NsxtTier0LocaleServiceBgp
+
+Function Get-NsxtLocaleService {
+    <#
+        .SYNOPSIS
+        Get paginated list of all Tier-0 locale-services 
+    
+        .DESCRIPTION
+        The Get-NsxtLocaleService cmdlet returns a paginated list of all Tier-0 locale-services   
+    
+        .EXAMPLE
+        Get-NsxtLocaleservice -id <guid>
+        This example will list all Tier-0 locale-services 
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+		$uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/"
+        $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders
+        $response.results
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtLocaleService
 
 Function Get-NsxtVidmStatus {
     <#
