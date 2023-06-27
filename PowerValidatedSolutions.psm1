@@ -32076,6 +32076,67 @@ Function Test-PowerValidatedSolutionsPrereq {
 }
 Export-ModuleMember -Function Test-PowerValidatedSolutionsPrereq
 
+Function Test-EndpointConnection {
+    <#
+    .SYNOPSIS
+    Test the connection to an endpoint on a specific port.
+
+    .DESCRIPTION
+    The Test-EndpointConnection cmdlet tests the connection to an endpoint on a specific port.
+    If PowerShell Core is used, the Test-Connection cmdlet is used to test the connection.
+    If PowerShell Desktop is used, the Test-NetConnection cmdlet is used to test the connection.
+
+    .PARAMETER server
+    The fully qualified domain name (FQDN) or IP address of the endpoint to test a connection to.
+
+    .PARAMETER port
+    The port number to test the endpoint connection.
+
+    .EXAMPLE
+    Test-EndpointConnection -server example.rainpole.io -port 443
+    This example tests a connection to an endpoint on port TCP 443 (HTTPS).
+
+    .EXAMPLE
+    Test-EndpointConnection -server example.rainpole.io -port 22
+    This example tests a connection to an endpoint on port TCP 22 (SSH).
+    #>
+
+    [CmdletBinding()]
+
+    Param (
+        [Parameter(Mandatory = $true, Position = 0)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter(Mandatory = $true, Position = 1)] [ValidateNotNullOrEmpty()] [Int32]$port
+    )
+
+    Try {
+        if ($PSVersionTable.PSEdition -eq 'Core') {
+            if ($status = Test-Connection -TargetName $server -TcpPort $port -Quiet) {
+                $connection = $True
+                Return $connection
+            }
+            else {
+                $connection = $False
+                Return $connection
+            } 
+        }
+        elseif ($PSVersionTable.PSEdition -eq 'Desktop') {
+            $OriginalProgressPreference = $Global:ProgressPreference; $Global:ProgressPreference = 'SilentlyContinue'
+            if ($status = Test-NetConnection -ComputerName $server -Port $port -WarningAction SilentlyContinue) {
+                $Global:ProgressPreference = $OriginalProgressPreference
+                Return $status.TcpTestSucceeded
+            }
+            else {
+                $Global:ProgressPreference = $OriginalProgressPreference
+                Return $status.TcpTestSucceeded
+            }
+        }
+    }
+    Catch {
+        $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-EndpointConnection
+
 Function Test-VCFConnection {
     <#
         .SYNOPSIS
@@ -32106,7 +32167,7 @@ Function Test-VCFConnection {
             Return $status.TcpTestSucceeded
         }   
         else { 
-            Write-Error "Unable to Communicate with SDDC Manager ($server) on Port ($port), Check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Write-Error "Unable to communicate with SDDC Manager ($server) on port ($port), check FQDN/IP address: PRE_VALIDATION_FAILED"
             $Global:ProgressPreference = $OriginalProgressPreference
             Return $status.TcpTestSucceeded
         } 
@@ -32138,6 +32199,94 @@ Function Test-VCFAuthentication {
 }
 Export-ModuleMember -Function Test-VCFAuthentication
 
+Function Test-EsxiConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to an ESXi host.
+
+        .DESCRIPTION
+        Checks the network connectivity to an ESXi host.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io
+        This example checks network connectivity with an ESXi host on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io -port 443
+        This example checks network connectivity with an ESXi host on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io -port 22
+        This example checks network connectivity with an ESXi host on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the ESXi host.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+    )
+
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            # Success; Do nothing.
+        } else { 
+            Write-Error "Unable to communicate with ESXi host ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+        } 
+    } Catch {
+        $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-EsxiConnection
+
+Function Test-EsxiAuthentication {
+    <#
+        .SYNOPSIS
+        Check authentication to an ESXi host.
+
+        .DESCRIPTION
+        Checks the authentication to an ESXi host.
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io -user root -pass VMware1!
+        This example checks authentication to an ESXi host.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the ESXi host.
+
+        .PARAMETER user
+        The username to authenticate to the ESXi host.
+
+        .PARAMETER pass
+        The password to authenticate to the ESXi host.
+    #>
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        Connect-VIServer -Server $server -User $user -pass $pass | Out-Null
+        if ($DefaultVIServer.Name -eq $server) {
+            $esxiAuthentication = $True
+            Return $esxiAuthentication
+        } else {
+            Write-Error "Unable to authenticate to ESXi host ($server), check credentials: PRE_VALIDATION_FAILED"
+            $esxiAuthentication = $False
+            Return $esxiAuthentication
+        }
+    } Catch {
+        # Do nothing.
+    }
+}
+Export-ModuleMember -Function Test-EsxiAuthentication
+
 Function Test-VsphereConnection {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
@@ -32148,7 +32297,7 @@ Function Test-VsphereConnection {
         Return $vsphereConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vCenter Server ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vCenter Server ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vsphereConnection = $False
         Return $vsphereConnection
     }
@@ -32190,7 +32339,7 @@ Function Test-SSOConnection {
         Return $ssoConnection
     }   
     else { 
-        Write-Error "Unable to communicate with Single-Sign On Server ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with Single-Sign On Server ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $ssoConnection = $False
         Return $ssoConnection
     }
@@ -32232,7 +32381,7 @@ Function Test-vSphereApiConnection {
         Return $vSphereApiConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vSphere API Endpoint ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vSphere API Endpoint ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vSphereApiConnection = $False
         Return $vSphereApiConnection
     }
@@ -32280,7 +32429,7 @@ Function Test-NSXTConnection {
         Return $nsxtConnection
     }   
     else { 
-        Write-Error "Unable to communicate with NSX Manager ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with NSX Manager ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $nsxtConnection = $False
         Return $nsxtConnection
     }
@@ -32324,7 +32473,7 @@ Function Test-vRSLCMConnection {
         Return $vrslcmConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vRealize Suite Lifecycle Manager ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vRealize Suite Lifecycle Manager ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vrslcmConnection = $False
         Return $vrslcmConnection
     }
@@ -32368,7 +32517,7 @@ Function Test-vROPSConnection {
         Return $vropsConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vRealize Operations Manager ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vRealize Operations Manager ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vropsConnection = $False
         Return $vropsConnection
     }
@@ -32412,7 +32561,7 @@ Function Test-vRLIConnection {
         Return $vrliConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vRelize Log Insight ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vRelize Log Insight ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vrliConnection = $False
         Return $vrliConnection
     }
@@ -32456,7 +32605,7 @@ Function Test-vRAConnection {
         Return $vraConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vRelize Automation ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vRelize Automation ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vraConnection = $False
         Return $vraConnection
     }
@@ -32500,7 +32649,7 @@ Function Test-WSAConnection {
         Return $wsaConnection
     }   
     else { 
-        Write-Error "Unable to communicate with Workspace ONE Access ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with Workspace ONE Access ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $wsaConnection = $False
         Return $wsaConnection
     }
@@ -32544,7 +32693,7 @@ Function Test-VrmsVamiConnection {
         Return $vrmsVamiConnection
     }   
     else { 
-        Write-Error "Unable to communicate with vSphere Replication Appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with vSphere Replication Appliance ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $vrmsVamiConnection = $False
         Return $vrmsVamiConnection
     }
@@ -32588,7 +32737,7 @@ Function Test-SrmVamiConnection {
         Return $srmVamiConnection
     }   
     else { 
-        Write-Error "Unable to communicate with Site Recovery Manager Appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with Site Recovery Manager Appliance ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $srmVamiConnection = $False
         Return $srmVamiConnection
     }
@@ -32632,7 +32781,7 @@ Function Test-SRMConnection {
         Return $srmConnection
     }   
     else { 
-        Write-Error "Unable to communicate with Site Recovery Manager appliance ($server), check fqdn/ip address: PRE_VALIDATION_FAILED"
+        Write-Error "Unable to communicate with Site Recovery Manager appliance ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
         $srmConnection = $False
         Return $srmConnection
     }

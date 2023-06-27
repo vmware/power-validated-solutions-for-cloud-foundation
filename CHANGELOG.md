@@ -1,5 +1,13 @@
 # Release History
 
+## v2.5.0 (Unreleased)
+
+> Release Date: Unreleased
+
+- Added `Test-EndpointConnection` to test the connectivity to an endpoint based on PowerShell edition.
+- Added `Test-EsxiConnection` to use `Test-EndpointConnection` with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).
+- Added `Test-EsxiAuthentication` to test the authentication to an ESXi host.
+
 ## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
 
 > Release Date: 2023-06-27
