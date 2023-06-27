@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: >
-        When filing a documentation issue, please include the followinginformation.
+        When filing a documentation issue, please include the following information.
   - type: checkboxes
     id: terms
     attributes:
