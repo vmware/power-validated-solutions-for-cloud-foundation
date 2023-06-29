@@ -32188,27 +32188,27 @@ Export-ModuleMember -Function Test-PowerValidatedSolutionsPrereq
 
 Function Test-EndpointConnection {
     <#
-    .SYNOPSIS
-    Test the connection to an endpoint on a specific port.
+        .SYNOPSIS
+        Test the connection to an endpoint on a specific port.
 
-    .DESCRIPTION
-    The Test-EndpointConnection cmdlet tests the connection to an endpoint on a specific port.
-    If PowerShell Core is used, the Test-Connection cmdlet is used to test the connection.
-    If PowerShell Desktop is used, the Test-NetConnection cmdlet is used to test the connection.
+        .DESCRIPTION
+        The Test-EndpointConnection cmdlet tests the connection to an endpoint on a specific port.
+        If PowerShell Core is used, the Test-Connection cmdlet is used to test the connection.
+        If PowerShell Desktop is used, the Test-NetConnection cmdlet is used to test the connection.
 
-    .PARAMETER server
-    The fully qualified domain name (FQDN) or IP address of the endpoint to test a connection to.
+        .EXAMPLE
+        Test-EndpointConnection -server example.rainpole.io -port 443
+        This example tests a connection to an endpoint on port TCP 443 (HTTPS).
 
-    .PARAMETER port
-    The port number to test the endpoint connection.
+        .EXAMPLE
+        Test-EndpointConnection -server example.rainpole.io -port 22
+        This example tests a connection to an endpoint on port TCP 22 (SSH).
 
-    .EXAMPLE
-    Test-EndpointConnection -server example.rainpole.io -port 443
-    This example tests a connection to an endpoint on port TCP 443 (HTTPS).
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the endpoint to test a connection to.
 
-    .EXAMPLE
-    Test-EndpointConnection -server example.rainpole.io -port 22
-    This example tests a connection to an endpoint on port TCP 22 (SSH).
+        .PARAMETER port
+        The port number to test the endpoint connection.
     #>
 
     [CmdletBinding()]
@@ -32250,36 +32250,42 @@ Export-ModuleMember -Function Test-EndpointConnection
 Function Test-VCFConnection {
     <#
         .SYNOPSIS
-        Check network connectivity to SDDC Manager
+        Check network connectivity to an SDDC Manager instance.
 
         .DESCRIPTION
-        Checks the network connectivity to SDDC Manager. Supports testing a connection on ports 443 (HTTPS) and 22 (SSH)
-        only. If no port is provided it will default to port 443 (HTTPS).
+        Checks the network connectivity to an SDDC Manager instance.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
         .EXAMPLE
         Test-VCFConnection -server sfo-vcf01.sfo.rainpole.io
-        This example checks network connectivity with SDDC Manager on port 443 (HTTPS)
+        This example checks network connectivity with an SDDC Manager instance on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-VCFConnection -server sfo-vcf01.sfo.rainpole.io -port 443
+        This example checks network connectivity with an SDDC Manager instance on port 443 (HTTPS). This is the default port.
 
         .EXAMPLE
         Test-VCFConnection -server sfo-vcf01.sfo.rainpole.io -port 22
-        This example checks network connectivity with SDDC Manager on port 22 (SSH)
-    #>
+        This example checks network connectivity with an SDDC Manager instance on port 22 (SSH).
 
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
     Try {
-        $OriginalProgressPreference = $Global:ProgressPreference; $Global:ProgressPreference = 'SilentlyContinue'
-        if ($status = Test-NetConnection -Port $port -ComputerName $server -WarningAction SilentlyContinue ) {
-            $Global:ProgressPreference = $OriginalProgressPreference
-            Return $status.TcpTestSucceeded
-        }   
-        else { 
-            Write-Error "Unable to communicate with SDDC Manager ($server) on port ($port), check FQDN/IP address: PRE_VALIDATION_FAILED"
-            $Global:ProgressPreference = $OriginalProgressPreference
-            Return $status.TcpTestSucceeded
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with SDDC Manager instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
         } 
     } Catch {
         $_.Exception.Message
@@ -32319,15 +32325,15 @@ Function Test-EsxiConnection {
         Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
         .EXAMPLE
-        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io
+        Test-EsxiConnection -server sfo01-m01-esx01.sfo.rainpole.io
         This example checks network connectivity with an ESXi host on default port, 443 (HTTPS).
 
         .EXAMPLE
-        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io -port 443
+        Test-EsxiConnection -server sfo01-m01-esx01.sfo.rainpole.io -port 443
         This example checks network connectivity with an ESXi host on port 443 (HTTPS). This is the default port.
 
         .EXAMPLE
-        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io -port 22
+        Test-EsxiConnection -server sfo01-m01-esx01.sfo.rainpole.io -port 22
         This example checks network connectivity with an ESXi host on port 22 (SSH).
 
         .PARAMETER server
@@ -32344,9 +32350,10 @@ Function Test-EsxiConnection {
 
     Try {
         if ($status = Test-EndpointConnection -server $server -port $port ) {
-            # Success; Do nothing.
+            Return $status
         } else { 
             Write-Error "Unable to communicate with ESXi host ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
         } 
     } Catch {
         $_.Exception.Message
@@ -32363,7 +32370,7 @@ Function Test-EsxiAuthentication {
         Checks the authentication to an ESXi host.
 
         .EXAMPLE
-        Test-VCFConnection -server sfo01-m01-esx01.sfo.rainpole.io -user root -pass VMware1!
+        Test-EsxiAuthentication -server sfo01-m01-esx01.sfo.rainpole.io -user root -pass VMware1!
         This example checks authentication to an ESXi host.
 
         .PARAMETER server
@@ -32398,18 +32405,47 @@ Function Test-EsxiAuthentication {
 Export-ModuleMember -Function Test-EsxiAuthentication
 
 Function Test-VsphereConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vCenter Server instance.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vCenter Server instance.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-VsphereConnection -server sfo-m01-vc01.sfo.rainpole.io
+        This example checks network connectivity with a vCenter Server instance on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-VsphereConnection -server sfo-m01-vc01.sfo.rainpole.io -port 443
+        This example checks network connectivity with a vCenter Server instance on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-VsphereConnection -server sfo-m01-vc01.sfo.rainpole.io -port 22
+        This example checks network connectivity with a vCenter Server instance on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the vCenter Server instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vsphereConnection = $True
-        Return $vsphereConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vCenter Server ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vsphereConnection = $False
-        Return $vsphereConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vCenter Server instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-VsphereConnection
@@ -32440,18 +32476,43 @@ Function Test-VsphereAuthentication {
 Export-ModuleMember -Function Test-VsphereAuthentication
 
 Function Test-SSOConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vCenter Single Sign-On endpoint.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vCenter Single Sign-On endpoint.
+        Supports testing a connection on port 443 (HTTPS).
+
+        .EXAMPLE
+        Test-SSOConnection -server sfo-m01-vc01.sfo.rainpole.io
+        This example checks network connectivity with a vCenter Single Sign-On endpoint on port 443 (HTTPS).
+
+        .EXAMPLE
+        Test-SSOConnection -server sfo-m01-vc01.sfo.rainpole.io -port 443
+        This example checks network connectivity with a vCenter Single Sign-On endpoint on port 443 (HTTPS).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the vCenter Single Sign-On endpoint.
+
+        .PARAMETER port
+        The port number to test the connection. Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $ssoConnection = $True
-        Return $ssoConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with Single-Sign On Server ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $ssoConnection = $False
-        Return $ssoConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vCenter Single Sign-On endpoint ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-SSOConnection
@@ -32530,18 +32591,47 @@ Function Test-vSphereApiAuthentication {
 Export-ModuleMember -Function Test-vSphereApiAuthentication
 
 Function Test-NSXTConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to an NSX Manager.
+
+        .DESCRIPTION
+        Checks the network connectivity to an NSX Manager.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-NSXTConnection -server sfo-m01-nsx01.sfo.rainpole.io
+        This example checks network connectivity with an NSX Manager on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-NSXTConnection -server sfo-m01-nsx01.sfo.rainpole.io -port 443
+        This example checks network connectivity with an NSX Manager on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-NSXTConnection -server sfo-m01-nsx01.sfo.rainpole.io -port 22
+        This example checks network connectivity with an NSX Manager on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the NSX Manager.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $nsxtConnection = $True
-        Return $nsxtConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with NSX Manager ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $nsxtConnection = $False
-        Return $nsxtConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with NSX Manager ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-NSXTConnection
@@ -32574,18 +32664,47 @@ Function Test-NSXTAuthentication {
 Export-ModuleMember -Function Test-NSXTAuthentication
 
 Function Test-vRSLCMConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vRealize Suite Lifecycle Manager instance.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vRealize Suite Lifecycle Manager instance.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vRSLCMConnection -server xint-vrslcm01.rainpole.io
+        This example checks network connectivity with a vRealize Suite Lifecycle Manager instance on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vRSLCMConnection -server xint-vrslcm01.rainpole.io -port 443
+        This example checks network connectivity with a vRealize Suite Lifecycle Manager instance on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-vRSLCMConnection -server xint-vrslcm01.rainpole.io -port 22
+        This example checks network connectivity with a vRealize Suite Lifecycle Manager instance on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a vRealize Suite Lifecycle Manager instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vrslcmConnection = $True
-        Return $vrslcmConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vRealize Suite Lifecycle Manager ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vrslcmConnection = $False
-        Return $vrslcmConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vRealize Suite Lifecycle Manager instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-vRSLCMConnection
@@ -32606,7 +32725,7 @@ Function Test-vRSLCMAuthentication {
             Return $vrslcmAuthentication
         }   
         else {
-            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager ($server), check credentials: PRE_VALIDATION_FAILED"
+            Write-Error "Unable to obtain access token from vRealize Suite Lifecycle Manager instance ($server), check credentials: PRE_VALIDATION_FAILED"
             $vrslcmAuthentication = $False
             Return $vrslcmAuthentication
         }
@@ -32618,18 +32737,47 @@ Function Test-vRSLCMAuthentication {
 Export-ModuleMember -Function Test-vRSLCMAuthentication
 
 Function Test-vROPSConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vRealize Operations cluster or analytics node.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vRealize Operations cluster or analytics node.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vROPSConnection -server xint-vrops01.rainpole.io
+        This example checks network connectivity with a vRealize Operations cluster or analytics node on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vROPSConnection -server xint-vrops01.rainpole.io -port 443
+        This example checks network connectivity with a vRealize Operations cluster or analytics node. on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-vROPSConnection -server xint-vrops01a.rainpole.io -port 22
+        This example checks network connectivity with a vRealize Operations analytics node on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a vRealize Operations cluster or analytics node.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vropsConnection = $True
-        Return $vropsConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vRealize Operations Manager ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vropsConnection = $False
-        Return $vropsConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vRealize Operations cluster or node ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-vROPSConnection
@@ -32662,18 +32810,47 @@ Function Test-vROPSAuthentication {
 Export-ModuleMember -Function Test-vROPSAuthentication
 
 Function Test-vRLIConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vRealize Log Insight cluster or node.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vRealize Log Insight cluster or node.
+        Supports testing a connection on ports 443 (HTTPS), 80 (HTTP), 22 (SSH), 9000 (CFAPI), 9543 (CFAPI SSL), 514 (SYSLOG), 1514 (SYSLOG), 6514 (SYSLOG). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vRLIConnection -server sfo-vrli01.sfo.rainpole.io
+        This example checks network connectivity with a vRealize Log Insight cluster or node on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vRLIConnection -server sfo-vrli01.sfo.rainpole.io -port 443
+        This example checks network connectivity with a vRealize Log Insight cluster or node. on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-vRLIConnection -server sfo-vrli01a.sfo.rainpole.io -port 22
+        This example checks network connectivity with a vRealize Log Insight node on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a vRealize Log Insight cluster or node.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS), 80 (HTTP), 22 (SSH), 9000 (CFAPI), 9543 (CFAPI SSL), 514 (SYSLOG), 1514 (SYSLOG), 6514 (SYSLOG). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22","80","9000","9543","514","1514","6514")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vrliConnection = $True
-        Return $vrliConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vRelize Log Insight ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vrliConnection = $False
-        Return $vrliConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vRealize Log Insight cluster or node ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-vRLIConnection
@@ -32706,18 +32883,47 @@ Function Test-vRLIAuthentication {
 Export-ModuleMember -Function Test-vRLIAuthentication
 
 Function Test-vRAConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vRealize Automation cluster or node.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vRealize Automation cluster or node.
+        Supports testing a connection on ports 443 (HTTPS), 8080 (HTTP), 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vRAConnection -server xint-vra01.rainpole.io
+        This example checks network connectivity with a vRealize Automation cluster or node on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-vRAConnection -server xint-vra01.rainpole.io -port 443
+        This example checks network connectivity with a vRealize Automation cluster or node. on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-vRAConnection -server xint-vra01a.rainpole.io -port 22
+        This example checks network connectivity with a vRealize Automation node on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a vRealize Automation cluster or node.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS), 8080 (HTTP). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22","8080")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vraConnection = $True
-        Return $vraConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vRelize Automation ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vraConnection = $False
-        Return $vraConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vRealize Automation cluster or node ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-vRAConnection
@@ -32750,18 +32956,47 @@ Function Test-vRAAuthentication {
 Export-ModuleMember -Function Test-vRAAuthentication
 
 Function Test-WSAConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a Workspace ONE Access cluster or node.
+
+        .DESCRIPTION
+        Checks the network connectivity to a Workspace ONE Access cluster or node.
+        Supports testing a connection on ports 443 (HTTPS), 8443 (HTTPS), 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-WSAConnection -server xint-wsa01.rainpole.io
+        This example checks network connectivity with a Workspace ONE Access cluster or node on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-WSAConnection -server xint-wsa01.rainpole.io -port 443
+        This example checks network connectivity with a Workspace ONE Access cluster or node on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-WSAConnection -server xint-wsa01.rainpole.io -port 22
+        This example checks network connectivity with a Workspace ONE Access node. on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a Workspace ONE Access cluster or node.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS), 8443 (HTTPS). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","8443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $wsaConnection = $True
-        Return $wsaConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with Workspace ONE Access ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $wsaConnection = $False
-        Return $wsaConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with Workspace ONE Access cluster or node ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-WSAConnection
@@ -32794,18 +33029,43 @@ Function Test-WSAAuthentication {
 Export-ModuleMember -Function Test-WSAAuthentication
 
 Function Test-VrmsVamiConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a vSphere Replication instance VAMI.
+
+        .DESCRIPTION
+        Checks the network connectivity to a vSphere Replication instance VAMI.
+        Supports testing a connection on ports 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
+
+        .EXAMPLE
+        Test-VrmsVamiConnection -server sfo-vrms01.sfo.rainpole.io
+        This example checks network connectivity with a vSphere Replication instance VAMI on default port, 5480 (HTTPS/VAMI).
+
+        .EXAMPLE
+        Test-VrmsVamiConnection -server sfo-vrms01.sfo.rainpole.io -port 5480
+        This example checks network connectivity with a vSphere Replication instance VAMI on port 5480 (HTTPS/VAMI). This is the default port.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a vSphere Replication instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("5480")] [Int32]$port="5480"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vrmsVamiConnection = $True
-        Return $vrmsVamiConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vSphere Replication Appliance ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vrmsVamiConnection = $False
-        Return $vrmsVamiConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vSphere Replication instance ($server) VAMI on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-VrmsVamiConnection
@@ -32838,18 +33098,43 @@ Function Test-VrmsVamiAuthentication {
 Export-ModuleMember -Function Test-VrmsVamiAuthentication
 
 Function Test-SrmVamiConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a Site Recovery Manager instance VAMI.
+
+        .DESCRIPTION
+        Checks the network connectivity to a Site Recovery Manager instance VAMI.
+        Supports testing a connection on ports 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
+
+        .EXAMPLE
+        Test-SrmVamiConnection -server sfo-srm01.sfo.rainpole.io
+        This example checks network connectivity with a Site Recovery Manager instance VAMI on default port, 5480 (HTTPS/VAMI).
+
+        .EXAMPLE
+        Test-SrmVamiConnection -server sfo-srm01.sfo.rainpole.io -port 5480
+        This example checks network connectivity with a Site Recovery Manager instance VAMI on port 5480 (HTTPS/VAMI). This is the default port.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a Site Recovery Manager instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("5480")] [Int32]$port="5480"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $srmVamiConnection = $True
-        Return $srmVamiConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with Site Recovery Manager Appliance ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $srmVamiConnection = $False
-        Return $srmVamiConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with vSphere Replication instance ($server) VAMI on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-SrmVamiConnection
@@ -32882,18 +33167,47 @@ Function Test-SrmVamiAuthentication {
 Export-ModuleMember -Function Test-SrmVamiAuthentication
 
 Function Test-SRMConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a Site Recovery Manager instance.
+
+        .DESCRIPTION
+        Checks the network connectivity to a Site Recovery Manager instance.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-SRMConnection -server sfo-srm01.sfo.rainpole.io
+        This example checks network connectivity with a Site Recovery Manager instance on default port, 443 (HTTPS).
+
+        .EXAMPLE
+        Test-SRMConnection -server sfo-srm01.sfo.rainpole.io -port 443
+        This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-SRMConnection -server sfo-srm01.sfo.rainpole.io -port 22
+        This example checks network connectivity with a Site Recovery Manager instance on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the a Site Recovery Manager instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $srmConnection = $True
-        Return $srmConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with Site Recovery Manager appliance ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $srmConnection = $False
-        Return $srmConnection
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with Site Recovery Manager instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-SRMConnection
