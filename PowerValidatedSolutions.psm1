@@ -28777,30 +28777,30 @@ Function Request-vRLIToken {
     }
 
     Try {
-        $vrliBasicHeaders = createBasicAuthHeader $username $password
-        $Global:vrliAppliance = $fqdn
+        $Global:vrliAppliance = $fqdn + ":9543"
         $Global:vrliHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-        $vrliHeaders.Add("Accept", "application/json")
         $vrliHeaders.Add("Content-Type", "application/json")
         $uri = "https://$vrliAppliance/api/v1/sessions"
 
-        $body = "{
-        `n  `"username`" : `"$username`",
-        `n  `"provider`" : `"Local`",
-        `n  `"password`" : `"$password`"
-        `n}"
+        $body = '{
+            "username": "'+$username+'",
+            "password": "'+$password+'",
+            "provider": "Local"
+        }'
         
         if ($PSEdition -eq 'Core') {
-            $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliBasicHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        } else {
-            $Global:vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliBasicHeaders -Body $body
+            $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        }
+        else {
+            $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliHeaders -Body $body
         }
 
         if ($vrliResponse.sessionId) {
             $vrliHeaders.Add("Authorization", "Bearer " + $vrliResponse.sessionId)
-            Write-Output "Successfully connected to vRealize Log Insight: $vrliAppliance"
+            Write-Output "Successfully Connected to vRealize Log Insight: $vrliAppliance"
         }
-    } Catch {
+    }
+    Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29117,28 +29117,27 @@ Function Set-vRLISmtpConfiguration {
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/channels"
         $body = '{
-            "channels": [
-              {
+            "channels": [{
                 "type": "email",
                 "config": {
-                  "server": "'+ $smtpServer +'",
-                  "port": '+ $port + ',
-                  "sslAuth": false,
-                  "tls": false,
-                  "defaultSender": "'+ $sender +'",
-                  "login": "'+ $username +'",
-                  "password": "'+ $password +'"
+                    "server": "'+ $smtpServer +'",
+                    "port": '+ $port + ',
+                    "sslAuth": false,
+                    "tls": false,
+                    "defaultSender": "'+ $sender +'",
+                    "login": "'+ $username +'",
+                    "password": "'+ $password +'"
                 }
-              }
-            ]
-          }'
-        $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body
+            }]
+        }'
+        Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body | Out-Null
+        Get-vRLISmtpConfiguration # API returns no output, calling Get-vRLISmtpConfiguration to display updated information
     }
     Catch {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Set-vRLIEmailConfiguration
+Export-ModuleMember -Function Set-vRLISmtpConfiguration
 
 Function Get-vRLIRetentionThreshold {
     <#
@@ -32578,11 +32577,11 @@ Function Test-vRLIAuthentication {
     Remove-Item variable:vrliHeaders -Force -Confirm:$false -ErrorAction Ignore
 
     Try {
-        Request-vRLIToken -fqdn $server -Username $user -Password $pass -ErrorAction Ignore -ErrorVariable ErrMsg | Out-Null
+        Request-vRLIToken -fqdn $server -Username $user -Password $pass | Out-Null
         if ($vrliHeaders.Authorization) {
             $vrliAuthentication = $True
             Return $vrliAuthentication
-        }   
+        }
         else {
             Write-Error "Unable to obtain access token from vRealize Log Insight ($server), check credentials: PRE_VALIDATION_FAILED"
             $vrliAuthentication = $False

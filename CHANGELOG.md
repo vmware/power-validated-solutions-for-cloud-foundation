@@ -4,6 +4,7 @@
 
 > Release Date: Unreleased
 
+- **Breaking Change** Fixed `Request-vRLIToken` to use new bearer token request for vRealize Log Insight.
 - Added `Test-EndpointConnection` to test the connectivity to an endpoint based on PowerShell edition.
 - Added `Test-EsxiConnection` to use `Test-EndpointConnection` with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).
 - Added `Test-EsxiAuthentication` to test the authentication to an ESXi host.
