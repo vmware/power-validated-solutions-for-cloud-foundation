@@ -29,7 +29,7 @@ body:
     attributes:
       label: VMware Cloud Foundation
       description: Please provide the VMware Cloud Foundation version.
-      placeholder: 5.0
+      placeholder: '5.0'
     validations:
       required: true
   - type: input
@@ -40,7 +40,7 @@ body:
         Please provide the PowerShell module version.
         
         Results of: `Get-InstalledModule PowerValidatedSolutions`
-      placeholder: 2.4.0
+      placeholder: '2.4.0'
     validations:
       required: true
   - type: input
@@ -62,7 +62,7 @@ body:
         Please provide the VMware PowerCLI version.
         
         Results of `Get-InstalledModule VMware.PowerCLI`
-      placeholder: 13.0.0
+      placeholder: '13.0.0'
     validations:
       required: true
   - type: input
@@ -73,7 +73,7 @@ body:
         Please provide the PowerVCF version.
         
         Results of `Get-InstalledModule PowerVCF`
-      placeholder: 2.3.0
+      placeholder: '2.3.0'
     validations:
       required: true
   - type: input
