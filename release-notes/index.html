@@ -21,7 +21,7 @@
         <link rel="next" href="../license/">
       
       <link rel="icon" href="../favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -1035,6 +1035,9 @@
 <li>Added <code>Test-EndpointConnection</code> to test the connectivity to an endpoint based on PowerShell edition.</li>
 <li>Added <code>Test-EsxiConnection</code> to use <code>Test-EndpointConnection</code> with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).</li>
 <li>Added <code>Test-EsxiAuthentication</code> to test the authentication to an ESXi host.</li>
+<li>Added <code>Update-vRSLCMPSPack</code> to refresh and update Product Support Packs in vRealize Suite Lifecycle Manager.</li>
+<li>Added <code>Get-vRSLCMPSPack</code> cmdlet to refresh the metadata for Product Support Packs in vRealize Suite Lifecycle Manager.</li>
+<li>Added <code>Install-vRSLCMPSPack</code> cmdlet to install a Product Support Packs in vRealize Suite Lifecycle Manager.</li>
 </ul>
 <h2 id="v240"><a href="https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0">v2.4.0</a><a class="headerlink" href="#v240" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -1840,10 +1843,10 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
       </div>
       <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout(function(){document.querySelector("[data-md-component=consent]").hidden=!1},250);var action,form=document.forms.consent;for(action of["submit","reset"])form.addEventListener(action,function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map(function(e){return[e,!0]}))),location.hash="",location.reload()})</script>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.expand", "navigation.footer", "navigation.header", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tabs.link", "navigation.expand", "navigation.footer", "navigation.header", "navigation.indexes", "navigation.instant", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b425cdc4.min.js"></script>
+      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="../js/timeago.min.js"></script>
