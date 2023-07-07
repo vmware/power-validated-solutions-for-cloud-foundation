@@ -24857,18 +24857,18 @@ Export-ModuleMember -Function Start-vRSLCMProductNode
 Function Get-vRSLCMPSPack {
     <#
         .SYNOPSIS
-        Get list of PS Packs
+        Get list of Product Support Packs
 
         .DESCRIPTION
-        The Get-vRSLCMPSPack cmdlet retrieves a list of available PS Pack for vRealize Suite Lifecycle Manager
+        The Get-vRSLCMPSPack cmdlet retrieves a list of available Product Support Packs for vRealize Suite Lifecycle Manager
 
         .EXAMPLE
         Get-vRSLCMPSPack
-        This example retrieves a list of available PS Pack for vRealize Suite Lifecycle Manager
+        This example retrieves a list of available Product Support Packs for vRealize Suite Lifecycle Manager
 
         .EXAMPLE
         Get-vRSLCMPSPack -checkOnline
-        This example update the manifest of available PS Packs online for vRealize Suite Lifecycle Manager
+        This example update the manifest of available Product Support Packs online for vRealize Suite Lifecycle Manager
     #>
 
     Param (
@@ -24883,8 +24883,7 @@ Function Get-vRSLCMPSPack {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-pspack"
             Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -24892,14 +24891,14 @@ Function Get-vRSLCMPSPack {
 Function Install-vRSLCMPSPack {
     <#
         .SYNOPSIS
-        Install a PS Pack
+        Install a Product Support Pack
 
         .DESCRIPTION
-        The Install-vRSLCMPSPack cmdlet installs a PS Pack on vRealize Suite Lifecycle Manager
+        The Install-vRSLCMPSPack cmdlet installs a Product Support Pack on vRealize Suite Lifecycle Manager
 
         .EXAMPLE
         Install-vRSLCMPSPack -pspackId 8b96b2fa-ec34-491c-a7aa-ef81103f089f
-        This example installs a PS Pack on vRealize Suite Lifecycle Manager
+        This example installs a Product Support Pack on vRealize Suite Lifecycle Manager
     #>
 
     Param (
@@ -24907,11 +24906,9 @@ Function Install-vRSLCMPSPack {
     )
 
     Try {
-        
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-pspack/$pspackId"
         Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
