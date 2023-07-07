@@ -8,6 +8,9 @@
 - Added `Test-EndpointConnection` to test the connectivity to an endpoint based on PowerShell edition.
 - Added `Test-EsxiConnection` to use `Test-EndpointConnection` with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).
 - Added `Test-EsxiAuthentication` to test the authentication to an ESXi host.
+- Added `Update-vRSLCMPSPack` to refresh and update Product Support Packs in vRealize Suite Lifecycle Manager.
+- Added `Get-vRSLCMPSPack` cmdlet to refresh the metadata for Product Support Packs in vRealize Suite Lifecycle Manager.
+- Added `Install-vRSLCMPSPack` cmdlet to install a Product Support Packs in vRealize Suite Lifecycle Manager.
 
 ## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
 
