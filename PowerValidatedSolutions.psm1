@@ -15125,6 +15125,58 @@ Function Undo-vRSLCMDatacenter {
 }
 Export-ModuleMember -Function Undo-vRSLCMDatacenter
 
+Function Update-vRSLCMPSPack {
+    <#
+        .SYNOPSIS
+        Refresh Product Support Packs and Install
+
+        .DESCRIPTION
+        The Update-vRSLCMPSPack cmdlet refreshes the available Product Support Packs and installs the required version
+        to vRealize Suite Lifecycle Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Suite Lifecycle Manager has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Update-vRSLCMPSPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -psPack PSPACK6
+        This example refreshes the available Product Support Packs and installs the required version to vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$psPack
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            $request = Get-vRSLCMPSPack -checkOnline
+                            Start-Sleep 5
+                            Watch-vRSLCMRequest -vmid $request.requestId
+                            $allPsPacks = Get-vRSLCMPSPack
+                            $pspackId = ($allPsPacks | Where-Object {$_.fileName -like "*$psPack"}).pspackId
+                            if ($pspackId) {
+                                $request = Install-vRSLCMPSPack -pspackId $pspackId
+                                Write-Output "Product Support Pack ($psPack) install started on vRealize Suite Lifecycle Manager ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                            } else {
+                                Write-Error "Product Support Pack ($psPack) not found in vRealize Suite Lifecycle Manager: PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-vRSLCMPSPack
+
 Function Add-VmGroup {
     <#
 		.SYNOPSIS
@@ -24801,6 +24853,65 @@ Function Start-vRSLCMProductNode {
     }
 }
 Export-ModuleMember -Function Start-vRSLCMProductNode
+
+Function Get-vRSLCMPSPack {
+    <#
+        .SYNOPSIS
+        Get list of Product Support Packs
+
+        .DESCRIPTION
+        The Get-vRSLCMPSPack cmdlet retrieves a list of available Product Support Packs for vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMPSPack
+        This example retrieves a list of available Product Support Packs for vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMPSPack -checkOnline
+        This example update the manifest of available Product Support Packs online for vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$checkOnline
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("checkOnline")) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-pspack"
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
+        } else {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-pspack"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+
+Function Install-vRSLCMPSPack {
+    <#
+        .SYNOPSIS
+        Install a Product Support Pack
+
+        .DESCRIPTION
+        The Install-vRSLCMPSPack cmdlet installs a Product Support Pack on vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Install-vRSLCMPSPack -pspackId 8b96b2fa-ec34-491c-a7aa-ef81103f089f
+        This example installs a Product Support Pack on vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pspackId
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-pspack/$pspackId"
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
 
 #EndRegion  End vRealize Suite Lifecycle Manager Functions     ######
 #####################################################################
