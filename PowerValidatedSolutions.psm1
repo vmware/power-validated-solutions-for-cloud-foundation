@@ -16411,8 +16411,11 @@ public static class Placeholder {
 
         Try {
             $uri = "https://$vcenterApiServer/api/session" # Perform the vCenter REST API call to authenticate and retrieve the session token
-            $response = Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcenterAuthHeaders -UseBasicParsing
-            
+            if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux") {
+                $response = Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcenterAuthHeaders -UseBasicParsing -SkipCertificateCheck
+            } else {
+                $response = Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcenterAuthHeaders -UseBasicParsing
+            }
         } Catch {
             $errorStatus = $_.Exception
         }
