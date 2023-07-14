@@ -543,13 +543,46 @@ Function Initialize-WorkspaceOne {
 
     Try {
         if (Test-WSAConnection -server $wsaFqdn) {
-            $baseUri = "https://" + $wsaFqdn + ":8443"
-            $uri = $baseUri + "/login"
-            $response = Invoke-RestMethod $uri -Method 'GET' -SessionVariable webSession
+            if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
+{
+$certCallback = @"
+    using System;
+    using System.Net;
+    using System.Net.Security;
+    using System.Security.Cryptography.X509Certificates;
+    public class ServerCertificateValidationCallback
+    {
+        public static void Ignore()
+        {
+            if(ServicePointManager.ServerCertificateValidationCallback ==null)
+            {
+                ServicePointManager.ServerCertificateValidationCallback += 
+                    delegate
+                    (
+                        Object obj, 
+                        X509Certificate certificate, 
+                        X509Chain chain, 
+                        SslPolicyErrors errors
+                    )
+                    {
+                        return true;
+                    };
+            }
+        }
+    }
+"@
+    Add-Type $certCallback
+}
+
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
+            [ServerCertificateValidationCallback]::Ignore()
+            $loginUri = "https://" + $wsaFqdn + "/SAAS/auth/login"
+            $response = Invoke-RestMethod $loginUri -Method 'GET' -SessionVariable webSession -UseBasicParsing
             $response | Out-File wsaResponse.txt
             $tokenSource = (Select-String -Path wsaResponse.txt -Pattern 'window.ec_wiz.vk =')
             $token = ($tokenSource -Split ("'"))[1]
             Remove-Item wsaResponse.txt
+            $baseUri = "https://" + $wsaFqdn + ":8443"
             if ($token) {
                 $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
                 $headers.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")

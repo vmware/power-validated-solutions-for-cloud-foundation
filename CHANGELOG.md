@@ -5,13 +5,14 @@
 > Release Date: Unreleased
 
 - **Breaking Change** Fixed `Request-vRLIToken` to use new bearer token request for vRealize Log Insight.
-- Added `Test-EndpointConnection` to test the connectivity to an endpoint based on PowerShell edition.
-- Added `Test-EsxiConnection` to use `Test-EndpointConnection` with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).
-- Added `Test-EsxiAuthentication` to test the authentication to an ESXi host.
-- Added `Update-vRSLCMPSPack` to refresh and update Product Support Packs in vRealize Suite Lifecycle Manager.
+- Added `Test-EndpointConnection` cmdlet to test the connectivity to an endpoint based on PowerShell edition.
+- Added `Test-EsxiConnection` cmdlet to use `Test-EndpointConnection` with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).
+- Added `Test-EsxiAuthentication` cmdlet to test the authentication to an ESXi host.
+- Added `Update-vRSLCMPSPack` cmdlet to refresh and update Product Support Packs in vRealize Suite Lifecycle Manager.
 - Added `Get-vRSLCMPSPack` cmdlet to refresh the metadata for Product Support Packs in vRealize Suite Lifecycle Manager.
 - Added `Install-vRSLCMPSPack` cmdlet to install a Product Support Packs in vRealize Suite Lifecycle Manager.
-- Updated `Request-VcenterApiToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
+- Updated `Request-VcenterApiToken` cmdlet to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
+- Updated `Initialize-WorkspaceOne` cmdlet to support change in public API for initial configuration of Workspace ONE Access.
 
 ## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
 
