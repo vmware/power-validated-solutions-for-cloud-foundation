@@ -12,7 +12,8 @@
 - Added `Get-vRSLCMPSPack` cmdlet to refresh the metadata for Product Support Packs in vRealize Suite Lifecycle Manager.
 - Added `Install-vRSLCMPSPack` cmdlet to install a Product Support Packs in vRealize Suite Lifecycle Manager.
 - Updated `Request-VcenterApiToken` cmdlet to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
-- Updated `Initialize-WorkspaceOne` cmdlet to support change in public API for initial configuration of Workspace ONE Access.
+- Updated `Initialize-WorkspaceOne` cmdlet to support change in private API for initial configuration of Workspace ONE Access.
+- Updated `Add-vROPSGroupRemoteCollectors` cmdlet to support both REMOTE and CLOUD_PROXY collectors.
 
 ## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
 

@@ -9893,7 +9893,7 @@ Function Add-vROPSGroupRemoteCollectors {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             if (!(Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName})) {
-                                $collectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE"} | Select-Object id).id
+                                $collectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY"} | Select-Object id).id
                                 $collectorIds = $collectors -join ","
                                 Add-vROPSCollectorGroup -name $collectorGroupName -collectorIds $collectorIds
                                 if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
