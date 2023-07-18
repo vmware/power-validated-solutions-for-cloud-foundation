@@ -10654,17 +10654,17 @@ Function Add-vROPSAdapterSddcHealth {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             $vropsVersion = ((Get-vROPSVersion).releaseName -split '\s+' -match '\S')[-1] 
-                            if ($remoteCollectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE"})) {
+                            if ($remoteCollectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY"})) {
                                 Foreach ($collector in $remoteCollectors) {
-                                    $adapterName = "SDDC Health Adapter Instance -" + ($collector.name -Split ("vRealize Operations Manager Collector-"))
-                                    if ($vropsVersion -lt "8.5.0") {
+                                    $adapterName = "SDDC Health Adapter Instance - " + $collector.name
+                                    if ($vropsVersion -lt 8.5.0) {
                                         $json = '{
                                             "resourceKey":  {
                                                                 "name": "'+ $adapterName +'",
                                                                 "adapterKindKey": "SDDCHealthAdapter",
                                                                 "resourceKindKey": "SDDCHealth Instance"
                                                             },
-                                            "description": "SDDC Health Adapter for'+ ($collector.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "description": "SDDC Health Adapter for '+ $collector.name +'",
                                             "collectorId": '+ $($collector.id) +',
                                             "monitoringInterval": 5
                                         }'
@@ -10672,7 +10672,7 @@ Function Add-vROPSAdapterSddcHealth {
                                         $json = '{
                                             "name": "'+ $adapterName +'",
                                             "adapterKindKey": "SDDCHealthAdapter",
-                                            "description": "SDDC Health Adapter for'+ ($collector.name -Split ("vRealize Operations Manager Collector-")) +'",
+                                            "description": "SDDC Health Adapter for '+ $collector.name +'",
                                             "collectorId": '+ $($collector.id) +',
                                             "monitoringInterval": 5
                                         }'
@@ -27359,7 +27359,7 @@ Function Add-vROPSAdapter {
         The Add-vROPSAdapter cmdlet adds an adapter to vRealize Operations Manager
 
         .EXAMPLE
-        Add-vROPSAdapter -json .\adapterJson
+        Add-vROPSAdapter -json .\addAdapter.json
         This example adds an adapter useing the json specification file
     #>
 
