@@ -12,11 +12,14 @@
     ===================================================================================================================
     .CHANGE_LOG
 
-    - 1.0.001   (Gary Blake / 2022-01-04) - Improved the connection handling when starting the script
-    - 1.0.002   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
-    - 1.0.003   (Gary Blake / 2022-03-01) - Updated input values to use latest VCF 4.4.x Planning and Prep Workbook
-    - 1.1.000   (Gary Blake / 2022-10-03) - Added Support for VCF 4.5.x Planning and Prep Workbook
-    - 1.2.000   (Gary Blake / 2022-12-23) - Removed Password Policy Procedures from Script
+    - 1.0.001   (Gary Blake / 2022-01-04)   - Improved the connection handling when starting the script
+    - 1.0.002   (Gary Blake / 2022-02-16)   - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
+    - 1.0.003   (Gary Blake / 2022-03-01)   - Updated input values to use latest VCF 4.4.x Planning and Prep Workbook
+    - 1.1.000   (Gary Blake / 2022-10-03)   - Added Support for VCF 4.5.x Planning and Prep Workbook
+    - 1.2.000   (Gary Blake / 2022-12-23)   - Removed Password Policy Procedures from Script
+    - 1.3.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
+                                            - Added -wsaVersion paramter to define the version of Workspace ONE Access
+                                            - Added a check for the Signed Certificate already being installed
 
     ===================================================================================================================
 
@@ -28,7 +31,7 @@
     ONE Access as defined by the Identity and Access Management Validated Solution
 
     .EXAMPLE
-    iamConfigureWorkspaceOne.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs
+    iamConfigureWorkspaceOne.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs -wsaVersion 3.3.7
     This example performs the deploment and configuration of Workspace ONE Access using the parameters provided within the Planning and Preparation Workbook
 #>
 
@@ -37,7 +40,8 @@ Param (
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerUser,
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerPass,
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
-    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath
+    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filePath,
+    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaVersion
 )
 
 Clear-Host; Write-Host ""
@@ -64,7 +68,7 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v5.0.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
@@ -75,7 +79,9 @@ Try {
             $wsaIpAddress                           = $pnpWorkbook.Workbook.Names["region_wsa_ip"].Value
             $wsaGateway                             = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
             $wsaSubnetMask                          = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-            $wsaOvaFile                             = "identity-manager-3.3.6.0-19203469_OVF10.ova"
+            $wsaSearchString                        = 'identity-manager-' + $wsaVersion + '*'
+            $wsaOvaFile                             = (Get-ChildItem -path ($filePath + "\" + $wsaSearchString)).name
+            
             if (!(Test-Path ($filePath + "\" + $wsaOvaFile) )) { Write-LogMessage -Type ERROR -Message "Unable to Find OVA File: $wsaOvaFile, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found OVA File: $wsaOvaFile" }
             $wsaFqdn                                = $pnpWorkbook.Workbook.Names["region_wsa_fqdn"].Value
             $wsaHostname                            = $wsaFqdn.Split(".")[0]
@@ -135,8 +141,16 @@ Try {
 
             # Attempting to Replace the Certificate of the Standalone Workspace ONE Access Instance
             Write-LogMessage -Type INFO -Message "Attempting to Replace the Certificate of the Standalone Workspace ONE Access Instance"
-            $StatusMsg = Install-WorkspaceOneCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -wsaFqdn $wsaFqdn -rootPass $wsaRootPassword -sshUserPass $wsaSshUserPassword -rootCa ($filePath + "\" + $rootCa) -wsaCertKey ($filePath + "\" + $wsaCertKey) -wsaCert ($filePath + "\" + $wsaCert) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg -match "SUCCESSFUL") { Write-LogMessage -Type INFO -Message "$StatusMsg"; Write-LogMessage -Type INFO -Message "Waiting for Standalone Workspace ONE Access Instance Services to Restart"; Start-Sleep 200 } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+
+            [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+            $url = "https://$wsaFqdn"; $req = [Net.HttpWebRequest]::Create($url)
+            $req.GetResponse() | Out-Null
+            if (!($req.ServicePoint.Certificate.Issuer -like $domainFqdn)) {
+                $StatusMsg = Install-WorkspaceOneCertificate -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -wsaFqdn $wsaFqdn -rootPass $wsaRootPassword -sshUserPass $wsaSshUserPassword -rootCa ($filePath + "\" + $rootCa) -wsaCertKey ($filePath + "\" + $wsaCertKey) -wsaCert ($filePath + "\" + $wsaCert) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg -match "SUCCESSFUL") { Write-LogMessage -Type INFO -Message "$StatusMsg"; Write-LogMessage -Type INFO -Message "Waiting for Standalone Workspace ONE Access Instance Services to Restart"; Start-Sleep 200 } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            } else {
+                Write-LogMessage -Type WARNING -Message "Installing Signed Certifcate on Workspace ONE Access Instance (sfo-wsa01.sfo.rainpole.io) using ($wsaCert) already installed: SKIPPED"
+            }
 
             # Attempting to Configure SMTP on the Standalone Workspace ONE Access Instance
             Write-LogMessage -Type INFO -Message "Attempting to Configure SMTP on the Standalone Workspace ONE Access Instance"

@@ -12,10 +12,13 @@
     ===================================================================================================================
     .CHANGE_LOG
 
-    - 1.0.001   (Gary Blake / 2022-01-04) - Improved the connection handling when starting the script
-    - 1.0.002   (Gary Blake / 2022-02-16) - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
-    - 1.1.000   (Gary Blake / 2022-10-03) - Added Support for VCF 4.5.x Planning and Prep Workbook
-    - 1.2.000   (Gary Blake / 2022-12-23) - Removed Password Policy Procedures from Script
+    - 1.0.001   (Gary Blake / 2022-01-04)   - Improved the connection handling when starting the script
+    - 1.0.002   (Gary Blake / 2022-02-16)   - Added Support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
+    - 1.1.000   (Gary Blake / 2022-10-03)   - Added Support for VCF 4.5.x Planning and Prep Workbook
+    - 1.2.000   (Gary Blake / 2022-12-23)   - Removed Password Policy Procedures from Script
+    - 1.3.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
+                                            - Added Support for Isolated Workload Domains
+                                            - Added Support for Auto-Discovery of Workload Domains
 
     ===================================================================================================================
     
@@ -62,14 +65,13 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v5.0.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
             }
 
+            $allWorkloadDomains                 = Get-VCFWorkloadDomain | Select-Object name
             $domainFqdn                         = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-            $mgmtSddcDomainName                 = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-            $wldSddcDomainName                  = $pnpWorkbook.Workbook.Names["wld_sddc_domain"].Value
             $domainBindUser                     = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
             $domainBindPass                     = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
             $domainControllerMachineName        = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
@@ -78,34 +80,35 @@ Try {
             $vcenterAdminGroup                  = $pnpWorkbook.Workbook.Names["group_gg_vc_admins"].Value
             $vcenterReadOnlyGroup               = $pnpWorkbook.Workbook.Names["group_gg_vc_read_only"].Value
             $ssoAdminGroup                      = $pnpWorkbook.Workbook.Names["group_gg_sso_admins"].Value
-            $ssoServerFqdn                      = (Get-VCFvCenter | Where-Object {$_.domain.id -eq (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).id}).fqdn
-            $ssoServerUser                      = (Get-VCFCredential | Where-Object {$_.accountType -eq "SYSTEM" -and $_.credentialType -eq "SSO"}).username
-            $ssoServerPass                      = (Get-VCFCredential | Where-Object {$_.accountType -eq "SYSTEM" -and $_.credentialType -eq "SSO"}).password
             $vcfAdminGroup                      = $pnpWorkbook.Workbook.Names["group_gg_vcf_admins"].Value
             $vcfOperatorGroup                   = $pnpWorkbook.Workbook.Names["group_gg_vcf_operators"].Value
             $vcfViewerGroup                     = $pnpWorkbook.Workbook.Names["group_gg_vcf_viewers"].Value
-            $mgmtCluster                        = $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value
-            $wldCluster                         = $pnpWorkbook.Workbook.Names["wld_cluster"].Value
-
             $rootCa                             = "Root64.cer"
+
             if (!(Test-Path ($filePath + "\" + $rootCa) )) { Write-LogMessage -Type ERROR -Message "Unable to Find Certificate File: $rootCa, check details and try again" -Colour Red; Break } else { Write-LogMessage -Type INFO -Message "Found Certificate File: $rootCa" }
 
             # Add Active Directory as Identity Provider to the Management vCenter Server
-            Write-LogMessage -Type INFO -Message "Add Active Directory as Identity Provider to the Management vCenter Server"
-            $StatusMsg = Add-IdentitySource -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -dcMachineName $domainControllerMachineName -baseGroupDn $baseGroupDn -baseUserDn $baseUserDn -protocol ldaps -certificate ($filePath + "\" + $rootCa) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            Write-LogMessage -Type INFO -Message "Add Active Directory as Identity Provider to each vCenter Server Single Sign-On Domain"
+            foreach ($sddcDomain in $allWorkloadDomains.name) {
+                $StatusMsg = Add-IdentitySource -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $sddcDomain -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -dcMachineName $domainControllerMachineName -baseGroupDn $baseGroupDn -baseUserDn $baseUserDn -protocol ldaps -certificate ($filePath + "\" + $rootCa) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            }
 
             # Attempting Assign Active Directory Group Global Permissions in vCenter Server
-            Write-LogMessage -Type INFO -Message "Attempting Assign Active Directory Group Global Permissions in vCenter Server"
-            $StatusMsg = Add-vCenterGlobalPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcenterAdminGroup -role Admin -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-            $StatusMsg = Add-vCenterGlobalPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcenterReadOnlyGroup -role ReadOnly -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            Write-LogMessage -Type INFO -Message "Attempting Assign Active Directory Group Global Permissions to each vCenter Server Single Sign-On Domain"
+            foreach ($sddcDomain in $allWorkloadDomains.name) {
+                $StatusMsg = Add-vCenterGlobalPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $sddcDomain -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcenterAdminGroup -role Admin -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                $StatusMsg = Add-vCenterGlobalPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $sddcDomain -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $vcenterReadOnlyGroup -role ReadOnly -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            }
 
             # Attempting to Assign vCenter Single Sign-On Roles to Active Directory Groups
-            Write-LogMessage -Type INFO -Message "Attempting to Assign vCenter Single Sign-On Roles to Active Directory Groups"
-            $StatusMsg = Add-SsoPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $mgmtSddcDomainName -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-            if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            Write-LogMessage -Type INFO -Message "Attempting to Assign vCenter Single Sign-On Roles to Active Directory Groups for each Workload Domain"
+            foreach ($sddcDomain in $allWorkloadDomains.name) {
+                $StatusMsg = Add-SsoPermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $sddcDomain -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -principal $ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+            }
 
             # Attempting to Assign Active Directory Groups to Roles in SDDC Manager
             Write-LogMessage -Type INFO -Message "Attempting to Assign Active Directory Groups to Roles in SDDC Manager"
