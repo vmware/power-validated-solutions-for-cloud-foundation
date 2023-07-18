@@ -14,6 +14,11 @@
 - Updated `Request-VcenterApiToken` cmdlet to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
 - Updated `Initialize-WorkspaceOne` cmdlet to support change in private API for initial configuration of Workspace ONE Access.
 - Updated `Add-vROPSGroupRemoteCollectors` cmdlet to support both REMOTE and CLOUD_PROXY collectors.
+- Enhanced `iamConfigureVsphere.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+- Enhanced `iamConfigureWorkspaceOne.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+- Enhanced `iamConfigureNsx.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+- Enhanced `iamUndoDeployment.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+- Enhanced `iamSolutionInteroperability.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
 
 ## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
 
