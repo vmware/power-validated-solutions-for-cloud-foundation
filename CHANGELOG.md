@@ -5,6 +5,10 @@
 > Release Date: Unreleased
 
 - **Breaking Change** Fixed `Request-vRLIToken` to use new bearer token request for vRealize Log Insight.
+- Fixed `Add-vRLIAuthenticationGroup` cmdlet to check the vRealize Log Insight version correctly.
+- Fixed `Get-vRLIGroup` cmdlet to check the vRealize Log Insight version correctly.
+- Fixed `Add-vRLIGroup` cmdlet to check the vRealize Log Insight version correctly.
+- Fixed `Remove-vRLIGroup` cmdlet to check the vRealize Log Insight version correctly.
 - Added `Test-EndpointConnection` cmdlet to test the connectivity to an endpoint based on PowerShell edition.
 - Added `Test-EsxiConnection` cmdlet to use `Test-EndpointConnection` with TCP 443 (HTTPS) and TCP 22 (SSH). Default: TCP 443 (HTTPS).
 - Added `Test-EsxiAuthentication` cmdlet to test the authentication to an ESXi host.

@@ -8205,7 +8205,7 @@ Function Add-vRLIAuthenticationGroup {
                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                         if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                             if ((Get-vRLIAuthenticationWSA).enabled -eq "True") {
-                                if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+                                if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
                                     if (!(Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain})) {
                                         Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
                                         if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
@@ -29508,7 +29508,7 @@ Function Get-vRLIGroup {
     )
 
     Try {
-        if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+        if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
             $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
             $response.authProviderGroups
@@ -29543,7 +29543,7 @@ Function Add-vRLIGroup {
     )
 
     Try {
-        if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+        if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
             $roleId = (Get-vRLIRole | Where-Object {$_.name -eq $role}).id
             $uri = "https://$vrliAppliance/api/v1/authgroups"
             $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "groupIds": [ "'+ $roleId + '" ]}'
@@ -29578,7 +29578,7 @@ Function Remove-vRLIGroup {
     )
 
     Try {
-        if ((Get-vRLIVersion).version.Split("-")[0] -lt "8.6.2") {
+        if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
             $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider/$domain/$group@$domain"
             $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
             $response
