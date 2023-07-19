@@ -24,6 +24,8 @@
 - Enhanced `iamConfigureNsx.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
 - Enhanced `iamUndoDeployment.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
 - Enhanced `iamSolutionInteroperability.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+- Updated `automation-orchestrator-vsphere-integration.role` to support vSphere 7 and vSphere 8
+- Removed `vra-vsphere-integration.role` and `vra-vsphere-integration.role` in favour of new Aria named files.
 
 ## [v2.4.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
 
