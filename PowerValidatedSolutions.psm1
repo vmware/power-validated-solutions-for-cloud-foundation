@@ -10075,10 +10075,10 @@ Function Update-vROPSAdapterCollecterGroup {
                                                 $json.PSObject.Properties.Remove('collectorId')
                                                 $json  | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json                                                
                                                 Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
-                                                Write-Output "Assiging Collector Group ($collectorGroupName) to instance - ($($adapter.resourceKey.name)) : SUCCESSFUL"
+                                                Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
                                                 Remove-Item .\updateAdapter.json -Force -Confirm:$false
                                             } else {
-                                                Write-Warning "Assiging Collector Group ($collectorGroupName) to instance - ($($adapter.resourceKey.name)) : already assigned: SKIPPED"
+                                                Write-Warning "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)) already assigned: SKIPPED"
                                             }
                                 }
                             } else {

@@ -6,11 +6,17 @@
 <#
     .NOTES
     ===================================================================================================================
-    Created by:  Gary Blake - Senior Staff Solutions Architect
-    Date:   2022-10-10
-    Copyright 2021-2022 VMware, Inc.
+    Created by:         Gary Blake - Senior Staff Solutions Architect
+    Creation Date:      2022-10-10
+                        Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    
+    .CHANGE_LOG
+
+    - 1.1.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
+                                            - Removed Support for VCF 4.3.x Planning and Prep Workbook
+                                            - Improvements to message output
+
+    ===================================================================================================================
     .SYNOPSIS
     Remove Solution Interoperability for Intelligent Logging and Analytics
 
@@ -31,19 +37,23 @@ Param (
     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook
 )
 
+# Define Reusable Parameters
+$solutionName = "Intelligent Logging and Analytics for VMware Cloud Foundation"
+$logsProductName = "vRealize Log Insight"
+$operationsProductName = "vRealize Operations"
+
 Clear-Host; Write-Host ""
 
 Start-SetupLogFile -Path $filePath -ScriptName $MyInvocation.MyCommand.Name
-Write-LogMessage -Type INFO -Message "Starting the Process of Removing Solution Interoperability for Intelligent Logging and Analytics for VMware Cloud Foundation" -Colour Yellow
+Write-LogMessage -Type INFO -Message "Starting the Process of Removing Solution Interoperability for $solutionName" -colour Yellow
 Write-LogMessage -Type INFO -Message "Setting up the log file to path $logfile"
 
 Try {
     Write-LogMessage -Type INFO -Message "Checking Existance of Planning and Preparation Workbook: $workbook"
     if (!(Test-Path $workbook )) {
-        Write-LogMessage -Type ERROR -Message "Unable to Find Planning and Preparation Workbook: $workbook, check details and try again" -Colour Red
+        Write-LogMessage -Type ERROR -Message "Unable to Find Planning and Preparation Workbook: $workbook, check details and try again" -colour Red
         Break
-    }
-    else {
+    } else {
         Write-LogMessage -Type INFO -Message "Found Planning and Preparation Workbook: $workbook"
     }
     Write-LogMessage -Type INFO -Message "Checking a Connection to SDDC Manager: $sddcManagerFqdn"
@@ -54,31 +64,34 @@ Try {
             Write-LogMessage -type INFO -message "Opening the Excel Workbook: $Workbook"
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
+            if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v5.0.x")) {
                 Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
                 Break
+            } else {
+                Write-LogMessage -type INFO -message "Supported Planning and Preparation Workbook Provided. Version: $(($pnpWorkbook.Workbook.Names["vcf_version"].Value))" -colour Green
             }
 
             $vrliAdapterName                    = $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value + "-cluster"
 
             if ((Get-VCFvROPS).status -eq "ACTIVE") {
-                Write-LogMessage -Type INFO -Message "Remove Integration with vRealize Operations Manager"
+                Write-LogMessage -Type INFO -Message "Remove Integration of $logsProductName with $operationsProductName" -Colour Cyan
 
                 # Reconfigure the Default Collector Group for the vRealize Log Insight Integration
-                Write-LogMessage -Type INFO -Message "Attempting to Reconfigure the Default Collector Group for the vRealize Log Insight Integration"
+                Write-LogMessage -Type INFO -Message "Attempting to Reconfigure the Default Collector Group for the $logsProductName Integration"
                 $StatusMsg = Update-vROPSAdapterCollecterGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -adapterType "LogInsightAdapter" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
                 
                 # Remove the Ping Adapter for the vRealize Log Insight Cluster
-                Write-LogMessage -Type INFO -Message "Attempting to Remove the Ping Adapter for the vRealize Log Insight Cluster"
+                Write-LogMessage -Type INFO -Message "Attempting to Remove the Ping Adapter for the $logsProductName Cluster"
                 $StatusMsg = Undo-vROPSAdapter -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -adapterName $vrliAdapterName -adapterType PingAdapter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+                if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             } else {
-                Write-LogMessage -Type INFO -Message "Remove Integration with vRealize Operations Manager, Not Installed: SKIPPED" -Colour Cyan
+                Write-LogMessage -Type INFO -Message "Remove Integration with $operationsProductName, Not Installed: SKIPPED" -Colour Cyan
             }
         }
     }
-}
-Catch {
+} Catch {
     Debug-CatchWriter -object $_
 }
+
+Write-LogMessage -Type INFO -Message "Finishing the Process of Removing Solution Interoperability for $solutionName" -Colour Yellow

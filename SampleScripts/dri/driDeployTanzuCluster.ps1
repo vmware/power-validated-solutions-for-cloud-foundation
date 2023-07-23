@@ -6,13 +6,15 @@
 <#
     .NOTES
     ===================================================================================================================
-    Created by:  Gary Blake - Senior Staff Solutions Architect
-    Date:   2021-03-23
-    Copyright 2021-2022 VMware, Inc.
+    Created by:         Gary Blake - Senior Staff Solutions Architect
+    Creation Date:      2021-03-23
+                        Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
     .CHANGE_LOG
 
-    - 1.1.000   (Gary Blake / 2022-10-03) - Added support for VCF 4.5.x Planning and Prep Workbook
+    - 1.1.000   (Gary Blake / 2022-10-03)   - Added support for VCF 4.5.x Planning and Prep Workbook
+    - 1.2.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
+                                            - Improvements to message output
 
     ===================================================================================================================
     
@@ -41,6 +43,7 @@ Clear-Host; Write-Host ""
 Start-SetupLogFile -Path $filePath -ScriptName $MyInvocation.MyCommand.Name
 Write-LogMessage -Type INFO -Message "Starting the Process of Deploying a Tanzu Cluster on Developer Ready Infrastrucutre for VMware Cloud Foundation Validated Solution" -Colour Yellow
 Write-LogMessage -Type INFO -Message "Setting up the log file to path $logfile"
+Write-LogMessage -Type INFO -Message "Setting the working directoy to path: $filePath"
 
 # Perform validation on inputs
 Try {
@@ -48,16 +51,14 @@ Try {
     if (!(Test-Connection -ComputerName $sddcManagerFqdn -Count 1 -ErrorAction SilentlyContinue)) {
         Write-LogMessage -Type ERROR -Message "Unable to connect to server: $sddcManagerFqdn, check details and try again" -Colour Red
         Break
-    }
-    else {
+    } else {
         Write-LogMessage -Type INFO -Message "Connection to SDDC Manager: $sddcManagerFqdn was Successful"
     }
     Write-LogMessage -Type INFO -Message "Checking Existance of Planning and Preparation Workbook: $workbook"
     if (!(Test-Path $workbook )) {
         Write-LogMessage -Type ERROR -Message "Unable to Find Planning and Preparation Workbook: $workbook, check details and try again" -Colour Red
         Break
-    }
-    else {
+    } else {
         Write-LogMessage -Type INFO -Message "Found Planning and Preparation Workbook: $workbook"
     }
 }
@@ -76,9 +77,11 @@ Try {
         $pnpWorkbook = Open-ExcelPackage -Path $Workbook
 
         Write-LogMessage -type INFO -message "Checking Valid Planning and Prepatation Workbook Provided"
-        if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x")) {
+        if (($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.3.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.4.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v4.5.x") -and ($pnpWorkbook.Workbook.Names["vcf_version"].Value -ne "v5.0.x")) {
             Write-LogMessage -type INFO -message "Planning and Prepatation Workbook Provided Not Supported" -colour Red 
             Break
+        } else {
+            Write-LogMessage -type INFO -message "Supported Planning and Preparation Workbook Provided. Version: $(($pnpWorkbook.Workbook.Names["vcf_version"].Value))"
         }
 
         $domainFqdn                         = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
@@ -92,13 +95,11 @@ Try {
         $wmNamespaceEditUserGroup           = $pnpWorkbook.Workbook.Names["group_gg_kub_admins"].Value
         $wmNamespaceViewUserGroup           = $pnpWorkbook.Workbook.Names["group_gg_kub_readonly"].Value
         $vmClass                            = $pnpWorkbook.Workbook.Names["k8s_vm_class"].Value
-    }
-    else {
+    } else {
         Write-LogMessage -Type ERROR -Message "Unable to connect to SDDC Manager $server" -Colour Red
         Exit
     }
-}
-Catch {
+} Catch {
     Debug-CatchWriter -object $_
 }
 
@@ -111,20 +112,21 @@ Try {
     # Assign the New Tanzu Cluster Namespace Roles to Active Directory Groups
     Write-LogMessage -Type INFO -Message "Attempting to Assign the New Tanzu Cluster Namespace Roles to Active Directory Groups"
     $StatusMsg = Add-NamespacePermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $wldSddcDomainName -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -namespace $wmNamespaceName -principal $wmNamespaceEditUserGroup -role edit -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
     $StatusMsg = Add-NamespacePermission -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -sddcDomain $wldSddcDomainName -domain $domainFqdn -domainBindUser $domainBindUser -domainBindPass $domainBindPass -namespace $wmNamespaceName -principal $wmNamespaceViewUserGroup -role view -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
     # Enable a Virtual Machine Class for the Tanzu Kubernetes Cluster
     Write-LogMessage -Type INFO -Message "Attempting to Enable a Virtual Machine Class for the Tanzu Kubernetes Cluster"
     $StatusMsg = Add-NamespaceVmClass -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -Namespace $wmNamespaceName -VMClass $vmClass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
     # Provision a Tanzu Kubernetes Cluster
     Write-LogMessage -Type INFO -Message "Attempting to Provision a Tanzu Kubernetes Cluster"
     $StatusMsg = Add-TanzuKubernetesCluster -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $wldSddcDomainName -cluster $wmClusterName -yaml .\SampleYaml\sfo-w01-tkc01-cluster.yaml -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
-}
-Catch {
+    if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
+} Catch {
     Debug-CatchWriter -object $_
 }
+
+Write-LogMessage -Type INFO -Message "Finishing the Process of Deploying a Tanzu Cluster on Developer Ready Infrastrucutre for VMware Cloud Foundation Validated Solution" -Colour Yellow

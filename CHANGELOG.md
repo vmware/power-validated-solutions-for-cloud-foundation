@@ -19,11 +19,28 @@
 - Updated `Initialize-WorkspaceOne` cmdlet to support change in private API for initial configuration of Workspace ONE Access.
 - Updated `Add-vROPSGroupRemoteCollectors` cmdlet to support both REMOTE and CLOUD_PROXY collectors.
 - Updated `Add-vROPSAdapterSddcHealth` cmdlet to support both REMOTE and CLOUD_PROXY collectors.
-- Enhanced `iamConfigureVsphere.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
-- Enhanced `iamConfigureWorkspaceOne.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
-- Enhanced `iamConfigureNsx.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
-- Enhanced `iamUndoDeployment.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
-- Enhanced `iamSolutionInteroperability.ps1` script for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+- Enhanced Scripts in the SampleScripts\dri folder, for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+  - `driConfigureSupervisorCluster.ps1`
+  - `driDeployTanzuCluster.ps1`
+  - `driUndoDeployment.ps1`
+- Enhanced Scripts in the SampleScripts\iam folder, for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+  - `iamConfigureVsphere.ps1`
+  - `iamConfigureWorkspaceOne.ps1`
+  - `iamConfigureNsx.ps1`
+  - `iamUndoDeployment.ps1`
+  - `iamSolutionInteroperability.ps1`
+- Enhanced Scripts in the SampleScripts\ila folder, for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+  - `ilaConfigureVrealizeLogInsight.ps1`
+  - `ilaDeployVrealizeLogInsight.ps1`
+  - `ilaSolutionInteroperability.ps1`
+  - `ilaUndoSolutionInteroperability.ps1`
+  - `ilaUndoVrealizeLogInsight.ps1`
+- Enhanced Scripts in the SampleScripts\iom folder, for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+  - `iomConfigureVrealizeOperations.ps1`
+  - `iomDeployVrealizeOperations.ps1`
+  - `iomDeployVrealizeOperations.ps1`
+- Enhanced Scripts in the SampleScripts\pca folder, for VMware Cloud Foundation 5.0 support (for full details see change log details within the script file).
+  - `pcaDeployVrealizeAutomation.ps1`
 - Updated `automation-orchestrator-vsphere-integration.role` to support vSphere 7 and vSphere 8
 - Removed `vra-vsphere-integration.role` and `vra-vsphere-integration.role` in favour of new Aria named files.
 
