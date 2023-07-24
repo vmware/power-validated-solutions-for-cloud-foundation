@@ -12,9 +12,7 @@ repo_url: https://github.com/vmware-samples/power-validated-solutions-for-cloud-
 edit_uri: blob/main/docs/
 
 # Copyright
-copyright: >
-  Copyright &copy; 2021-2023 - VMware, Inc. –
-  <a href="#__consent">Manage Settings</a>
+copyright: Copyright &copy; 2021-2023 - VMware, Inc.
 
 # Configuration
 theme:
@@ -66,6 +64,7 @@ theme:
 plugins:
 - search:
     separator: '[\s\u200b\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+- open-in-new-tab
 - markdownextradata:
     jinja_options:
       variable_start_string: "${{"
@@ -84,17 +83,6 @@ extra:
   config:
     repo_url: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation
     repo_url_raw: https://raw.githubusercontent.com/vmware-samples/power-validated-solutions-for-cloud-foundation
-  consent:
-    title: Cookie Consent
-    description: >- 
-      We use cookies to recognize your repeated visits and preferences, as well
-      as to measure the effectiveness of our documentation and whether users
-      find what they're searching for. With your consent, you're helping us to
-      make our documentation better.
-    actions:
-      - accept
-      - manage
-      - reject
   version:
     default: latest
     provider: mike
@@ -140,7 +128,7 @@ nav:
   - Release Notes: release-notes.md
   - Release Milestones: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/milestones
   - License: license.md
-- Documentation:
+- Reference:
   - documentation/index.md
 - Community:
   - community/index.md

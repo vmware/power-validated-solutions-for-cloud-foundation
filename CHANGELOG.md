@@ -1,8 +1,8 @@
 # Release History
 
-## v2.5.0 (Unreleased)
+## [v2.5.0](https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
 
-> Release Date: Unreleased
+> Release Date: 2023-07-25
 
 - **Breaking Change** Fixed `Request-vRLIToken` to use new bearer token request for vRealize Log Insight.
 - Fixed `Add-vRLIAuthenticationGroup` cmdlet to check the vRealize Log Insight version correctly.
