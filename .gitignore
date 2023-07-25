@@ -1,5 +1,7 @@
 # MacOS
 ## Ignore desktop services files.
 **/.DS_Store
-**/.cer
-**/.csr
+
+# MkDocs
+## Ignore site directory.
+**/.site/**

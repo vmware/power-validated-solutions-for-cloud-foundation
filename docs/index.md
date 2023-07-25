@@ -50,7 +50,7 @@ PowerShell Module                                    | Version   | Publisher    
 -----------------------------------------------------|-----------|---------------|---------------------------------------------------------------------------
 [VMware.PowerCLI][psgallery-module-powercli]         | >= 13.0.0 | VMware, Inc.  | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
 [VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | VMware, Inc.  | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
-[PowerVCF][psgallery-module-powervcf]                | >= 2.3.0  | VMware, Inc.  | :fontawesome-brands-github: &nbsp; [GitHub][github-module-powervcf]
+[PowerVCF][psgallery-module-powervcf]                | >= 2.3.0  | VMware, Inc.  | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
 [ImportExcel][psgallery-module-importexcel]          | >= 7.8.4  | Douglas Finke | :fontawesome-brands-github: &nbsp; [GitHub][github-module-importexcel]
 
 ## Related Projects
@@ -62,11 +62,13 @@ Project                                                                         
 [PowerShell Module for VMware Cloud Foundation Reporting][psgallery-module-reporting]                           | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-reporting]
 [PowerShell Module for VMware Cloud Foundation Certificate Management][psgallery-module-certificate-management] | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-certificate-management]
 [PowerShell Module for VMware Cloud Foundation Password Management][psgallery-module-password-management]       | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-password-management]
-[PowerShell Module for VMware Cloud Foundation Power Management][psgallery-module-power-management]             |
+[PowerShell Module for VMware Cloud Foundation Power Management][psgallery-module-power-management]             | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-power-management]
 
 [microsoft-powershell]: https://docs.microsoft.com/en-us/powershell
 [docs-module-certificate-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-certificate-management
 [docs-module-password-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-password-management
+[docs-module-powervcf]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation
+[docs-module-power-management]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-power-management
 [docs-module-reporting]: https://vmware.github.io/powershell-module-for-vmware-cloud-foundation-reporting
 [docs-vmware-cloud-foundation]: https://docs.vmware.com/en/VMware-Cloud-Foundation/index.html
 [psgallery-module-importexcel]: https://www.powershellgallery.com/packages/ImportExcel
