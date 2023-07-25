@@ -1,14 +1,14 @@
 # Project Information
 site_name: PowerValidatedSolutions
 site_description: PowerShell Module for VMware Validated Solutions
-site_url: https://vmware-samples.github.io/power-validated-solutions-for-cloud-foundation
+site_url: https://vmware.github.io/power-validated-solutions-for-cloud-foundation
 site_author: VMware, Inc.
 docs_dir: docs
 site_dir: .site
 use_directory_urls: true
 
 # Repository
-repo_url: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation
+repo_url: https://github.com/vmware/power-validated-solutions-for-cloud-foundation
 edit_uri: blob/main/docs/
 
 # Copyright
@@ -81,8 +81,8 @@ plugins:
 # Customization
 extra:
   config:
-    repo_url: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation
-    repo_url_raw: https://raw.githubusercontent.com/vmware-samples/power-validated-solutions-for-cloud-foundation
+    repo_url: https://github.com/vmware/power-validated-solutions-for-cloud-foundation
+    repo_url_raw: https://raw.githubusercontent.com/vmware/power-validated-solutions-for-cloud-foundation
   version:
     default: latest
     provider: mike
@@ -126,15 +126,15 @@ nav:
   - Updating: update.md
   - User Access: user-access.md
   - Release Notes: release-notes.md
-  - Release Milestones: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/milestones
+  - Release Milestones: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/milestones
   - License: license.md
 - Reference:
   - documentation/index.md
 - Community:
   - community/index.md
   - Contributing: community/contributing.md
-  - Discussions: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/discussions
-  - Search Issues: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues
-  - Open an Issue: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues/new/choose
+  - Discussions: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/discussions
+  - Search Issues: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/issues
+  - Open an Issue: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/issues/new/choose
   - Support: community/support.md
   - Code of Conduct: community/code-of-conduct.md

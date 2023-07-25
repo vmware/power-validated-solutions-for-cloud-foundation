@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Module Documentation
-    url: 'https://vmware-samples.github.io/power-validated-solutions-for-cloud-foundation/'
+    url: 'https://vmware.github.io/power-validated-solutions-for-cloud-foundation/'
     about: Having trouble with the module? Check out the documentation.
   - name: VMware Validated Solutions
     url: https://vmware.com/go/vvs
