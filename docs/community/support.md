@@ -15,5 +15,5 @@ Please try to include as much information as you can. Details like these are inc
 
 You can also start a discussion on the [discussions][discussions] area to ask questions or share ideas.
 
-[issues]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues
-[discussions]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/discussions
+[issues]: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/issues
+[discussions]: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/discussions

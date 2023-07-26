@@ -64,9 +64,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 [changelog]: CHANGELOG.md
 [contributing]: CONTRIBUTING.md
 [docs-vmware-cloud-foundation]: https://docs.vmware.com/en/VMware-Cloud-Foundation
-[docs-module]: https://vmware-samples.github.io/power-validated-solutions-for-cloud-foundation
-[gh-discussions]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/discussions
-[gh-issues]: https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/issues
+[docs-module]: https://vmware.github.io/power-validated-solutions-for-cloud-foundation
+[gh-discussions]: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/discussions
+[gh-issues]: https://github.com/vmware/power-validated-solutions-for-cloud-foundation/issues
 [psgallery-module]: https://www.powershellgallery.com/packages/PowerValidatedSolutions
 [vmware-cla-dco]: https://cla.vmware.com/dco
 [vvs]: https://vmware.com/go/vvs

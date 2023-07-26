@@ -1,5 +1,5 @@
 # PowerShell Module for VMware Validated Solutions for VMware Cloud Foundation
-# Contributions are welcome. https://github.com/vmware-samples/power-validated-solutions-for-cloud-foundation/blob/main/CONTRIBUTING.md
+# Contributions are welcome. https://github.com/vmware/power-validated-solutions-for-cloud-foundation/blob/main/CONTRIBUTING.md
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 # WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
