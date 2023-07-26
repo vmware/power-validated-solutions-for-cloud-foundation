@@ -39,6 +39,7 @@ jobs:
             focus on the active pull requests. If this pull request receives no
             comments in the next 30 days it will automatically be closed.
 
+            
             If this pull request was automatically closed and you feel this pull
             request should be reopened, we encourage creating a new pull request
             linking back to this one for added context. 

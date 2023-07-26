@@ -10,41 +10,12 @@ on:
     - edited
     - ready_for_review
 
-env:
-  IN_MAINTAINER_LIST: '${{ contains(secrets.MAINTAINER_LIST, github.actor) }}'
-
 jobs:
   label-needs-review:
     runs-on: ubuntu-latest
     steps:
       - name: Apply Labels
         uses: actions/labeler@ac9175f8a1f3625fd0d4fb234536d26811351594 # v4.3.0
-        if: github.event.action == 'opened' && env.IN_MAINTAINER_LIST == 'false'
         with:
           configuration-path: .github/labeler-pull-requests.yml
-          repo-token: '${{ secrets.GITHUB_TOKEN }}'      
-  label-size:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply Size Label
-        uses: codelytv/pr-size-labeler@54ef36785e9f4cb5ecf1949cfc9b00dbb621d761 # v1.8.1
-        with:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-          xs_label: size/xs
-          xs_max_size: '10'
-          s_label: size/s
-          s_max_size: '100'
-          m_label: size/m
-          m_max_size: '500'
-          l_label: size/l
-          l_max_size: '1000'
-          xl_label: size/xl
-          fail_if_xl: 'false'
-          message_if_xl: >-
-            This pull request exceeds the recommended size of 1000 lines and
-            might be rejected due to its size.
-
-            Please make sure you are not addressing multiple issues in a pull
-            request.
-          github_api_url: api.github.com
-          
+          repo-token: '${{ secrets.GITHUB_TOKEN }}'
