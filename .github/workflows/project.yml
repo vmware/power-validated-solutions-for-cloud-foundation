@@ -1,0 +1,22 @@
+name: Add to Project
+on:
+  issues:
+    types:
+      - opened
+      - reopened
+      - transferred
+      - labeled
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - labeled
+jobs:
+  add-to-project:
+    name: Add to Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@31b3f3ccdc584546fc445612dec3f38ff5edb41c
+        with:
+          project-url: 'https://github.com/orgs/vmware/projects/22'
+          github-token: '${{ secrets.GH_ADD_TO_PROJECT }}'
