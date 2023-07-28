@@ -24923,6 +24923,7 @@ Function Get-vRSLCMPSPack {
         Write-Error $_.Exception.Message
     }
 }
+Export-ModuleMember -Function Get-vRSLCMPSPack
 
 Function Install-vRSLCMPSPack {
     <#
@@ -24948,6 +24949,98 @@ Function Install-vRSLCMPSPack {
         Write-Error $_.Exception.Message
     }
 }
+Export-ModuleMember -Function Install-vRSLCMPSPack
+
+Function Get-vRSLCMProductBinariesMapped {
+    <#
+        .SYNOPSIS
+        Get list of mapped product binaries
+
+        .DESCRIPTION
+        The Get-vRSLCMProductBinariesMapped cmdlet retrieves a list of mapped product binaries in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMProductBinariesMapped
+        This example retrieves a list of mapped Product Binaries in vRealize Suite Lifecycle Manager
+    #>
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/product-binaries"
+        Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMProductBinariesMapped
+
+Function Get-vRSLCMProductBinaries {
+    <#
+        .SYNOPSIS
+        Get list of product binaries
+
+        .DESCRIPTION
+        The Get-vRSLCMProductBinaries cmdlet retrieves a list of product binaries in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Get-vRSLCMProductBinaries -sourceLocation /data -sourceType Local
+        This example retrieves a list of product binaries in vRealize Suite Lifecycle Manager located in the absolute path /data
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceLocation,
+        [Parameter (Mandatory = $true)] [ValidateSet('Local','NFS')] [String]$sourceType
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/product-binaries"
+        $body = '{
+            "sourceLocation": "' + $sourceLocation + '",
+            "sourceType": "' + $sourceType + '"
+        }'
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMProductBinaries
+
+Function Register-vRSLCMProductBinary {
+    <#
+        .SYNOPSIS
+        Get list of product binaries
+
+        .DESCRIPTION
+        The Register-vRSLCMProductBinary cmdlet retrieves a list of mapped product binaries in vRealize Suite Lifecycle Manager
+
+        .EXAMPLE
+        Register-vRSLCMProductBinary -ovaName vRealize-Operations-Manager-Appliance-8.10.2.21178503_OVF10.ova -ovaPath /data/vRealize-Operations-Manager-Appliance-8.10.2.21178503_OVF10.ova -ovaType install
+        This example adds the binary to vRealize Suite Lifecycle Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ovaName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ovaPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ovaType
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/product-binaries/download"
+        $body = '[ {
+            "name": "' + $ovaName + '",
+            "filePath":"' + $ovaPath + '",
+            "type": "' + $ovaType + '"
+        }]'
+        $responseid = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        Start-Sleep 10
+        Do {
+            $response = Get-vRSLCMRequest -requestId $responseid.requestId
+        } Until ($response.state -ne "INPROGRESS")
+        Write-Host "Product Source Mapping Request Finished With Status: $($response.state)"
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Register-vRSLCMProductBinary
 
 #EndRegion  End vRealize Suite Lifecycle Manager Functions     ######
 #####################################################################
