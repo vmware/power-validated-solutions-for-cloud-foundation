@@ -1,5 +1,14 @@
 # Release History
 
+## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
+
+> Release Date: Unreleased
+
+- Added `Get-vRSLCMProductBinariesMapped` cmdlet to retrieves a list of mapped Product Binaries in vRealize Suite Lifecycle Manager.
+- Added `Get-vRSLCMProductBinaries` cmdlet to retrieve a list of product binaries in vRealize Suite Lifecycle Manager.
+- Added `Register-vRSLCMProductBinary` cmdlet to add a product binary to the vRealize Suite Lifecycle Manager inventory.
+- Added `hcx-vsphere-integration.role` file to support creation of VMware HCX to vSphere Integration.
+
 ## [v2.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
 
 > Release Date: 2023-07-25
