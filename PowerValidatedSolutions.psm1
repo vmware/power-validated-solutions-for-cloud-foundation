@@ -7584,6 +7584,7 @@ Function Add-vRLISmtpConfiguration {
                             if (Test-Connection -ComputerName $smtpServer -Quiet -Count 1) {
                                 if (!(Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer})) {
                                     Set-vRLISmtpConfiguration -smtpServer $smtpServer -port $port -sender $sender -username $smtpUser -password $smtpPass | Out-Null
+                                    Start-Sleep 2
                                     if (Get-vRLISmtpConfiguration | Where-Object {$_.server -eq $smtpServer}) {
                                         Write-Output "Configuring SMTP Server in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): SUCCESSFUL"
                                     } else {
@@ -7643,6 +7644,7 @@ Function Add-vRLIAuthenticationWSA {
                             if (Test-Connection -ComputerName $wsaFqdn -Quiet -Count 1) {
                                 if ((Get-vRLIAuthenticationWSA).enabled -eq $false) {
                                     Set-vRLIAuthenticationWSA -hostname $wsaFqdn -port 443 -redirectUrl $vcfVrliDetails.fqdn -username $wsaUser -password $wsaPass
+                                    Start-Sleep 2
                                     if ((Get-vRLIAuthenticationWSA).enabled -eq $true) {
                                         Write-Output "Configuring Workspace ONE Access Integration in vRealize Log Insight ($($vcfVrliDetails.fqdn)) with ($wsaFqdn): SUCCESSFUL"
                                     } else {
@@ -7861,6 +7863,7 @@ Function Add-vRLIAgentGroup {
                         if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
                             if (!(Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName})) {
                                 New-vRLIAgentGroup -agentGroupType $agentGroupType -criteria $criteria -agentGroupName $agentGroupName | Out-Null
+                                Start-Sleep 2
                                 if (Get-vRLIAgentGroup | Select-Object name | Where-Object {$_.name -eq $agentGroupName}) {
                                     Write-Output "Creating Agent Group in vRealize Log Insight ($($vcfVrliDetails.fqdn)) for ($agentGroupName): SUCCESSFUL"
                                 } else {
