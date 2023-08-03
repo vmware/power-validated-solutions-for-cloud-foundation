@@ -4,6 +4,9 @@
 
 > Release Date: Unreleased
 
+- Enhanced `Add-vRLISmtpConfiguration` cmdlet with a 2 second delay to ensure the API call completes.
+- Enhanced `Add-vRLIAuthenticationWSA` cmdlet with a 2 second delay to ensure the API call completes.
+- Enhanced `Add-vRLIAgentGroup` cmdlet with a 2 second delay to ensure the API call completes.
 - Added `Get-vRSLCMProductBinariesMapped` cmdlet to retrieves a list of mapped Product Binaries in vRealize Suite Lifecycle Manager.
 - Added `Get-vRSLCMProductBinaries` cmdlet to retrieve a list of product binaries in vRealize Suite Lifecycle Manager.
 - Added `Register-vRSLCMProductBinary` cmdlet to add a product binary to the vRealize Suite Lifecycle Manager inventory.
