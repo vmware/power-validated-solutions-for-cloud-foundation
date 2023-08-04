@@ -18945,7 +18945,7 @@ Function Request-NsxtToken {
         The Request-NsxtToken cmdlet connects to the specified NSX Manager with the supplied credentials
 
         .EXAMPLE
-        Request-NsxtToken -fqdn sfo-w01-nsx01.sfo.rainpole.io -username admin -password VMware1!VMw@re1!
+        Request-NsxtToken -fqdn sfo-w01-nsx01.sfo.rainpole.io -username admin -password VMw@re1!VMw@re1!
         This example shows how to connect to NSX Manager
 
         .EXAMPLE
@@ -19021,8 +19021,7 @@ public static class Placeholder {
                 Write-Output "Successfully Requested New API Token for NSX Manager $nsxtmanager"
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19031,19 +19030,19 @@ Export-ModuleMember -Alias Request-NsxToken -Function Request-NsxtToken
 
 Function Get-NsxtComputeManager {
     <#
-    .SYNOPSIS
-    Retrieves a list of compute managers from NSX Manager
+        .SYNOPSIS
+        Retrieves a list of compute managers from NSX Manager
 
-    .DESCRIPTION
-    The Get-NsxtComputeManager cmdlet gets compute managers from NSX Manager
+        .DESCRIPTION
+        The Get-NsxtComputeManager cmdlet gets compute managers from NSX Manager
 
-    .EXAMPLE
-    Get-NsxtComputeManager
-    This example gets all compute managers
+        .EXAMPLE
+        Get-NsxtComputeManager
+        This example gets all compute managers
 
-    .EXAMPLE
-    Get-NsxtComputeManager -vCenterServer "sfo-m01-vc01.sfo.rainpole.io"
-    This example gets the compute manager named "sfo-m01-vc01.sfo.rainpole.io"
+        .EXAMPLE
+        Get-NsxtComputeManager -vCenterServer "sfo-m01-vc01.sfo.rainpole.io"
+        This example gets the compute manager named "sfo-m01-vc01.sfo.rainpole.io"
     #>
 
     Param (
@@ -19055,21 +19054,18 @@ Function Get-NsxtComputeManager {
             $uri = "https://$nsxtManager/api/v1/fabric/compute-managers"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
-        }
-        elseif ($PsBoundParameters.ContainsKey("vCenterServer")) {
+        } elseif ($PsBoundParameters.ContainsKey("vCenterServer")) {
             $uri = "https://$nsxtManager/api/v1/fabric/compute-managers"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $responseChecked = $response.results | Where-Object { $_.server -eq $vCenterServer }
 
             if (!$responseChecked) {
                 Write-Output "Compute Manager $vCenterServer was not found."
-            }
-            elseif ($responseChecked) {
+            } elseif ($responseChecked) {
                 $responseChecked
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19077,16 +19073,16 @@ Export-ModuleMember -Function Get-NsxtComputeManager
 
 Function Set-NsxtComputeManager {
     <#
-    .SYNOPSIS
-    Configure a set of parameters on a compute manager
+        .SYNOPSIS
+        Configure a set of parameters on a compute manager
 
-    .DESCRIPTION
-    The Set-NsxtComputeManager cmdlet configures a set of parameters on a compute manager
+        .DESCRIPTION
+        The Set-NsxtComputeManager cmdlet configures a set of parameters on a compute manager
 
-    .EXAMPLE
-    Get-NsxtComputeManager -vCenterServer sfo-w01-vc01.sfo.rainpole.io | Set-NsxtComputeManager -EnableTrust:$true
-    This example enables trust (sets OIDC provider to true) for Compute Manager sfo-w01-vc01.sfo.rainpole.io
-    In this release, it is required to use pipeline input from Get-NsxtComputeManager.
+        .EXAMPLE
+        Get-NsxtComputeManager -vCenterServer sfo-w01-vc01.sfo.rainpole.io | Set-NsxtComputeManager -EnableTrust:$true
+        This example enables trust (sets OIDC provider to true) for Compute Manager sfo-w01-vc01.sfo.rainpole.io
+        In this release, it is required to use pipeline input from Get-NsxtComputeManager.
     #>
 
     Param (
@@ -19097,9 +19093,8 @@ Function Set-NsxtComputeManager {
     # Validating pipeline input resource_type
     if ($inputObject.resource_type -ne "ComputeManager") {
         Write-Error "Invalid pipeline passthrough."
-        break
-    }
-    elseif ($inputObject.resource_type -eq "ComputeManager") {
+        Break
+    } elseif ($inputObject.resource_type -eq "ComputeManager") {
         $computeManagerId = $inputObject.id
         $computeManagerDisplayName = $inputObject.display_name
         $computeManagerRevision = $inputObject._revision
@@ -19112,7 +19107,7 @@ Function Set-NsxtComputeManager {
 
     if ($EnableTrust -eq $computeManagerSetAsOidcProvider) {
         Write-Error -Message "Compute Manager trust is already set to $EnableTrust."
-        break
+        Break
     }
 
     $json = @"
@@ -19134,8 +19129,7 @@ Function Set-NsxtComputeManager {
         $uri = "https://$nsxtManager/api/v1/fabric/compute-managers/$computeManagerId"
         $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19156,10 +19150,8 @@ Function Get-NsxtVidm {
 
     Try {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm"
-        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
-        $response
-    }
-    Catch {
+        Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19228,10 +19220,8 @@ Function Get-NsxtRole {
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/roles"
-        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
-        $response.results
-    }
-    Catch {
+        (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19271,8 +19261,7 @@ Function Set-NsxtRole {
             }'
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22541,6 +22530,137 @@ Function Set-NsxtApplianceUserPassword {
     }
 }
 Export-ModuleMember -Function Set-NsxtApplianceUserPassword
+
+Function Get-NsxtLogicalRouter {
+    <#
+        .SYNOPSIS
+        Get Logical Routers
+    
+        .DESCRIPTION
+        The Get-NsxtLogicalRouter cmdlet retrieves a list of logical routers
+    
+        .EXAMPLE
+        Get-NsxtLogicalRouter
+        This example gets all logical routers
+    #>
+
+    Try {
+        $uri = "https://$nsxtmanager/api/v1/logical-routers"
+        (Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders).results
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtLogicalRouter
+
+Function Get-NsxtRoutingConfigRedistribution {
+    <#  
+        .SYNOPSIS
+        Get configured route redistribution
+    
+        .DESCRIPTION
+        The Get-NsxtRoutingConfigRedistribution cmdlet returns information about configured route redistribution for the 
+        specified logical router. 
+    
+        .EXAMPLE
+        Get-NsxtRoutingConfigRedistribution -logicalRouterId <router-id>
+        This example gets the configured route redistribution details for the supplied logical router
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
+    )
+    
+    Try {
+        $uri = "https://$nsxtmanager/api/v1/logical-routers/$logicalRouterId/routing/redistribution"
+        Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtRoutingConfigRedistribution
+
+Function Get-NsxtRoutingConfigRedistributionRule {
+    <#
+        .SYNOPSIS
+        Get configured route redistribution
+    
+        .DESCRIPTION
+        The Get-NsxtRoutingConfigRedistributionRule cmdlet returns all the route redistribution rules for the specified
+        logical router. 
+    
+        .EXAMPLE
+        Get-NsxtRoutingConfigRedistributionRule -logicalRouterId 
+        This example gets the route redistribution rule details for the supplied logical router
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
+    )
+    
+    Try {
+        $uri = "https://$nsxtmanager/api/v1/logical-routers/$logicalRouterId/routing/redistribution/rules"
+        Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtRoutingConfigRedistributionRule
+
+Function Set-NsxtRoutingConfigRedistributionRule {
+    <#
+        .SYNOPSIS
+        Set redistribution rule
+    
+        .DESCRIPTION
+        The Set-NsxtRoutingConfigRedistributionRule cmdlet configures the route redistribution rules for the specified
+        logical router. 
+    
+        .EXAMPLE
+        Get-NsxtRoutingConfigRedistributionRule -logicalRouterId <router-id> -json <file>
+        This example gets the route redistribution rule details for the supplied logical router
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+    )
+    
+    Try {
+        $myHeaders.Add("X-Allow-Overwrite", "true")
+        $uri = "https://$nsxtmanager/api/v1/logical-routers/$logicalRouterId/routing/redistribution/rules"
+        Invoke-RestMethod -Method PUT -URI $uri -Headers $nsxtHeaders -body $json
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-NsxtRoutingConfigRedistributionRule
+
+Function Get-NsxtRoutingConfigRouteMap {
+    <#
+        .SYNOPSIS
+        Get configured route maps
+    
+        .DESCRIPTION
+        The Get-NsxtRoutingConfigRouteMap cmdlet returns a paginated list of RouteMaps
+    
+        .EXAMPLE
+        Get-NsxtRoutingConfigRouteMap -logicalRouterId <router-id>
+        This example gets the route map details for the supplied logical router
+    #>
+
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
+    )
+    
+    Try {
+        $uri = "https://$nsxtmanager/api/v1/logical-routers/$logicalRouterId/routing/route-maps"
+        (Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders).results
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtRoutingConfigRouteMap
 
 #EndRegion  End NSX Functions                                  ######
 #####################################################################
