@@ -11,6 +11,11 @@
 - Added `Get-vRSLCMProductBinaries` cmdlet to retrieve a list of product binaries in vRealize Suite Lifecycle Manager.
 - Added `Register-vRSLCMProductBinary` cmdlet to add a product binary to the vRealize Suite Lifecycle Manager inventory.
 - Added `hcx-vsphere-integration.role` file to support creation of VMware HCX to vSphere Integration.
+- Added `Get-NsxtLogicalRouter` cmdlet to retrieve a list of logical routers.
+- Added `Get-NsxtRoutingConfigRedistribution` cmdlet to retrieve information about configured route redistribution for a logical router.
+- Added `Get-NsxtRoutingConfigRedistributionRule` cmdlet to retrieve all the route redistribution rules for a logical router.
+- Added `Set-NsxtRoutingConfigRedistributionRule` cmdlet to configure the route redistribution rules for a logical router.
+- Added `Get-NsxtRoutingConfigRouteMap` cmdlet to retrieve the route map configuration for a logical router.
 
 ## [v2.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
 
