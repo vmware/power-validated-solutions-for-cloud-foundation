@@ -7346,6 +7346,7 @@ Function Export-vRLIJsonSpec {
                                             if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
                                             if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.10.2" }
+                                            if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.10.2" }
                                             if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.10.2" }
                                         } else {
                                             $vrliVersion = $customVersion
@@ -9305,6 +9306,7 @@ Function Export-vROPsJsonSpec {
                                                     if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
                                                     if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.10.2"}
+                                                    if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.10.2"}
                                                     if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.10.2"}
                                                 } else {
                                                     $vropsVersion = $customVersion
@@ -11693,6 +11695,7 @@ Function Export-vRAJsonSpec {
                                                     if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
                                                     if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.11.2" }
+                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.11.2" }
                                                     if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.11.2" }
                                                 } else {
                                                     $vraVersion = $customVersion
@@ -24485,6 +24488,7 @@ Function Export-WsaJsonSpec {
                                                     if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
                                                     if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
                                                     if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7"}
+                                                    if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7"}
                                                     if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7"}
                                                 } else {
                                                     $wsaVersion = $customVersion

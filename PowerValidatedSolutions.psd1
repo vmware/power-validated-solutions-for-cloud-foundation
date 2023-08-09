@@ -12,7 +12,7 @@
     RootModule = 'PowerValidatedSolutions.psm1'
     
     # Version number of this module.
-    ModuleVersion = '2.6.0.1003'
+    ModuleVersion = '2.6.0.1004'
     
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -33,7 +33,7 @@
     Description = 'PowerShell Module for VMware Validated Solutions'
     
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '5.1'
+    # PowerShellVersion = '5.1'
     
     # Name of the Windows PowerShell host required by this module
     # PowerShellHostName = ''
