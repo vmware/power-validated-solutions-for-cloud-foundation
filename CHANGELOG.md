@@ -20,6 +20,9 @@
 - Added `Get-NsxtRoutingConfigRedistributionRule` cmdlet to retrieve all the route redistribution rules for a logical router.
 - Added `Set-NsxtRoutingConfigRedistributionRule` cmdlet to configure the route redistribution rules for a logical router.
 - Added `Get-NsxtRoutingConfigRouteMap` cmdlet to retrieve the route map configuration for a logical router.
+- Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
+- Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
+
 
 ## [v2.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
 
