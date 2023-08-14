@@ -604,30 +604,23 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#contribution-flow" class="md-nav__link">
-    Contribution Flow
+  <a href="#issues" class="md-nav__link">
+    Issues
   </a>
   
-    <nav class="md-nav" aria-label="Contribution Flow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-requests" class="md-nav__link">
+    Pull Requests
+  </a>
+  
+    <nav class="md-nav" aria-label="Pull Requests">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#staying-in-sync-with-upstream" class="md-nav__link">
-    Staying In Sync With Upstream
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#updating-pull-requests" class="md-nav__link">
-    Updating Pull Requests
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
-    Code Style
+  <a href="#contributor-workflow" class="md-nav__link">
+    Contributor Workflow
   </a>
   
 </li>
@@ -639,15 +632,22 @@
   
 </li>
         
-      </ul>
-    </nav>
+          <li class="md-nav__item">
+  <a href="#rebasing-the-pull-request-with-upstream" class="md-nav__link">
+    Rebasing the Pull Request with Upstream
+  </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#reporting-bugs-and-creating-issues" class="md-nav__link">
-    Reporting Bugs and Creating Issues
+        
+          <li class="md-nav__item">
+  <a href="#updating-a-pull-request" class="md-nav__link">
+    Updating a Pull Request
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -763,30 +763,23 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#contribution-flow" class="md-nav__link">
-    Contribution Flow
+  <a href="#issues" class="md-nav__link">
+    Issues
   </a>
   
-    <nav class="md-nav" aria-label="Contribution Flow">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-requests" class="md-nav__link">
+    Pull Requests
+  </a>
+  
+    <nav class="md-nav" aria-label="Pull Requests">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#staying-in-sync-with-upstream" class="md-nav__link">
-    Staying In Sync With Upstream
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#updating-pull-requests" class="md-nav__link">
-    Updating Pull Requests
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#code-style" class="md-nav__link">
-    Code Style
+  <a href="#contributor-workflow" class="md-nav__link">
+    Contributor Workflow
   </a>
   
 </li>
@@ -798,15 +791,22 @@
   
 </li>
         
-      </ul>
-    </nav>
+          <li class="md-nav__item">
+  <a href="#rebasing-the-pull-request-with-upstream" class="md-nav__link">
+    Rebasing the Pull Request with Upstream
+  </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#reporting-bugs-and-creating-issues" class="md-nav__link">
-    Reporting Bugs and Creating Issues
+        
+          <li class="md-nav__item">
+  <a href="#updating-a-pull-request" class="md-nav__link">
+    Updating a Pull Request
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -842,56 +842,95 @@
 
 
 <h1 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h1>
-<p>The project team welcomes contributions from the community. Before you
-start working with power-validated-solutions-for-cloud-foundation, please read our <a href="https://cla.vmware.com/dco">Developer Certificate of Origin</a>.</p>
+<p>The project team welcomes contributions from the community. Whether it is a bug report, an enhancement request, or documentation update, we greatly value feedback and contributions from our community.</p>
+<p>Before you start working with project, please read our <a href="https://cla.vmware.com/dco">Developer Certificate of Origin</a>.</p>
 <p>All contributions to this repository must be signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on as an open-source patch.</p>
-<h2 id="contribution-flow">Contribution Flow<a class="headerlink" href="#contribution-flow" title="Permanent link">&para;</a></h2>
-<p>This is a rough outline of what a contributor's workflow looks like:</p>
+<h2 id="issues">Issues<a class="headerlink" href="#issues" title="Permanent link">&para;</a></h2>
+<p>We welcome you to use the GitHub issues for bug reports, enhancement requests, feature requests, or documentation updates.</p>
+<p>When filing an issue, please check existing open, or recently closed, issues to make sure someone else has not already reported the issue.</p>
+<p>Please try to include as much information as you can. Details like these are incredibly useful:</p>
 <ul>
-<li>Create a topic branch from where you want to base your work</li>
-<li>Make commits of logical units</li>
-<li>Make sure your commit messages are in the proper format (see below)</li>
-<li>Push your changes to a topic branch in your fork of the repository</li>
-<li>Submit a pull request</li>
+<li>A reproducible test case or series of steps.</li>
+<li>Any modifications you have made relevant to the bug.</li>
+<li>Anything unusual about your environment or deployment.</li>
+</ul>
+<p>You can also start a discussion on the <a href="https://github.com/vmware/power-validated-solutions-for-cloud-foundation/discussions">discussions</a> area to ask questions or share ideas.</p>
+<h2 id="pull-requests">Pull Requests<a class="headerlink" href="#pull-requests" title="Permanent link">&para;</a></h2>
+<p>Contributions using pull requests are appreciated. Before opening a pull request, please ensure that:</p>
+<ol>
+<li>You check existing open, and recently merged, pull requests to make sure it has not already been addressed for an upcoming release.</li>
+<li>You <a href="https://github.com/vmware/power-validated-solutions-for-cloud-foundation/discussions">open a discussion</a> to discuss any significant work with the maintainer(s).</li>
+<li>You <a href="https://github.com/vmware/power-validated-solutions-for-cloud-foundation/issues">open an issue</a> with a clear description of the problem you are trying to solve if one does not already exist.</li>
+<li>You are working against the latest source on the <code>develop</code> branch.</li>
+</ol>
+<p>To submit a pull request, please:</p>
+<ol>
+<li>Fork the repository and clone your fork.</li>
+<li>Create a topic branch from the <code>develop</code> branch. For example, <code>feat/add-x</code> or <code>fix/update-y</code>.</li>
+<li>Modify the source. Please focus the scope on the specific change you are contributing.</li>
+<li>Ensure that local tests, if any, pass.</li>
+<li>Update the documentation, if required. See the <code>docs</code> directory for the documentation source.</li>
+<li>Commit to your fork <a href="http://chris.beams.io/posts/git-commit/">using clear commit messages</a>. Please use <a href="https://www.conventionalcommits.org/en/v1.0.0/">Conventional Commits</a>.</li>
+<li>Submit a pull request, answering any default questions in the pull request, and linking to any related issues for context. See <a href="https://guides.github.com/features/mastering-markdown/#GitHub-flavored-markdown">GitHub flavored markdown syntax</a> for references.</li>
+<li>Submit a work in progress pull request as a <strong>draft pull request</strong>. Mark the pull request as <strong>ready for review</strong> when you are ready for feedback.</li>
+<li>Review any automated checks on the the pull request pass.</li>
+<li>Stay engaged in the pull request review process.</li>
+</ol>
+<p>GitHub provides additional document on <a href="https://help.github.com/articles/fork-a-repo/">forking a repository</a> and <a href="https://help.github.com/articles/creating-a-pull-request/">creating a pull request</a>.</p>
+<h3 id="contributor-workflow">Contributor Workflow<a class="headerlink" href="#contributor-workflow" title="Permanent link">&para;</a></h3>
+<p>This is a general outline of the workflow for contributing to this project:</p>
+<ul>
+<li>Create a topic branch from where you want to base your work.</li>
+<li>Make commits of logical units.</li>
+<li>Make sure your commit messages are <a href="https://www.conventionalcommits.org/en/v1.0.0/">in the proper format</a>.</li>
+<li>Push your changes to a topic branch in your fork of the repository.</li>
+<li>Submit a pull request.</li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/vmware/power-validated-solutions-for-cloud-foundation.git
-git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>my-new-feature<span class="w"> </span>main
-git<span class="w"> </span>commit<span class="w"> </span>-a
-git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>my-new-feature
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>https://github.com/&lt;org-name&gt;/&lt;repo-name&gt;.git
+git<span class="w"> </span>checkout<span class="w"> </span>--branch<span class="w"> </span>feat/add-x<span class="w"> </span>develop
+git<span class="w"> </span>commit<span class="w"> </span>--signoff<span class="w"> </span>--message<span class="w"> </span><span class="s2">&quot;feat: add support for x</span>
+<span class="s2">  Added support for x.</span>
+
+<span class="s2">  Signed-off-by: Jane Doe &lt;jdoe@example.com&gt;</span>
+
+<span class="s2">  Ref: #123&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feat/add-x
 </code></pre></div>
-<h3 id="staying-in-sync-with-upstream">Staying In Sync With Upstream<a class="headerlink" href="#staying-in-sync-with-upstream" title="Permanent link">&para;</a></h3>
-<p>When your branch gets out of sync with the <code>vmware/main</code> branch, use the following to update:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>my-new-feature
-git<span class="w"> </span>fetch<span class="w"> </span>-a
-git<span class="w"> </span>pull<span class="w"> </span>--rebase<span class="w"> </span>upstream<span class="w"> </span>main
-git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>my-new-feature
+<h3 id="formatting-commit-messages">Formatting Commit Messages<a class="headerlink" href="#formatting-commit-messages" title="Permanent link">&para;</a></h3>
+<p>We follow the conventions on <a href="http://chris.beams.io/posts/git-commit/">How to Write a Git Commit Message</a> and <a href="https://www.conventionalcommits.org/en/v1.0.0/">Conventional Commits</a>.</p>
+<p>Be sure to include any related GitHub issue references in the commit message.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>feat: add support for x
+
+Added support for x.
+
+Signed-off-by: Jane Doe &lt;jdoe@example.com&gt;
+
+Ref: <span class="ni">#123</span>
 </code></pre></div>
-<h3 id="updating-pull-requests">Updating Pull Requests<a class="headerlink" href="#updating-pull-requests" title="Permanent link">&para;</a></h3>
-<p>If your PR fails to pass CI or needs changes based on code review, you'll most likely want to squash these changes into
-existing commits.</p>
-<p>If your pull request contains a single commit or your changes are related to the most recent commit, you can simply
-amend the commit.</p>
+<p>See <a href="https://guides.github.com/features/mastering-markdown/#GitHub-flavored-markdown">GitHub flavored markdown syntax</a> for referencing issues, pull requests, and commits.</p>
+<h3 id="rebasing-the-pull-request-with-upstream">Rebasing the Pull Request with Upstream<a class="headerlink" href="#rebasing-the-pull-request-with-upstream" title="Permanent link">&para;</a></h3>
+<p>When your branch gets out of sync with the upstream <code>develop</code> branch, use the following to update:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>checkout<span class="w"> </span>feat/add-x
+git<span class="w"> </span>fetch<span class="w"> </span>--all
+git<span class="w"> </span>pull<span class="w"> </span>--rebase<span class="w"> </span>upstream<span class="w"> </span>develop
+git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>feat/add-x
+</code></pre></div>
+<h3 id="updating-a-pull-request">Updating a Pull Request<a class="headerlink" href="#updating-a-pull-request" title="Permanent link">&para;</a></h3>
+<p>If your pull request fails to pass or needs changes based on code review, you will most likely want to squash these changes into existing commits.</p>
+<p>If your pull request contains a single commit or your changes are related to the most recent commit, you can simply amend the commit.</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>.
 git<span class="w"> </span>commit<span class="w"> </span>--amend
-git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>my-new-feature
+git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>feat/add-x
 </code></pre></div>
 <p>If you need to squash changes into an earlier commit, you can use:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>.
 git<span class="w"> </span>commit<span class="w"> </span>--fixup<span class="w"> </span>&lt;commit&gt;
-git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>--autosquash<span class="w"> </span>main
-git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>my-new-feature
+git<span class="w"> </span>rebase<span class="w"> </span>--interactive<span class="w"> </span>--autosquash<span class="w"> </span>develop
+git<span class="w"> </span>push<span class="w"> </span>--force-with-lease<span class="w"> </span>origin<span class="w"> </span>feat/add-x
 </code></pre></div>
-<p>Be sure to add a comment to the PR indicating your new changes are ready to review, as GitHub does not generate a
-notification when you git push.</p>
-<h3 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h3>
-<h3 id="formatting-commit-messages">Formatting Commit Messages<a class="headerlink" href="#formatting-commit-messages" title="Permanent link">&para;</a></h3>
-<p>We follow the conventions on <a href="http://chris.beams.io/posts/git-commit/">How to Write a Git Commit Message</a>.</p>
-<p>Be sure to include any related GitHub issue references in the commit message.  See
-<a href="https://guides.github.com/features/mastering-markdown/#GitHub-flavored-markdown">GFM syntax</a> for referencing issues
-and commits.</p>
-<h2 id="reporting-bugs-and-creating-issues">Reporting Bugs and Creating Issues<a class="headerlink" href="#reporting-bugs-and-creating-issues" title="Permanent link">&para;</a></h2>
-<p>When opening a new issue, try to roughly follow the commit message format conventions above.</p>
+<p>Be sure to add a comment to the pull request indicating your new changes are ready to review. GitHub does not generate a notification when you <code>git push</code>.</p>
 
   <hr>
 <div class="md-source-file">
