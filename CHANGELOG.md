@@ -20,6 +20,10 @@
 - Added `Get-NsxtRoutingConfigRedistributionRule` cmdlet to retrieve all the route redistribution rules for a logical router.
 - Added `Set-NsxtRoutingConfigRedistributionRule` cmdlet to configure the route redistribution rules for a logical router.
 - Added `Get-NsxtRoutingConfigRouteMap` cmdlet to retrieve the route map configuration for a logical router.
+- Added `Get-NsxtSecurityPolicy` cmdlet to retrieve a list of security policies from NSX.
+- Added `Remove-NsxtSecurityPolicy` cmdlet to remove a security policy from NSX.
+- Added `Get-NsxtGroup` cmdlet to retrieve a list of groups from NSX.
+- Added `Remove-NsxtGroup` cmdlet to remove a group from NSX.
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 

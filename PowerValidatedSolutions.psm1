@@ -22665,6 +22665,129 @@ Function Get-NsxtRoutingConfigRouteMap {
 }
 Export-ModuleMember -Function Get-NsxtRoutingConfigRouteMap
 
+Function Get-NsxtSecurityPolicy {
+    <#
+        .SYNOPSIS
+        Get configured security policies
+    
+        .DESCRIPTION
+        The Get-NsxtSecurityPolicy cmdlet returns a paginated list of security policies
+    
+        .EXAMPLE
+        Get-NsxtSecurityPolicy
+        This example retrieves a paginated list of all security policies
+
+        .EXAMPLE
+        Get-NsxtSecurityPolicy -id <id_name>
+        This example retrieves the specified security policy
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$nsxtmanager/policy/api/v1/infra/domains/default/security-policies/$id"
+            Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders
+        } else {
+            $uri = "https://$nsxtmanager/policy/api/v1/infra/domains/default/security-policies/"
+            (Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders).Results
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtSecurityPolicy
+
+Function Remove-NsxtSecurityPolicy {
+    <#
+        .SYNOPSIS
+        Remove a security policy
+    
+        .DESCRIPTION
+        The Remove-NsxtSecurityPolicy cmdlet removes a security policy
+    
+        .EXAMPLE
+        Remove-NsxtSecurityPolicy -id <id_name>
+        This example removes the specified security policy
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/domains/default/security-policies/$id"
+        Invoke-RestMethod -Method DELETE -URI $uri -Headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtSecurityPolicy
+
+Function Get-NsxtGroup {
+    <#
+        .SYNOPSIS
+        Get groups
+    
+        .DESCRIPTION
+        The Get-NsxtGroup cmdlet returns a paginated list of groups
+    
+        .EXAMPLE
+        Get-NsxtGroup
+        This example retrieves a paginated list of all groups
+
+        .EXAMPLE
+        Get-NsxtGroup -id <id>
+        This example retrieves the specified group
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$nsxtmanager/policy/api/v1/infra/domains/default/groups/$id"
+            Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders
+        } else {
+            #
+            $uri = "https://$nsxtmanager/policy/api/v1/infra/domains/default/groups/"
+            (Invoke-RestMethod -Method GET -URI $uri -Headers $nsxtHeaders).results
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtGroup
+
+Function Remove-NsxtGroup {
+    <#
+        .SYNOPSIS
+        Remove a group
+    
+        .DESCRIPTION
+        The Remove-NsxtGroup cmdlet removes a group
+    
+        .EXAMPLE
+        Remove-NsxtGroup -id <id_name>
+        This example removes the specified security policy
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/domains/default/groups/$id"
+        Invoke-RestMethod -Method DELETE -URI $uri -Headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtGroup
+
 #EndRegion  End NSX Functions                                  ######
 #####################################################################
 
