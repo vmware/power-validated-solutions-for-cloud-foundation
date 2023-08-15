@@ -19186,8 +19186,7 @@ Function Set-NsxtVidm {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm"
         if ($PsBoundParameters.ContainsKey("disable")) {
             $status = "false"
-        }
-        else {
+        } else {
             $status = "true"
         }
         $body = '{
@@ -19201,8 +19200,7 @@ Function Set-NsxtVidm {
         }'
         $response = Invoke-RestMethod $uri -Method 'PUT' -Headers $nsxtHeaders -body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19291,8 +19289,7 @@ Function Remove-NsxtRole {
         $uri = "https://$nsxtManager/api/v1/aaa/role-bindings/$id"
         $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19313,10 +19310,8 @@ Function Get-NsxtUser {
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/role-bindings"
-        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
-        $response.results
-    }
-    Catch {
+        (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19341,10 +19336,8 @@ Function Get-NsxtVidmUser {
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/vidm/users?search_string=$searchString"
-        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
-        $response.results
-    }
-    Catch {
+        (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19369,10 +19362,8 @@ Function Get-NsxtVidmGroup {
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/vidm/groups?search_string=$searchString"
-        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
-        $response.results
-    }
-    Catch {
+        (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19404,21 +19395,18 @@ Function Get-NsxEdgeCluster {
             $uri = "https://$nsxtmanager/api/v1/edge-clusters"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
-        }
-        elseif ($PsBoundParameters.ContainsKey("Name")) {
+        } elseif ($PsBoundParameters.ContainsKey("Name")) {
             $uri = "https://$nsxtmanager/api/v1/edge-clusters"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $responseChecked = $response.results | Where-Object { $_.display_name -eq $Name }
 
             if (!$responseChecked) {
                 Write-Output "NSX Edge Cluster $Name was not found."
-            }
-            elseif ($responseChecked) {
+            } elseif ($responseChecked) {
                 $responseChecked
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19450,21 +19438,18 @@ Function Get-NsxtTransportZone {
             $uri = "https://$nsxtManager/api/v1/transport-zones"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Sort-Object display_name
-        }
-        elseif ($PsBoundParameters.ContainsKey("Name")) {
+        } elseif ($PsBoundParameters.ContainsKey("Name")) {
             $uri = "https://$nsxtManager/api/v1/transport-zones"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $responseChecked = $response.results | Where-Object { $_.display_name -eq $name }
 
             if (!$responseChecked) {
                 Write-Output "NSX Transport Zone $name was not found"
-            }
-            elseif ($responseChecked) {
+            } elseif ($responseChecked) {
                 $responseChecked
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19495,21 +19480,17 @@ Function New-NsxtSegment {
 
     if ($GatewayType -eq "Tier0") {
         $connectivityPath = (Get-NsxtTier0Gateway -Name $ConnectedGateway).path
-    }
-    elseif ($GatewayType -eq "Tier1") {
+    } elseif ($GatewayType -eq "Tier1") {
         $connectivityPath = (Get-NsxtTier1Gateway -Name $ConnectedGateway).path
-    }
-    elseif (!$GatewayType -and $VlanId) {
+    } elseif (!$GatewayType -and $VlanId) {
         Write-Output "Valid VLAN segment configuration"
-    }
-    else {
+    } else {
         Write-Error "Gateway type not defined"
     }
 
     $transportZoneId = (Get-NsxtTransportZone -Name $TransportZone).id
 
     if ($SegmentType -match "overlay") {
-
         $json = @"
 {
 "display_name" : "$Name",
@@ -19519,9 +19500,7 @@ Function New-NsxtSegment {
 }
 "@
 
-    }
-    elseif ($SegmentType -match "vlan") {
-
+    } elseif ($SegmentType -match "vlan") {
         $json = @"
 {
 "display_name" : "$Name",
@@ -19530,8 +19509,7 @@ Function New-NsxtSegment {
 }
 "@
 
-    }
-    else {
+    } else {
         Write-Error "SegmentType $SegmentType is invalid."
     }
 
@@ -19539,8 +19517,7 @@ Function New-NsxtSegment {
         $uri = "https://$nsxtManager/policy/api/v1/infra/segments/$Name"
         $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -Body $json -headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19572,14 +19549,12 @@ Function Get-NsxtSegment {
             $uri = "https://$nsxtManager/policy/api/v1/infra/segments/"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Sort-Object display_name
-        }
-        elseif ($PsBoundParameters.ContainsKey("name")) {
+        } elseif ($PsBoundParameters.ContainsKey("name")) {
             $uri = "https://$nsxtManager/policy/api/v1/infra/segments/"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Where-Object { $_.display_name -eq $name }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19606,8 +19581,7 @@ Function Remove-NsxtSegment {
         $uri = "https://$nsxtManager/policy/api/v1/infra/segments/$Name"
         $response = Invoke-RestMethod -Method DELETE -URI $uri -ContentType application/json -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19644,19 +19618,16 @@ Function Get-NsxtTier0Gateway {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
-        }
-        elseif ($PsBoundParameters.ContainsKey("id")) {
+        } elseif ($PsBoundParameters.ContainsKey("id")) {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("name")) {
+        } elseif ($PsBoundParameters.ContainsKey("name")) {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Where-Object { $_.display_name -eq $name }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19693,19 +19664,16 @@ Function Get-NsxtTier1Gateway {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
-        }
-        elseif ($PsBoundParameters.ContainsKey("id")) {
+        } elseif ($PsBoundParameters.ContainsKey("id")) {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$id"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("name")) {
+        } elseif ($PsBoundParameters.ContainsKey("name")) {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Where-Object { $_.display_name -eq $name }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19742,15 +19710,12 @@ Function Get-NsxtPrefixList {
     if ($inputObject -and $inputObject.resource_type -eq "Tier0") {
         $tier0Gateway = $inputObject.display_name
         $uriPath = $inputObject.path
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
+    } elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
         Write-Error "Invalid pipeline passthrough. Exiting."
         Break
-    }
-    elseif (!$inputObject -and $Tier0Gateway) {
+    } elseif (!$inputObject -and $Tier0Gateway) {
         $uriPath = (Get-NsxtTier0Gateway -Name $Tier0Gateway).path
-    }
-    else {
+    } else {
         if (!$tier0Gateway) {
             $tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
         }
@@ -19761,18 +19726,15 @@ Function Get-NsxtPrefixList {
             $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists"
             $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders -ErrorAction SilentlyContinue
             $response.results
-        }
-        elseif ($name) {
+        } elseif ($name) {
             $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists"
             $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders -ErrorAction SilentlyContinue
             $response.results | Where-Object { $_.display_name -eq $name }
         }
-    }
-    Catch {
+    } Catch {
         if ($_.Exception -match "400" -or $_.Exception -match "Bad Request") {
             Write-Output $uri
             Write-Error "The NSX Tier-0 Gateway was not properly defined"
-
         }
     }
 }
@@ -19806,18 +19768,15 @@ Function New-NsxtPrefixList {
     if ($inputObject -and $inputObject.resource_type -eq "Tier0") {
         $uriPath = $inputObject.path
         $Tier0Gateway = $inputObject.display_name
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
+    } elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
         Write-Error "Invalid pipeline passthrough. Exiting."
         Break
-    }
-    elseif (!$inputObject) {
+    } elseif (!$inputObject) {
         if (!$Tier0Gateway) {
             $Tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
             $uriPath = (Get-NsxtTier0Gateway -Name $Tier0Gateway).path
         }
     }
-
     if (!$json) {
         if (!$GE -or !$LE) {
             $Json = @"
@@ -19832,8 +19791,7 @@ Function New-NsxtPrefixList {
     ]
 }
 "@
-        }
-        elseif ($GE -and $LE) {
+        } elseif ($GE -and $LE) {
             $Json = @"
 {
     "display_name" : "$Name",
@@ -19848,8 +19806,7 @@ Function New-NsxtPrefixList {
     ]
 }
 "@
-        }
-        else {
+        } else {
             Write-Error "Invalid subnet configuration."
         }
     }
@@ -19858,8 +19815,7 @@ Function New-NsxtPrefixList {
         $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists/$name"
         $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19888,8 +19844,7 @@ Function Remove-NsxtPrefixList {
         $uri = "https://$nsxtManager/policy/api/v1/infra/tier-0s/$gatewayId/prefix-lists/$name"
         $response = Invoke-RestMethod -Method DELETE -URI $uri -ContentType application/json -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19933,13 +19888,10 @@ Function Add-NsxtPrefix {
 
         if ($getTier0Gateway -eq "NSX Tier-0 Gateway $tier0GatewayId was not found") {
             $tier0Gateway = (Get-NsxtTier0Gateway -Id $tier0GatewayId).display_name
-        }
-        else {
+        } else {
             $Tier0Gateway = $Tier0GatewayId
         }
-
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "PrefixList") {
+    } elseif ($inputObject -and $inputObject.resource_type -ne "PrefixList") {
         Write-Error "Invalid pipeline passthrough"
         Break
     }
@@ -19953,16 +19905,14 @@ Function Add-NsxtPrefix {
             network = $subnetCIDR
             action  = $action
         }
-    }
-    elseif ($GE -and $LE) {
+    } elseif ($GE -and $LE) {
         $newPrefix = @{
             network = $subnetCIDR
             action  = $action
             ge      = $GE
             le      = $LE
         }
-    }
-    else {
+    } else {
         Write-Error "Invalid subnet configuration"
     }
 
@@ -19985,8 +19935,7 @@ Function Add-NsxtPrefix {
             $output = Get-NsxtPrefixList -Name $PrefixListName -Tier0Gateway $Tier0Gateway
             $output
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20019,12 +19968,10 @@ Function Get-NsxtRouteMap {
     if ($inputObject -and $inputObject.resource_type -eq "Tier0") {
         $tier0Gateway = $inputObject.display_name
         $uriPath = $inputObject.path
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
+    } elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
         Write-Error "Invalid pipeline passthrough. Exiting."
         Break
-    }
-    elseif (!$inputObject) {
+    } elseif (!$inputObject) {
         if (!$tier0Gateway) {
             Write-Output "Tier 0 Gateway: $Tier0Gateway"
             $Tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
@@ -20037,14 +19984,12 @@ Function Get-NsxtRouteMap {
             $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
-        }
-        elseif ($PsBoundParameters.ContainsKey("Name")) {
+        } elseif ($PsBoundParameters.ContainsKey("Name")) {
             $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Where-Object { $_.display_name -eq $Name }
         }
-    }
-    Catch {
+    } Catch {
         if ($_.Exception -match "400" -or $_.Exception -match "Bad Request") {
             Write-Error "The NSX Tier-0 Gateway was not properly defined."
         }
@@ -20083,14 +20028,12 @@ Function New-NsxtRouteMap {
             $Tier0Gateway = $inputObject.display_name
             $Tier0GatewayId = $inputObject.id
             $uriPath = $inputObject.path
-        }
-        elseif ($inputObject.resource_type -eq "PrefixList") {
+        } elseif ($inputObject.resource_type -eq "PrefixList") {
             $Tier0GatewayId = $inputObject.parent_path.Split('/')[3]
             $PrefixListPath = $inputObject.path
             $Tier0Gateway = (Get-NsxtTier0Gateway -Id $Tier0GatewayId).display_name
             $uriPath = $inputObject.parent_path
-        }
-        else {
+        } else {
             Write-Error "Invalid pipeline passthrough. Exiting."
             Break
         }
@@ -20119,8 +20062,7 @@ Function New-NsxtRouteMap {
         $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps/$Name"
         $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20151,19 +20093,16 @@ Function Remove-NsxtRouteMap {
             $Tier0GatewayId = $inputObject.parent_path.Split('/')[3]
             $Tier0Gateway = (Get-NsxtTier0Gateway -Id $Tier0GatewayId).display_name
             $uriPath = $inputObject.parent_path
-        }
-        elseif ($inputObject.resource_type -eq "Tier0" -and $Name -and !$Tier0Gateway) {
+        } elseif ($inputObject.resource_type -eq "Tier0" -and $Name -and !$Tier0Gateway) {
             $Tier0GatewayId = $inputObject.id
             $Tier0Gateway = $inputObject.display_name
             $uriPath = $inputObject.path
-        }
-        else {
+        } else {
             Write-output $inputObject.resource_type
             Write-Error "Invalid pipeline passthrough. Exiting."
             Break
         }
-    }
-    elseif (!$inputObject) {
+    } elseif (!$inputObject) {
         if (!$tier0Gateway) {
             $tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
         }
@@ -20175,8 +20114,7 @@ Function Remove-NsxtRouteMap {
         if ($getRouteRedistribution.route_redistribution_config.redistribution_rules.route_map_path -eq $preCheckRouteMap.path) {
             $getRouteRedistribution | Set-NsxtRouteRedistributionPolicy -tier0Gateway $tier0Gateway -RemoveRouteMap:$True | Out-Null
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -20184,8 +20122,7 @@ Function Remove-NsxtRouteMap {
         $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps/$name"
         $response = Invoke-RestMethod -Method DELETE -URI $uri -headers $nsxtHeaders -ContentType application/json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
         Break
     }
@@ -20213,12 +20150,10 @@ Function Get-NsxtRouteRedistributionPolicy {
     if ($inputObject -and $inputObject.resource_type -eq "Tier0") {
         $Tier0Gateway = $inputObject.display_name
         $uriPath = $inputObject.path
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
+    } elseif ($inputObject -and $inputObject.resource_type -ne "Tier0") {
         Write-Error "Invalid pipeline passthrough. Exiting."
         Break
-    }
-    elseif (!$inputObject) {
+    } elseif (!$inputObject) {
         if (!$Tier0Gateway) {
             $Tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
         }
@@ -20229,8 +20164,7 @@ Function Get-NsxtRouteRedistributionPolicy {
         $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/locale-services/default"
         $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders -ContentType application/json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -20265,8 +20199,7 @@ Function Set-NsxtRouteRedistributionPolicy {
         $routeRedistributionName = $inputObject.route_redistribution_config.redistribution_rules.name
         $routeRedistributionTypes = $inputObject.route_redistribution_config.redistribution_rules.route_redistribution_types
         $uriPath = $inputObject.parent_path
-    }
-    elseif ($inputObject -and $inputObject.resource_type -ne "LocaleServices") {
+    } elseif ($inputObject -and $inputObject.resource_type -ne "LocaleServices") {
         Write-Error "Invalid pipeline passthrough. Exiting."
         Break
     }
@@ -20275,9 +20208,7 @@ Function Set-NsxtRouteRedistributionPolicy {
         if (!$Tier0Gateway) {
             $Tier0Gateway = Read-Host -Prompt "Tier-0 Gateway not defined. Type in the name of your Tier-0 Gateway, then press Enter"
         }
-
         $getRedistributionPolicy = Get-NsxtTier0Gateway -Name $Tier0Gateway
-
         $edgeClusterPath = $getRedistributionPolicy.edge_cluster_path
         $bgpEnabled = $getRedistributionPolicy.route_redistribution_config.bgp_enabled
         $routeRedistributionName = $getRedistributionPolicy.route_redistribution_config.redistribution_rules.name
@@ -20312,8 +20243,7 @@ Function Set-NsxtRouteRedistributionPolicy {
     }
 }
 "@
-    }
-    elseif ($RemoveRouteMap -eq $false -or !$RemoveRouteMap) {
+    } elseif ($RemoveRouteMap -eq $false -or !$RemoveRouteMap) {
         $json = @"
 {
     "edge_cluster_path" : "$edgeClusterPath",
@@ -20342,8 +20272,7 @@ Function Set-NsxtRouteRedistributionPolicy {
             $output = Get-NsxtRouteRedistributionPolicy -Tier0Gateway $Tier0Gateway
             $output
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -20371,8 +20300,7 @@ Function Get-NsxtManagerAuthPolicy {
 		$requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
 		$response = Invoke-RestMethod -Method GET -URI $requestingURL -ContentType application/json -headers $nsxtHeaders
 		$response
-	}
-	Catch {
+	} Catch {
 		Write-Error $_.Exception.Message
 	}
 }
@@ -20465,8 +20393,7 @@ Function Set-NsxtManagerAuthPolicy {
 		$requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
 		$response = Invoke-RestMethod -Method PUT -URI $requestingURL -ContentType application/json -headers $nsxtHeaders -Body ($authPolicyBody | ConvertTo-Json)
 		$response
-	}
-	Catch {
+	} Catch {
 		Write-Error $_.Exception.Message
 	}
 }
@@ -20494,8 +20421,7 @@ Function Get-NsxtEdgeNodeAuthPolicy {
 		$requestingURL = "https://" + $nsxtManager + "/api/v1/transport-nodes/" + $nsxtEdgeNodeID + "/node/aaa/auth-policy"
 		$response = Invoke-RestMethod -Method GET -URI $requestingURL -ContentType application/json -headers $nsxtHeaders
 		$response
-	}
-	Catch {
+	} Catch {
 		Write-Error $_.Exception.Message
 	}
 }
@@ -20537,8 +20463,7 @@ Function Set-NsxtEdgeNodeAuthPolicy {
 		$requestingURL = "https://" + $nsxtManager + "/api/v1/transport-nodes/" + $nsxtEdgeNodeID + "/node/aaa/auth-policy"
 		$response = Invoke-RestMethod -Method PUT -URI $requestingURL -ContentType application/json -headers $nsxtHeaders -Body ($authPolicyBody | ConvertTo-Json)
 		$response
-	}
-	Catch {
+	} Catch {
 		Write-Error $_.Exception.Message
 	}
 }
@@ -20578,8 +20503,7 @@ Function Get-NsxtSyslogStatus {
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20619,8 +20543,7 @@ Function Get-NsxtSyslogExporter {
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
             $response.results
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20673,8 +20596,7 @@ Function Set-NsxtSyslogExporter {
             $response = Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -ContentType application/json -body $json
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20715,8 +20637,7 @@ Function Remove-NsxtSyslogExporter {
             $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20770,8 +20691,7 @@ Function Copy-vRealizeLoadBalancer {
 
         #Get xint segment ID from NSX LM on recovery site
         $segmentID = Get-NsxtGlobalSegmentID -segmentName $xintSegmentDetails.name
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
     
@@ -20782,16 +20702,13 @@ Function Copy-vRealizeLoadBalancer {
             if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) {Write-Output "Neither vRealize Automation nor vRealize Operations Manager was discovered in the source SDDC Manager instance"}
             if (!$xintSegmentDetails) {Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance"}
             if (!$edgeClusterName) {Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance"}
-        }
-        else {    
+        } else {    
             #Create a Load Balancer Spec
             if (!$vraDetailsObject) {
                 $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
-            }
-            elseif (!$vropsDetailsObject) {
+            } elseif (!$vropsDetailsObject) {
                 $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
-            }
-            else {
+            } else {
                 $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
             }
 
@@ -20833,8 +20750,7 @@ Function Copy-vRealizeLoadBalancer {
                     Try {
                         $ConfigJson = $monitor | ConvertTo-Json -Depth 10
                         New-NsxtLBServiceMonitor -monitorName $monitor.display_name -json $ConfigJson
-                    }
-                    Catch {
+                    } Catch {
                         Debug-ExceptionWriter -object $_
                     }
                 }
@@ -20842,8 +20758,7 @@ Function Copy-vRealizeLoadBalancer {
                     Try {
                         $ConfigJson = $profile | ConvertTo-Json
                         New-NsxtLBAppProfile -appProfileName $profile.display_name -json $ConfigJson
-                    }
-                    Catch {
+                    } Catch {
                         Debug-ExceptionWriter -object $_
                     }
                 }
@@ -20851,8 +20766,7 @@ Function Copy-vRealizeLoadBalancer {
                     Try {
                         $ConfigJson = $profile | ConvertTo-Json
                         New-NsxtLBPersistenceAppProfile -appProfileName $profile.display_name -json $ConfigJson
-                    }
-                    Catch {
+                    } Catch {
                         Debug-ExceptionWriter -object $_
                     }
                 }
@@ -20860,8 +20774,7 @@ Function Copy-vRealizeLoadBalancer {
                     Try {
                         $ConfigJson = $pool | ConvertTo-Json
                         New-NsxtLBPool -poolName $pool.display_name -json $ConfigJson
-                    }
-                    Catch {
+                    } Catch {
                         Debug-ExceptionWriter -object $_
                     }
                 }
@@ -20869,18 +20782,15 @@ Function Copy-vRealizeLoadBalancer {
                     Try {
                         $ConfigJson = $virtualServer | ConvertTo-Json -Depth 10
                         New-NsxtLBVirtualServer -virtualServerName $virtualServer.display_name -json $ConfigJson
-                    }
-                    Catch {
+                    } Catch {
                         Debug-ExceptionWriter -object $_
                     }
                 }
-            }
-            else {
+            } else {
                 Write-Error "Aborting remainder of NSX Load Balancer configuration until certificate files present"
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -20912,8 +20822,7 @@ Function New-vRealizeLoadBalancerSpec {
     $xintWsaNode2Name = $wsaDetailsObject.fqdn[1].split(".")[0]
     $xintWsaNode3Name = $wsaDetailsObject.fqdn[2].split(".")[0]
 
-    If ($vropsDetailsObject)
-    {
+    If ($vropsDetailsObject) {
         $xintVropsVip = $vropsDetailsObject.loadBalancerIpAddress
         $xintVropsNode1Ip = $vropsDetailsObject.node1IpAddress
         $xintVropsNode2Ip = $vropsDetailsObject.node2IpAddress
@@ -20923,8 +20832,7 @@ Function New-vRealizeLoadBalancerSpec {
         $xintVropsNode3Name = $vropsDetailsObject.fqdn[2].split(".")[0]    
     }
 
-    If ($vraDetailsObject)
-    {
+    If ($vraDetailsObject) {
         $xintVraVip = $vraDetailsObject.loadBalancerIpAddress
         $xintVraNode1Ip = $vraDetailsObject.node1IpAddress
         $xintVraNode2Ip = $vraDetailsObject.node2IpAddress
@@ -20980,49 +20888,47 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '}'
             $lbJson += '],'
             $lbJson += '"service_monitors": ['
-            If ($vropsDetailsObject)
-                {
-                    $lbJson += '{'
-                        $lbJson += '"display_name": "vrops-https-monitor",'
-                        $lbJson += '"description": "vRealize Operations Manager HTTPS Monitor",'
-                        $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
-                        $lbJson += '"monitor_port": "443",'
-                        $lbJson += '"interval": "5",'
-                        $lbJson += '"fall_count": "3",'
-                        $lbJson += '"rise_count": "3",'
-                        $lbJson += '"timeout": "16",'
-                        $lbJson += '"request_method": "GET",'
-                        $lbJson += '"request_url": "/suite-api/api/deployment/node/status?services=api&services=adminui&services=ui",'
-                        $lbJson += '"request_version": "HTTP_VERSION_1_1",'
-                        $lbJson += '"response_status_codes": ['
-                            $lbJson += '"200","204","301"'
-                        $lbJson += '],'
-                        $lbJson += '"response_body": "ONLINE",'
-                        $lbJson += '"server_ssl_profile_binding": {'
-                            $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
-                        $lbJson += '}'
-                    $lbJson += '},'
-                }
-                If ($vraDetailsObject)
-                {
-                    $lbJson += '{'
-                        $lbJson += '"display_name": "vra-http-monitor",'
-                        $lbJson += '"description": "vRealize Automation HTTP Monitor",'
-                        $lbJson += '"resource_type": "LBHttpMonitorProfile",'
-                        $lbJson += '"monitor_port": "8008",'
-                        $lbJson += '"interval": "3",'
-                        $lbJson += '"fall_count": "3",'
-                        $lbJson += '"rise_count": "3",'
-                        $lbJson += '"timeout": "10",'
-                        $lbJson += '"request_method": "GET",'
-                        $lbJson += '"request_url": "/health",'
-                        $lbJson += '"request_version": "HTTP_VERSION_1_1",'
-                        $lbJson += '"response_status_codes": ['
-                            $lbJson += '"200"'
-                        $lbJson += '],'
-                        $lbJson += '"response_body": ""'
-                    $lbJson += '},'
-                }
+            If ($vropsDetailsObject) {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vrops-https-monitor",'
+                    $lbJson += '"description": "vRealize Operations Manager HTTPS Monitor",'
+                    $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
+                    $lbJson += '"monitor_port": "443",'
+                    $lbJson += '"interval": "5",'
+                    $lbJson += '"fall_count": "3",'
+                    $lbJson += '"rise_count": "3",'
+                    $lbJson += '"timeout": "16",'
+                    $lbJson += '"request_method": "GET",'
+                    $lbJson += '"request_url": "/suite-api/api/deployment/node/status?services=api&services=adminui&services=ui",'
+                    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+                    $lbJson += '"response_status_codes": ['
+                        $lbJson += '"200","204","301"'
+                    $lbJson += '],'
+                    $lbJson += '"response_body": "ONLINE",'
+                    $lbJson += '"server_ssl_profile_binding": {'
+                        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
+                    $lbJson += '}'
+                $lbJson += '},'
+            }
+            If ($vraDetailsObject) {
+                $lbJson += '{'
+                    $lbJson += '"display_name": "vra-http-monitor",'
+                    $lbJson += '"description": "vRealize Automation HTTP Monitor",'
+                    $lbJson += '"resource_type": "LBHttpMonitorProfile",'
+                    $lbJson += '"monitor_port": "8008",'
+                    $lbJson += '"interval": "3",'
+                    $lbJson += '"fall_count": "3",'
+                    $lbJson += '"rise_count": "3",'
+                    $lbJson += '"timeout": "10",'
+                    $lbJson += '"request_method": "GET",'
+                    $lbJson += '"request_url": "/health",'
+                    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+                    $lbJson += '"response_status_codes": ['
+                        $lbJson += '"200"'
+                    $lbJson += '],'
+                    $lbJson += '"response_body": ""'
+                $lbJson += '},'
+            }
                 $lbJson += '{'
                     $lbJson += '"display_name": "wsa-https-monitor",'
                     $lbJson += '"description": "Clustered Workspace ONE Access HTTPS Monitor",'
@@ -21046,8 +20952,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '}'
             $lbJson += '],'
             $lbJson += '"app_profiles": ['
-            If ($vropsDetailsObject)
-            {
+            If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-http-app-profile-redirect",'
                     $lbJson += '"description": "Cross-Instance vRealize Operations Manager redirect HTTP to HTTPs",'
@@ -21068,8 +20973,7 @@ Function New-vRealizeLoadBalancerSpec {
                     $lbJson += '"close_timeout": "8"'
                 $lbJson += '},'
             }
-            If ($vraDetailsObject)
-            {
+            If ($vraDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-tcp-app-profile",'
                     $lbJson += '"description": "vRealize Automation TCP App Profile",'
@@ -21115,8 +21019,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '}'
             $lbJson += '],'
             $lbJson += '"persistence_profiles": ['
-            If ($vropsDetailsObject)
-            {
+            If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-source-ip-persistence-profile",'
                     $lbJson += '"description": "vRealize Operations Manager Analytics Cluster Source IP Persistence Profile",'
@@ -21138,8 +21041,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '}'
             $lbJson += '],'
             $lbJson += '"pools": ['
-            If ($vropsDetailsObject)
-            {
+            If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-server-pool",'
                     $lbJson += '"description": "vRealize Operations Manager Analytics Cluster Server Pool",'
@@ -21178,8 +21080,7 @@ Function New-vRealizeLoadBalancerSpec {
                     $lbJson += ']'
                 $lbJson += '},'
             }
-            If ($vraDetailsObject)
-            {    
+            If ($vraDetailsObject) {    
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-server-pool",'
                     $lbJson += '"description": "vRealize Automation Cluster Pool",'
@@ -21257,8 +21158,7 @@ Function New-vRealizeLoadBalancerSpec {
                 $lbJson += '}'
             $lbJson += '],'
             $lbJson += '"virtual_servers": ['
-            If ($vropsDetailsObject)
-            {
+            If ($vropsDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vrops-https",'
                     $lbJson += '"description": "vRealize Operations Manager Analytics Cluster UI",'
@@ -21286,8 +21186,7 @@ Function New-vRealizeLoadBalancerSpec {
                     $lbJson += ']'
                 $lbJson += '},'
             }
-            If ($vraDetailsObject)
-            {
+            If ($vraDetailsObject) {
                 $lbJson += '{'
                     $lbJson += '"display_name": "vra-https",'
                     $lbJson += '"description": "vRealize Automation Cluster UI",'
@@ -21366,37 +21265,37 @@ Function New-vRealizeLoadBalancerSpec {
     $lbJson += '}'
 
     $lbJson = $lbJson | ForEach-Object { $_ `
-            -replace '<!--REPLACE WITH T1NAME-->', $t1Name `
-            -replace '<!--REPLACE WITH xintSegmentName-->', $xintSegmentName `
-            -replace '<!--REPLACE WITH SEGMENTID-->', $segmentID `
-            -replace '<!--REPLACE WITH siName-->', $siName `
-            -replace '<!--REPLACE WITH SI IP-->', $serviceInterfaceIp `
-            -replace '<!--REPLACE WITH XREGION CIDR-->', $xintionVXLAN `
-            -replace '<!--REPLACE WITH NEXT HOP IP-->', $xintSegmentNextHopIP `
-            -replace '<!--REPLACE WITH SI PREFIX-->', $xintSegmentServiceInterfacePrefixLength `
-            -replace '<!--REPLACE WITH LB NAME-->', $lbName `
-            -replace '<!--REPLACE WITH XREG WSA CERT-->', $wsaCertName `
-            -replace '<!--REPLACE WITH WSA NODE 1 NAME-->', $xintWsaNode1Name `
-            -replace '<!--REPLACE WITH WSA NODE 2 NAME-->', $xintWsaNode2Name `
-            -replace '<!--REPLACE WITH WSA NODE 3 NAME-->', $xintWsaNode3Name `
-            -replace '<!--REPLACE WITH WSA NODE 1 IP-->', $xintWsaNode1IP `
-            -replace '<!--REPLACE WITH WSA NODE 2 IP-->', $xintWsaNode2IP `
-            -replace '<!--REPLACE WITH WSA NODE 3 IP-->', $xintWsaNode3IP `
-            -replace '<!--REPLACE WITH VROPS NODE 1 NAME-->', $xintVropsNode1Name `
-            -replace '<!--REPLACE WITH VROPS NODE 2 NAME-->', $xintVropsNode2Name `
-            -replace '<!--REPLACE WITH VROPS NODE 3 NAME-->', $xintVropsNode3Name `
-            -replace '<!--REPLACE WITH VROPS NODE 1 IP-->', $xintVropsNode1Ip `
-            -replace '<!--REPLACE WITH VROPS NODE 2 IP-->', $xintVropsNode2Ip `
-            -replace '<!--REPLACE WITH VROPS NODE 3 IP-->', $xintVropsNode3Ip `
-            -replace '<!--REPLACE WITH VRA NODE 1 NAME-->', $xintVraNode1Name `
-            -replace '<!--REPLACE WITH VRA NODE 2 NAME-->', $xintVraNode2Name `
-            -replace '<!--REPLACE WITH VRA NODE 3 NAME-->', $xintVraNode3Name `
-            -replace '<!--REPLACE WITH VRA NODE 1 IP-->', $xintVraNode1Ip `
-            -replace '<!--REPLACE WITH VRA NODE 2 IP-->', $xintVraNode2Ip `
-            -replace '<!--REPLACE WITH VRA NODE 3 IP-->', $xintVraNode3Ip `
-            -replace '<!--REPLACE WITH WSA VIP-->', $xintWsaVip `
-            -replace '<!--REPLACE WITH VROPS VIP-->', $xintVropsVip `
-            -replace '<!--REPLACE WITH VRA VIP-->', $xintVraVip `
+        -replace '<!--REPLACE WITH T1NAME-->', $t1Name `
+        -replace '<!--REPLACE WITH xintSegmentName-->', $xintSegmentName `
+        -replace '<!--REPLACE WITH SEGMENTID-->', $segmentID `
+        -replace '<!--REPLACE WITH siName-->', $siName `
+        -replace '<!--REPLACE WITH SI IP-->', $serviceInterfaceIp `
+        -replace '<!--REPLACE WITH XREGION CIDR-->', $xintionVXLAN `
+        -replace '<!--REPLACE WITH NEXT HOP IP-->', $xintSegmentNextHopIP `
+        -replace '<!--REPLACE WITH SI PREFIX-->', $xintSegmentServiceInterfacePrefixLength `
+        -replace '<!--REPLACE WITH LB NAME-->', $lbName `
+        -replace '<!--REPLACE WITH XREG WSA CERT-->', $wsaCertName `
+        -replace '<!--REPLACE WITH WSA NODE 1 NAME-->', $xintWsaNode1Name `
+        -replace '<!--REPLACE WITH WSA NODE 2 NAME-->', $xintWsaNode2Name `
+        -replace '<!--REPLACE WITH WSA NODE 3 NAME-->', $xintWsaNode3Name `
+        -replace '<!--REPLACE WITH WSA NODE 1 IP-->', $xintWsaNode1IP `
+        -replace '<!--REPLACE WITH WSA NODE 2 IP-->', $xintWsaNode2IP `
+        -replace '<!--REPLACE WITH WSA NODE 3 IP-->', $xintWsaNode3IP `
+        -replace '<!--REPLACE WITH VROPS NODE 1 NAME-->', $xintVropsNode1Name `
+        -replace '<!--REPLACE WITH VROPS NODE 2 NAME-->', $xintVropsNode2Name `
+        -replace '<!--REPLACE WITH VROPS NODE 3 NAME-->', $xintVropsNode3Name `
+        -replace '<!--REPLACE WITH VROPS NODE 1 IP-->', $xintVropsNode1Ip `
+        -replace '<!--REPLACE WITH VROPS NODE 2 IP-->', $xintVropsNode2Ip `
+        -replace '<!--REPLACE WITH VROPS NODE 3 IP-->', $xintVropsNode3Ip `
+        -replace '<!--REPLACE WITH VRA NODE 1 NAME-->', $xintVraNode1Name `
+        -replace '<!--REPLACE WITH VRA NODE 2 NAME-->', $xintVraNode2Name `
+        -replace '<!--REPLACE WITH VRA NODE 3 NAME-->', $xintVraNode3Name `
+        -replace '<!--REPLACE WITH VRA NODE 1 IP-->', $xintVraNode1Ip `
+        -replace '<!--REPLACE WITH VRA NODE 2 IP-->', $xintVraNode2Ip `
+        -replace '<!--REPLACE WITH VRA NODE 3 IP-->', $xintVraNode3Ip `
+        -replace '<!--REPLACE WITH WSA VIP-->', $xintWsaVip `
+        -replace '<!--REPLACE WITH VROPS VIP-->', $xintVropsVip `
+        -replace '<!--REPLACE WITH VRA VIP-->', $xintVraVip `
     }
     $lbCustomObject = $lbJson | ConvertFrom-Json
     Return $lbCustomObject
@@ -21405,17 +21304,14 @@ Export-ModuleMember -Function New-vRealizeLoadBalancerSpec
 
 Function Get-NsxtGlobalSegmentID {
     Param (
-        [Parameter (Mandatory=$true)]
-            [String]$segmentName
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$segmentName
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/global-infra/segments/"
-
         $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
         $segmentObjectId = ($response.results | where-object {$_.display_name -eq $segmentName}).id
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
     Return $segmentObjectId
@@ -21424,19 +21320,17 @@ Export-ModuleMember -Function Get-NsxtGlobalSegmentID
 
 Function Add-CertToNsxCertificateStore {
     Param (
-        [Parameter (Mandatory = $true)] [String]$certName 
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certName 
     )
 
     Try {
         $pemFile = Get-ExternalFileName -title "Select the Certificate Chain PEM File for Clustered WSA (.pem)" -fileType "pem" -location "default"
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
     Try {
         $keyFile = Get-ExternalFileName -title "Select the Key File for Clustered WSA (.key)" -fileType "key" -location "default"
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
     
@@ -21445,22 +21339,20 @@ Function Add-CertToNsxCertificateStore {
     #check for existing certificate
     Try {
         $certAlreadyImported = Get-NsxtCertificate -certificateName $certName -ErrorAction SilentlyContinue
-    }
-    Catch {
+    } Catch {
         $certAlreadyImported = $false
     }
     
     # report on existing cert or install new cert
     if ($certAlreadyImported) {
         $wsaCertPresent = $true
-    }
-    else {
+    } else {
             $pemContent = (Get-Content $pemFile) -join "\n"
             $keyContent = (Get-Content $keyFile) -join "\n"
             $body = 
             '{
-              "pem_encoded": "<!--REPLACE WITH PEM DATA-->",
-              "private_key": "<!--REPLACE WITH KEY DATA-->" 
+                "pem_encoded": "<!--REPLACE WITH PEM DATA-->",
+                "private_key": "<!--REPLACE WITH KEY DATA-->" 
             }
             '
             $body = $body | ForEach-Object { $_ `
@@ -21470,8 +21362,7 @@ Function Add-CertToNsxCertificateStore {
             Try {
                 Set-NsxtCertificate -certificateName $certName -json $body
                 $wsaCertPresent = $true
-            }
-            Catch {
+            } Catch {
                 Debug-ExceptionWriter -object $_
             }   
     }
@@ -21496,8 +21387,7 @@ Function Get-NsxtEdgeCluster {
         $uri = "https://$nsxtmanager/api/v1/edge-clusters"
         $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21525,8 +21415,7 @@ Function New-NsxtTier1 {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21554,8 +21443,7 @@ Function Set-NsxtTier1 {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/locale-services/default"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21584,8 +21472,7 @@ Function New-NsxtTier1ServiceInterface {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/locale-services/default/interfaces/$($interfaceId)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21614,8 +21501,7 @@ Function New-NsxtTier1StaticRoute {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-1s/$($tier1Gateway)/static-routes/$($segment)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21643,8 +21529,7 @@ Function New-NsxtLoadBalancer {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-services/$($lbName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21672,8 +21557,7 @@ Function New-NsxtLBServiceMonitor {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-monitor-profiles/$($monitorName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21701,8 +21585,7 @@ Function New-NsxtLBAppProfile {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-app-profiles/$($appProfileName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21730,8 +21613,7 @@ Function New-NsxtLBPersistenceAppProfile {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-persistence-profiles/$($appProfileName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21759,8 +21641,7 @@ Function New-NsxtLBPool {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-pools/$($poolName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21788,8 +21669,7 @@ Function New-NsxtLBVirtualServer {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/lb-virtual-servers/$($virtualServerName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21804,7 +21684,7 @@ Function Get-NsxtCertificate {
         The Get-NsxtCertificates cmdlet gets certificates installed in NSX
     
         .EXAMPLE
-        PS C:\> Get-NsxtCertificates
+        Get-NsxtCertificates
         This example gets the certificates installed in NSX
     #>
 
@@ -21817,14 +21697,12 @@ Function Get-NsxtCertificate {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
-        }
-        elseif ($PsBoundParameters.ContainsKey("certificateName")) {
+        } elseif ($PsBoundParameters.ContainsKey("certificateName")) {
             $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates/$($certificateName)"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21852,8 +21730,7 @@ Function Set-NsxtCertificate {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/certificates/$($certificateName)"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -headers $nsxtHeaders -body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -21886,17 +21763,14 @@ Function Get-NsxtNodeProfile {
             $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
             $response.results
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
-
 }
 Export-ModuleMember -Function Get-NsxtNodeProfile
 
@@ -21940,8 +21814,7 @@ Function Set-NsxtNodeProfileSyslogExporter {
         $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/$id"
         $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $nsxtHeaders -Body $body
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -21977,8 +21850,7 @@ Function Remove-NsxtNodeProfileSyslogExporter {
         $uri = "https://$nsxtManager/api/v1/configs/central-config/node-config-profiles/$id"
         $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $nsxtHeaders -Body $body
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22006,8 +21878,7 @@ Function Get-NsxtBackupConfiguration {
         # Note: NSX v3.2.0 and later use `/policy/api/v1/cluster/backups/config` or `/api/v1/cluster/backups/config`
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22034,8 +21905,7 @@ Function Get-NsxtBackupHistory {
         $uri = "https://$nsxtManager/api/v1/cluster/backups/history"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22062,8 +21932,7 @@ Function Get-NsxtAlarm {
         $uri = "https://$nsxtManager/api/v1/alarms"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22090,8 +21959,7 @@ Function Get-NsxtEvent {
         $uri = "https://$nsxtManager/api/v1/events"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22174,8 +22042,7 @@ Function Get-NsxtEdgeNode {
     Try {
         $uri = "https://$nsxtmanager/api/v1/transport-nodes/$transportNodeId"
         Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22202,8 +22069,7 @@ Function Get-NsxtTier0LocaleServiceBgp {
         $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/default/bgp"
         $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22253,8 +22119,7 @@ Function Get-NsxtVidmStatus {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm/status"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22297,8 +22162,7 @@ Function Get-NsxtTransportNode {
         }
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22337,8 +22201,7 @@ Function Get-NsxtTransportNodeStatus {
         }
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22365,8 +22228,7 @@ Function Get-NsxtTransportNodeTunnel {
         $uri = "https://$nsxtManager/api/v1/transport-nodes/$id/tunnels"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22393,8 +22255,7 @@ Function Get-NsxtTransportNodeTunnelStatus {
         $uri = "https://$nsxtManager/api/v1/transport-nodes/$id/remote-transport-node-status"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22421,8 +22282,7 @@ Function Get-NsxtComputeManagerStatus {
         $uri = "https://$nsxtManager/api/v1/fabric/compute-managers/$id/status"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -22527,8 +22387,7 @@ Function Set-NsxtApplianceUserPassword {
             $uri = "https://$nsxtmanager/api/v1/node/users/$userId`?action=reset_password"
         }
         (Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -Body $json).results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
