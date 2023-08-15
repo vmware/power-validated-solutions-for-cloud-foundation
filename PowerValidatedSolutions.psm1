@@ -6742,9 +6742,19 @@ Function Add-NamespacePermission {
                                         if ($type -eq "group") { $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
                                         elseif ($type -eq "user") { $adObjectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal }) }
                                         if ($adObjectCheck) {
-                                            if (!(Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal)) {
-                                                New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
-                                                if (Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal) {
+                                            #if (!(Get-WMNamespacePermission -Namespace $namespace -Domain $domain -PrincipalName $principal)) {
+                                            #Temp fix until Get-WMNamespacePermission is fixed
+                                            Request-vSphereApiToken -fqdn $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                            $uri = "https://$($vcfVcenterDetails.fqdn)/api/vcenter/namespaces/instances/$namespace"
+                                            $getWMNamespace = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
+                                            if (($getWMNamespace.access_list.subject -contains $principal) -eq $false){
+                                                #New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
+                                                #Temp fix until New-WMNamespacePermission is fixed
+                                                $uri = "https://$($vcfVcenterDetails.fqdn)/api/vcenter/namespaces/instances/$namespace/access/$domain/"+ $principal +"?type=$type"
+                                                $json = '{"role": "'+ $role +'"}'
+                                                Invoke-RestMethod -Method 'POST' -URI $uri -Body $json -Headers $vcApiHeaders | Out-Null
+                                                $getWMNamespacePost = Invoke-RestMethod -Method 'GET' -URI https://$($vcfVcenterDetails.fqdn)/api/vcenter/namespaces/instances/$namespace -Headers $vcApiHeaders
+                                                if (($getWMNamespacePost.access_list.subject -contains $principal) -eq $true) {
                                                     Write-Output "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): SUCCESSFUL"
                                                 } else {
                                                     Write-Error "Assigning Role ($role) to $type ($principal) in Namespace ($namespace): POST_VALIDATION_FAILED"
