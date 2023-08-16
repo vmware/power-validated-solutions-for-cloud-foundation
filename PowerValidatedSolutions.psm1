@@ -8482,6 +8482,132 @@ Function Undo-vRLIAlert {
 }
 Export-ModuleMember -Function Undo-vRLIAlert
 
+Function Enable-vRLIAlert {
+    <#
+		.SYNOPSIS
+        Enables alerts in vRealize Log Insight
+
+        .DESCRIPTION
+        The Enable-vRLIAlert cmdlet enables alerts in vRealize Log Insight. The cmdlet connects to SDDC Manager using
+        the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Enables the alert in vRealize Log Insight
+
+        .EXAMPLE
+        Enable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -email administrator@rainpole.io -alertDefinition ".\SampleNotifications\vrli-vcf-alerts.json"
+        This example enables the alerts provided in the JSON file and configures an email address
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$email,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$alertDefinition
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("alertDefinition")) {
+            $alertDefinition = Get-ExternalFileName -title "Select the alert file (.json)" -fileType "json" -location ((Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation + "\SampleNotifications\")
+        } else {
+            if (!(Test-Path -Path $alertDefinition)) {
+                Write-Error  "Alert Template '$alertDefinition' File Not Found"
+                Break
+            }
+        }
+
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
+                            $definedAlerts = (Get-Content -path $alertDefinition -Raw)
+                            $configureAlerts =  $definedAlerts | ConvertFrom-Json
+                            [Array]$allAlerts = Get-vRLIAlert
+                            foreach ($alert in $allAlerts) {
+                                foreach ($configureAlert in $configureAlerts) {
+                                    if ($alert.name -eq $configureAlert.name) {
+                                        Set-vRLIAlert -id $alert.id -enabled true | Out-Null
+                                        Update-vRLIAlert -id $alert.id -email $email | Out-Null
+                                    }
+                                }
+                            }
+                            Write-Output "Enabling vRealize Log Inisght Alerts Defined in ($alertDefinition): SUCCESSFUL"
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Enable-vRLIAlert
+
+Function Disable-vRLIAlert {
+    <#
+		.SYNOPSIS
+        Disables alerts in vRealize Log Insight
+
+        .DESCRIPTION
+        The Disable-vRLIAlert cmdlet enables alerts in vRealize Log Insight. The cmdlet connects to SDDC Manager using
+        the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that vRealize Log Insight has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to vRealize Log Insight
+        - Enables the alert in vRealize Log Insight
+
+        .EXAMPLE
+        Disable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alertDefinition ".\SampleNotifications\vrli-vcf-alerts.json"
+        This example disables the alerts provided in the JSON file
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$alertDefinition
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("alertDefinition")) {
+            $alertDefinition = Get-ExternalFileName -title "Select the alert file (.json)" -fileType "json" -location ((Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation + "\SampleNotifications\")
+        } else {
+            if (!(Test-Path -Path $alertDefinition)) {
+                Write-Error  "Alert Template '$alertDefinition' File Not Found"
+                Break
+            }
+        }
+
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) { 
+                            $definedAlerts = (Get-Content -path $alertDefinition -Raw)
+                            $configureAlerts =  $definedAlerts | ConvertFrom-Json
+                            [Array]$allAlerts = Get-vRLIAlert
+                            foreach ($alert in $allAlerts) {
+                                foreach ($configureAlert in $configureAlerts) {
+                                    if ($alert.name -eq $configureAlert.name) {
+                                        Set-vRLIAlert -id $alert.id -enabled false | Out-Null
+                                    }
+                                }
+                            }
+                            Write-Output "Disabling vRealize Log Inisght Alerts Defined in ($alertDefinition): SUCCESSFUL"
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Disable-vRLIAlert
+
 Function Add-vRLILogForwarder {
     <#
 		.SYNOPSIS
@@ -29807,11 +29933,13 @@ Function Get-vRLIAlert {
     #>
 
     Try {
-        $uri = "https://$vrliAppliance/api/v1/alerts"
-        $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
-        $response
-    }
-    Catch {
+        if ((Get-vRLIVersion).version -Split ("-")[0] -gt 8.6.2) {
+            $uri = "https://$vrliAppliance/api/v2/alerts"
+        } else {
+            $uri = "https://$vrliAppliance/api/v1/alerts"
+        }
+        Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29872,6 +30000,81 @@ Function Remove-vRLIAlert {
     }
 }
 Export-ModuleMember -Function Remove-vRLIAlert
+
+Function Set-vRLIAlert {
+    <#
+        .SYNOPSIS
+        Enable/Disable an alert
+
+        .DESCRIPTION
+        The Set-vRLIAlert cmdlet enables or disables an alert in vRealize Log Insight
+
+        .EXAMPLE
+        Set-vRLIAlert -id 0111952f-9aec-3872-b108-d70ec8a2981a -enabled true
+        This example enables the alert in vRealize Log Insight based on id provided
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$enabled
+    )
+
+    Try {
+        $json = '{
+            "ids":["'+ $id +'"],
+            "enabled":'+ $enabled +'
+        }'
+        $uri = "https://$vrliAppliance/api/v2/alerts/batch-subscribe"
+        Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vrliHeaders -Body $json 
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLIAlert
+
+Function Update-vRLIAlert {
+    <#
+        .SYNOPSIS
+        Update the configuration of an alert
+
+        .DESCRIPTION
+        The Update-vRLIAlert cmdlet updates the configuration of an existing alert in vRealize Log Insight
+
+        .EXAMPLE
+        Update-vRLIAlert -id 0111952f-9aec-3872-b108-d70ec8a2981a -email administrator@rainpole.io
+        This example adds a single email address to an alert in vRealize Log Insight
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$email
+    )
+
+    Try {
+        $json = '{
+            "recipients":
+                {
+                    "emails": [
+                        "'+ $email +'"
+                    ],
+                    "webhookIds":[
+
+                    ],
+                    "vrops":{"autoClearAlertAfterTimeout":false,
+                    "autoClearAlertsTimeoutMinutes":15,
+                    "vcopsCriticality":"none",
+                    "vcopsResourceKindKey":"",
+                    "vcopsResourceName":""
+                }
+            }
+        }'
+        $uri = "https://$vrliAppliance/api/v2/alerts/$id"
+        Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vrliHeaders -Body $json 
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Update-vRLIAlert
 
 Function Get-vRLILogForwarder {
     <#

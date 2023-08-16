@@ -1,0 +1,11 @@
+[
+	{	
+		"name": "vRops: VC stats query timed out occurred"
+	},
+    {
+        "name": "vRops: Out of Memory errors occurred"
+    },
+    {
+        "name": "ESXi: Licenses expiring soon"
+    }
+]
