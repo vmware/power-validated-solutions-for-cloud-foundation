@@ -4,13 +4,10 @@ on:
     types:
       - opened
       - reopened
-      - transferred
-      - labeled
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - reopened
-      - labeled
 jobs:
   add-to-project:
     name: Add to Project
