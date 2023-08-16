@@ -23,6 +23,13 @@
 - Added `Get-NsxtSecurityPolicy` cmdlet to retrieve a list of security policies from NSX.
 - Added `Remove-NsxtSecurityPolicy` cmdlet to remove a security policy from NSX.
 - Added `Get-NsxtGroup` cmdlet to retrieve a list of groups from NSX.
+- Added `Set-vRLIAlert` cmdlet to enable an alert in vRealize Log Insight.
+- Added `Update-vRLIAlert` cmdlet to configure an email address for an alert in vRealize Log Insight.
+- Added `Enable-vRLIAlert` cmdlet to enable vRealize Log Insight alerts based on a supplied JSON file.
+- Added `Disable-vRLIAlert` cmdlet to disable vRealize Log Insight alerts based ona supplied JSON file.
+- Added `vrli-iom-alerts.json` to \SampleNotification folder for Intelligent Operations Management alerts.
+- Added `vrli-vcf-alerts.json` to \SampleNotification folder for VMware Cloud Foundation alerts.
+- Adedd `vrli-vrslcm-alerts.json` to \SampleNotification folder for vRealize Suite Lifecycle Manager alerts.
 - Added `Remove-NsxtGroup` cmdlet to remove a group from NSX.
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.

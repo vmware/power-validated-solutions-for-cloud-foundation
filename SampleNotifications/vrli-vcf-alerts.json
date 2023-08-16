@@ -1,0 +1,140 @@
+[
+	{	
+		"name": "*** CRITICAL *** ESXi: Core dump detected"
+	},
+	{
+		"name": "*** CRITICAL *** Hardware: Physical event detected"
+	},
+    {
+		"name": "Hardware: Faulty memory detected"
+    },
+    {
+        "name": "*** CRITICAL *** ESXi: Stopped logging"
+    },
+    {
+        "name": "*** CRITICAL *** ESXi: RAM disk / inode table is full"
+    },
+    {
+        "name": "ESXi: HA isolated events by hostname"
+    },
+    {
+        "name": "vCenter Server: HA connection failure detected"
+    },
+    {
+        "name": "Network: ESXi physical NIC down"
+    },
+    {
+        "name": "Network: ESXi uplink redundancy lost"
+    },
+    {
+        "name": "Network: Out of Memory"
+    },
+    {
+        "name": "ESXi: Licenses expiring soon"
+    },
+    {
+        "name": "*** CRITICAL *** Storage: All Paths Down (APD)"
+    },
+    {
+        "name": "*** CRITICAL *** Storage: vSAN device offline"
+    },
+    {
+        "name": "Storage: NFS connectivity issue"
+    },
+    {
+        "name": "Storage: NFS lock file issue"
+    },
+    {
+        "name": "Storage: SCSI Path dead"
+    },
+    {
+        "name": "Storage: Snapshot consolidation required"
+    },
+    {
+        "name": "vSAN - SSD health change to unhealthy state"
+    },
+    {
+        "name": "vSAN - Configuration failure - Insufficient space"
+    },
+    {
+        "name": "vSAN - Device Offline"
+    },
+    {
+        "name": "vSAN - Object component state changed to degraded"
+    },
+    {
+        "name": "SysCpuUsage"
+    },
+    {
+        "name": "SysMemUsage"
+    },
+    {
+        "name": "SysDiskUsage"
+    },
+    {
+        "name": "PasswordExpiry"
+    },
+    {
+        "name": "CertificateExpiry"
+    },
+    {
+        "name": "ClusterNodeStatus"
+    },
+    {
+        "name": "BackupFailure"
+    },
+    {
+        "name": "VipLeadership"
+    },
+    {
+        "name": "ApiRateLimit"
+    },
+    {
+        "name": "CorfuQuorumLost"
+    },
+    {
+        "name": "DfwHeapMem"
+    },
+    {
+        "name": "ProcessStatus"
+    },
+    {
+        "name": "ClusterFailoverStatus"
+    },
+    {
+        "name": "BfdTunnelStatus"
+    },
+    {
+        "name": "RoutingBgpNeighborStatus"
+    },
+    {
+        "name": "RoutingStatus"
+    },
+    {
+        "name": "TnConnDown_15min"
+    },
+    {
+        "name": "TnConnDown_5min"
+    },
+    {
+        "name": "ServiceDown"
+    },
+    {
+        "name": "IpNotAvailableInPool"
+    },
+    {
+        "name": "LoadBalancerError"
+    },
+    {
+        "name": "LoadBalancerDown"
+    },
+    {
+        "name": "LoadBalancerVsDown"
+    },
+    {
+        "name": "LoadBalancerPoolDown"
+    },
+    {
+        "name": "ProcessCrash"
+    }
+]
