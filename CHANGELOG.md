@@ -31,6 +31,7 @@
 - Added `vrli-vcf-alerts.json` to \SampleNotification folder for VMware Cloud Foundation alerts.
 - Adedd `vrli-vrslcm-alerts.json` to \SampleNotification folder for vRealize Suite Lifecycle Manager alerts.
 - Added `Remove-NsxtGroup` cmdlet to remove a group from NSX.
+- Added a temporary fix in `Add-NamespacePermission` cmdlet until issue with `New-WMNamespacePermission` is resolved.
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 
