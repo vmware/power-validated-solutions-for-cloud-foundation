@@ -6750,6 +6750,8 @@ Function Add-NamespacePermission {
                                             if (($getWMNamespace.access_list.subject -contains $principal) -eq $false){
                                                 # TODO: A temporary fix until issue with Get-WMNamespacePermission is resolved.
                                                 # New-WMNamespacePermission -Namespace $namespace -Role $role -Domain $domain -PrincipalType $type -PrincipalName $principal | Out-Null
+                                                $type = $type.ToUpper()
+                                                $role = $role.ToUpper()
                                                 $uri = "https://$($vcfVcenterDetails.fqdn)/api/vcenter/namespaces/instances/$namespace/access/$domain/"+ $principal +"?type=$type"
                                                 $json = '{"role": "'+ $role +'"}'
                                                 Invoke-RestMethod -Method 'POST' -URI $uri -Body $json -Headers $vcApiHeaders | Out-Null
