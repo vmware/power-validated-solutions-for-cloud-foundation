@@ -34,6 +34,7 @@
 - Added a temporary fix in `Add-NamespacePermission` cmdlet until issue with `New-WMNamespacePermission` is resolved.
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
+- Fixed `Request-SignedCertificate` cmdlet to use CIM cmdlets to verify the MSCA host instead of previously used WMI cmdlets which fail in PowerShell Core.
 
 
 ## [v2.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
