@@ -6354,7 +6354,14 @@ Function Request-SignedCertificate {
                 $preValidation = $false
             }
             # Validate if can get Win32_ComputerSystem
-            if ((Get-WmiObject Win32_ComputerSystem -ComputerName $mscaComputerName -ErrorAction SilentlyContinue).Status -ne "OK") {
+            $cimPass = ConvertTo-SecureString -String $domainPassword -AsPlainText -Force
+            $cimCreds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $domainUsername, $cimPass
+            $cimCreds | Export-Clixml -Path "$(Get-Location)\cimCreds.xml"
+            $importedCimCreds = Import-Clixml -Path "$(Get-Location)\cimCreds.xml"
+            $cimSession = New-CimSession -ComputerName $mscaComputerName -Credential $importedCimCreds
+            $cimInstance = Get-CimInstance -CimSession $cimSession -ClassName Win32_ComputerSystem
+            Remove-Item -Path "$(Get-Location)\cimCreds.xml"
+            if ($cimInstance.PSComputerName -ne $mscaComputerName){
                 Write-Error "Getting Win32_ComputerSystem object for ($mscaComputerName): PRE_VALIDATION_FAILED"
                 $preValidation = $false
             }
