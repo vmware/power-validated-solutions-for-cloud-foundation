@@ -6466,7 +6466,7 @@ Function Add-SupervisorClusterLicense {
         Adds a Supervisor Cluster license
 
         .DESCRIPTION
-        The Add-SupervisorClusterLicense cmdlet adds a Supervisor Cluster licence.. The cmdlet connects to SDDC Manager
+        The Add-SupervisorClusterLicense cmdlet adds a Supervisor Cluster licence. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
@@ -6490,29 +6490,20 @@ Function Add-SupervisorClusterLicense {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
-                        $clusterId = ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).clusters | Where-Object {$_.id -eq (Get-VCFCluster | Where-Object {$_.name -eq $cluster}).id}).id
-                        if ($clusterId){
+                        if ($clusterId = ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).clusters | Where-Object {$_.id -eq (Get-VCFCluster | Where-Object {$_.name -eq $cluster}).id}).id){
                             if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                                 if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                    Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass 
-                                    $licenseExists = $null
-                                    Try {
-                                        $licenseExists = Get-VCFLicenseKey -key $licenseKey -ErrorAction SilentlyContinue
-                                    } Catch {
-                                        # Do nothing
-                                    }
-                                    if (!($licenseExists)) {
+                                    Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                    if (!(Get-VCFLicenseKey | Where-Object {$_.key -eq $licenseKey})) {
                                         New-VCFLicenseKey -key $licenseKey -productType WCP -description "WCP license"
                                         Start-Sleep 10
-                                        if (Get-VCFLicenseKey -key $licenseKey) {
-                                            Write-Output "Adding license key ($licenseKey) in SDDC manager ($sddcManager): SUCCESSFUL"
+                                        if (Get-VCFLicenseKey | Where-Object {$_.key -eq $licenseKey}) {
+                                            Write-Output "Adding Tanzu License Key ($licenseKey) in SDDC Manager ($sddcManager): SUCCESSFUL"
                                             $clusterId = ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).clusters | Where-Object {$_.id -eq (Get-VCFCluster | Where-Object {$_.name -eq $cluster}).id}).id
-                                            
                                             $uri = "https://$sddcManager/v1/wcps/$clusterId/licensing"
                                             $json = '{"licenseKey": "'+ $licenseKey +'"}'
                                             $response = Invoke-RestMethod -Method POST -URI $uri -headers $headers -ContentType application/json -body $json
                                             Try {
-                                                $taskStatus = $null
                                                 Do {
                                                     $taskStatus = (Get-VCFTask -id $response.id).status
                                                     Start-Sleep 10
@@ -6520,55 +6511,26 @@ Function Add-SupervisorClusterLicense {
                                                 if ($taskStatus -eq "Successful") {
                                                     Write-Output "Assign license key ($licenseKey) to Supervisior cluster ($cluster): SUCCESSFUL"
                                                 } else {
-                                                    $PSCmdlet.ThrowTerminatingError(
-                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                            ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
-                                                            'Add-SupervisorClusterLicense',
-                                                            [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                            ""
-                                                        )
-                                                    )
+                                                    Write-Error "Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"
                                                 } 
                                             } Catch {
                                                 Debug-ExceptionWriter -object $_
                                             }
                                         } else {
-                                            $PSCmdlet.ThrowTerminatingError(
-                                                [System.Management.Automation.ErrorRecord]::new(
-                                                    ([System.Management.Automation.GetValueException]"Unable to validate license key ($licenseKey) was properly added to Supervisor Cluster ($cluster): POST_VALIDATION_FAILED"),
-                                                    'Add-SupervisorClusterLicense',
-                                                    [System.Management.Automation.ErrorCategory]::InvalidResult,
-                                                    ""
-                                                )
-                                            )
+                                            Write-Error "Adding Tanzu License Key ($licenseKey) in SDDC Manager ($sddcManager): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "License key ($licenseKey) already exists in SDDC manager ($sddcManager) inventory: SKIPPED"
+                                        Write-Warning "Adding Tanzu License Key ($licenseKey) in SDDC Manager ($sddcManager), already exists: SKIPPED"
                                     }
-                                    
                                 }
                                 Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
                         } else {
-                            $PSCmdlet.ThrowTerminatingError(
-                                [System.Management.Automation.ErrorRecord]::new(
-                                    ([System.Management.Automation.ItemNotFoundException]"Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
-                                    'Add-SupervisorClusterLicense',
-                                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                                    ""
-                                )
-                            )
+                            Write-Error "Unable to find cluster named ($cluster) in the Workload Domain named ($domain) in the invenotry of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                         }
                     }
                 } else {
-                    $PSCmdlet.ThrowTerminatingError(
-                        [System.Management.Automation.ErrorRecord]::new(
-                            ([System.Management.Automation.ItemNotFoundException]"Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"),
-                            'Add-SupervisorClusterLicense',
-                            [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                            ""
-                        )
-                    )
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -9780,7 +9742,7 @@ Function New-vROPSDeployment {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                                 } else {
-                                                    Write-Output "Deployment Rquest for vRealize Operations Manager Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                    Write-Output "Deployment Request for vRealize Operations Manager Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
                                                 Write-Error "Request to deploy vRealize Operations Manager failed, check the vRealize Suite Lifecycle Manager UI: POST_VALIDATION_FAILED"
@@ -11965,7 +11927,7 @@ Function New-vRADeployment {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                                 } else {
-                                                    Write-Output "Deployment Rquest for vRealize Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                    Write-Output "Deployment Request for vRealize Automation Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
                                                 Write-Error "Request to deploy vRealize Automation failed, check the vRealize Suite Lifecycle Manager UI"
@@ -24746,7 +24708,7 @@ Function New-WSADeployment {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                                 } else {
-                                                    Write-Output "Deployment Rquest for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
+                                                    Write-Output "Deployment Request for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
                                                 Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the vRealize Suite Lifecycle Manager UI"

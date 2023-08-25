@@ -14,7 +14,7 @@ spec:
       class: guaranteed-small
       storageClass: vsphere-with-tanzu-storage-policy
   distribution:
-    version: v1.20
+    version: v1.24
   settings:
     network: 
       cni:
