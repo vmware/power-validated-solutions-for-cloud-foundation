@@ -11,6 +11,7 @@
 - Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v4.5.2 and vRealize Operations v8.10.2.
 - Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v4.5.2 and vRealize Automation v8.11.2.
 - Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v4.5.2 and vRealize Log Insight v8.10.2.
+- Enhanced `Add-SupervisorClusterLicense` to improve error handling.
 - Added `Get-vRSLCMProductBinariesMapped` cmdlet to retrieves a list of mapped Product Binaries in vRealize Suite Lifecycle Manager.
 - Added `Get-vRSLCMProductBinaries` cmdlet to retrieve a list of product binaries in vRealize Suite Lifecycle Manager.
 - Added `Register-vRSLCMProductBinary` cmdlet to add a product binary to the vRealize Suite Lifecycle Manager inventory.
