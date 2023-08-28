@@ -31289,7 +31289,7 @@ Function Request-VrmsToken {
         $Global:vrmsAppliance = $fqdn
 
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/session"
-        if ($PSEdition -eq 'Core') {
+        if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux") {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         } else {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
