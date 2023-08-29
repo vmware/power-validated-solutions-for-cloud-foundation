@@ -5650,6 +5650,13 @@ Function Add-ContentLibrary {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if ($subscriptionUrl -like "https://wp-content.vmware.com*") {
+                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                    if ($vcfVersion -ge "5.0.0") {
+                        Write-Warning "Adding the content library is not required for VMware Cloud Foundation $vcfVersion and later when enabling Tanzu."
+                        Break
+                    }
+                }
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }) {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                         if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
