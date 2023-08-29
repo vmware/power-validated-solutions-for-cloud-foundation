@@ -5,6 +5,7 @@
 > Release Date: Unreleased
 
 - Updated `Request-VrmsApiToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
+- Updated `Connect-DRSolutionTovCenter` to wait for the solution initialization to complete. The maximum wait time is 10 minutes.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
