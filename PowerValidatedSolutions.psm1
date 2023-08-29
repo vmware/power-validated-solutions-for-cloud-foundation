@@ -1692,10 +1692,21 @@ Function Connect-DRSolutionTovCenter {
                                     if (Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
                                         if (!((Get-VrmsConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
                                             $configTask = Set-VrmsConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName
+                                            $counter = 0
                                             Do {
-                                                Start-Sleep 2
-                                                $vamiStatus = Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword -ErrorAction SilentlyContinue
-                                                $taskStatus = Get-VrmsTask -taskId $configTask.id
+                                                Try {
+                                                    $vamiStatus = Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword -ErrorAction SilentlyContinue
+                                                    $taskStatus = Get-VrmsTask -taskId $configTask.id -ErrorAction SilentlyContinue
+                                                } Catch {
+                                                    Write-Output "Pausing for 30 seconds to allow the $solution instance ($applianceFqdn) to initialize, please wait..."
+                                                    Start-Sleep -Seconds 30
+                                                    $counter++
+                                                    # If the counter reaches 20, then the task has been running for 10 minutes will be considered as failed.
+                                                    if ($counter -eq 20) {
+                                                        Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): FAILED"
+                                                        Break
+                                                    }
+                                                }
                                             } Until (($taskStatus.Status -ne "RUNNING") -and ($vamiStatus -eq $true))
                                             if ($taskStatus.Status -eq "SUCCESS") {
                                                 Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
@@ -1712,10 +1723,21 @@ Function Connect-DRSolutionTovCenter {
                                     if (Test-SrmVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword) {
                                         if (!((Get-SrmConfiguration -ErrorAction SilentlyContinue).connection.vc_instance_id -eq ($global:DefaultVIServer.InstanceUuid))) {
                                             $configTask = Set-SrmConfiguration -vcenterFqdn $vcfVcenterDetails.fqdn -vcenterInstanceId ($global:DefaultVIServer.InstanceUuid) -ssoUser $vcfVcenterDetails.ssoAdmin -ssoPassword $vcfVcenterDetails.ssoAdminPass -adminEmail $adminEmail -siteName $siteName
+                                            $counter = 0
                                             Do {
-                                                Start-Sleep 2
-                                                $vamiStatus = Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword -ErrorAction SilentlyContinue
-                                                $taskStatus = Get-VrmsTask -taskId $configTask.id
+                                                Try {
+                                                    $vamiStatus = Test-VrmsVamiAuthentication -server $applianceFqdn -user admin -pass $vamiAdminPassword -ErrorAction SilentlyContinue
+                                                    $taskStatus = Get-VrmsTask -taskId $configTask.id -ErrorAction SilentlyContinue
+                                                } Catch {
+                                                    Write-Output "Pausing for 30 seconds to allow the $solution instance ($applianceFqdn) to initialize, please wait..."
+                                                    Start-Sleep -Seconds 30
+                                                    $counter++
+                                                    # If the counter reaches 20, then the task has been running for 10 minutes will be considered as failed.
+                                                    if ($counter -eq 20) {
+                                                        Write-Error "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): FAILED"
+                                                        Break
+                                                    }
+                                                }
                                             } Until (($taskStatus.Status -ne "RUNNING") -and ($vamiStatus -eq $true))
                                             if ($taskStatus.Status -eq "SUCCESS") {
                                                 Write-Output "Registering $solution instance ($applianceFqdn) with vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
@@ -31289,7 +31311,7 @@ Function Request-VrmsToken {
         $Global:vrmsAppliance = $fqdn
 
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/session"
-        if ($PSEdition -eq 'Core') {
+        if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux") {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         } else {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
