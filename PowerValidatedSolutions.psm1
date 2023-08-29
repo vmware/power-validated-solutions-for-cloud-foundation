@@ -16876,38 +16876,45 @@ Export-ModuleMember -Function Set-VcenterRootPasswordExpiration
 Function Get-LocalUserPasswordExpiration {
     <#
         .SYNOPSIS
-        Retrieve the password expiration policy for a local user
+        Retrieve the password expiration policy for a local user.
 
         .DESCRIPTION
-        The Get-LocalUserPasswordExpiration cmdlets retrieves the password expiration policy for a local user
+        The Get-LocalUserPasswordExpiration cmdlets retrieves the password expiration policy for a local user/
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -localUser root
-        This example retrieves the password expiration policy for the root user on vCenter Server sfo-w01-vc01
+        This example retrieves the password expiration policy for the root user on vCenter Server sfo-w01-vc01.
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin
-        This example retrieves the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a
+        This example retrieves the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a.
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf
-        This example retrieves the password expiration policy for the vcf user on SDDC Manager sfo-vcf01
+        This example retrieves the password expiration policy for the vcf user on SDDC Manager sfo-vcf01.
 
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser
-        This example retrieves the password expiration policy for the sshuser user on Workspace ONE Access sfo-sfo01
+        This example retrieves the password expiration policy for the sshuser user on Workspace ONE Access sfo-sfo01.
+
+        .EXAMPLE
+        Get-LocalUserPasswordExpiration -vmName xint-vrni01a -guestUser console -guestPassword VMw@re1! -localUser support -sudo
+        This example retrieves the password expiration policy for the support user on vRealize Network Insight xint-vrni01a.
     #>
 
     Param (
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser
+            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sudo
         )
 
     Try {
         $passwordExpirationObject = New-Object System.Collections.ArrayList
-        $scriptCommand = 'chage --list ' + $localUser
+        $scriptCommand = 'chage --list '
+        $scriptCommand += "$localUser"
+        if ($sudo) { $scriptCommand = 'sudo ' + $scriptCommand }
         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword
         $formatOutput = ($output.ScriptOutput -split '\r?\n').Trim()
         $formatOutput = $formatOutput -replace '(^\s+|\s+$)', '' -replace '\s+', ' '
@@ -16927,26 +16934,30 @@ Export-ModuleMember -Function Get-LocalUserPasswordExpiration
 Function Set-LocalUserPasswordExpiration {
     <#
         .SYNOPSIS
-        Configure the password expiration policy for a local user
+        Configure the password expiration policy for a local user.
 
         .DESCRIPTION
-        The Set-LocalUserPasswordExpiration cmdlets retrieves the password expiration policy for a local user
+        The Set-LocalUserPasswordExpiration cmdlets retrieves the password expiration policy for a local user.
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-w01-vc01 -guestUser root -guestPassword VMw@re1! -localUser root -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the root user on vCenter Server sfo-w01-vc01
+        This example configures the password expiration policy for the root user on vCenter Server sfo-w01-vc01.
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -localUser admin -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a
+        This example configures the password expiration policy for the admin user on NSX Manager sfo-w01-nsx01a.
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-vcf01 -guestUser root -guestPassword VMw@re1! -localUser vcf -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the vcf user on SDDC Manager sfo-vcf01
+        This example configures the password expiration policy for the vcf user on SDDC Manager sfo-vcf01.
 
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -localUser sshuser -minDays 0 -maxDays 999 -warnDays 14
-        This example configures the password expiration policy for the sshuser user on Workspace ONE Access sfo-wsa01
+        This example configures the password expiration policy for the sshuser user on Workspace ONE Access sfo-wsa01.
+
+        .EXAMPLE
+        Set-LocalUserPasswordExpiration -vmName xint-vrni01a -guestUser console -guestPassword VMw@re1! -localUser support -minDays 0 -maxDays 999 -warnDays 14 -sudo
+        This example configures the password expiration policy for the support user on vRealize Network Insight xint-vrni01a.
     #>
 
     Param (
@@ -16956,7 +16967,8 @@ Function Set-LocalUserPasswordExpiration {
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
             [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$minDays,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxDays,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$warnDays
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$warnDays,
+            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sudo
         )
 
     Try {
@@ -16970,6 +16982,7 @@ Function Set-LocalUserPasswordExpiration {
             $scriptCommand += $warnDaysCommand
         }
         $scriptCommand += "$localUser"
+        if ($sudo) { $scriptCommand = 'sudo ' + $scriptCommand }
         Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword | Out-Null
     } Catch {
         Write-Error $_.Exception.Message
