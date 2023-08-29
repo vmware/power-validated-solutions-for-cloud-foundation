@@ -2,7 +2,7 @@
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
-> Release Date: Unreleased
+> Release Date: 2023-08-29
 
 - Enhanced `Add-vRLISmtpConfiguration` cmdlet with a 2 second delay to ensure the API call completes.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet with a 2 second delay to ensure the API call completes.
@@ -36,7 +36,6 @@
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Request-SignedCertificate` cmdlet to use CIM cmdlets to verify the MSCA host instead of previously used WMI cmdlets which fail in PowerShell Core.
-
 
 ## [v2.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
 
@@ -373,7 +372,6 @@ Deprecation
 
 ## [v1.9.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.9.0)
 
-
 > Release Date: 2022-10-25
 
 - Fixed `ilaDeployVrealizeLogInsight.ps1` where the call for cmdlet named Add-vRLISmtpConfiguration had a typo.
@@ -435,7 +433,6 @@ Deprecation
 
 ## [v1.8.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.8.0)
 
-
 > Release Date: 2022-09-27
 
 - Enhanced `Request-CSPToken` cmdlet to request a token from VMware Cloud.
@@ -479,7 +476,6 @@ Deprecation
 - Added `Remove-vRAvRLIConfig` cmdlet to remove the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 
 ## [v1.7.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.7.0)
-
 
 > Release Date: 2022-05-31
 
@@ -557,7 +553,6 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
     - `ilaUndoVrealizeLogInsight.ps1` automates the removal of Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
 ## [v1.4.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.4.0)
-
 
 > Release Date: 2022-02-22
 
