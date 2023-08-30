@@ -5667,22 +5667,26 @@ Function Add-ContentLibrary {
                                     }
                                     if (Get-Datastore -Name $datastore -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq $datastore}) {
                                         if ($subscriptionUrl) {
-                                            #attribution to William Lam (https://gist.github.com/lamw/988e4599c0f88d9fc25c9f2af8b72c92) for this snippet
-                                            Invoke-RestMethod -Uri $subscriptionUrl -Method Get | Out-Null
-
-                                            $endpointRequest = [System.Net.Webrequest]::Create("$subscriptionUrl")
-                                            $sslThumbprint = $endpointRequest.ServicePoint.Certificate.GetCertHashString()
-                                            $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
-
-                                            $contentLibraryInput = @{
-                                                Name            = $contentLibraryName
-                                                Datastore       = $datastore
-                                                AutomaticSync   = $true
-                                                SubscriptionUrl = $subscriptionUrl
-                                                SslThumbprint   = $sslThumbprint
+                                            $uri = New-Object System.Uri($subscriptionUrl)
+                                            $port = if ($uri.AbsolutePath.Contains(':')) {
+                                                $uri.AbsolutePath.Split(':')[-1] 
+                                            } else {
+                                                $uri.Port 
                                             }
-
-                                            New-ContentLibrary @contentLibraryInput -Server $vcfVcenterDetails.fqdn | Out-Null
+                                            if ($port -eq -1) {
+                                                $defaultPorts = @{ 'http' = 80; 'https' = 443 }
+                                                $port = $defaultPorts[$uri.Scheme]
+                                            }
+                                            $fqdn = $uri.Host
+                                            $port = [int]$port
+                                            $client = New-Object System.Net.Sockets.TcpClient($fqdn, $port)
+                                            $stream = $client.GetStream()
+                                            $sslStream = New-Object System.Net.Security.SslStream($stream, $false, { $true })
+                                            $sslStream.AuthenticateAsClient($fqdn)
+                                            $sslCertificate = $sslStream.RemoteCertificate
+                                            $sslThumbprint = $sslCertificate.GetCertHashString()
+                                            $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
+                                            New-ContentLibrary -Name $contentLibraryName -AutomaticSync -Datastore $datastore -SubscriptionUrl $subscriptionUrl -SslThumbprint $sslThumbprint -Server $vcfVcenterDetails.fqdn | Out-Null
                                         } elseif ($published) {
                                             New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcfVcenterDetails.fqdn | Out-Null
                                         }
