@@ -11200,7 +11200,7 @@ Function Undo-vROPSAdapter {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterName,
-        [Parameter (Mandatory = $true)] [ValidateSet("PingAdapter","IdentityManagerAdapter","NSXTAdapter","SDDCHealthAdapter","SrmAdapter","VrAdapter")] [String]$adapterType
+        [Parameter (Mandatory = $true)] [ValidateSet("PingAdapter","IdentityManagerAdapter","NSXTAdapter","SDDCHealthAdapter","SrmAdapter","VrAdapter","VMWARE","VirtualAndPhysicalSANAdapter")] [String]$adapterType
     )
 
     Try {
@@ -11258,7 +11258,7 @@ Function Undo-vROPSCredential {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialName,
-        [Parameter (Mandatory = $true)] [ValidateSet("IdentityManagerAdapter","NSXTAdapter","CASAdapter","SrmAdapter","VrAdapter")] [String]$credentialType
+        [Parameter (Mandatory = $true)] [ValidateSet("IdentityManagerAdapter","NSXTAdapter","CASAdapter","SrmAdapter","VrAdapter","VMWARE","VirtualAndPhysicalSANAdapter")] [String]$credentialType
     )
 
     Try {

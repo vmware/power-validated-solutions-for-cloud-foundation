@@ -11,6 +11,8 @@
 - Enhanced `Add-ContentLibrary` cmdlet to check the VMware Cloud Foundation version when adding a subscribed content library. If the version is 5.0.0 or later and the `-subscriptionUrl` parameter is set to `wp-content.vmware.com`, a warning message is displayed and the cmdlet exits.
 - Enhanced `Add-ContentLibrary` cmdlet to work on both PowerShell 7 and Windows PowerShell 5.1.
 - Enhanced `Register-vROPSManagementPack` cmdlet to enable or disable the VMware Cloud Foundation management pack.
+- Enhanced `Undo-vROPSAdapter` cmdlet to support vCenter Server and vSAN adapter types in Aria Operations.
+- Enhanced `Undo-vROPSCredential` cmdlet to support vCenter Server and vSAN credential types in Aria Operations.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
