@@ -14,6 +14,7 @@
 - Enhanced `Undo-vROPSAdapter` cmdlet to support vCenter Server and vSAN adapter types in Aria Operations.
 - Enhanced `Undo-vROPSCredential` cmdlet to support vCenter Server and vSAN credential types in Aria Operations.
 - Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in Aria Operations.
+- Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in Aria Operations.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
