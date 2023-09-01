@@ -11650,6 +11650,71 @@ Function Update-vROPSvRAAdapterCredential {
 }
 Export-ModuleMember -Function Update-vROPSvRAAdapterCredential
 
+Function Add-vROPSVcfCredential {
+    <#
+		.SYNOPSIS
+        Adds a VMware Cloud Foundation Credential
+
+        .DESCRIPTION
+        The Add-vROPSVcfCredential cmdlet adds a VMware Cloud Foundation credential to Aria Operations. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to Aria Operations
+        - Validates that the credential does not already exist in Aria Operations
+        - Creates a VMware Cloud Foundation credentials in Aria Operations
+
+        .EXAMPLE
+        Add-vROPSVcfCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -serviceUser svc-iom-vcf@sfo.rainpole.io -servicePassword VMw@re1!
+        This example adds a VMware Cloud Foundation credential to Aria Operations
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$servicePassword
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            $credentialName = "VCF Credential - " + $server.Split('.')[-0]     
+                            if (!(Get-vROPSCredential | Where-Object {$_.name -eq $credentialName})) {
+                                $credentialJson = '{
+                                    "name": "'+ $credentialName +'",
+                                    "adapterKindKey": "VcfAdapter",
+                                    "credentialKindKey": "VcfCredentials",
+                                    "fields": [
+                                        { "name": "USER", "value": "'+ $serviceUser +'" },
+                                        { "name": "PASSWORD", "value": "'+ $servicePassword +'" }
+                                ]}'
+                                $credentialJson | Out-File .\addCredential.json
+                                Add-vROPSCredential -json .\addCredential.json | Out-Null
+                                Remove-Item .\addCredential.json -Force -Confirm:$false
+                                if (Get-vROPSCredential | Where-Object {$_.name -eq $credentialName}) {
+                                    Write-Output "Adding VMware Cloud Foundation Credential to Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Adding VMware Cloud Foundation Credential to Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Adding VMware Cloud Foundation Credential to Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), already exists: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSVcfCredential
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
