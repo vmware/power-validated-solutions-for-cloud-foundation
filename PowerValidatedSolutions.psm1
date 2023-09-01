@@ -11749,7 +11749,7 @@ Function Add-vROPSVcenterCredential {
                 if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
-                            $credentialName = "vCenter Credential - " + (Get-VCFWorkloadDomain | Where-Object {$_.name -eq "sfo-m01"}).vcenters.fqdn.Split('.')[-0]     
+                            $credentialName = "vCenter Credential - " + (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).vcenters.fqdn.Split('.')[-0]     
                             if (!(Get-vROPSCredential | Where-Object {$_.name -eq $credentialName})) {
                                 $credentialJson = '{
                                     "name": "'+ $credentialName +'",
