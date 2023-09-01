@@ -11731,7 +11731,7 @@ Function Add-vROPSVcenterCredential {
 
         .EXAMPLE
         Add-vROPSVcenterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -serviceUser svc-iom-vsphere@sfo.rainpole.io -servicePassword VMw@re1!
-        This example adds vCenter Server credentials for all Workload Domains to Aria Operations
+        This example adds a vCenter Server credential to Aria Operations
     #>
 
     Param (
