@@ -10,8 +10,8 @@
     Creation Date:      2021-11-10
                         Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    .CHANGE_LOG
 
+    .CHANGELOG
     - 1.0.001   (Gary Blake / 2022-01-04)   - Improved the connection handling when starting the script
     - 1.0.002   (Gary Blake / 2022-02-16)   - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
     - 1.0.003   (Gary Blake / 2022-03-01)   - Updated input values to use latest VCF 4.4.x Planning and Prep Workbook
@@ -26,15 +26,15 @@
     ===================================================================================================================
 
     .SYNOPSIS
-    Configure Workspace ONE Access for Identity and Access Management
+    Deploys and configures Workspace ONE Access for Identity and Access Management.
 
     .DESCRIPTION
-    The iamConfigureWorkspaceOne.ps1 provides a single script to implement  the configuration of Workspace
-    ONE Access as defined by the Identity and Access Management Validated Solution
+    The iamConfigureWorkspaceOne.ps1 provides a single script to implement the configuration of Workspace ONE Access
+    as defined by the Identity and Access Management for VMware Cloud Foundation validated solution.
 
     .EXAMPLE
     iamConfigureWorkspaceOne.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs -wsaVersion 3.3.7
-    This example performs the deploment and configuration of Workspace ONE Access using the parameters provided within the Planning and Preparation Workbook
+    This example performs the deployment and configuration of Workspace ONE Access using the parameters provided within the Planning and Preparation Workbook.
 #>
 
 Param (

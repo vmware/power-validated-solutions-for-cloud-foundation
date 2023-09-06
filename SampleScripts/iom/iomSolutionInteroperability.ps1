@@ -10,25 +10,26 @@
     Creation Date:      2022-10-11
                         Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    .CHANGE_LOG
 
+    .CHANGELOG
     - 1.1.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
                                             - Removed Support for VCF 4.3.x Planning and Prep Workbook
                                             - Improvements to message output
+    - 1.1.001   (Ryan Johnson / 2023-09-06) - Updated the product names for VMware Aria branding.
 
     ===================================================================================================================
 
     .SYNOPSIS
-    Configure Solution Interoperability for Intelligent Operations Management
+    Configures solution interoperability for Intelligent Operations Management.
 
     .DESCRIPTION
-    The iomSolutionInteroperability.ps1 provides a single script to implement the configuration of Solution
-    Interoperability as defined by the Intelligent Operations Management for VMware Cloud Foundation validated
+    The iomSolutionInteroperability.ps1 provides a single script to implement the configuration of solution
+    interoperability as defined by the Intelligent Operations Management for VMware Cloud Foundation validated
     solution.
 
     .EXAMPLE
     iomSolutionInteroperability.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx
-    This example performs the configuration of Solution Interoperability using the parameters provided within the Planning and Preparation Workbook
+    This example performs the configuration of solution interoperability using the parameters provided within the Planning and Preparation Workbook.
 #>
 
 Param (
@@ -40,8 +41,8 @@ Param (
 
 # Define Reusable Parameters
 $solutionName               = "Intelligent Operations Management for VMware Cloud Foundation"
-$operationsProductName      = "vRealize Operations Manager"
-$logsProductName            = "vRealize Log Insight"
+$operationsProductName      = "Aria Operations"
+$logsProductName            = "Aria Operations for Logs"
 
 Clear-Host; Write-Host ""
 
@@ -79,7 +80,7 @@ Try {
             if ((Get-VCFvRLI).status -eq "ACTIVE") {
                 Write-LogMessage -Type INFO -Message "Configure Integration with $logsProductName" -Colour Green
 
-                # Create a vRealize Log Insight Photon OS Agent Group for the vRealize Operations Manager Nodes
+                # Create a Aria Operations for Logs Photon OS Agent Group for the Aria Operations Nodes
                 Write-LogMessage -Type INFO -Message "Attempting to Create a $logsProductName Photon OS Agent Group for the $operationsProductName Nodes"
                 $StatusMsg = Add-vRLIAgentGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -agentGroupType photon -agentGroupName $agentGroupName -criteria $vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }

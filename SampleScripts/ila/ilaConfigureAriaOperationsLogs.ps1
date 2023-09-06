@@ -10,27 +10,29 @@
     Creation Date:      2021-11-27
                         Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    .CHANGE_LOG
 
+    .CHANGELOG
     - 1.0.001   (Gary Blake / 2022-01-05)   - Improved the connection handling when starting the script
     - 1.0.002   (Gary Blake / 2022-02-16)   - Added support for both VCF 4.3.x and VCF 4.4.x Planning and Prep Workbooks
     - 1.1.000   (Gary Blake / 2022-10-04)   - Added Support for VCF 4.5.x Planning and Prep Workbook
     - 1.2.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
                                             - Removed Support for VCF 4.3.x Planning and Prep Workbook
                                             - Improvements to message output
+    - 1.2.001   (Ryan Johnson / 2023-09-06) - Updated the product names for VMware Aria branding.
+                                            - Updated the script name for VMware Aria branding.
 
     ===================================================================================================================
 
     .SYNOPSIS
-    Configure Integration of vRealize Log Insight for Intelligent Logging and Analytics
+    Configures Aria Operations for Logs for Intelligent Logging and Analytics.
 
     .DESCRIPTION
-    The ilaConfigureVrealizeLogInsight.ps1 provides a single script to configure the intergration of vRealize Log Insight as
-    defined by the Intelligent Logging and Analytics Validated Solution
+    The ilaConfigureVrealizeLogInsight.ps1 provides a single script to configure Aria Operations for Logs
+    as defined by the Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
     .EXAMPLE
     ilaConfigureVrealizeLogInsight.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs
-    This example performs the integration configuration of vRealize Log Insight using the parameters provided within the Planning and Preparation Workbook
+    This example performs the configuration of Aria Operations for Logs using the parameters provided within the Planning and Preparation Workbook.
 #>
 
 Param (
@@ -43,8 +45,8 @@ Param (
 
 # Define Reusable Parameters
 $solutionName       = "Intelligent Logging and Analytics for VMware Cloud Foundation"
-$logsProductName    = "vRealize Log Insight"
-$lcmProductName     = "vRealize Suite Lifecycle Manager"
+$logsProductName    = "Aria Operations for Logs"
+$lcmProductName     = "Aria Suite Lifecycle"
 
 Clear-Host; Write-Host ""
 
@@ -85,19 +87,19 @@ Try {
             $vmNameNode3            = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
             $vmRootPass             = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
             
-            # Connect a VI Workload Domain to vRealize Log Insight
+            # Connect a VI Workload Domain to Aria Operations for Logs
             Write-LogMessage -Type INFO -Message "Connect a VI Workload Domain to $logsProductName"
             $StatusMsg = Register-vRLIWorkloadDomain -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -status ENABLED -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-            # Configure the NSX Edge Nodes to Forward Log Events to vRealize Log Insight
+            # Configure the NSX Edge Nodes to Forward Log Events to Aria Operations for Logs
             Write-LogMessage -Type INFO -Message "Configure the NSX Edge Nodes to Forward Log Events to $logsProductName"
             $StatusMsg = Add-NsxtNodeProfileSyslogExporter -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcDomainName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "Configuring the NSX Edge Nodes to Forward Log Events to $logsProductName for Workload Domain ($sddcDomainName): SUCCESSFUL" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Configuring the NSX Edge Nodes to Forward Log Events to $logsProductName for Workload Domain ($sddcWldDomainName), already exists: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             $StatusMsg = Add-NsxtNodeProfileSyslogExporter -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -domain $sddcWldDomainName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "Configuring the NSX Edge Nodes to Forward Log Events to $logsProductName for Workload Domain ($sddcWldDomainName): SUCCESSFUL" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message "Configuring the NSX Edge Nodes to Forward Log Events to $logsProductName for Workload Domain ($sddcWldDomainName), already exists: SKIPPED" -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }  
                 
-            # Download, Install and Configure the vRealize Log Insight Agent on the Clustered Workspace ONE Access Nodes
+            # Download, Install and Configure the Aria Operations for Logs Agent on the Clustered Workspace ONE Access Nodes
             Write-LogMessage -Type INFO -Message "Download, Install and Configure the $logsProductName Agent on the Clustered Workspace ONE Access Nodes"
             $StatusMsg = Install-vRLIPhotonAgent -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vmName $vmNameNode1 -vmRootPass $vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
@@ -116,12 +118,12 @@ Try {
                 $photonVmList               = "$($pnpWorkbook.Workbook.Names["sddc_mgr_hostname"].Value).$subDomain","$($pnpWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value).$domain","$vmNameNode1.$domain"
             }  
             
-            # Configure the vRealize Log Insight Agent Group for the Clustered Workspace ONE Access
+            # Configure the Aria Operations for Logs Agent Group for the Clustered Workspace ONE Access
             Write-LogMessage -Type INFO -Message "Configure the $logsProductName Agent Group for the Clustered Workspace ONE Access"
             $StatusMsg = Add-vRLIAgentGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -agentGroupName "Workspace ONE Access - Appliance Agent Group" -agentGroupType wsa -criteria $vidmVmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
             
-            # Create a vRealize Log Insight Photon OS Agent Group for the Management Nodes
+            # Create an Aria Operations for Logs Photon OS Agent Group for the Management Nodes
             Write-LogMessage -Type INFO -Message "Create a $logsProductName Photon OS Agent Group for the Management Nodes"
             $StatusMsg = Add-vRLIAgentGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass "Photon OS - Appliance Agent Group" -agentGroupType photon -criteria $photonVmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
             if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
