@@ -8269,7 +8269,7 @@ Function Add-vRLIAlertDatacenter {
         - Integrates with Aria Operations if the -vropsIntegration switch is provided
 
         .EXAMPLE
-        Add-vRLIAlertDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -datacenterName sfo-m01-dc01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\vrli-vcf-datacenter.json" -vropsIntegration
+        Add-vRLIAlertDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -datacenterName sfo-m01-dc01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\aria-operations-logs-alerts-datacenter-vcf.json" -vropsIntegration
         This example adds the alerts provided in the JSON file
     #>
 
@@ -8365,7 +8365,7 @@ Function Add-vRLIAlertVirtualMachine {
         - Integrates with Aria Operations if the -vropsIntegration switch is provided
 
         .EXAMPLE
-        Add-vRLIAlertVirtualMachine -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -vmName xint-vrslcm01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\vrli-vcf-vmVrslcm.json" -vropsIntegration
+        Add-vRLIAlertVirtualMachine -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -vmName xint-vrslcm01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\aria-operations-logs-alerts-vm-asl.json" -vropsIntegration
         This example adds the alerts provided in the JSON file for the Aria Suite Lifecycle Virtual Machine
     #>
 
@@ -8509,7 +8509,7 @@ Function Enable-vRLIAlert {
         - Enables the alert in Aria Operations for Logs
 
         .EXAMPLE
-        Enable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -email administrator@rainpole.io -alertDefinition ".\SampleNotifications\vrli-vcf-alerts.json"
+        Enable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -email administrator@rainpole.io -alertDefinition ".\SampleNotifications\aria-operations-logs-alerts-vcf.json"
         This example enables the alerts provided in the JSON file and configures an email address
     #>
 
@@ -8573,7 +8573,7 @@ Function Disable-vRLIAlert {
         - Enables the alert in Aria Operations for Logs
 
         .EXAMPLE
-        Disable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alertDefinition ".\SampleNotifications\vrli-vcf-alerts.json"
+        Disable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alertDefinition ".\SampleNotifications\aria-operations-logs-alerts-vcf.json"
         This example disables the alerts provided in the JSON file
     #>
 
@@ -11434,7 +11434,7 @@ Function Import-vROPSNotification {
         - Adds notifications based on a .csv file into Aria Operations
 
         .EXAMPLE
-        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\vrops-vcf-notifications.csv
+        Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
         This example adds notifications based on the comma seperated value file provided to Aria Operations
     #>
 
@@ -13952,7 +13952,6 @@ Function Add-vSphereRole {
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Verifies if the role already exists and if not creates it
         - Assigns permissions to the role based on the template file provided
 
         .EXAMPLE
@@ -29232,7 +29231,7 @@ Function New-vROPSNotification {
         The New-vROPSNotification cmdlet creates notifications in Aria Operations
 
         .EXAMPLE
-        New-vROPSNotification -csvPath .\SampleNotifications\vropsNotifications-vcf.csv
+        New-vROPSNotification -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
         This example adds all the notifications in the csv file to Aria Operations
     #>
 
