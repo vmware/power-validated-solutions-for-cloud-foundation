@@ -1,8 +1,15 @@
 # Release History
 
-## [v2.7.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.7.0)
+## [v2.8.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.8.0)
 
 > Release Date: Unreleased
+
+- Updated cmdlet descriptions and examples for Aria Suite, formerly known as vRealize Suite, products to use the new Aria names.
+  Note: No changes to the names of the cmdlets.
+
+## [v2.7.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.7.0)
+
+> Release Date: 2023-08-28
 
 - Updated `Request-VrmsApiToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
 - Updated `Connect-DRSolutionTovCenter` to wait for the solution initialization to complete. The maximum wait time is 10 minutes.
