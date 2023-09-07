@@ -22,6 +22,13 @@
 - Enhanced `Undo-vROPSCredential` cmdlet to support vCenter Server and vSAN credential types in Aria Operations.
 - Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in Aria Operations.
 - Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in Aria Operations.
+- Updated sample alerts and notification in `SampleNotifications/*` to reflect the new Aria product names.
+  - `vrli-vcf-datacenter.json` -> `aria-operations-logs-alerts-datacenter-vcf.json`
+  - `vrli-iom-alerts.json` -> `aria-operations-logs-alerts-iom.json`
+  - `vrli-vcf-alerts.json` -> `aria-operations-logs-alerts-vcf.json`
+  - `vrli-vcf-vmVrslcm.json` -> `aria-operations-logs-alerts-vm-asl.json`
+  - `vrops-srm-notifications.csv` -> `aria-operations-notifications-srm.csv`
+  - `vrops-vcf-notifications.csv` -> `aria-operations-notifications-vcf.csv`
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
