@@ -10,8 +10,8 @@
     Creation Date:      2022-03-23
                         Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    .CHANGE_LOG
 
+    .CHANGELOG
     - 1.1.000   (Gary Blake / 2022-10-03)   - Added support for VCF 4.5.x Planning and Prep Workbook
                                             - Enhanced Signed Certificate Steps to Check for Domain Membership
     - 1.2.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook

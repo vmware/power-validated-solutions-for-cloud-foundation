@@ -10,8 +10,8 @@
     Creation Date:      2022-10-10
                         Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    .CHANGE_LOG
 
+    .CHANGELOG
     - 1.1.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
                                             - Removed Support for VCF 4.3.x Planning and Prep Workbook
                                             - Improvements to message output
@@ -19,15 +19,15 @@
     ===================================================================================================================
 
     .SYNOPSIS
-    Configure Solution Interoperability for Identity and Access Management
+    Configures solution interoperability for Identity and Access Management.
 
     .DESCRIPTION
-    The iamSolutionInteroperability.ps1 provides a single script to implement the configuration of Solution
-    Interoperability as defined by the Identity and Access Management for VMware Cloud Foundation validated solution.
+    The iamSolutionInteroperability.ps1 provides a single script to implement the configuration of solution
+    interoperability as defined by the Identity and Access Management for VMware Cloud Foundation validated solution.
 
     .EXAMPLE
     iamSolutionInteroperability.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx
-    This example performs the configuration of Solution Interoperability using the parameters provided within the Planning and Preparation Workbook
+    This example performs the configuration of solution interoperability using the parameters provided within the Planning and Preparation Workbook
 #>
 
 Param (
@@ -39,8 +39,8 @@ Param (
 
 # Define Reusable Parameters
 $solutionName               = "Identity and Access Management for VMware Cloud Foundation"
-$operationsProductName      = "vRealize Operations Manager"
-$logsProductName            = "vRealize Log Insight"
+$operationsProductName      = "Aria Operations"
+$logsProductName            = "Aria Operations for Logs"
 
 Clear-Host; Write-Host ""
 
@@ -102,17 +102,17 @@ Try {
             if ((Get-VCFvRLI).status -eq "ACTIVE") {
                 Write-LogMessage -Type INFO -Message "Configure Integration with $logsProductName" -Colour Green
 
-                # Install and Configure the vRealize Log Insight Agent on the Standalone Workspace ONE Access Appliance
+                # Install and Configure the Aria Operations for Logs Agent on the Standalone Workspace ONE Access Appliance
                 Write-LogMessage -Type INFO -Message "Install and Configure the $logsProductName Agent on the Standalone Workspace ONE Access Appliance"
                 $StatusMsg = Install-vRLIPhotonAgent -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -vmName $wsaVmName -vmRootPass $wsaRootPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-                # Create a vRealize Log Insight Identity Manager Agent Group for the Standalone Workspace ONE Access
+                # Create a Aria Operations for Logs Identity Manager Agent Group for the Standalone Workspace ONE Access
                 Write-LogMessage -Type INFO -Message "Create a $logsProductName Identity Manager Agent Group for the Standalone Workspace ONE Access"
                 $StatusMsg = Add-vRLIAgentGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -agentGroupType wsa -agentGroupName $wsaAgentGroupName -criteria $vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }
 
-                # Install and Configure the vRealize Log Insight Agent on the Standalone Workspace ONE Access Appliance
+                # Install and Configure the Aria Operations for Logs Agent on the Standalone Workspace ONE Access Appliance
                 Write-LogMessage -Type INFO -Message "Install and Configure the $logsProductName Agent on the Standalone Workspace ONE Access Appliance"
                 $StatusMsg = Add-vRLIAgentGroup -server $sddcManagerFqdn -user $sddcManagerUser -pass $sddcManagerPass -agentGroupType wsa -agentGroupName $photonAgentGroupName -criteria $vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ( $StatusMsg ) { Write-LogMessage -Type INFO -Message "$StatusMsg" -Colour Green } if ( $WarnMsg ) { Write-LogMessage -Type WARNING -Message $WarnMsg -Colour Magenta } if ( $ErrorMsg ) { Write-LogMessage -Type ERROR -Message $ErrorMsg -Colour Red }

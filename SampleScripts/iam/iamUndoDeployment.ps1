@@ -10,8 +10,8 @@
     Creation Date:      2022-03-01
                         Copyright (c) 2021-2023 VMware, Inc. All rights reserved.
     ===================================================================================================================
-    .CHANGE_LOG
 
+    .CHANGELOG
     - 1.1.000   (Gary Blake / 2022-10-03)   - Added Support for VCF 4.5.x Planning and Prep Workbook
     - 1.3.000   (Gary Blake / 2023-07-25)   - Added Support for VCF 5.0.x Planning and Prep Workbook
                                             - Removed Support for VCF 4.3.x Planning and Prep Workbook
@@ -20,15 +20,15 @@
     ===================================================================================================================
 
     .SYNOPSIS
-    Remove Identity and Access Management from a VMware Cloud Foundation Instance
+    Removes the Identity and Access Management.
 
     .DESCRIPTION
-    The iamUndoDeployment.ps1 provides a single script to remove Identity and Access Management from a VMware Cloud
-    Foundation Instance
+    The iamUndoDeployment.ps1 provides a single script to remove the configuration
+    as defined by the Identity and Access Management for VMware Cloud Foundation validated solution.
 
     .EXAMPLE
     iamUndoDeployment.ps1 -sddcManagerFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerUser administrator@vsphere.local -sddcManagerPass VMw@re1! -workbook F:\vvs\PnP.xlsx -filePath F:\vvs
-    This example performs the removal of Identity and Access Management from a VMware Cloud Foundation Instance using the parameters provided within the Planning and Preparation Workbook
+    This example performs the removal of the Identity and Access Management for VMware Cloud Foundation validated solution using the parameters provided within the Planning and Preparation Workbook.
 #>
 
 Param (
