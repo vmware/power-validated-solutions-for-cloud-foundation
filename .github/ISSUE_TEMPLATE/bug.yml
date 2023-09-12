@@ -1,8 +1,9 @@
 ---
 name: Bug Report
 description: Is something not working as expected? Submit a bug.
-labels:
-  - bug
+title: 'Please add a short decsription.'
+labels: ["bug", "needs-triage"]
+projects: ["vmware/22"]
 body:
   - type: markdown
     attributes:
@@ -40,7 +41,7 @@ body:
         Please provide the PowerShell module version.
         
         Results of: `Get-InstalledModule PowerValidatedSolutions`
-      placeholder: '2.4.0'
+      placeholder: x.y.z
     validations:
       required: true
   - type: input
@@ -62,7 +63,7 @@ body:
         Please provide the VMware PowerCLI version.
         
         Results of `Get-InstalledModule VMware.PowerCLI`
-      placeholder: '13.0.0'
+      placeholder: x.y.z
     validations:
       required: true
   - type: input
@@ -73,7 +74,7 @@ body:
         Please provide the PowerVCF version.
         
         Results of `Get-InstalledModule PowerVCF`
-      placeholder: '2.3.0'
+      placeholder: x.y.z
     validations:
       required: true
   - type: input
