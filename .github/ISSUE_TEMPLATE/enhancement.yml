@@ -1,7 +1,7 @@
 ---
 name: Enhancement Request
 description: Is something critical missing? Suggest an enhancement.
-title: 'Please add a short decsription.'
+title: 'Please add a short description.'
 labels: ["enhancement", "needs-review"]
 projects: ["vmware/22"]
 body:
