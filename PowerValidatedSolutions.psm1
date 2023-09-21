@@ -7351,16 +7351,17 @@ Function Export-vRLIJsonSpec {
                                             'properties'	= ($worker2Properties | Select-Object -Skip 0)
                                         }
 
-                                        #### Generate the Aria Operations for Logs Properties Section
+                                        #### Generate the VMware Aria Operations for Logs Properties Section
                                         if (!$PsBoundParameters.ContainsKey("customVersion")) { 
                                             if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0" }
                                             if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1" }
                                             if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
                                             if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
-                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.10.2" }
-                                            if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.10.2" }
-                                            if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.10.2" }
+                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.12.0" }
+                                            if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.12.0" }
+                                            if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.12.0" }
+                                            if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.12.0" }
                                         } else {
                                             $vrliVersion = $customVersion
                                         }
@@ -9444,9 +9445,10 @@ Function Export-vROPsJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
                                                     if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
-                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.10.2"}
-                                                    if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.10.2"}
-                                                    if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.10.2"}
+                                                    if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.12.1"}
+                                                    if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.12.1"}
+                                                    if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.12.1"}
+                                                    if ($vcfVersion -eq "5.1.0") { $vropsVersion = "8.12.1"}
                                                 } else {
                                                     $vropsVersion = $customVersion
                                                 }
@@ -11964,9 +11966,10 @@ Function Export-vRAJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
-                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.11.2" }
-                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.11.2" }
-                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.11.2" }
+                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.13.1" }
+                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.13.1" }
+                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.13.1" }
+                                                    if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.13.1" }
                                                 } else {
                                                     $vraVersion = $customVersion
                                                 }

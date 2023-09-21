@@ -24,6 +24,9 @@
   - `vrli-vcf-vmVrslcm.json` -> `aria-operations-logs-alerts-vm-asl.json`
   - `vrops-srm-notifications.csv` -> `aria-operations-notifications-srm.csv`
   - `vrops-vcf-notifications.csv` -> `aria-operations-notifications-vcf.csv`
+- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Operations v8.12.1.
+- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Automation v8.13.1.
+- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Log Insight v8.12.0.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
