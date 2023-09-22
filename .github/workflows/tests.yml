@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - "**.psm1"
+      - "**.psd1"
+
+jobs:
+  basic_tests:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - name: Run Basic Tests
+        working-directory: ${{ github.workspace }}
+        run: |
+          $moduleManifest = (Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter *.psd1).Name
+          if ($moduleManifest) {
+              Write-Output "SUCCESS: Manifest '$moduleManifest' found in '$env:GITHUB_WORKSPACE'."
+          } else {
+              Write-Output "FAILURE: Manifest not found in '$env:GITHUB_WORKSPACE'."
+          }
+          if ($moduleManifest -match '^(.*)\.psd1$') {
+              $moduleName = $Matches[1]
+              Write-Output "SUCCESS: Determining module name from manifest'$moduleManifest'."
+          } else {
+              Write-Error "FAILED: Determining module name from manifest '$moduleManifest'."
+          }
+          Import-Module -Name (Resolve-Path $moduleManifest).Path -Force -ErrorAction Stop
+          if (Get-Module -Name $moduleName) {
+              Write-Output "SUCCESS: Module '$moduleName' was imported."
+          } else {
+              Write-Error "FAILED: Module '$moduleName' was not imported."
+          }
+          Set-PSRepository psgallery -InstallationPolicy trusted
+          Install-Module -Name Pester -confirm:$false -Force
+          Invoke-Pester -Path "./.ci/pester.tests.ps1" -Output Detailed -PassThru
+        shell: pwsh
