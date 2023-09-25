@@ -11966,10 +11966,10 @@ Function Export-vRAJsonSpec {
                                                     if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
                                                     if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
-                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.13.1" }
-                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.13.1" }
-                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.13.1" }
-                                                    if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.13.1" }
+                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.12.2" }
+                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.12.2" }
+                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.12.2" }
+                                                    if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.12.2" }
                                                 } else {
                                                     $vraVersion = $customVersion
                                                 }
