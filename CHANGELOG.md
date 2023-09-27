@@ -27,6 +27,7 @@
 - Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Operations v8.12.1.
 - Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Automation v8.12.2.
 - Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Log Insight v8.12.0.
+- Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
