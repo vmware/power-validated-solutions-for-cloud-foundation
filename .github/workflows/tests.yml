@@ -1,23 +1,26 @@
 name: Tests
 
 on:
-  pull_request:
+  push:
     branches: [develop]
     paths:
       - "**.psm1"
       - "**.psd1"
+  workflow_dispatch:
 
 jobs:
   basic_tests:
-    strategy:
-      matrix:
-        platform: [ubuntu-latest]
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Run Basic Tests
         working-directory: ${{ github.workspace }}
+        shell: pwsh
         run: |
+          Write-Output "INFO: Setting PowerShell Gallery as a trusted repository."
+          Set-PSRepository psgallery -InstallationPolicy trusted
+          Write-Output "INFO: Installing module 'VMware.vSphere.SsoAdmin' from PSGallery."
+          Install-Module -Name VMware.vSphere.SsoAdmin -confirm:$false -Force
           $moduleManifest = (Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter *.psd1).Name
           if ($moduleManifest) {
               Write-Output "SUCCESS: Manifest '$moduleManifest' found in '$env:GITHUB_WORKSPACE'."
@@ -30,13 +33,41 @@ jobs:
           } else {
               Write-Error "FAILED: Determining module name from manifest '$moduleManifest'."
           }
+          Write-Output "INFO: Reading module manifest '$moduleManifest'."
+          $moduleManifestData = Import-PowerShellDataFile -Path $moduleManifest
+          $requiredModules = $moduleManifestData.RequiredModules
+          $requiredModules = $requiredModules | Where-Object { $_.ModuleName -ne 'VMware.vSphere.SsoAdmin' }
+          Write-Output "INFO: Required modules are $($requiredModules.ModuleName -join ', ')." 
+          foreach ($module in $requiredModules) {
+            $requiredModuleName = $module.ModuleName
+            $licenseUri = [System.Uri] (Find-Module -Name $requiredModuleName).LicenseUri
+            $gitUri = $licenseUri.AbsoluteUri.Split('/blob/')[0].TrimEnd('/') -replace '\.git$'
+            $requiredModuleFolder = Join-Path -Path $PSScriptRoot -ChildPath "dependencies/$requiredModuleName"
+            if (-not (Test-Path -Path $requiredModuleFolder -PathType Container)) {
+                Write-Output "INFO: Cloning module '$requiredModuleName' from '$gitUri' to '$requiredModuleFolder'."
+                git clone $gitUri $requiredModuleFolder | Out-Null
+                if (Test-Path -Path $requiredModuleFolder -PathType Container) {
+                    Write-Output "SUCCESS: Module '$requiredModuleName' was cloned."
+                } else {
+                    Write-Error "FAILED: Module '$requiredModuleName' was not cloned."
+                }
+            }
+            Write-Output "INFO: Importing module '$requiredModuleName' from '$requiredModuleFolder'."
+            Import-Module -Name (Join-Path -Path $requiredModuleFolder -ChildPath "$requiredModuleName.psd1") -Force
+            if (Get-Module -Name $requiredModuleName) {
+                Write-Output "SUCCESS: Module '$requiredModuleName' was imported."
+            } else {
+                Write-Error "FAILED: Module '$requiredModuleName' was not imported."
+            }
+          }
+          Write-Output "INFO: Importing module '$moduleName' from '$moduleManifest'."
           Import-Module -Name (Resolve-Path $moduleManifest).Path -Force -ErrorAction Stop
           if (Get-Module -Name $moduleName) {
               Write-Output "SUCCESS: Module '$moduleName' was imported."
           } else {
               Write-Error "FAILED: Module '$moduleName' was not imported."
           }
-          Set-PSRepository psgallery -InstallationPolicy trusted
+          Write-Output "INFO: Installing module 'Pester' from PSGallery."
           Install-Module -Name Pester -confirm:$false -Force
+          Write-Output "INFO: Invoking Pester tests."
           Invoke-Pester -Path "./.ci/pester.tests.ps1" -Output Detailed -PassThru
-        shell: pwsh
