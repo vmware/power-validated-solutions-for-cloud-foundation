@@ -7738,6 +7738,7 @@ Function Install-vRLIPhotonAgent {
                                                 if ($output.ScriptOutput.Contains("/lib/systemd/system/liagentd.service; enabled")) {
                                                     $configureAgent = @(
                                                         "sed -i 's/;hostname=LOGINSIGHT/hostname=$($vcfVrliDetails.fqdn)/' /var/lib/loginsight-agent/liagent.ini",
+                                                        "sed -i 's/;hostname=OPERATIONS_FOR_LOGS/hostname=$($vcfVrliDetails.fqdn)/' /var/lib/loginsight-agent/liagent.ini",
                                                         "sed -i 's/;proto=cfapi/proto=cfapi/' /var/lib/loginsight-agent/liagent.ini",
                                                         "sed -i 's/;port=9543/port=9000/' /var/lib/loginsight-agent/liagent.ini",
                                                         "sed -i 's/;ssl=yes/ssl=no/' /var/lib/loginsight-agent/liagent.ini",
@@ -19487,6 +19488,67 @@ Function Set-NsxtVidm {
 }
 Export-ModuleMember -Function Set-NsxtVidm
 
+Function Get-NsxtLdap {
+    <#
+        .SYNOPSIS
+        Get LDAP configuration
+
+        .DESCRIPTION
+        The Get-NsxtLdap cmdlet gets the LDAP configuration
+
+        .EXAMPLE
+        Get-NsxtLdap
+        This example retrives a list of all configure LDAP identiry sources
+
+        .EXAMPLE
+        Get-NsxtLdap -id sfo
+        This example retrives the details of a one LDAP identity source 
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$nsxtManager/policy/api/v1/aaa/ldap-identity-sources/$id"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders
+        } else {
+            $uri = "https://$nsxtManager/policy/api/v1/aaa/ldap-identity-sources"
+            (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtLdap
+
+Function Remove-NsxtLdap {
+    <#
+        .SYNOPSIS
+        Delete LDAP identity source
+
+        .DESCRIPTION
+        The Remove-NsxtLdap cmdlet removes an LDAP identity source
+
+        .EXAMPLE
+        Remove-NsxtLdap -id sfo
+        This example deletes an LDAP identity source 
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
+    )
+
+    Try {
+        $uri = "https://$nsxtManager/policy/api/v1/aaa/ldap-identity-sources/$id"
+        Invoke-RestMethod $uri -Method 'DELETE' -Headers $nsxtHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtLdap
+
 Function Get-NsxtRole {
     <#
         .SYNOPSIS
@@ -19501,8 +19563,10 @@ Function Get-NsxtRole {
     #>
 
     Try {
+        
         $uri = "https://$nsxtManager/api/v1/aaa/roles"
         (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
+
     } Catch {
         Write-Error $_.Exception.Message
     }
