@@ -28,6 +28,9 @@
 - Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Automation v8.12.2.
 - Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Log Insight v8.12.0.
 - Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
+- Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
+- Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
+- Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
