@@ -13332,7 +13332,7 @@ Function Add-vCenterGlobalPermission {
         This example adds the group gg-vc-admins from domain sfo.rainpole.io to the Global Permissions with the Administrator role for vCenter Server instances in the same vCenter Single Sign-On domain as workload domain sfo-w01.
 
         .EXAMPLE
-		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain vsphere.local -domainBindUser administrator -domainBindPass VMw@re1! -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX to vSphere Integration" -propagate true -type user -localdomain
+		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain vsphere.local -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX to vSphere Integration" -propagate true -type user -localdomain
 		This example adds the user svc-sfo-m01-nsx01-sfo-m01-vc01@vsphere.local from the vCenter Single Sign-on domain vsphere.local to Global Permissions with the "NSX to vSphere Integration" role for vCenter Server instances in the same vCenter Single Sign-On domain as management domain sfo-m01.
     #>
 
