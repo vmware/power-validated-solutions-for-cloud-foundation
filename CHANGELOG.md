@@ -31,6 +31,7 @@
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
+- Updated Add-vCenterGlobalPermission cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (e.g., vsphere.local) user.
 
 ## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
 
