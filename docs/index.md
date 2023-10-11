@@ -4,13 +4,13 @@
 
 # PowerShell Module for VMware Validated Solutions
 
+[:material-powershell: &nbsp; PowerShell Gallery][psgallery-module-pvs]{ .md-button .md-button--primary } &nbsp; &nbsp; [:simple-blueprint: &nbsp; VMware Validated Solutions][vvs]{ .md-button .md-button--primary }
+
 `PowerValidatedSolutions` is an open source PowerShell module that supports the automation of many procedures associated with the implementation of the [VMware Validated Solutions][vvs] for [VMware Cloud Foundation][docs-vmware-cloud-foundation].
 
 The module helps reduce human error, delivers consistency and robustness, and accelerates the time-to-deploy these solutions. The module's cmdlets reduce complexity by automating the deployment and configuration steps using the product APIs or command-line tools.
 
 This infrastructure-as-code model enables you to use the module to accelerate the deployment and management of the VMware Validate Solutions or use it in your own end-to-end automation.
-
-[:material-powershell: &nbsp; PowerShell Gallery][psgallery-module-pvs]{ .md-button .md-button--primary } &nbsp; &nbsp; [:simple-blueprint: &nbsp; VMware Validated Solutions][vvs]{ .md-button .md-button--primary }
 
 ## Requirements
 
@@ -40,7 +40,9 @@ The following table lists the supported editions and versions of PowerShell for 
 
 Edition                                                                           | Version
 ----------------------------------------------------------------------------------|----------
+:material-powershell: &nbsp; [PowerShell Core][microsoft-powershell]              | >= 7.2.0
 :material-powershell: &nbsp; [Microsoft Windows PowerShell][microsoft-powershell] | 5.1
+
 
 ### Module Dependencies
 
@@ -50,7 +52,7 @@ PowerShell Module                                    | Version   | Publisher    
 -----------------------------------------------------|-----------|---------------|---------------------------------------------------------------------------
 [VMware.PowerCLI][psgallery-module-powercli]         | >= 13.1.0 | VMware, Inc.  | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
 [VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | VMware, Inc.  | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
-[PowerVCF][psgallery-module-powervcf]                | >= 2.3.0  | VMware, Inc.  | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
+[PowerVCF][psgallery-module-powervcf]                | >= 2.4.0  | VMware, Inc.  | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
 [ImportExcel][psgallery-module-importexcel]          | >= 7.8.5  | Douglas Finke | :fontawesome-brands-github: &nbsp; [GitHub][github-module-importexcel]
 
 ## Related Projects
