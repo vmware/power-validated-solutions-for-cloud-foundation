@@ -9,11 +9,11 @@ permissions:
   contents: write
 
 jobs:
-  github-release:
+  create-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           fetch-depth: 0
       - name: Check Version
@@ -22,14 +22,14 @@ jobs:
         run: |
           $tag = $env:GITHUB_REF.Replace('refs/tags/v', '')
           $manifestName = (Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter *.psd1).Name
-          $moduleVersion = Get-Content -Path .\$manifestName | Select-String -Pattern '^\s*ModuleVersion\s*=\s*''(.*)''\s*$' | ForEach-Object { $_.Matches.Groups[1].Value }
+          $moduleVersion = [regex]::Match((Get-Content -Path ./$manifestName -Raw), '(?<=ModuleVersion\s*=\s*'')[^'']+(?='')').Value
           $version = $moduleVersion -split '\.' | Select-Object -First 3 | Join-String -Separator '.'
           $release = ($tag -replace '^v') -split '\.' | Select-Object -First 3 | Join-String -Separator '.'
           if ($version -ne $release) {
-            Write-Error "FAILED: Comparing module version '$version' with release tag v'$tag'."
+            Write-Error "FAILED: Comparing module version '$version' with release tag 'v$tag'."
             exit 1
           } else {
-            Write-Output "SUCCESS: Comparing module version '$version' with release tag v'$tag'."
+            Write-Output "SUCCESS: Comparing module version '$version' with release tag 'v$tag'."
           }
       - name: Check Changelog
         shell: pwsh
@@ -37,7 +37,6 @@ jobs:
           $version = $env:GITHUB_REF.Replace('refs/tags/', '')
           $changelog = Get-Content -Path CHANGELOG.md
           $foundVersion = $false
-
           foreach ($line in $changelog) {
             if ($line -match "^## $version$") {
               $foundVersion = $true
@@ -47,12 +46,11 @@ jobs:
               break
             }
           }
-
           if ($foundVersion) {
             Write-Output "SUCCESS: Locating release in the changelog for version '$version'."
           } else {
             Write-Error "FAILED: Locating release in the changelog for version '$version'."
-          exit 1
+            exit 1
           }
       - name: Create Release Branch
         shell: pwsh
@@ -100,7 +98,7 @@ jobs:
           && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
           && sudo apt update \
           && sudo apt install gh -y
-      - name: Create Release in GitHub
+      - name: Create Release
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -109,7 +107,6 @@ jobs:
           $changelog = Get-Content -Path CHANGELOG.md
           $releaseNotes = $null
           $foundVersion = $false
-
           foreach ($line in $changelog) {
             if ($line -match "^## $version$") {
               $foundVersion = $true
@@ -122,7 +119,6 @@ jobs:
               $releaseNotes += $line + "`n"
             }
           }
-
           $gh = Get-Command gh | Select-Object -ExpandProperty Definition
           & $gh release create $version --title "$version" --notes "$releaseNotes" --target "release/$version"
           if ($LASTEXITCODE -ne 0) {
@@ -130,31 +126,91 @@ jobs:
           } else {
             Write-Output "SUCCESS: Creating GitHub release '$version'."
           }
-  publish-module:
-    needs: github-release
+  publish-docs:
+    needs: create-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # v4.7.0
+        with:
+          python-version: 3.x
+      - name: Install Dependencies
+        run: |
+          pip install mkdocs-material
+          pip install --requirement docs/requirements.txt
+      - name: Publish Documentation
+        run: |
+          mkdocs gh-deploy --force
+        if: ${{ success() }}
+  publish-module:
+    needs: [create-release, publish-docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
       - name: Publish Module to PowerShell Gallery
         shell: pwsh
         env:
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
-        run: | 
-          $remove = @('.ci', '.git', '.github', '.gitignore', '.vscode', 'docs', 'CODEOWNERS', 'CODE_OF_CONDUCT.md', 'CONTRIBUTING.md', 'Makefile', 'mkdocs.yml')
+        run: |
+          Write-Output "INFO: Preparing Ubuntu-based GitHub runner for publishing module to the PowerShell Gallery."
+          Write-Output "INFO: Setting the PowerShell Gallery as a trusted repository."
+          Set-PSRepository psgallery -InstallationPolicy trusted
+          Write-Output "INFO: Locating module manifest in '$env:GITHUB_WORKSPACE'."
+          $moduleManifest = (Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter *.psd1).Name
+          if ($moduleManifest) {
+              Write-Output "SUCCESS: Manifest '$moduleManifest' found in '$env:GITHUB_WORKSPACE'."
+          } else {
+              Write-Output "FAILURE: Manifest not found in '$env:GITHUB_WORKSPACE'."
+          }
+          if ($moduleManifest -match '^(.*)\.psd1$') {
+              $moduleName = $Matches[1]
+              Write-Output "SUCCESS: Determining module name from manifest '$moduleManifest'."
+          } else {
+              Write-Error "FAILED: Determining module name from manifest '$moduleManifest'."
+          }
+          Write-Output "INFO: Reading module manifest '$moduleManifest'."
+          $moduleManifestData = Import-PowerShellDataFile -Path $moduleManifest
+          Write-Output "INFO: Determining module dependencies."
+          $requiredModules = $moduleManifestData.RequiredModules
+          if ($requiredModules) {
+              Write-Output "SUCCESS: Module dependencies were found."
+              Write-Output "INFO: Required modules are $($requiredModules.ModuleName -join ', ')."
+              Write-Output "INFO: Setting location to the PowerShell modules location on a Ubuntu-based GitHub runner."
+              Set-Location '/home/runner/.local/share/powershell/Modules/' 
+              foreach ($module in $requiredModules) {
+                  $requiredModuleName = $module.ModuleName
+                  New-Item $requiredModuleName -ItemType Directory
+                  Write-Output "INFO: Performing workaround for github.com/PowerShell/PowerShell/issues/7722."
+                  Write-Output "INFO: Creating placeholder manifest for $requiredModuleName at $((Get-Location).Path)/$requiredModuleName/$requiredModuleName.psd1"
+                  New-Item "./$requiredModuleName/$requiredModuleName.psd1" -ItemType File
+              }
+          } else {
+              Write-Output "INFO: No module dependencies were found."
+          }
+          Write-Output "INFO: Setting location to the GitHub workspace at '$env:GITHUB_WORKSPACE'."
+          Set-Location $env:GITHUB_WORKSPACE
+          Write-Output "INFO: Publishing module to the PowerShell Gallery."
+          $remove = @('.ci', '.dependencies', '.git', '.github', '.gitignore', '.vscode', 'docs', 'CODEOWNERS', 'CODE_OF_CONDUCT.md', 'CONTRIBUTING.md', 'Makefile', 'mkdocs.yml')
           $random = Get-Random -Count 1
-          $destinationPath = Join-Path -Path $pwd -ChildPath $random
+          $destinationPath = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath $random
           $manifestName = (Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter *.psd1).Name
-          $moduleVersion = Get-Content -Path .\$manifestName | Select-String -Pattern '^\s*ModuleVersion\s*=\s*''(.*)''\s*$' | ForEach-Object { $_.Matches.Groups[1].Value }
+          $moduleVersion = [regex]::Match((Get-Content -Path ./$manifestName -Raw), '(?<=ModuleVersion\s*=\s*'')[^'']+(?='')').Value
           if ($manifestName -match '^(.*)\.psd1$') {
               $moduleName = $Matches[1]
               Write-Output "SUCCESS: Determining module name from manifest file name '$moduleName'."
           } else {
               Write-Error "FAILED: Determining module name from manifest file name '$moduleName'."
           }
-          $modulePath = Join-Path $destinationPath $moduleName
+          $modulePath = Join-Path -Path $destinationPath -ChildPath $moduleName
           $createModulePath = New-Item -Path $modulePath -ItemType Directory -Force
           if ($createModulePath) {
               Write-Output "SUCCESS: Creating staging path '$modulePath'."
@@ -162,17 +218,18 @@ jobs:
               Write-Error "FAILED: Creating staging path '$modulePath'."
           }
           Get-ChildItem -Force | Where-Object { $_.Name -notin $remove -and $_.Name -ne $random } | Copy-Item -Destination $modulePath -Recurse
-          Get-ChildItem -Depth 5 -Path $modulePath | Format-Table -AutoSize              
+          Get-ChildItem -Depth 5 -Path $modulePath | Format-Table -AutoSize
           $moduleManifest = Join-Path -Path $modulePath -ChildPath "$moduleName.psd1"
-
           if (Test-Path -Path $moduleManifest) {
               Publish-Module -Path $modulePath -NuGetApiKey $env:PSGALLERY_API_KEY
-              $module = Find-Module -Name $moduleName -RequiredVersion $moduleVersion
+              Start-Sleep -Seconds 30
+              $module = Find-Module -Name $moduleName -RequiredVersion "$moduleVersion"
               if ($module) {
                   Write-Output "SUCCESS: Publishing module '$moduleName' version '$moduleVersion' to PowerShell Gallery."
               } else {
                   Write-Error "FAILED: Publishing module '$moduleName' version '$moduleVersion' to PowerShell Gallery."
               }
           } else {
-              Write-Error "FAILED: Module manifest file not found at path (Join-Path -Path $modulePath -ChildPath '$moduleName.psd1')."
+              Write-Error "FAILED: Module manifest file not found at path '$moduleManifest'."
           }
+    
