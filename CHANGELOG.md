@@ -26,7 +26,9 @@
   - `vrops-vcf-notifications.csv` -> `aria-operations-notifications-vcf.csv`
 - Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Operations v8.12.1.
 - Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Automation v8.12.2.
-- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Log Insight v8.12.0.
+- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.12.0.
+- Enhanced `Export-vRLIJsonSpec` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
+- Enhanced `New-vRLIDeployment` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
 - Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.

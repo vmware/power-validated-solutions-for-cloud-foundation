@@ -7182,18 +7182,18 @@ Export-ModuleMember -Function Undo-TanzuKubernetesCluster
 Function Export-vRLIJsonSpec {
     <#
         .SYNOPSIS
-        Create Aria Operations for Logs Deployment JSON specification using the Planning and Preparation workbook
+        Create VMware Aria Operations for Logs Deployment JSON specification using the Planning and Preparation workbook
 
         .DESCRIPTION
         The Export-vRLIJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy Aria Operations for Logs using Aria Suite Lifecycle. The cmdlet connects to SDDC Manager
+        to deploy VMware Aria Operations for Logs using Aria Suite Lifecycle. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values.
         - Validates that the Planning and Preparation provided is available
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to Aria Suite Lifecycle
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
-        created in Aria Suite Lifecycle locker
+        created in VMware Aria Suite Lifecycle locker
         - Generates the deployment JSON specification file using the Planning and Preparation workbook and details
         from Aria Suite Lifecycle named '<management_domain_name>-vrliDeploymentSpec.json'
 
@@ -7204,14 +7204,20 @@ Function Export-vRLIJsonSpec {
         .EXAMPLE
         Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.4
         This example creates a JSON specification file for deploying Aria Operations for Logs using a custom version and the Planning and Preparation Workbook data
-    #>
+
+        .EXAMPLE
+        Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example creates a JSON specification file for deploying VMware Aria Operations for Logs deploying the OVA from a vSphere Conent Library and the Planning and Preparation Workbook data
+        #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
     Try {
@@ -7249,6 +7255,22 @@ Function Export-vRLIJsonSpec {
                                             $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                         }
                                         $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value}
+                                        
+                                        #### Generate the VMware Aria Operations for Logs Properties Section
+                                        if (!$PsBoundParameters.ContainsKey("customVersion")) { 
+                                            if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0" }
+                                            if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1" }
+                                            if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
+                                            if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
+                                            if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
+                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.12.0" }
+                                            if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.12.0" }
+                                            if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.12.0" }
+                                            if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.12.0" }
+                                        } else {
+                                            $vrliVersion = $customVersion
+                                        }
+                                        
                                         $infrastructurePropertiesObject = @()
                                         $infrastructurePropertiesObject += [pscustomobject]@{
                                             'dataCenterVmid'		= $datacenterName.dataCenterVmid
@@ -7283,6 +7305,10 @@ Function Export-vRLIJsonSpec {
                                         }
 
                                         ### Generate the Properties Details
+                                        if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                            $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object {$_.contentLibraryName -eq $contentLibrary}).contentLibraryItems
+                                            $contentLibraryItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Log-Insight-$vrliVersion"}).contentLibraryItemId
+                                        }
                                         $productPropertiesObject = @()
                                         $productPropertiesObject += [pscustomobject]@{
                                             'certificate'					= ("locker:certificate:" + $($vrliCertificate.vmid) + ":" + $($vrliCertificate.alias))
@@ -7297,6 +7323,7 @@ Function Export-vRLIJsonSpec {
                                             'vrliAlwaysUseEnglish'			= $false
                                             'masterVidmEnabled'				= $false
                                             'configureAffinitySeparateAll'	= "true"
+                                            'contentLibraryItemId'          = $contentLibraryItemId
                                             'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
                                             'timeSyncMode'					= "ntp"
                                         }
@@ -7351,20 +7378,7 @@ Function Export-vRLIJsonSpec {
                                             'properties'	= ($worker2Properties | Select-Object -Skip 0)
                                         }
 
-                                        #### Generate the VMware Aria Operations for Logs Properties Section
-                                        if (!$PsBoundParameters.ContainsKey("customVersion")) { 
-                                            if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0" }
-                                            if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1" }
-                                            if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
-                                            if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
-                                            if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
-                                            if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.12.0" }
-                                            if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.12.0" }
-                                            if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.12.0" }
-                                            if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.12.0" }
-                                        } else {
-                                            $vrliVersion = $customVersion
-                                        }
+                                        
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
                                             'id' 			= "vrli"
@@ -7405,25 +7419,29 @@ Export-ModuleMember -Function Export-vRLIJsonSpec
 Function New-vRLIDeployment {
     <#
         .SYNOPSIS
-        Deploy Aria Operations for Logs Cluster via Aria Suite Lifecycle
+        Deploy VMware Aria Operations for Logs Cluster via VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRLIDeployment cmdlet deploys Aria Operations for Logs via Aria Suite Lifecycle. The cmdlet
-        connects to SDDC Manager using the -server, -user, and -password values.
+        The New-vRLIDeployment cmdlet deploys VMware Aria Operations for Logs via VMware Aria Suite Lifecycle. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that the Planning and Preparation provided is available
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to Aria Suite Lifecycle
-        - Validates that the environment does not already exist in Aria Suite Lifecycle
-        - Requests a new deployment of Aria Operations for Logs via Aria Suite Lifecycle
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment does not already exist in VMware Aria Suite Lifecycle
+        - Requests a new deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of Aria Operations for Logs via Aria Suite Lifecycle using the Planning and Preparation Workbook data
+        This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.8.2
-        This example starts a deployment of a custom version of Aria Operations for Logs via Aria Suite Lifecycle using the Planning and Preparation Workbook data
+        This example starts a deployment of a custom version of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using a content library for the OVA deployment and the Planning and Preparation Workbook data
     #>
 
     Param (
@@ -7432,7 +7450,9 @@ Function New-vRLIDeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
     Try {
@@ -7452,9 +7472,17 @@ Function New-vRLIDeployment {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             if (!($PsBoundParameters.ContainsKey("customVersion"))) {
-                                Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                    Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook -useContentLibrary -contentLibrary $contentLibrary | Out-Null
+                                } else {
+                                    Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
+                                }
                             } else {
-                                Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
+                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                    Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook -useContentLibrary -contentLibrary $contentLibrary -customVersion $customVersion | Out-Null
+                                } else {
+                                    Export-vRLIJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
+                                }
                             }
                             $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrliDeploymentSpec.json")
                             $json = (Get-Content -Raw $jsonSpecFileName)
