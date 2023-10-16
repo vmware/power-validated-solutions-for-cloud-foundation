@@ -75,8 +75,6 @@ Try {
             $pvsModulePath              = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
             $allWorkloadDomains         = Get-VCFWorkloadDomain
             $domainFqdn                 = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-            $domainBindUser             = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
-            $domainBindPass             = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
             $mgmtSddcDomainName         = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
             $wldSddcDomainName          = $pnpWorkbook.Workbook.Names["wld_sddc_domain"].Value
             $wsaFqdn                    = $pnpWorkbook.Workbook.Names["region_wsa_fqdn"].Value

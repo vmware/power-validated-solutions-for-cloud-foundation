@@ -13348,14 +13348,14 @@ Function Add-vCenterGlobalPermission {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role,
         [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [String]$propagate,
         [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type,
-		[Parameter (Mandatory = $false)] [Switch]$localDomain = $false
+		[Parameter (Mandatory = $false)] [Switch]$localDomain
     )
 
     Try {
-		if (!$localDomain){
+		if (!$localDomain) {
 			$checkAdAuthentication = Test-ADAuthentication -user $domainBindUser -pass $domainBindPass -server $domain -domain $domain -ErrorAction SilentlyContinue
 			$securePass = ConvertTo-SecureString -String $domainBindPass -AsPlainText -Force
-		    $domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
+            $domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
             if (!($checkAdAuthentication[1] -match "Authentication Successful")) {
 				Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDTION_FAILED"
 				Return
