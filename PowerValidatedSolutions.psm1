@@ -32842,10 +32842,10 @@ Function Test-PowerValidatedSolutionsPrereq {
         Clear-Host; Write-Host ""
 
         $modules = @(
-            @{ Name=("VMware.PowerCLI"); MinimumVersion=("13.0.0")}
+            @{ Name=("VMware.PowerCLI"); MinimumVersion=("13.1.0")}
             @{ Name=("VMware.vSphere.SsoAdmin"); MinimumVersion=("1.3.9")}
             @{ Name=("ImportExcel"); MinimumVersion=("7.8.4")}
-            @{ Name=("PowerVCF"); MinimumVersion=("2.3.0")}
+            @{ Name=("PowerVCF"); MinimumVersion=("2.4.0")}
         )
 
         foreach ($module in $modules ) {
