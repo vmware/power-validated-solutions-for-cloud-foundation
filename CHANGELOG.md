@@ -1,12 +1,13 @@
 # Release History
 
-## [v2.7.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.7.0)
+## v2.7.0
 
 > Release Date: Unreleased
 
 - Updated cmdlet descriptions and examples for Aria Suite, formerly known as vRealize Suite, products to use the new Aria names.
   Note: No changes to the names of the cmdlets.
-- Updated `Request-VrmsApiToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core" and `$PSVersionTable.OS` is "Linux".
+- Updated `Request-VrmsToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
+- Updated `Request-VcenterApiToken` cmdlet to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
 - Updated `Connect-DRSolutionTovCenter` to wait for the solution initialization to complete. The maximum wait time is 10 minutes.
 - Enhanced `Get-LocalUserPasswordExpiration` cmdlet to allow for the use of a `-sudo` to elevate the privileges to run the command on a virtual appliance when the user is not `root`.
 - Enhanced `Set-LocalUserPasswordExpiration` cmdlet to allow for the use of a `-sudo` to elevate the privileges to run the command on a virtual appliance when the user is not `root`.
@@ -33,9 +34,9 @@
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
-- Updated Add-vCenterGlobalPermission cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (e.g., vsphere.local) user.
+- Updated `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.
 
-## [v2.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.6.0)
+## v2.6.0
 
 > Release Date: 2023-08-29
 
@@ -72,7 +73,7 @@
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Request-SignedCertificate` cmdlet to use CIM cmdlets to verify the MSCA host instead of previously used WMI cmdlets which fail in PowerShell Core.
 
-## [v2.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.5.0)
+## v2.5.0
 
 > Release Date: 2023-07-25
 
@@ -116,7 +117,7 @@
 - Updated `automation-orchestrator-vsphere-integration.role` to support vSphere 7 and vSphere 8
 - Removed `vra-vsphere-integration.role` and `vra-vsphere-integration.role` in favour of new Aria named files.
 
-## [v2.4.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.4.0)
+## v2.4.0
 
 > Release Date: 2023-06-27
 
@@ -146,7 +147,7 @@
 - Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.0.0 and vRealize Log Insight v8.10.2.
 - Enhanced `Export-vROPSJsonSpec` to identify when its VMware Cloud Foundation 4.5.1 or later and deploy Cloud Proxies instead of Remote Collectors.
 
-## [v2.3.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.3.0)
+## v2.3.0
 
 > Release Date: 2023-05-30
 
@@ -172,7 +173,7 @@
 - Updated `Export-vRAJsonSpec` to support VMware Cloud Foundation v4.5.1.
 - Updated versions to highest release supported for vRealize Suite Lifecycle Manager and PSPACK6.
 
-## [v2.2.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.2.0)
+## v2.2.0
 
 > Release Date: 2023-04-25
 
@@ -203,7 +204,7 @@ Deprecation
 - Removed `Set-NsxtEdgeNodeAuthenticationPolicy`
 - Removed `Confirm-PSModule`
 
-## [v2.1.1](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.1.1)
+## v2.1.1
 
 > Release Date: 2023-04-11
 
@@ -211,7 +212,7 @@ Deprecation
 - Enhanced `New-vROPSNotification` cmdlet to check that the alert plugin is valid.
 - Enhanced `Import-vROPSNotification` cmdlet to handle output from low level functions.
 
-## [v2.1.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.1.0)
+## v2.1.0
 
 > Release Date: 2023-03-28
 
@@ -224,7 +225,7 @@ Deprecation
 - Enhanced `Undo-vSphereRole` cmdlet to support VCF 5.0 and isolated workload domains.
 - Fixed `Get-GlobalPermission` cmdlet where UseBasicParsing was set to false but should be true.
 
-## [v2.0.1](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.0.1)
+## v2.0.1
 
 > Release Date: 2023-02-28
 
@@ -234,7 +235,7 @@ Deprecation
 - Enhanced `Test-SSOAuthentication` cmdlet to include -SkipCertificateCheck parameter to handle platforms with self-signed certificates.
 - Fixed `Publish-*` cmdlets to use `Convert-CssClassStyle` rather than `Convert-CssClass` which is part of VMware Cloud Foundation reporting module.
 
-## [v2.0.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v2.0.0)
+## v2.0.0
 
 > Release Date: 2023-01-31
 
@@ -346,7 +347,7 @@ Deprecation
 - Removed `createVAMIAuthHeader`
 - Removed `Request-VAMISessionId`
 
-## [v1.10.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.10.0)
+## v1.10.0
 
 > Release Date: 2022-11-29
 
@@ -405,7 +406,7 @@ Deprecation
 - Added `Add-EsxiVrmsStaticRoute` cmdlet to provide ESXi static route configuration flexibility.
 - Added `Undo-EsxiVrmsStaticRoute` cmdlet to provide ESXi static route removal flexibility.
 
-## [v1.9.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.9.0)
+## v1.9.0
 
 > Release Date: 2022-10-25
 
@@ -466,7 +467,7 @@ Deprecation
 - Added Sample Scripts in the SampleScripts\iam folder, to configure Solution Interoperability for Identity and Access Management:
   - `iamSolutionInteroperability.ps1`
 
-## [v1.8.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.8.0)
+## v1.8.0
 
 > Release Date: 2022-09-27
 
@@ -510,7 +511,7 @@ Deprecation
 - Added `Set-vRAvRLIConfig` cmdlet to configure the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 - Added `Remove-vRAvRLIConfig` cmdlet to remove the vRealize Log Insight logging configuration (CFAPI) on vRealize Automation.
 
-## [v1.7.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.7.0)
+## v1.7.0
 
 > Release Date: 2022-05-31
 
@@ -523,7 +524,7 @@ Deprecation
 - Added `Set-SRMLicenseConfig` cmdlet to configure the license for Site Recovery Manager in the protected and recovery sites.
 - Added `Undo-SRMLicenseConfig` cmdlet to remove the license configuration from Site Recovery Manager in the protected and recovery sites.
 
-## [v1.6.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.6.0)
+## v1.6.0
 
 > Release Date: 2022-04-28
 
@@ -545,7 +546,7 @@ instances in Site Recovery Manager
 - Added `New-vSRPortGroup` cmdlet to create port groups for vSphere Replication appliances in the protected and recovery sites.
 - Added `Undo-vSRPortGroup` cmdlet to remove port groups for vSphere Replication appliances in the protected and recovery sites.
 
-## [v1.5.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.5.0)
+## v1.5.0
 
 > Release Date: 2022-03-29
 
@@ -587,7 +588,7 @@ instances in Site Recovery Manager
 Added Sample Scripts in the SampleScripts\ila folder, each script uses the Planning and Preparation Workbook as the input source:
     - `ilaUndoVrealizeLogInsight.ps1` automates the removal of Intelligent Logging and Analytics for VMware Cloud Foundation validated solution.
 
-## [v1.4.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.4.0)
+## v1.4.0
 
 > Release Date: 2022-02-22
 
@@ -606,7 +607,7 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Add-NsxtNodeProfileSyslogExporter` cmdlet to add a syslog exporter to the default node profile or specified node profile id.
 - Added `Undo-NsxtNodeProfileSyslogExporter` cmdlet to remove all syslog exporter from the default node profile or specified node profile id.
 
-## [v1.3.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.3.0)
+## v1.3.0
 
 > Release Date: 2022-01-25
 
@@ -659,7 +660,7 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
   - `iomDeployVrealizeOperations.ps1` automates the install and config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
   - `iomConfigureVrealizeOperations.ps1` automates the integration config of vRealize Operations for Intelligent Operations Management for VMware Cloud Foundation.
 
-## [v1.2.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.2.0)
+## v1.2.0
 
 > Release Date: 2021-11-30
 
@@ -705,7 +706,7 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Added `Add-SupervisorClusterCertificate` cmdlet to add a signed TLS certificate for the defined Supervisor Cluster.
 - Added `Add-NamespaceVmClass` cmdlet to add an existing VM Class to a Supervisor Namespace.
 
-## [v1.1.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.1.0)
+## v1.1.0
 
 > Release Date: 2021-10-05
 
@@ -724,7 +725,7 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
   - `Restore-VMOvfProperties`
   - `Copy-vRealizeLoadBalancer`
 
-## [v1.0.1](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.0.1)
+## v1.0.1
 
 > Release Date: 2021-08-16
 
@@ -732,7 +733,7 @@ Added Sample Scripts in the SampleScripts\ila folder, each script uses the Plann
 - Fixed `Add-ContentLibrary` where creation using subscription URL was failing.
 - Fixed `Add-VMFolder` where it was creating a folder in each vCenter Server in the Single Sign-On Domain.
 
-## [v1.0.0](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/releases/tag/v1.0.0)
+## v1.0.0
 
 > Release Date: 2021-08-24
 

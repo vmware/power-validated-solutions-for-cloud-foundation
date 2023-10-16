@@ -16751,7 +16751,7 @@ public static class Placeholder {
 
         Try {
             $uri = "https://$vcenterApiServer/api/session" # Perform the vCenter REST API call to authenticate and retrieve the session token
-            if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux") {
+            if ($PSEdition -eq "Core") {
                 $response = Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcenterAuthHeaders -UseBasicParsing -SkipCertificateCheck
             } else {
                 $response = Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcenterAuthHeaders -UseBasicParsing
@@ -31547,7 +31547,7 @@ Function Request-VrmsToken {
         $Global:vrmsAppliance = $fqdn
 
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/session"
-        if ($PSEdition -eq "Core" -and ($PSVersionTable.OS).Split(' ')[0] -eq "Linux") {
+        if ($PSEdition -eq "Core") {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
         } else {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
