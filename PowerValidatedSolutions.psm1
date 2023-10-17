@@ -11847,23 +11847,27 @@ Export-ModuleMember -Function Add-vROPSVcenterCredential
 Function Export-vRAJsonSpec {
     <#
         .SYNOPSIS
-        Create Aria Automation Deployment JSON specification
+        Create VMware Aria Automation Deployment JSON specification
 
         .DESCRIPTION
         The Export-vRAJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy Aria Automation using Aria Suite Lifecycle:
+        to deploy VMware Aria Automation using VMware Aria Suite Lifecycle:
         - Validates that the Planning and Preparation is available
-        - Validates that network connectivity is available to Aria Suite Lifecycle
-        - Makes a connection to the Aria Suite Lifecycle instance and validates that authentication possible
-        - Generates the JSON specification file using the Planning and Preparation workbook and details from Aria Suite Lifecycle
+        - Validates that network connectivity is available to VMware Aria Suite Lifecycle
+        - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
+        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON deployment specification of Aria Automation using the Planning and Preparation Workbook
+        This example creates a JSON deployment specification of VMware Aria Automation using the Planning and Preparation Workbook
 
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example creates a JSON deployment specification of Aria Automation using a custom version and the Planning and Preparation Workbook
+        This example creates a JSON deployment specification of VMware Aria Automation using a custom version and the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example creates a JSON deployment specification of VMware Aria Automation using the Planning and Preparation Workbook and deploys using the OVA using a vSphere Content Library
     #>
 
     Param (
@@ -11871,7 +11875,9 @@ Function Export-vRAJsonSpec {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
     Try {
@@ -11887,7 +11893,7 @@ Function Export-vRAJsonSpec {
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
-        ### Obtain Configuration Information from Aria Suite Lifecycle
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -11916,6 +11922,20 @@ Function Export-vRAJsonSpec {
                                             $datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}
                                             if ($datacenterName) {
                                                 $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
+
+                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                    if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1" }
+                                                    if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0" }
+                                                    if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
+                                                    if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
+                                                    if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
+                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.12.2" }
+                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.12.2" }
+                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.12.2" }
+                                                    if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.12.2" }
+                                                } else {
+                                                    $vraVersion = $customVersion
+                                                }
 
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
@@ -11951,6 +11971,16 @@ Function Export-vRAJsonSpec {
                                                 }
 
                                                 ### Generate the Properties Details
+                                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object {$_.contentLibraryName -eq $contentLibrary}).contentLibraryItems
+                                                    if ($contentLibraryItems) {
+                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Prelude_VA-$vraVersion"}).contentLibraryItemId
+                                                    } else {
+                                                        Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                                        Break
+                                                    }
+                                                }
+
                                                 $productPropertiesObject = @()
                                                 $productPropertiesObject += [pscustomobject]@{
                                                     'certificate'					= ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
@@ -11961,13 +11991,14 @@ Function Export-vRAJsonSpec {
                                                     'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
                                                     'affinityRule'					= $false
                                                     'configureAffinitySeparateAll'  = "true"
+                                                    'contentLibraryItemId'          = $contentLibraryItemId
                                                     'nodeSize'					    = $pnpWorkbook.Workbook.Names["xreg_vra_appliance_size"].Value.ToLower()
                                                     'vraK8ServiceCidr'              = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_cluster_cidr"].Value
                                                     'vraK8ClusterCidr'              = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_service_cidr"].Value
                                                     'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
 
-                                                #### Generate Aria Automation Cluster Details
+                                                #### Generate VMware Aria Automation Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
@@ -11982,7 +12013,7 @@ Function Export-vRAJsonSpec {
                                                 'clusterVips'	= $clusterVipsObject
                                                 }
 
-                                                #### Generate Aria Automation Node Details
+                                                #### Generate VMware Aria Automation Node Details
                                                 $vraPrimaryProperties = @()
                                                 $vraPrimaryProperties += [pscustomobject]@{
                                                     'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value
@@ -12015,20 +12046,7 @@ Function Export-vRAJsonSpec {
                                                     'properties'	= ($vraSecondary2Properties | Select-Object -Skip 0)
                                                 }
 
-                                                #### Generate the Aria Automation Properties Section
-                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                    if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1" }
-                                                    if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0" }
-                                                    if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
-                                                    if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
-                                                    if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
-                                                    if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.12.2" }
-                                                    if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.12.2" }
-                                                    if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.12.2" }
-                                                    if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.12.2" }
-                                                } else {
-                                                    $vraVersion = $customVersion
-                                                }
+                                                #### Generate the VMware Aria Automation Properties Section
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vra"
@@ -12054,21 +12072,21 @@ Function Export-vRAJsonSpec {
                                                     }
                                                 }
                                                 $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
-                                                Write-Output "Creation of Deployment JSON Specification file for Aria Automation: SUCCESSFUL"
+                                                Write-Output "Creation of Deployment JSON Specification file for VMware Aria Automation: SUCCESSFUL"
                                             } else {
-                                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
+                                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist: PRE_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the Aria Suite Lifecycle Locker, add and retry"
+                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_root_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the Aria Suite Lifecycle Locker, add and retry"
+                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the Aria Suite Lifecycle Locker, add and retry"
+                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vra_virtual_hostname"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "License with alias '$licenseKey' not found in the Aria Suite Lifecycle Locker, add and retry"
+                                Write-Error "License with alias '$licenseKey' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -12085,22 +12103,26 @@ Export-ModuleMember -Function Export-vRAJsonSpec
 Function New-vRADeployment {
     <#
         .SYNOPSIS
-        Deploy Aria Automation to Aria Suite Lifecycle
+        Deploy VMware Aria Automation to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRADeployment cmdlet deploys Aria Automation via Aria Suite Lifecycle. The cmdlet
+        The New-vRADeployment cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
-        - Requests a new deployment of Aria Automation
+        - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Requests a new deployment of VMware Aria Automation
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of Aria Automation using the Planning and Preparation Workbook
+        This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example starts a deployment of Aria Automation using a custom version and the Planning and Preparation Workbook
+        This example starts a deployment of VMware Aria Automation using a custom version and the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook and deploys the OVAs from a vSphere Content Library
     #>
 
     Param (
@@ -12109,7 +12131,9 @@ Function New-vRADeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -12127,11 +12151,14 @@ Function New-vRADeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook | Out-Null
-                            } else {
-                                Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook -customVersion $customVersion | Out-Null
+                            $commandSwitch = ""
+                            if ($PsBoundParameters.ContainsKey("customVersion")) {
+                                $commandSwitch = $commandSwitch + " -customVersion $customVersion"
                             }
+                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
+                            }
+                            Invoke-Expression "Export-vRAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) | Out-Null"
                             $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vraDeploymentSpec.json")
                             $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
