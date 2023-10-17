@@ -4,11 +4,16 @@
 
 > Release Date: Unreleased
 
-- Updated cmdlet descriptions and examples for Aria Suite, formerly known as vRealize Suite, products to use the new Aria names.
+- Fixed `Add-NetworkSegment` cmdlet where it was unable to add a new overlay segment with NSX 4.1.2.
+- Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
+- Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
+- Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
+- Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
+- Updated cmdlet descriptions and examples for VMware Aria Suite, formerly known as vRealize Suite, products to use the new VMware Aria names.
   Note: No changes to the names of the cmdlets.
-- Updated `Request-VrmsToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
-- Updated `Request-VcenterApiToken` cmdlet to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
-- Updated `Connect-DRSolutionTovCenter` to wait for the solution initialization to complete. The maximum wait time is 10 minutes.
+- Enhanced `Request-VrmsToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
+- Enhanced `Request-VcenterApiToken` cmdlet to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
+- Enhanced `Connect-DRSolutionTovCenter` to wait for the solution initialization to complete. The maximum wait time is 10 minutes.
 - Enhanced `Get-LocalUserPasswordExpiration` cmdlet to allow for the use of a `-sudo` to elevate the privileges to run the command on a virtual appliance when the user is not `root`.
 - Enhanced `Set-LocalUserPasswordExpiration` cmdlet to allow for the use of a `-sudo` to elevate the privileges to run the command on a virtual appliance when the user is not `root`.
 - Enhanced `Add-ContentLibrary` cmdlet to check the VMware Cloud Foundation version when adding a subscribed content library. If the version is 5.0.0 or later and the `-subscriptionUrl` parameter is set to `wp-content.vmware.com`, a warning message is displayed and the cmdlet exits.
@@ -16,26 +21,28 @@
 - Enhanced `Register-vROPSManagementPack` cmdlet to enable or disable the VMware Cloud Foundation management pack.
 - Enhanced `Undo-vROPSAdapter` cmdlet to support vCenter Server and vSAN adapter types in Aria Operations.
 - Enhanced `Undo-vROPSCredential` cmdlet to support vCenter Server and vSAN credential types in Aria Operations.
-- Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in Aria Operations.
-- Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in Aria Operations.
-- Updated sample alerts and notification in `SampleNotifications/*` to reflect the new Aria product names.
+- Enhanced sample alerts and notification in `SampleNotifications/*` to reflect the new VMware Aria product names.
   - `vrli-vcf-datacenter.json` -> `aria-operations-logs-alerts-datacenter-vcf.json`
   - `vrli-iom-alerts.json` -> `aria-operations-logs-alerts-iom.json`
   - `vrli-vcf-alerts.json` -> `aria-operations-logs-alerts-vcf.json`
   - `vrli-vcf-vmVrslcm.json` -> `aria-operations-logs-alerts-vm-asl.json`
   - `vrops-srm-notifications.csv` -> `aria-operations-notifications-srm.csv`
   - `vrops-vcf-notifications.csv` -> `aria-operations-notifications-vcf.csv`
-- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Operations v8.12.1.
-- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and vRealize Automation v8.12.2.
-- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.12.0.
+- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations v8.12.1.
 - Enhanced `Export-vRLIJsonSpec` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
 - Enhanced `New-vRLIDeployment` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
+- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.12.0.
+- Enhanced `Export-VROPsJsonSpec` to support deployment of VMware Aria Operations OVA using vSphere Content Library.
+- Enhanced `New-vROPsDeployment` to support deployment of VMware Aria Operations OVA using vSphere Content Library.
+- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.12.2.
+- Enhanced `Export-VraJsonSpec` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
+- Enhanced `New-VraDeployment` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
 - Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
-- Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
-- Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
+- Enhanced `Export-WsaJsonSpec` to support deployment of Workspace ONE Access OVA using vSphere Content Library.
+- Enhanced `New-WsaDeployment` to support deployment of Workspace ONE Access OVA using vSphere Content Library.
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
-- Updated `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.
-- Fixed `Add-NetworkSegment` cmdlet where it was unable to add a new overlay segment with NSX 4.1.2.
+- Enhanced `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.
+
 
 ## v2.6.0
 
@@ -67,7 +74,7 @@
 - Added `Disable-vRLIAlert` cmdlet to disable vRealize Log Insight alerts based ona supplied JSON file.
 - Added `vrli-iom-alerts.json` to \SampleNotification folder for Intelligent Operations Management alerts.
 - Added `vrli-vcf-alerts.json` to \SampleNotification folder for VMware Cloud Foundation alerts.
-- Adedd `vrli-vrslcm-alerts.json` to \SampleNotification folder for vRealize Suite Lifecycle Manager alerts.
+- Added `vrli-vrslcm-alerts.json` to \SampleNotification folder for vRealize Suite Lifecycle Manager alerts.
 - Added `Remove-NsxtGroup` cmdlet to remove a group from NSX.
 - Added a temporary fix in `Add-NamespacePermission` cmdlet until issue with `New-WMNamespacePermission` is resolved.
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
