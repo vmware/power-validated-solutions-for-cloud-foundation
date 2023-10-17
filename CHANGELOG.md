@@ -5,6 +5,7 @@
 > Release Date: Unreleased
 
 - Fixed `Add-NetworkSegment` cmdlet where it was unable to add a new overlay segment with NSX 4.1.2.
+- Fixed `New-vRSLCMDatacenterVcenter` cmdlet to wait for datacenter to be created before adding the vCenter.
 - Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
 - Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.

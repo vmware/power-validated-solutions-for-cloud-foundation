@@ -15440,7 +15440,7 @@ Function New-vRSLCMDatacenterVcenter {
                                 if (Get-vRSLCMLockerPassword -alias $userLockerAlias) {
                                     if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName  ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue)) {
                                         Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
-                                        Start-Sleep 5
+                                        Start-Sleep 10
                                         if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
                                             Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
                                         } else {
