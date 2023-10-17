@@ -24963,7 +24963,7 @@ Export-ModuleMember -Function Export-WsaJsonSpec
 Function New-WSADeployment {
     <#
         .SYNOPSIS
-        Deploy a Workspace ONE Access to VMware Aria Suite Lifecycle
+        Deploy Workspace ONE Access to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
         The New-WSADeployment cmdlet deploys Workspace ONE Access via VMware Aria Suite Lifecycle. The cmdlet connects
@@ -24983,7 +24983,7 @@ Function New-WSADeployment {
 
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
-        This example starts a deployment of a Workspace ONE Access using a custom version and the Planning and Preparation Workbook
+        This example starts a deployment of Workspace ONE Access using a custom version and the Planning and Preparation Workbook
 
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
