@@ -19890,7 +19890,7 @@ Function New-NsxtSegment {
         $uri = "https://$nsxtManager/policy/api/v1/infra/segments/$Name"
         $response = Invoke-WebRequest -Method PATCH -URI $uri -ContentType application/json -Body $json -headers $nsxtHeaders
         if ($response.StatusCode -eq 200 -or $response.StatusCode -eq 204) {
-            Write-Output "NSX-T Segment $Name successfully created."
+            Write-Output "NSX Segment $Name successfully created."
         }
     } Catch {
         Write-Error $_.Exception.Message
