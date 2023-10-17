@@ -35,6 +35,7 @@
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
 - Updated `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.
+- Fixed `Add-NetworkSegment` cmdlet where it was unable to add a new overlay segment with NSX 4.1.2.
 
 ## v2.6.0
 

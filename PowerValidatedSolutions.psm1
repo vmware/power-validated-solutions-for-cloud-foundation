@@ -5034,7 +5034,7 @@ Function Add-NetworkSegment {
                                 if ($tierGatewayExists) {
                                     $validateTransportZone = Get-NsxtTransportZone -Name $transportZone -ErrorAction SilentlyContinue
                                     if ($validateTransportZone.display_name -eq $transportZone) {
-                                        if ($validateTransportZone.transport_type -ne $segmentType.ToUpper()){
+                                        if ($validateTransportZone.tz_type -notmatch $segmentType.ToUpper()){
                                             Write-Error "NSX Transport Zone $transportZone does not match the defined segment Type $segmentType in NSX Manager ($($vcfNsxtDetails.fqdn)): PRE_VALIDATION_FAILED"
                                             Break
                                         }
@@ -19808,11 +19808,11 @@ Function Get-NsxtTransportZone {
 
     Try {
         if (!$PsBoundParameters.ContainsKey("name")) {
-            $uri = "https://$nsxtManager/api/v1/transport-zones"
+            $uri = "https://$nsxtManager/policy/api/v1/infra/sites/default/enforcement-points/default/transport-zones"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Sort-Object display_name
         } elseif ($PsBoundParameters.ContainsKey("Name")) {
-            $uri = "https://$nsxtManager/api/v1/transport-zones"
+            $uri = "https://$nsxtManager/policy/api/v1/infra/sites/default/enforcement-points/default/transport-zones"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $responseChecked = $response.results | Where-Object { $_.display_name -eq $name }
 
@@ -19861,7 +19861,7 @@ Function New-NsxtSegment {
         Write-Error "Gateway type not defined"
     }
 
-    $transportZoneId = (Get-NsxtTransportZone -Name $TransportZone).id
+    $transportZonePath = (Get-NsxtTransportZone -Name $TransportZone).path
 
     if ($SegmentType -match "overlay") {
         $json = @"
@@ -19869,7 +19869,7 @@ Function New-NsxtSegment {
 "display_name" : "$Name",
 "subnets" : [{ "gateway_address" : "$Cidr" }],
 "connectivity_path" : "$connectivityPath",
-"transport_zone_path" : "/infra/sites/default/enforcement-points/default/transport-zones/$transportZoneId"
+"transport_zone_path" : "$transportZonePath"
 }
 "@
 
@@ -19878,7 +19878,7 @@ Function New-NsxtSegment {
 {
 "display_name" : "$Name",
 "vlan_ids" : [ "$VlanId" ],
-"transport_zone_path" : "/infra/sites/default/enforcement-points/default/transport-zones/$transportZoneId"
+"transport_zone_path" : "$transportZonePath"
 }
 "@
 
@@ -19888,8 +19888,10 @@ Function New-NsxtSegment {
 
     Try {
         $uri = "https://$nsxtManager/policy/api/v1/infra/segments/$Name"
-        $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -Body $json -headers $nsxtHeaders
-        $response
+        $response = Invoke-WebRequest -Method PATCH -URI $uri -ContentType application/json -Body $json -headers $nsxtHeaders
+        if ($response.StatusCode -eq 200 -or $response.StatusCode -eq 204) {
+            Write-Output "NSX Segment $Name successfully created."
+        }
     } Catch {
         Write-Error $_.Exception.Message
     }
