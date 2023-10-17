@@ -9395,32 +9395,36 @@ Export-ModuleMember -Function Update-vRLIContentPack
 Function Export-vROPsJsonSpec {
     <#
         .SYNOPSIS
-        Create Aria Operations Deployment JSON specification
+        Create VMware Aria Operations Deployment JSON specification
 
         .DESCRIPTION
         The Export-vROPsJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy Aria Operations using Aria Suite Lifecycle. The cmdlet connects to SDDC Manager
+        to deploy VMware Aria Operations using VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values.
         - Validates that the Planning and Preparation provided is available
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to Aria Suite Lifecycle
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
-        created in Aria Suite Lifecycle locker
+        created in VMware Aria Suite Lifecycle locker
         - Generates the deployment JSON specification file using the Planning and Preparation workbook and details
-        from Aria Suite Lifecycle named '<management_domain_name>-vropsDeploymentSpec.json'
+        from VMware Aria Suite Lifecycle named '<management_domain_name>-vropsDeploymentSpec.json'
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON specification file for deploying Aria Operations using the Planning and Preparation Workbook data
+        This example creates a JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
-        This example creates a reduce footprint JSON specification file for deploying Aria Operations using the Planning and Preparation Workbook data
+        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example creates a reduce footprint JSON specification file for deploying Aria Operations using a custom version and the Planning and Preparation Workbook data
+        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using a custom version and the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data and deplpying OVAs from a vSphere Content Library
     #>
 
     Param (
@@ -9429,7 +9433,9 @@ Function Export-vROPsJsonSpec {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
     Try {
@@ -9445,7 +9451,7 @@ Function Export-vROPsJsonSpec {
 
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
 
-        ### Obtain Configuration Information from Aria Suite Lifecycle
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
@@ -9522,6 +9528,16 @@ Function Export-vROPsJsonSpec {
                                                 }
 
                                                 ### Generate the Properties Details
+                                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object {$_.contentLibraryName -eq $contentLibrary}).contentLibraryItems
+                                                    if ($contentLibraryItems) {
+                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Operations-Manager-Appliance-$vropsVersion"}).contentLibraryItemId
+                                                        $contentLibraryProxyItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Operations-Cloud-Proxy-$vropsVersion"}).contentLibraryItemId
+                                                    } else {
+                                                        Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                                        Break
+                                                    }
+                                                }
                                                 $productPropertiesObject = @()
                                                 $productPropertiesObject += [pscustomobject]@{
                                                     'certificate'					= ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
@@ -9534,11 +9550,13 @@ Function Export-vROPsJsonSpec {
                                                     'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
                                                     'affinityRule'					= $false
                                                     'configureAffinitySeparateAll'  = "true"
+                                                    'contentLibraryItemId'          = $contentLibraryItemId
+                                                    'contentLibraryItemId:proxy'    = $contentLibraryProxyItemId
                                                     'deployOption'					= $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
                                                     'isCaEnabled'                   = "false"
                                                 }
 
-                                                #### Generate Aria Operations Cluster Details
+                                                #### Generate VMware Aria Operations Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
                                                     'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
@@ -9553,7 +9571,7 @@ Function Export-vROPsJsonSpec {
                                                 'clusterVips'	= $clusterVipsObject
                                                 }
 
-                                                #### Generate Aria Operations Node Details
+                                                #### Generate VMware Aria Operations Node Details
                                                 $masterProperties = New-Object -TypeName psobject
                                                 $masterProperties | Add-Member -notepropertyname 'vmName' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
                                                 $masterProperties | Add-Member -notepropertyname 'hostName' -notepropertyvalue $pnpWorkbook.Workbook.Names["xreg_vrops_nodea_fqdn"].Value
@@ -9673,7 +9691,7 @@ Function Export-vROPsJsonSpec {
                                                     'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
                                                 }
 
-                                                #### Generate the Aria Operations Properties Section
+                                                #### Generate the VMware Aria Operations Properties Section
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
                                                     'id' 			= "vrops"
@@ -9700,21 +9718,21 @@ Function Export-vROPsJsonSpec {
                                                 }
 
                                                 $vropsDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
-                                                Write-Output "Creation of Deployment JSON Specification file for Aria Operations: SUCCESSFUL"                            
+                                                Write-Output "Creation of Deployment JSON Specification file for VMware Aria Operations: SUCCESSFUL"                            
                                             } else {
                                                 Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist: PRE_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_root_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_vrops_virtual_hostname"].Value)' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Error "License with alias '$licenseKey' not found in the Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
+                                Write-Error "License with alias '$licenseKey' not found in the VMware Aria Suite Lifecycle Locker: PRE_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -9731,28 +9749,32 @@ Export-ModuleMember -Function Export-vROPsJsonSpec
 Function New-vROPSDeployment {
     <#
         .SYNOPSIS
-        Deploy Aria Operations to Aria Suite Lifecycle
+        Deploy Aria Operations to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vROPSDeployment cmdlet deploys Aria Operations via Aria Suite Lifecycle. The
-        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        The New-vROPSDeployment cmdlet deploys VMware Aria Operations via VMware Aria Suite Lifecycle. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to Aria Suite Lifecycle
-        - Validates that the environment does not already exist in Aria Suite Lifecycle
-        - Requests a new deployment of Aria Operations via Aria Suite Lifecycle
+        - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment does not already exist in VMware Aria Suite Lifecycle
+        - Requests a new deployment of VMware Aria Operations via VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of Aria Operations via Aria Suite Lifecycle using the Planning and Preparation Workbook data
+        This example starts a deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -nested
-        This example starts a reduce footprint deployment of Aria Operations via Aria Suite Lifecycle using the Planning and Preparation Workbook data
+        This example starts a reduce footprint deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
-        This example starts a deployment using a custom version of Aria Operations via Aria Suite Lifecycle using the Planning and Preparation Workbook data
+        This example starts a deployment using a custom version of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data
+
+        .EXAMPLE
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example starts a deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data and a vSphere Content Library for OVA installs
     #>
 
     Param (
@@ -9762,7 +9784,9 @@ Function New-vROPSDeployment {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
     if (!$PsBoundParameters.ContainsKey("workbook")) {
@@ -9780,19 +9804,17 @@ Function New-vROPSDeployment {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (!($PsBoundParameters.ContainsKey("customVersion"))) {
-                                if (!$PsBoundParameters.ContainsKey("nested")) {
-                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass | Out-Null
-                                } else {
-                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested | Out-Null
-                                }
-                            } else {
-                                if (!$PsBoundParameters.ContainsKey("nested")) {
-                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -customVersion $customVersion | Out-Null
-                                } else {
-                                    Export-vROPSJsonSpec -workbook $workbook -server $server -user $user -pass $pass -nested -customVersion $customVersion | Out-Null
-                                }
+                            $commandSwitch = ""
+                            if ($PsBoundParameters.ContainsKey("customVersion")) {
+                                $commandSwitch = $commandSwitch + " -customVersion $customVersion"
                             }
+                            if ($PsBoundParameters.ContainsKey("nested")) {
+                                $commandSwitch = $commandSwitch + " -nested"
+                            }
+                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
+                            }
+                            Invoke-Expression "Export-vROPSJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) | Out-Null"
                             $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vropsDeploymentSpec.json")
                             $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
@@ -9810,22 +9832,22 @@ Function New-vROPSDeployment {
                                                     Start-Sleep 10
                                                     Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                                 } else {
-                                                    Write-Output "Deployment Request for Aria Operations Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                                    Write-Output "Deployment Request for VMware Aria Operations Submitted Successfully (Request Ref: $($newRequest.requestId))"
                                                 }
                                             } else {
-                                                Write-Error "Request to deploy Aria Operations failed, check the Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                                Write-Error "Request to deploy VMware Aria Operations failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Error "License in Aria Suite Lifecycle ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                            Write-Error "License in VMware Aria Suite Lifecycle ($($vrvcfVrslcmDetailsslcm.fqdn)) Locker with alias ($($jsonSpec.products.properties.licenseRef.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Certificate in Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                        Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Password in Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
+                                    Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.productPassword.Split(":")[3])), does not exist: PRE_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Aria Operations in environment ($($jsonSpec.environmentName)) on Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                Write-Warning "VMware Aria Operations in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                             }
                         }
                     }
