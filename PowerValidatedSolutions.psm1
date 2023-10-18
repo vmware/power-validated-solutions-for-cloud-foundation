@@ -19620,12 +19620,12 @@ Function New-NsxtLdap {
         The New-NsxtLdap cmdlet adds an LDAP identity source
 
         .EXAMPLE
-        New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAPS -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-vsphere-ad@sfo.rainpole.io -bindPassword VMw@re1! -certificate Root64.cer
+        New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAPS -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-nsx-ad@sfo.rainpole.io -bindPassword VMw@re1! -certificate Root64.cer
         This example create an Active Directory Identity Source over LDAPS
 
         .EXAMPLE
-        New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAP -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-vsphere-ad@sfo.rainpole.io -bindPassword VMw@re1!
-        This example create an Active Directory Identity Source over LDAPS
+        New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAP -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-nsx-ad@sfo.rainpole.io -bindPassword VMw@re1!
+        This example create an Active Directory Identity Source over LDAP
     #>
 
     Param (
