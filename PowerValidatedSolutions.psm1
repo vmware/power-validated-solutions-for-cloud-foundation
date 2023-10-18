@@ -9559,7 +9559,8 @@ Function Export-vROPsJsonSpec {
                                                 #### Generate VMware Aria Operations Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
-                                                    'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+                                                    'controllerType'    = "NSX_T"
+                                                    'hostName'	        = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
                                                 }
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
