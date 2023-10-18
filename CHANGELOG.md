@@ -10,6 +10,7 @@
 - Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
+- Added `New-NsxtLdap` cmdlet to create an LDAP/LDAPS Identity Source in NSX Manager
 - Updated cmdlet descriptions and examples for VMware Aria Suite, formerly known as vRealize Suite, products to use the new VMware Aria names.
   Note: No changes to the names of the cmdlets.
 - Enhanced `Request-VrmsToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".
@@ -20,8 +21,8 @@
 - Enhanced `Add-ContentLibrary` cmdlet to check the VMware Cloud Foundation version when adding a subscribed content library. If the version is 5.0.0 or later and the `-subscriptionUrl` parameter is set to `wp-content.vmware.com`, a warning message is displayed and the cmdlet exits.
 - Enhanced `Add-ContentLibrary` cmdlet to work on both PowerShell 7 and Windows PowerShell 5.1.
 - Enhanced `Register-vROPSManagementPack` cmdlet to enable or disable the VMware Cloud Foundation management pack.
-- Enhanced `Undo-vROPSAdapter` cmdlet to support vCenter Server and vSAN adapter types in Aria Operations.
-- Enhanced `Undo-vROPSCredential` cmdlet to support vCenter Server and vSAN credential types in Aria Operations.
+- Enhanced `Undo-vROPSAdapter` cmdlet to support vCenter Server and vSAN adapter types in VMware Aria Operations.
+- Enhanced `Undo-vROPSCredential` cmdlet to support vCenter Server and vSAN credential types in VMware Aria Operations.
 - Enhanced sample alerts and notification in `SampleNotifications/*` to reflect the new VMware Aria product names.
   - `vrli-vcf-datacenter.json` -> `aria-operations-logs-alerts-datacenter-vcf.json`
   - `vrli-iom-alerts.json` -> `aria-operations-logs-alerts-iom.json`

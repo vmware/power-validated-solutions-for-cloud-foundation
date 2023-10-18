@@ -19611,6 +19611,78 @@ Function Get-NsxtLdap {
 }
 Export-ModuleMember -Function Get-NsxtLdap
 
+Function New-NsxtLdap {
+    <#
+        .SYNOPSIS
+        Add an LDAP identity source
+
+        .DESCRIPTION
+        The New-NsxtLdap cmdlet adds an LDAP identity source
+
+        .EXAMPLE
+        New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAPS -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-vsphere-ad@sfo.rainpole.io -bindPassword VMw@re1! -certificate Root64.cer
+        This example create an Active Directory Identity Source over LDAPS
+
+        .EXAMPLE
+        New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAP -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-vsphere-ad@sfo.rainpole.io -bindPassword VMw@re1!
+        This example create an Active Directory Identity Source over LDAPS
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dcMachineName,
+        [Parameter (Mandatory = $true)] [ValidateSet("LDAP", "LDAPS")] [String]$protocol,
+        [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$startTtls,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindPassword,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificate
+    )
+
+    if (!$PsBoundParameters.ContainsKey("certificate") -and ($protocol -eq "LDAPS")) {
+        $certificate = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer" -location "default"
+    } elseif ($protocol -eq "LDAPS") {
+        if (!(Test-Path -Path $certificate)) {
+            Write-Error  "Certificate (cer) for Root Certificate Authority '$certificate' File Not Found"
+            Break
+        }
+    }
+
+    if ($protocol -eq "LDAPS") {
+        $primaryUrl = 'LDAPS://' + $dcMachineName + '.' + $domain + ':636'
+        $certdata = (Get-Content ($certificate)) -join "\n"
+    } elseif ($protocol -eq "LDAP") {
+        $primaryUrl = 'LDAP://' + $dcMachineName + '.' + $domain + ':389'
+    }
+
+    Try {
+        
+        $Global:body = '{
+            "resource_type": "ActiveDirectoryIdentitySource",
+            "ldap_servers": [
+                {
+                    "url": "' + $primaryUrl +'",
+                    "use_starttls": false,
+                    "certificates": [
+                        "' + $certdata + '"
+                    ],
+                    "bind_identity": "' + $bindUser + '",
+                    "password": "' + $bindPassword + '",
+                    "enabled": true 
+                }
+            ],
+            "display_name": "' + $domain + '",
+            "domain_name": "' + $domain + '",
+            "base_dn": "' + $baseDn + '"
+        }'
+        $uri = "https://$nsxtManager/policy/api/v1/aaa/ldap-identity-sources/$domain"
+        Invoke-RestMethod $uri -Method 'PUT' -Headers $nsxtHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtLdap
+
 Function Remove-NsxtLdap {
     <#
         .SYNOPSIS
