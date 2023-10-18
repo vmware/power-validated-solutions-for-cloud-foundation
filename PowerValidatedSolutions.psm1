@@ -23189,6 +23189,11 @@ Function Enable-WMRegistry {
         $cluster = $inputObject.Name
     }
 
+    if ($vCenterApi -ge 800) {
+        Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
+        break
+    }
+
     Try {
         if ($vCenterApi -le 701) {
             $getHarborInstalled = (Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -Headers $vcApiHeaders).value
@@ -23314,6 +23319,11 @@ Function Get-WMRegistry {
         $cluster = $inputObject.Name
     }
 
+    if ($vCenterApi -ge 800) {
+        Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
+        break
+    }
+
     if ($Cluster) {
         Try {
             $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
@@ -23373,6 +23383,11 @@ Function Remove-WMRegistry {
     )
 
     Try {
+        if ($vCenterApi -ge 800) {
+            Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
+            break
+        }
+
         if ($inputObject) {
             $harborRegistryId = $inputObject.registry
         }
@@ -23419,6 +23434,11 @@ Function Get-WMRegistryHealth {
     )
 
     Try {
+        if ($vCenterApi -ge 800) {
+            Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
+            break
+        }
+        
         if ($inputObject) {
             $registry = $inputObject.registry
         }
