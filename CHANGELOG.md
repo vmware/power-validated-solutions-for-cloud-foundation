@@ -15,7 +15,11 @@
 - Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
-- Added `New-NsxtLdap` cmdlet to create an LDAP/LDAPS Identity Source in NSX Manager
+- Added `New-NsxtLdap` cmdlet to create an LDAP/LDAPS Identity Source in NSX Manager.
+- Added `Get-NsxtPrincipalIdentity` cmdlet to get a list of NSX Principal Identities from NSX Manger.
+- Added `Set-NsxtPrincipalIdentityCertificate` cmdlet to update the certificate of an NSX Principal Identity in NSX Manager.
+- Added `Remove-NsxtPrincipalIdentity` cmdlet to remove an NSX Principal Identity from NSX Manager.
+- Added `New-NsxtPrincipalIdentity` cmdlet to create an NSX Principal Identity in NSX Manager.
 - Updated cmdlet descriptions and examples for VMware Aria Suite, formerly known as vRealize Suite, products to use the new VMware Aria names.
   Note: No changes to the names of the cmdlets.
 - Enhanced `Request-VrmsToken` to use `-skipCertificateCheck` switch if `$PSEdition` is "Core".

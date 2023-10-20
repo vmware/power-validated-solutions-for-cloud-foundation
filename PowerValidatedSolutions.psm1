@@ -19709,6 +19709,155 @@ Function Remove-NsxtLdap {
 }
 Export-ModuleMember -Function Remove-NsxtLdap
 
+Function Get-NsxtPrincipalIdentity {
+    <#
+        .SYNOPSIS
+        Get list of NSX Principal Identities
+    
+        .DESCRIPTION
+        The Get-NsxtPrincipalIdentity cmdlet gets a list of NSX Principal Identities
+    
+        .EXAMPLE
+        Get-NsxtPrincipalIdentity
+        This example gets a list of NSX Principal Identities
+
+        .EXAMPLE
+        Get-NsxtPrincipalIdentity -principalId <principal_id>
+        This example get an NSX Principal Identity by its Id.
+
+        .EXAMPLE
+        Get-NsxtPrincipalIdentity -name svc-iom-sfo-m01-nsx
+        This example get an NSX Principal Identity by its name.
+    #>
+
+        Param (
+            [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$principalId,
+            [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$name
+        )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("id")) {
+            $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities/$principalId"
+            Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
+        } elseif ($PsBoundParameters.ContainsKey("name")) {
+            $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities"
+            (Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders).results | Where-Object {$_.name -eq $name}
+        } else {
+            $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities"
+            (Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders).results
+        
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtPrincipalIdentity
+
+Function New-NsxtPrincipalIdentity {
+    <#
+        .SYNOPSIS
+        Add an NSX Principal Identity
+
+        .DESCRIPTION
+        The New-NsxtPrincipalIdentity cmdlet adds an NSX Princial Identity
+
+        .EXAMPLE
+        New-NsxtPrincipalIdentity -name svc-iom-sfo-m01-nsx -nodeId sfo-m01-nsx01 -role enterprise_admin -certificateData ./sfo-m01-nsx01.cer
+        This example adds an NSX Princial Identity
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nodeId,
+        [Parameter (Mandatory = $true)] [ValidateSet("lb_admin", "security_engineer", "vpn_admin", "network_op", "netx_partner_admin", "gi_partner_admin", "security_op", "network_engineer", "lb_auditor", "auditor", "enterprise_admin")] [String]$role,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateData
+    )
+    
+    Try {
+        if ($PSBoundParameters.ContainsKey('certificateData')) {
+            if (!(Test-Path -Path $certificateData)) {
+                Write-Error  "Certificate (cer) for NSX Credential '$certificateData' File Not Found"
+                Break
+            } else {
+                $Global:dataFile = (Get-Content ($certificateData)) -join "\n"
+            }
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+
+    Try {
+        $Global:body = '{
+            "name": "'+ $name +'",
+            "node_id": "'+ $nodeId +'",
+            "role": "'+ $role +'",
+            "certificate_pem": "'+ $dataFile +'"
+        }'
+        $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities/with-certificate"
+        Invoke-RestMethod -Method POST -URI $uri -ContentType application/json -headers $nsxtHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-NsxtPrincipalIdentity
+
+Function Set-NsxtPrincipalIdentityCertificate {
+    <#
+        .SYNOPSIS
+        Update the certificate of the NSX Principal Identity
+    
+        .DESCRIPTION
+        The Set-NsxtPrincipalIdentityCertificate cmdlet updates the certificate of the NSX Principal Identity
+    
+        .EXAMPLE
+        Set-NsxtPrincipalIdentityCertificate -principalId <principal_id> -certificateId <certificate_id>
+        This example updates the certificate of the NSX Principal Identity
+    #>
+
+        Param (
+            [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId,
+            [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$certificateId
+        )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities?action=update_certificate"
+        $body = '{
+            "principal_identity_id": "'+ $principalId +'",
+            "certificate_id": "'+ $certificateId +'"
+        }'
+        Invoke-RestMethod -Method POST -URI $uri -ContentType application/json -headers $nsxtHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-NsxtPrincipalIdentity
+
+Function Remove-NsxtPrincipalIdentity {
+    <#
+        .SYNOPSIS
+        Delete an NSX Principal Identity
+    
+        .DESCRIPTION
+        The Remove-NsxtPrincipalIdentity cmdlet deletes an NSX Principal Identity
+    
+        .EXAMPLE
+        Remove-NsxtPrincipalIdentity -principalId <principal_id>
+        This example deletes an NSX Principal Identity
+    #>
+
+        Param (
+            [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId
+        )
+
+    Try {
+        $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities/$principalId"
+        Invoke-RestMethod -Method DELETE -URI $uri -ContentType application/json -headers $nsxtHeaders 
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-NsxtPrincipalIdentity
+
 Function Get-NsxtRole {
     <#
         .SYNOPSIS
