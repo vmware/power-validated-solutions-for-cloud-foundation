@@ -39,13 +39,13 @@
   - `vrli-vcf-vmVrslcm.json` -> `aria-operations-logs-alerts-vm-asl.json`
   - `vrops-srm-notifications.csv` -> `aria-operations-notifications-srm.csv`
   - `vrops-vcf-notifications.csv` -> `aria-operations-notifications-vcf.csv`
-- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations v8.12.1.
+- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations v8.14.0.
 - Enhanced `Export-vRLIJsonSpec` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
 - Enhanced `New-vRLIDeployment` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
-- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.12.0.
+- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.14.0.
 - Enhanced `Export-VROPsJsonSpec` to support deployment of VMware Aria Operations OVA using vSphere Content Library.
 - Enhanced `New-vROPsDeployment` to support deployment of VMware Aria Operations OVA using vSphere Content Library.
-- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.12.2.
+- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.14.0.
 - Enhanced `Export-VraJsonSpec` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
 - Enhanced `New-VraDeployment` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
 - Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
