@@ -10453,7 +10453,7 @@ Function Register-vROPSManagementPack {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateSet("enable","disable")] [ValidateNotNullOrEmpty()] [String]$state,
-        [Parameter (Mandatory = $true)] [ValidateSet("Ping","PCI","ISO","FISMA","HIPAA","CIS","DISA","VCF")] [ValidateNotNullOrEmpty()] [String]$packType
+        [Parameter (Mandatory = $true)] [ValidateSet("Ping","PCI","ISO","FISMA","HIPAA","CIS","DISA","VCF","VMwareInfrastructureHealth")] [ValidateNotNullOrEmpty()] [String]$packType
     )
 
     Try {
