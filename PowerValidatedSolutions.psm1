@@ -11840,6 +11840,141 @@ Function Add-vROPSVcenterCredential {
 }
 Export-ModuleMember -Function Add-vROPSVcenterCredential
 
+Function Add-vROPSNsxCredential {
+    <#
+		.SYNOPSIS
+        Adds an NSX Credential
+
+        .DESCRIPTION
+        The Add-vROPSNsxCredential cmdlet adds an NSX credential to VMware Aria Operations, this can be either a
+        regular user or a Principal Identity (certificate based). The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that the credential does not already exist in VMware Aria Operations
+        - Creates NSX credential in VMware Aria Operations
+
+        .EXAMPLE
+        Add-vROPSNsxCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -serviceUser svc-iom-nsx@sfo.rainpole.io -servicePassword VMw@re1!
+        This example adds an NSX credential to VMware Aria Operations
+
+        .EXAMPLE
+        Add-vROPSNsxCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -certificate -certificateData sfo-m01-nsx01.cer -certificateKey sfo-m01-nsx01.key
+        This example adds an NSX Principal Identity as a client certificate credential to VMware Aria Operations
+    #>
+
+    [CmdletBinding(DefaultParametersetName = "credential")][OutputType('System.Management.Automation.PSObject')]
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $false, ParameterSetName = "credential")] [ValidateNotNullOrEmpty()] [String]$serviceUser,
+        [Parameter (Mandatory = $false, ParameterSetName = "credential")] [ValidateNotNullOrEmpty()] [String]$servicePassword,
+        [Parameter (Mandatory = $false, ParameterSetName = "certificate")] [ValidateNotNullOrEmpty()] [Switch]$certificate,
+        [Parameter (Mandatory = $false, ParameterSetName = "certificate")] [ValidateNotNullOrEmpty()] [String]$certificateData,
+        [Parameter (Mandatory = $false, ParameterSetName = "certificate")] [ValidateNotNullOrEmpty()] [String]$certificateKey
+    )
+
+    Try {
+        if ($PSBoundParameters.ContainsKey('certificate')) {
+            if (!$PsBoundParameters.ContainsKey("certificateData")) {
+                $Global:certificateData = Get-ExternalFileName -title "Select the NSX Manager Certificate File (.cer)" -fileType "cer" -location "default"
+                
+            } else {
+                if (!(Test-Path -Path $certificateData)) {
+                    Write-Error  "Certificate (cer) for NSX Credential ($certificateData) File Not Found"
+                    Break
+                }
+            }
+            if (!$PsBoundParameters.ContainsKey("certificateKey")) {
+                $Global:certificateKey = Get-ExternalFileName -title "Select the NSX Manager Certificate File (.key)" -fileType "key" -location "default"
+            } else {
+                if (!(Test-Path -Path $certificateKey)) {
+                    Write-Error  "Certificate (key) for NSX Credential ($certificateKey) File Not Found"
+                    Break
+                }
+            }
+            if (Test-Path -Path $certificateData) {
+                $dataFile = (Get-Content -Path $certificateData) -join "\n"
+            }
+            if (Test-Path -Path $certificateKey) {
+                $keyFile = (Get-Content -Path $certificateKey) -join "\n"
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                        if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                            if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                                $credentialName = "NSX Credential - " + (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}).nsxtCluster.vipfqdn.Split('.')[-0]     
+                                if (!(Get-vROPSCredential | Where-Object {$_.name -eq $credentialName})) {
+                                    if ($PSBoundParameters.ContainsKey('credential')) {
+                                        $credentialType = "NSX Credential"
+                                        $credentialJson = '{
+                                            "name": "'+ $credentialName +'",
+                                            "adapterKindKey": "NSXTAdapter",
+                                            "credentialKindKey": "NSXTCREDENTIAL",
+                                            "fields": [
+                                                {
+                                                    "name": "USERNAME",
+                                                    "value": "'+ $serviceUser +'"
+                                                },
+                                                {
+                                                    "name": "PASSWORD",
+                                                    "value": "'+ $servicePassword +'"
+                                                }
+                                        ]}'
+                                    } elseif ($PSBoundParameters.ContainsKey('certificate')) {
+                                        $credentialType = "NSX Client Certificate Credential"
+                                        $credentialJson = '{
+                                            "name": "'+ $credentialName +'",
+                                            "adapterKindKey": "NSXTAdapter",
+                                            "credentialKindKey": "CERTIFICATE_CREDENTIAL",
+                                            "fields": [
+                                                {
+                                                    "name": "CLIENT_CERT_DATA",
+                                                    "value": "'+ $dataFile +'"
+                                                },
+                                                {
+                                                    "name": "CLIENT_KEY_DATA",
+                                                    "value": "'+ $keyFile +'"
+                                                }
+                                        ]}'
+                                    }
+                                    $credentialJson | Out-File .\addCredential.json
+                                    Add-vROPSCredential -json .\addCredential.json | Out-Null
+                                    Remove-Item .\addCredential.json -Force -Confirm:$false
+                                    if (Get-vROPSCredential | Where-Object {$_.name -eq $credentialName}) {
+                                        Write-Output "Adding $credentialType to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding $credentialType to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Adding $credentialType to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), already exists: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vROPSNsxCredential
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
