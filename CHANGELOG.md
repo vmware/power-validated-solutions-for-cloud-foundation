@@ -2,13 +2,13 @@
 
 ## v2.7.0
 
-> Release Date: Unreleased
+> Release Date: 2023-11-07
 
 - Fixed issue where the embedded Harbor Registry failed to deploy on vSphere 8.0 and up on the following cmdlets:
   - `Enable-WMRegistry`
-  - `Get-WMRegsitry`
+  - `Get-WMRegistry`
   - `Remove-WMRegistry`
-  - `Get-WMRegsitryHealth`
+  - `Get-WMRegistryHealth`
 - Fixed `Add-NetworkSegment` cmdlet where it was unable to add a new overlay segment with NSX 4.1.2.
 - Fixed `New-vRSLCMDatacenterVcenter` cmdlet to wait for datacenter to be created before adding the vCenter.
 - Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
@@ -56,7 +56,6 @@
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.
 
-
 ## v2.6.0
 
 > Release Date: 2023-08-29
@@ -92,7 +91,7 @@
 - Added a temporary fix in `Add-NamespacePermission` cmdlet until issue with `New-WMNamespacePermission` is resolved.
 - Fixed `Install-SiteRecoveryManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
 - Fixed `Install-vSphereReplicationManager` cmdlet where an extra space was added to the path of the OVF Tool which fails in PowerShell Core.
-- Fixed `Request-SignedCertificate` cmdlet to use CIM cmdlets to verify the MSCA host instead of previously used WMI cmdlets which fail in PowerShell Core.
+- Fixed `Request-SignedCertificate` cmdlet to use CIM cmdlets to verify the Microsoft Certificate Authority host instead of previously used WMI cmdlets which fail in PowerShell Core.
 
 ## v2.5.0
 
@@ -147,7 +146,7 @@
 - Added `Invoke-VcenterCommand` cmdlet allows you to invoke any command line operation on a vCenter Server managed by SDDC Manager.
 - Added `vcdr-vsphere-integration.role` file for VMware Cloud Disaster Recovery to vSphere Integration.
 - Added `Get-ESXiAdminGroup` cmdlet to retrieve the ESXi Admin Group configuration for an ESXi host.
-- Added `Set-ESXiAdminGroup` cmdlet to configure the ESXi Admin Group configuation for an ESXi host.
+- Added `Set-ESXiAdminGroup` cmdlet to configure the ESXi Admin Group configuration for an ESXi host.
 - Added `New-NsxtTier0BgpNeighborConfig` cmdlet to configure or update a BGP neighbor config for NSX Tier-0 gateway.
 - Added `Get-NsxtLocaleService` cmdlet to get a paginated list of all Tier-0 locale-services.
 - Added `Get-VCenterCEIP` cmdlet to retrieve the current status of Customer Experience Improvement Program (CEIP) for vCenter Server.
@@ -210,7 +209,7 @@
 - Enhanced `Get-vRLIServerDetail` cmdlet with a synopsis and examples.
 - Added `Test-PowerValidatedSolutionsPrereq` cmdlet to perform a check for the installation of prerequisite PowerShell modules.
 - Added `Show-PowerValidatedSolutionsOutput` cmdlet to handle formatting of output to the console when PowerVCF is not installed.
-- Fixed `Get-GlobalPermission` cmdlet to correclty read the HTML response data.
+- Fixed `Get-GlobalPermission` cmdlet to correctly read the HTML response data.
 
 Deprecation
 
@@ -456,8 +455,8 @@ Deprecation
 - Added `Add-StorageFolder` cmdlet to support adding a storage folder in vCenter Server.
 - Updated `Export-vRLIJsonSpec` cmdlet to define vRealize Log Insight v8.8.2 as the default install for VCF 4.5.
 - Updated `Export-vRAJsonSpec` cmdlet to define vRealize Automation v8.8.2 as the default install for VCF 4.5.
-- Updated `Undo-vROPSAdapter` cmdlet to support removing VrAdpater and SrmAdapter adapter types from vRealize Operations.
-- Updated `Undo-vROPSCredential` cmdlet to support removing VrAdpater and SrmAdapter credentials from vRealize Operations.
+- Updated `Undo-vROPSAdapter` cmdlet to support removing VrAdapter and SrmAdapter adapter types from vRealize Operations.
+- Updated `Undo-vROPSCredential` cmdlet to support removing VrAdapter and SrmAdapter credentials from vRealize Operations.
 - Updated Sample Scripts in the SampleScripts\ila folder, to support the VCF 4.5.x Planning and Prep Workbook:
   - `ilaDeployVrealizeLogInsight.ps1`
   - `ilaConfigureVrealizeLogInsight.ps1`
@@ -496,7 +495,7 @@ Deprecation
 - Enhanced `Update-vRACloudAccountZone` and `Update-vRACloudZone` cmdlets to support placement policy for cloud zones in vRealize Automation.
 - Enhanced `Confirm-PSModule` cmdlet so its an exported function and can be executed on the command line.
 - Enhanced `Enable-vROPSManagementPack` cmdlet to support Site Recovery Manager and vSphere Replication Management Packs.
-- Renamed to `Get-CSPPoxyAppliance` cmdlet to `Get-CloudProxy` and added:
+- Renamed to `Get-CSPProxyAppliance` cmdlet to `Get-CloudProxy` and added:
   - `-environment` switch to support Production and Staging VMC
   - Support for both Cloud Proxy and Cloud Extensibility Proxy.
   - Support for either downloading or simply providing the URL path.
@@ -553,7 +552,7 @@ Deprecation
 - Added `Add-vROPSAdapterIdentityManager` cmdlet to support adding a new Identity Manager Adapter in vRealize Operations Manager.
 - Added `Undo-vROPSAdapter` cmdlet to support the removal of an Adapter from vRealize Operations Manager.
 - Added `Undo-vROPSCredential` cmdlet to support the removal of an Adapter Credential from vRealize Operations Manager.
-- Added `Update-vROPSAdapterCollecterGroup` cmdlet tto support updating the collector group for an Adapter in vRealize Operations Manager
+- Added `Update-vROPSAdapterCollectorGroup` cmdlet tto support updating the collector group for an Adapter in vRealize Operations Manager
 - Added `Set-vRADnsConfig` cmdlet to configure the DNS server(s) and DNS search domain(s) on vRealize Automation to use custom settings.
 - Added `Undo-vRADnsConfig` cmdlet to revert the DNS configuration of vRealize Automation to match SDDC Manager.
 - Added `Set-vRANtpConfig` cmdlet to configure the NTP server(s) on vRealize Automation to use custom settings.
