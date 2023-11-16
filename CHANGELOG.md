@@ -13,6 +13,7 @@
 - Fixed `New-vRSLCMDatacenterVcenter` cmdlet to wait for datacenter to be created before adding the vCenter.
 - Added `Add-vROPSVcfCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
 - Added `Add-vROPSVcenterCredential` cmdlet to create a VMware Cloud Foundation credential in VMware Aria Operations.
+- Added `Add-vROPSNsxCredential` cmdlet to create a an NSX credential in VMware Aria Operations.
 - Added `Get-NsxtLdap` cmdlet to retrieve LDAP identity providers from NSX Manager.
 - Added `Remove-NsxtLdap` cmdlet to remove an LDAP identity provider from NSX Manager.
 - Added `New-NsxtLdap` cmdlet to create an LDAP/LDAPS Identity Source in NSX Manager.
