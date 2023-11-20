@@ -16268,7 +16268,8 @@ Function Get-vCenterServerDetail {
                     $vcfWorkloadDomainDetails = Get-VCFWorkloadDomain | Where-Object { $_.name -eq $domain }
                 }
                 if ($vcfWorkloadDomainDetails) {
-                    $vcfDetail = Get-VCFManager
+                    #$vcfDetail = Get-VCFManager
+                    $vcfDetail = Get-VCFRelease -domainId $vcfWorkloadDomainDetails.id
                     $vcenterServerDetails = Get-VCFvCenter | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.vcenters.id) }
                     $vcenterCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($vcenterServerDetails.id) }
                     if ( ($vcfDetail.version).Split("-")[0] -ge "4.5.0.0") {
