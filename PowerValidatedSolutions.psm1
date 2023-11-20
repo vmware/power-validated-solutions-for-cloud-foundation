@@ -82,7 +82,7 @@ Function Export-IamJsonSpec {
             'domainBindUser'                = ($pnpWorkbook.Workbook.Names["iam_ad_bind_username"].Value -Split ("@"))[0]
             'domainBindPass'                = $pnpWorkbook.Workbook.Names["iam_ad_bind_username_password"].Value
             'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-            'baseGroupDn'                   = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value 
+            'baseGroupDn'                   = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
             'baseUserDn'                    = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
             'vcenterAdConnectionType'       = (($pnpWorkbook.Workbook.Names["iam_ad_connection_type"].Value -Split ("://"))[0]).ToUpper()
             'vcenterAdminGroup'             = $pnpWorkbook.Workbook.Names["group_gg_vc_admins"].Value
