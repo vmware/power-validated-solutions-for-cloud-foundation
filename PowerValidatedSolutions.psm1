@@ -244,7 +244,7 @@ Function Invoke-IamDeployment {
 
                 Show-PowerValidatedSolutionsOutput -message  "Replacing the Certificate of the Standalone Workspace ONE Access Instance"
                 $StatusMsg = Install-WorkspaceOneCertificate -server $iamInput.sddcManagerFqdn -user $iamInput.sddcManagerUser -pass $iamInput.sddcManagerPass -wsaFqdn $iamInput.wsaFqdn -rootPass $iamInput.wsaRootPassword -sshUserPass $iamInput.wsaSshUserPassword -rootCa $rootCertificate -wsaCertKey $wsaCertificateKey -wsaCert $wsaCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; Start-Sleep 30 } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; Start-Sleep 40 } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                 Show-PowerValidatedSolutionsOutput -message "Configuring Identity Source for the Standalone Workspace ONE Access Instance"
                 if ($iamInput.vcenterAdConnectionType -eq "LDAPS") {
@@ -15608,7 +15608,7 @@ Function Import-vRSLCMLockerCertificate {
                                     Write-Error "Importing Certificate to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Importing Certificate to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), already exist: SKIPPED"
+                                Write-Warning "Importing Certificate to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($certificateAlias), already exists: SKIPPED"
                             }
                         }
                     }
