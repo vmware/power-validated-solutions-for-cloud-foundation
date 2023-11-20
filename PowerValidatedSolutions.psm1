@@ -136,7 +136,7 @@ Function Invoke-IamDeployment {
 
         .EXAMPLE
         Invoke-IamDeployment -jsonFile .\iamSpec.json -certificates "F:\VMware.PlatformTools\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
-        This example creates configures the Identity and Access Management using JSON spec supplied
+        This example configures Identity and Access Management using JSON spec supplied
     #>
 
     Param (
