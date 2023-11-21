@@ -437,7 +437,7 @@ Function Invoke-UndoIamDeployment {
                     }
                 }
 
-                Write-Output "Removing Active Directory as Identity Provider from vCenter Server"
+                Show-PowerValidatedSolutionsOutput -message "Removing Active Directory as Identity Provider from vCenter Server"
                 foreach ($sddcDomain in $allWorkloadDomains) {
                     if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                         $StatusMsg = Undo-IdentitySource -server $iamInput.sddcManagerFqdn -user $iamInput.sddcManagerUser -pass $iamInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $iamInput.domainFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -1707,6 +1707,138 @@ Function Add-WorkspaceOneRole {
     }
 }
 Export-ModuleMember -Function Add-WorkspaceOneRole
+
+Function Add-NsxtIdentitySource {
+    <#
+		.SYNOPSIS
+        Add Active Directory over LDAP/LDAPS as an Identity Provider to NSX Manager
+
+        .DESCRIPTION
+        The Add-NsxtIdentitySource cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the NSX
+        Managr. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Verifies a connection to the Active Directory Domain Controller using the -domain and -dcMachineName values
+        - Adds the Active Directory Domain as an Identity Provider if not already present
+
+        .EXAMPLE
+        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
+        This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAP
+
+        .EXAMPLE
+        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
+        This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAPS
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dcMachineName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDn,
+        [Parameter (Mandatory = $true)] [ValidateSet("ldap", "ldaps")] [String]$protocol,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificate
+    )
+
+    if (!$PsBoundParameters.ContainsKey("certificate") -and ($protocol -eq "ldaps")) {
+        $certificate = Get-ExternalFileName -title "Select the Root CA Certificate File (.cer)" -fileType "cer" -location "default"
+    } elseif ($protocol -eq "ldaps") {
+        if (!(Test-Path -Path $certificate)) {
+            Write-Error  "Certificate (cer) for Root Certificate Authority '$certificate' File Not Found"
+            Break
+        }
+    }
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
+                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                            if (!(Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain })) {
+                                if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
+                                    if ($protocol -eq "ldaps") {
+                                        New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAPS -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass -certificate $certificate | Out-Null
+                                    } else {
+                                        New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAP -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass | Out-Null
+                                    }
+                                    if (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }) {
+                                        Write-Output "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain), already exists: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtIdentitySource
+
+Function Undo-NsxtIdentitySource {
+    <#
+		.SYNOPSIS
+        Remove Active Directory over LDAP/LDAPS as an Identity Provider from NSX Manager
+
+        .DESCRIPTION
+        The Undo-NsxtIdentitySource cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from NSX
+        Managr. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes the Active Directory Domain as an Identity Provider if present
+
+        .EXAMPLE
+        Undo-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io
+        This example removes the sfo.rainpole.io domain as an Identity Provider from NSX Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
+                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                            if (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }) {
+                                Remove-NsxtLdap -id (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }).id | Out-Null
+                                if (!(Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain })) {
+                                    Write-Output "Removing Identity Source from NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Identity Source from NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing Identity Source from NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain), already removed: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtIdentitySource
 
 #EndRegion                                  E N D  O F  F U N C T I O N S                                   ########### 
 #######################################################################################################################
@@ -16776,8 +16908,7 @@ Function Get-NsxtServerDetail {
                     $nsxtCluster
                 }
                 else {
-                    Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                    Break
+                    Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($fqdn): PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -20233,7 +20364,7 @@ Function Remove-NsxtLdap {
         The Remove-NsxtLdap cmdlet removes an LDAP identity source
 
         .EXAMPLE
-        Remove-NsxtLdap -id sfo
+        Remove-NsxtLdap -id sfo.rainpole.io
         This example deletes an LDAP identity source 
     #>
 

@@ -14,6 +14,8 @@
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
 - Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
 - Added `Invoke-UndoIamDeployment` cmdlet to perform removal of  Identify and Access Management.
+- Added `Add-NsxtIdentitySource` cmdlet to add LDAP/LDAPS Identity Source to NSX Manager.
+- Added `Undo-NsxtIdentitySource` cmdlet to remove LDAP/LDAPS Identity Source from NSX Manager.
 
 ## v2.7.1
 
