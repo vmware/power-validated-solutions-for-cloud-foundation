@@ -10,6 +10,7 @@
 - Fixed `Add-WorkspaceOneRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
 - Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
+- Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
 - Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
 - Added `Invoke-UndoIamDeployment` cmdlet to perform removal of  Identify and Access Management.
