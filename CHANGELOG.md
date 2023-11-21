@@ -1,5 +1,19 @@
 # Release History
 
+## v2.8.0
+
+> Release Date: (Un-Released)
+
+- Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
+- Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
+- Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
+- Fixed `Add-WorkspaceOneRole` cmdlet where a blank line is returned due to no API response data.
+- Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
+- Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
+- Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
+- Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
+- Added `Invoke-UndoIamDeployment` cmdlet to perform removal of  Identify and Access Management.
+
 ## v2.7.1
 
 > Release Date: 2023-11-21
