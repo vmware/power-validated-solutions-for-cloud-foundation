@@ -2,7 +2,7 @@
 
 ## v2.7.1
 
-> Release Date: 2023-11-20
+> Release Date: 2023-11-21
 
 - Fixed `Get-vCenterServerDetail` cmdlet where partial upgrade of specific versions of a VMware Cloud Foundation instance cause blank vCenter Server credentials to be returned.
 
