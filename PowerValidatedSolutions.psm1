@@ -9595,12 +9595,7 @@ Function Export-vROPsJsonSpec {
                                                 $masterProperties | Add-Member -notepropertyname 'vCenterName' -notepropertyvalue ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
                                                 $masterProperties | Add-Member -notepropertyname 'vcUsername' -notepropertyvalue $vcCredentials.userName
                                                 $masterProperties | Add-Member -notepropertyname 'vcPassword' -notepropertyvalue ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                if ($null -eq $pnpWorkbook.Workbook.Names["xregion_ntp2_server"].Value) {
-                                                    $masterProperties | Add-Member -notepropertyname 'ntp' -notepropertyvalue $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                                                }
-                                                else {
-                                                    $masterProperties | Add-Member -notepropertyname 'ntp' -notepropertyvalue ($pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value + "," + $pnpWorkbook.Workbook.Names["xregion_ntp2_server"].Value)
-                                                }
+                                                $masterProperties | Add-Member -notepropertyname 'ntp' -notepropertyvalue $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
                                                 if ($vcfVersion -eq "4.4.0") {
                                                     $masterProperties | Add-Member -notepropertyname 'extendedStorage' -notepropertyvalue $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
                                                 }
@@ -9630,7 +9625,7 @@ Function Export-vROPsJsonSpec {
                                                     'ip'		    = $pnpWorkbook.Workbook.Names["region_vropsca_ip"].Value
                                                     'deployOption'  = $deployOption
                                                     'gateway'       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                                                     'searchpath'    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                                                     'dns'           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                                                     'netmask'       = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
@@ -9652,7 +9647,7 @@ Function Export-vROPsJsonSpec {
                                                     'ip'		= $pnpWorkbook.Workbook.Names["region_vropscb_ip"].Value
                                                     'deployOption'  = $deployOption
                                                     'gateway'       = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                    'domain'        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                                                     'searchpath'    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                                                     'dns'           = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
                                                     'netmask'       = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
