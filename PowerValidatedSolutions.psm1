@@ -40,7 +40,7 @@ if ($PSEdition -eq 'Desktop') {
 #######################################################################################################################
 #Region             I D E N T I T Y  A N D  A C C E S S  M A N A G E M E N T  F U N C T I O N S             ###########
 
-Function Export-IamJsonSpec {
+Function Export-IamJsonSpec {Install-vRLIPhotonAgent
     <#
         .SYNOPSIS
         Create JSON specification for Identity and Access Management
@@ -274,7 +274,7 @@ Function Invoke-IamDeployment {
                 Show-PowerValidatedSolutionsOutput -message "Integrating NSX Manager with the Standalone Workspace ONE Access Instance"
                 foreach ($sddcDomain in $allWorkloadDomains) {
                     $StatusMsg = Set-WorkspaceOneNsxtIntegration -server $iamInput.sddcManagerFqdn -user $iamInput.sddcManagerUser -pass $iamInput.sddcManagerPass -domain $sddcDomain.name -wsaFqdn $iamInput.wsaFqdn -wsaUser admin -wsaPass $iamInput.wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                    if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($sddcDomain): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
                 }
 
                 Show-PowerValidatedSolutionsOutput -message "Assigning NSX Manager Roles to Active Directory Groups"
@@ -1638,20 +1638,20 @@ Export-ModuleMember -Function Undo-NsxtVidmRole
 Function Add-WorkspaceOneRole {
     <#
         .SYNOPSIS
-        Assign Active Directory Groups to Roles in the Workspace ONE Access
+        Assign Active Directory Groups to Roles in Workspace ONE Access
 
         .DESCRIPTION
         The Add-WorkspaceOneRole cmdlet assigns roles to Active Directory groups provided to manage administrative
-        access to the Workspace ONE Access instance. The cmdlet connects to SDDC Manager using the -server, -user,
-        and -password values:
+        access to the Workspace ONE Access instance. The cmdlet connects to Workspace ONE Access using the -server,
+        -user, and -password values:
         - Validates that network connectivity and authentication is possible to Workspace ONE Access
         - Validates the role exists in Workspace ONE Access
-        - Validates the group exists in Workspace ONE Access
-        - Assign the role to the group
+        - Validates the Active Directory group exists in Workspace ONE Access
+        - Assigns the role to the Active Directory group
 
         .EXAMPLE
         Add-WorkspaceOneRole -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -group "gg-wsa-admins" -role "Super Admin"
-        This example adds the group gg-wsa-admins the Super Admin role
+        This example adds the Active Directory group gg-wsa-admins to the Super Admin role
     #>
 
     Param (
@@ -1665,40 +1665,26 @@ Function Add-WorkspaceOneRole {
     Try {
         if (Test-WSAConnection -server $server) {
             if (Test-WSAAuthentication -server $server -user $user -pass $pass) {
-                $roleId = Get-WSARoleId -role $role
-                if (!$roleId) {
-                    Write-Error "Unable to find role id ($roleId) for role ($role) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
-                } else {
-                    $groupDetails = Get-WSAActiveDirectoryGroupDetail -group $group
-                    $groupId = $groupDetails.Resources.id
-                    if (!$groupId) {
-                        Write-Error "Unable to find the group ($group) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
-                    } else {
-                        $associations = Get-WSARoleAssociation -roleId $roleId
-                        $assign = $true
-                        if ($associations.groups) {
-                            if ($associations.groups -contains $groupId) {
-                                Write-Warning "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server), already exists: SKIPPED"
-                                $assign = $false
-                            }
-                        }
-                        if ($assign) {
+                if (Get-WSARoleId -role $role) {
+                    if (((Get-WSAActiveDirectoryGroupDetail -group $group).Resources.displayName).Split('@')[0] -eq $group) {
+                        if (!(Get-WSARoleAssociation -roleId (Get-WSARoleId -role $role)).groups -contains (Get-WSAActiveDirectoryGroupDetail -group $group).Resources.id) {
                             if ($role -ne "ReadOnly Admin") {
-                                Write-Output "Update the Administrator Role Member with ($group) group"
-                                $administratorRole = Get-WsaRole | Where-Object { $_.displayName -eq "Administrator" }
-                                $adminId =  $administratorRole.id
-                                Set-WSARoleMember -groupId $groupId -id $adminId | Out-Null
+                                Set-WSARoleMember -groupId (Get-WSAActiveDirectoryGroupDetail -group $group).Resources.id -id (Get-WsaRole | Where-Object {$_.displayName -eq "Administrator"}).id | Out-Null
                             }
-                            $response = Add-WSARoleAssociation -roleId $roleId -groupId $groupId
-                            if ($response.operations.code -eq "200") {
+                            Add-WSARoleAssociation -roleId (Get-WSARoleId -role $role) -groupId (Get-WSAActiveDirectoryGroupDetail -group $group).Resources.id | Out-Null
+                            if ((Get-WSARoleAssociation -roleId (Get-WSARoleId -role $role)).groups -eq (Get-WSAActiveDirectoryGroupDetail -group $group).Resources.id) {
                                 Write-Output "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server): SUCCESSFUL"
-                            } elseif ($response.operations.code -eq "409") {
-                                Write-Warning "$($response.operations.reason)"
                             } else {
-                                Write-Error "$($response.operations.reason)"
+                                Write-Error "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server): POST_VALIDATION_FAILED"
                             }
+                        } else {
+                            Write-Warning "Assigning group ($group) to role ($role) in Workspace ONE Access Instance ($server), already exists: SKIPPED"
                         }
+                    } else {
+                        Write-Error "Unable to find the group ($group) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
                     }
+                } else {
+                    Write-Error "Unable to find role ($role) in Workspace ONE Access Instance ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
@@ -19410,45 +19396,38 @@ Export-ModuleMember -Function Set-WSASmtpConfiguration
 Function Set-WSARoleMember {
     <#
 		.SYNOPSIS
-    	Set WSA Role Member
+        Set Workspace ONE Access Role Member
 
-    	.DESCRIPTION
-    	The Set-WSARoleMember cmdlets updates the Role with the given group
+        .DESCRIPTION
+        The Set-WSARoleMember cmdlets updates a Workspace ONE Access role with the given group
 
-    	.EXAMPLE
-    	Set-WSARoleMember -id 55048dee-fe1b-404a-936d-3e0b86a7209e -groupId fe515568-fdcd-43c7-9971-e834d7246203
-        This example updates the Role with the given GroupId in Workspace ONE Access
-  	#>
+        EXAMPLE
+        Set-WSARoleMember -id 55048dee-fe1b-404a-936d-3e0b86a7209e -groupId fe515568-fdcd-43c7-9971-e834d7246203
+        This example updates a Workspace ONE Access role with the given GroupId
+    #>
 
 	Param (
-	    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId
     )
 
 	Try {
 		$wsaHeaders = @{"Content-Type" = "application/json" }
 		$wsaHeaders.Add("Authorization", "$sessionToken")
-		if ($PsBoundParameters.ContainsKey("id")) {
+		#if ($PsBoundParameters.ContainsKey("id")) {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Roles/$id"
-
-			   $json = @"
-						{
-				  "schemas": [
-					"urn:scim:schemas:core:1.0"
-				  ],
-				  "members": [
-					{
-					  "value": "$groupId",
-					  "type": "Group"
-					}
-				  ]
-				}
-"@
-			$response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -body $json -headers $wsaHeaders
-            $response
-		}
-	}
-    Catch {
+            $json = '{
+                "schemas": [
+                    "urn:scim:schemas:core:1.0"
+                ],
+                "members": [ {
+                    "value": "$groupId",
+                    "type": "Group"
+				}]
+            }'
+			Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -body $json -headers $wsaHeaders
+		#}
+	} Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19749,47 +19728,47 @@ Function Add-WSARoleAssociation {
 Export-ModuleMember -Function Add-WSARoleAssociation
 
 Function Get-WSARoleId {
-   <#
-       .SYNOPSIS
-       Get role id for role name
+    <#
+        .SYNOPSIS
+        Get role id for role name from Workspace ONE Access
 
-       .DESCRIPTION
-       Get the role id corresponding to the given role name
+        .DESCRIPTION
+        The Get-WSARoleId cmdlets gets the role id corresponding to a given role name from Workspace One Access
 
-       .EXAMPLE
-       Get-WSARoleId -role "Super Admin"
-       This retrieves the id for the Super Admin role
-   #>
+        .EXAMPLE
+        Get-WSARoleId -role "Super Admin"
+        This example retrieves the rile id for the Super Admin role
+    #>
 
-   Param (
-       [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role
-   )
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role
+    )
 
-   Try {
-       $wsaHeaders = @{"Content-Type" = "application/json" }
-       $wsaHeaders.Add("Authorization", "$sessionToken")
-       $uri = "https://$workSpaceOne/acs/rulesets"
-       $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
-       $roledetails = $response.items | Where-Object {$_.name -eq $role}
-       $roleId=$roledetails._links.self.href.split('/')[3]
-       $roleId
-   }
-   Catch {
-       Write-Error $_.Exception.Message
-   }
+    Try {
+        $wsaHeaders = @{"Content-Type" = "application/json" }
+        $wsaHeaders.Add("Authorization", "$sessionToken")
+        $uri = "https://$workSpaceOne/acs/rulesets"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
+        $roledetails = $response.items | Where-Object {$_.name -eq $role}
+        $roleId=$roledetails._links.self.href.split('/')[3]
+        $roleId
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 Export-ModuleMember -Function Get-WSARoleId
 
 Function Get-WSAActiveDirectoryGroupDetail {
     <#
         .SYNOPSIS
-        Get details of the given Active Directory group
+        Get details for an Active Directory group in Workspace ONE Access
 
         .DESCRIPTION
-        Get details from Workspace ONE Access of the given Active Directory group
+        The Get-WSAActiveDirectoryGroupDetail cmdlets gets details from Workspace ONE Access for the given Active Directory group
 
         .EXAMPLE
         Get-WSAActiveDirectoryGroupDetail -group "gg-wsa-admins"
+        This example gets the details for the Active Directory group 'gg-wsa-admins'
     #>
 
     Param (
@@ -19818,10 +19797,12 @@ Function Get-WSARoleAssociation {
         Get associations for the given Role Id
 
         .DESCRIPTION
-        Get details of associations for the given Role Id. This has details of the groups associated with a role.
+        The Get-WSARoleAssociation retrieves the associations for the given Role Id from Workspace ONE Access.
+        This includes details of the groups associated with the ole.
 
         .EXAMPLE
         Get-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010"
+        This example retrieves the associations based on the role Id provided
     #>
 
     Param (
@@ -20563,29 +20544,50 @@ Function Set-NsxtRole {
         The Set-NsxtRole cmdlet assigns users/groups to roles
 
         .EXAMPLE
-        Set-NsxtRole -principle "gg-nsx-enterprise-admins@sfo.rainpole.io" -type remote_group -role enterprise_admin -identitySource LDAP
-        This example assigned the provided group the Enterprise Admin role
+        Set-NsxtRole -principal "gg-nsx-enterprise-admins@sfo.rainpole.io" -type remote_group -role enterprise_admin -identitySource LDAP -domain sfo.rainpole.io
+        This example assigned the Enterprise Admin role to usee from LDAP Identity Provider
+
+        .EXAMPLE
+        Set-NsxtRole -principal "gg-nsx-enterprise-admins@sfo.rainpole.io" -type remote_group -role enterprise_admin -identitySource VIDM
+        This example assigned the Enterprise Admin role to usee from Workspace ONE Access Identity Provider
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
         [Parameter (Mandatory = $true)] [ValidateSet("remote_group", "remote_user")] [String]$type,
         [Parameter (Mandatory = $true)] [ValidateSet("lb_admin", "security_engineer", "vpn_admin", "network_op", "netx_partner_admin", "gi_partner_admin", "security_op", "network_engineer", "lb_auditor", "auditor", "enterprise_admin")] [String]$role,
-        [Parameter (Mandatory = $true)] [ValidateSet("LDAP", "VIDM", "OIDC")] [String]$identitySource
+        [Parameter (Mandatory = $true)] [ValidateSet("LDAP", "VIDM", "OIDC")] [String]$identitySource,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$domain
     )
 
     Try {
+        if ($PsBoundParameters.ContainsKey("identitySource") -eq "LDAP") {
+            $identitySourceId = (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }).id
+            $global:body = '{
+                "name": "' + $principal + '",
+                "type": "' + $type + '",
+                "identity_source_type": "' + $identitySource + '",
+                "identity_source_id": "' + $identitySourceId + '",
+                "roles": [
+                        {
+                            "role": "' + $role + '"
+                        }
+                    ]
+                }'
+        } else {
+            $body = '{
+                "name": "' + $principal + '",
+                "type": "' + $type + '",
+                "identity_source_type": "' + $identitySource + '"
+                "roles": [
+                        {
+                            "role": "' + $role + '"
+                        }
+                    ]
+                }'
+        }
         $uri = "https://$nsxtManager/api/v1/aaa/role-bindings"
-        $body = '{
-            "name": "' + $principal + '",
-            "type": "' + $type + '",
-            "identity_source_type": "' + $identitySource + '",
-            "roles": [
-                    {
-                        "role": "' + $role + '"
-                    }
-                ]
-            }'
+        
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -Body $body
         $response
     } Catch {

@@ -16,6 +16,7 @@
 - Added `Invoke-UndoIamDeployment` cmdlet to perform removal of  Identify and Access Management.
 - Added `Add-NsxtIdentitySource` cmdlet to add LDAP/LDAPS Identity Source to NSX Manager.
 - Added `Undo-NsxtIdentitySource` cmdlet to remove LDAP/LDAPS Identity Source from NSX Manager.
+- Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 
 ## v2.7.1
 
