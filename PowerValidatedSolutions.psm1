@@ -280,7 +280,7 @@ Function Invoke-IamDeployment {
                 Show-PowerValidatedSolutionsOutput -message "Integrating NSX Manager with the Standalone Workspace ONE Access Instance"
                 foreach ($sddcDomain in $allWorkloadDomains) {
                     $StatusMsg = Set-WorkspaceOneNsxtIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -wsaFqdn $jsonInput.wsaFqdn -wsaUser admin -wsaPass $jsonInput.wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($sddcDomain): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
+                    if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($($sddcDomain.name)): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
                 }
 
                 Show-PowerValidatedSolutionsOutput -message "Assigning NSX Manager Roles to Active Directory Groups"
@@ -1714,11 +1714,11 @@ Function Add-NsxtIdentitySource {
         - Adds the Active Directory Domain as an Identity Provider if not already present
 
         .EXAMPLE
-        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
+        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
         This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAP
 
         .EXAMPLE
-        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName dc-sfo01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
+        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
         This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAPS
     #>
 
@@ -7870,7 +7870,7 @@ Function Invoke-IlaDeployment {
                 } else {
                     $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 }
-                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg; $ErrorMsg = $null } if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
+                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg; $ErrorMsg = $null } if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; Break }
                 if ( $StatusMsg -match "FAILED" ) { Break }
 
                 Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folder for $logsProductName"
@@ -20925,7 +20925,7 @@ Function Set-NsxtRole {
     Try {
         if ($PsBoundParameters.ContainsKey("identitySource") -eq "LDAP") {
             $identitySourceId = (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }).id
-            $global:body = '{
+            $body = '{
                 "name": "' + $principal + '",
                 "type": "' + $type + '",
                 "identity_source_type": "' + $identitySource + '",
@@ -20949,9 +20949,7 @@ Function Set-NsxtRole {
                 }'
         }
         $uri = "https://$nsxtManager/api/v1/aaa/role-bindings"
-        
-        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -Body $body
-        $response
+        Invoke-RestMethod $uri -Method 'POST' -Headers $nsxtHeaders -Body $body
     } Catch {
         Write-Error $_.Exception.Message
     }

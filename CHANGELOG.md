@@ -21,6 +21,7 @@
 - Added `Invoke-UndoIlaDeployment` cmdlet to perform removal of Intelligent Logging and Analytics.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
+- Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
 
 ## v2.7.1
 
