@@ -1641,6 +1641,123 @@ Function Undo-NsxtVidmRole {
 }
 Export-ModuleMember -Function Undo-NsxtVidmRole
 
+Function Add-NsxtLdapRole {
+    <#
+        .SYNOPSIS
+        Assign an LDAP user/group with role-based access control in NSX Manager
+
+        .DESCRIPTION
+        The Add-NsxtLdapRole cmdlet asignes role assignments in NSX Manager for LDAP users/groups. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Assigns Active Directory of LDAP users or groups to NSX Manager roles based on the -type, -principal, and -role values. 
+
+        .EXAMPLE
+        Add-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type group -principal "gg-nsx-enterprise-admins@sfo.rainpole.io" -role enterprise_admin
+        This example assigns the LDAP group gg-nsx-enterprise-admins@sfo.rainpole.io with the enterprise_admin role in NSX Manager
+
+        .EXAMPLE
+        Add-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type user -principal "svc-vcf-ca@sfo.rainpole.io" -role enterprise_admin
+        This example assigns the LDAP user svc-vra-nsx@rainpole.io with the enterprise_admin role in NSX Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
+        [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateSet("auditor", "enterprise_admin", "gi_partner_admin", "lb_admin", "lb_auditor", "network_engineer", "network_op", "netx_partner_admin", "security_engineer", "security_op", "vpn_admin")] [string]$role
+    )
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                if (!((Get-NsxtUser | Where-Object {$_.type -eq ("remote_$type")}) -and (Get-NsxtUser | Where-Object {$_.display_name -eq $principal}) -and (Get-NsxtUser | Where-Object {$_.identity_source_type -eq "LDAP"}))) {
+                                    Set-NsxtRole -principal $principal -type remote_$type -role $role -identitySource LDAP -domain $domain | Out-Null
+                                    if ((Get-NsxtUser | Where-Object {$_.type -eq ("remote_$type")}) -and (Get-NsxtUser | Where-Object {$_.display_name -eq $principal}) -and (Get-NsxtUser | Where-Object {$_.identity_source_type -eq "LDAP"})) {
+                                        Write-Output "Assigning LDAP $type ($principal) the role ($role) in NSX for Workload Domain ($domain): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Assigning LDAP $type ($principal) the role ($role) in NSX for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                        }
+                                } else {
+                                    Write-Warning "Assigning LDAP $type ($principal) the role ($role) in NSX for Workload Domain ($domain), already exists: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtLdapRole
+
+Function Undo-NsxtLdapRole {
+    <#
+        .SYNOPSIS
+        Remove an LDAP user/group role-based access control from NSX Manager
+
+        .DESCRIPTION
+        The Undo-NsxtLdapRole cmdlet removes role assignments in NSX Manager for LDAP users/groups. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes user or group's from NSX Manager roles based on the -principal 
+
+        .EXAMPLE
+        Undo-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
+        This example removes the group gg-nsx-enterprise-admins@sfo.rainpole.io from NSX Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                if ((Get-NsxtUser | Where-Object {$_.display_name -eq $principal}) -and (Get-NsxtUser | Where-Object {$_.identity_source_type -eq "LDAP"})) {
+                                    Remove-NsxtRole -id (Get-NsxtUser | Where-Object { $_.name -eq $principal }).id | Out-Null
+                                    if (!((Get-NsxtUser | Where-Object {$_.display_name -eq $principal}) -and (Get-NsxtUser | Where-Object {$_.identity_source_type -eq "LDAP"}))) {
+                                        Write-Output "Removing LDAP access for ($principal) from NSX for Workload Domain ($domain): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Removing LDAP access for ($principal) from NSX for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Removing LDAPaccess for ($principal) from NSX for Workload Domain ($domain), already removed: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtLdapRole
+
 Function Add-WorkspaceOneRole {
     <#
         .SYNOPSIS
