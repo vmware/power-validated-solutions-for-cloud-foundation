@@ -11,6 +11,7 @@
 - Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
 - Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
 - Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
+- Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
 - Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
 - Added `Invoke-UndoIamDeployment` cmdlet to perform removal of Identify and Access Management.
@@ -20,6 +21,10 @@
 - Added `Invoke-IlaDeployment` cmdlet to perform an end-to-end deployment of Intelligent Logging and Analytics.
 - Added `Invoke-UndoIlaDeployment` cmdlet to perform removal of Intelligent Logging and Analytics.
 - Added `Undo-vRLIAuthenticationGroup` cmdlet to remove group assignments from VMware Aria Operations for Logs.
+- Added `Set-vRLIAuthenticationAD` cmdlet to configure Active Directory as an authentication provider in VMware Aria Operations for Logs.
+- Added `Remove-vRLIAuthenticationAD` cmdlet to disable Active Directory as an authentication provider in VMware Aria Operations for Logs.
+- Added `Add-vRLIAuthenticationAD` cmdlet to enable and configure Active Directory as an authentication provider in VMware Aria Operations for Logs.
+- Added `Undo-vRLIAuthenticationAD` cmdlet to disable Active Directory as an authentication provider in VMware Aria Operations for Logs.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
