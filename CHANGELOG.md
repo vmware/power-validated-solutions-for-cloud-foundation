@@ -19,9 +19,14 @@
 - Added `Export-IlaJsonSpec` cmdlet to generate a JSON specification file for Intelligent Logging and Analytics.
 - Added `Invoke-IlaDeployment` cmdlet to perform an end-to-end deployment of Intelligent Logging and Analytics.
 - Added `Invoke-UndoIlaDeployment` cmdlet to perform removal of Intelligent Logging and Analytics.
+- Added `Undo-vRLIAuthenticationGroup` cmdlet to remove group assignments from VMware Aria Operations for Logs.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
+- Enhanced `Get-vRLIGroup` cmdlet to support v2 API for retrieving group membership by authentication provider in VMware Aria Operations for Logs.
+- Enhanced `Add-vRLIGroup` cmdlet to support v2 API for adding group membership by authentication provider in VMware Aria Operations for Logs.
+- Enhanced `Remove-vRLIGroup` cmdlet to support v2 API for removing group membership by authentication provider in VMware Aria Operations for Logs.
+- Enhanced `Add-vRLIAuthenticationGroup` cmdlet to support updated `Add-vRLIGroup` cmdlet usage and Active Directory support.
 
 ## v2.7.1
 
