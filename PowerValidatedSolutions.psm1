@@ -8546,20 +8546,20 @@ Export-ModuleMember -Function Add-vRLISmtpConfiguration
 Function Add-vRLIAuthenticationWSA {
     <#
 		.SYNOPSIS
-        Configure VMware Aria Operations for Logs Intergration with Workspace ONE Access
+        Configure Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLIAuthenticationWSA cmdlet configures role assignments in NSX Manager. The cmdlet connects to SDDC
-        Manager using the -server, -user, and -password values.
+        The Add-vRLIAuthenticationWSA cmdlet configures Workspace ONE Access as an authentication source in VMware
+        Aria Operations for Logs. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
         - Validates that network connectivity is possible to Workspace ONE Access
-        - Configures Workspace ONE Access Integration on VMware Aria Operations for Logs if not already configured
+        - Configures Workspace ONE Access as an authentication source in VMware Aria Operations for Logs if not already configured
 
         .EXAMPLE
         Add-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example enables Workspace ONE Access integration on VMware Aria Suite Lifecycle
+        This example configures Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
     #>
 
     Param (
@@ -8604,6 +8604,122 @@ Function Add-vRLIAuthenticationWSA {
     }
 }
 Export-ModuleMember -Function Add-vRLIAuthenticationWSA
+
+Function Add-vRLIAuthenticationAD {
+    <#
+		.SYNOPSIS
+        Configure Active Directory as an authentication source for VMware Aria Operations for Logs
+
+        .DESCRIPTION
+        The Add-vRLIAuthenticationAD cmdlet configures Active Diretory as an authentication source in VMware Aria
+        Operations for Logs with an SSL connection. The cmdlet connects to SDDC Manager using the -server, -user,and
+        -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Validates that network connectivity is possible to Active Directory
+        - Configures Active Diretory as an authentication source in VMware Aria Operations for Logs
+
+        .EXAMPLE
+        Add-vRLIAuthenticationAD -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -domainServers sfo-ad01.sfo.rainpole.io
+        This example enables Active Directory as an authentication source in VMware Aria Operations for Logs
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$domainServers
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            foreach ($domainServer in $domainServers) {
+                                if (Test-Connection -ComputerName ($domainServer) -Quiet -Count 1) {
+                                    if ((Get-vRLIAuthenticationAD).enableAD -eq $false) {
+                                        Set-vRLIAuthenticationAD -domain $domain -domainServers $domainServers -domainBindUser $domainBindUser -domainBindPass $domainBindPass -connectionType CUSTOM -port 636 -requireSsl:$true | Out-Null
+                                        Start-Sleep 2
+                                        if ((Get-vRLIAuthenticationAD).enableAD -eq $true) {
+                                            Write-Output "Configuring Active Directory Authentication in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with for Domain ($domain): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Configuring Active Directory Authentication in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with for Domain ($domain): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Configuring Active Directory Authentication in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with for Domain ($domain), already exists: SKIPPED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to communicate with Active Directory Domain Controller ($domainServer), check details: POST_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } 
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRLIAuthenticationAD
+
+Function Undo-vRLIAuthenticationAD {
+    <#
+		.SYNOPSIS
+        Disable Active Directory as an authentication source for VMware Aria Operations for Logs
+
+        .DESCRIPTION
+        The Add-vRLIAuthenticationAD cmdlet disables Active Diretory as an authentication source in VMware Aria
+        Operations for Logs. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Disables Active Diretory as an authentication source in VMware Aria Operations for Logs
+
+        .EXAMPLE
+        Undo-vRLIAuthenticationAD -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io
+        This example enables Active Directory as an authentication source in VMware Aria Operations for Logs
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            if ((Get-vRLIAuthenticationAD).enableAD -eq $true) {
+                                Remove-vRLIAuthenticationAD | Out-Null
+                                Start-Sleep 2
+                                if (!((Get-vRLIAuthenticationAD).enableAD -eq $true)) {
+                                        Write-Output "Disabling Active Directory Authentication in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Disabling Active Directory Authentication in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Disabling Active Directory Authentication in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), already disabled: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        } 
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRLIAuthenticationAD
 
 Function Install-vRLIPhotonAgent {
     <#
@@ -31016,14 +31132,15 @@ Export-ModuleMember -Function Get-vRLIAuthenticationWSA
 Function Set-vRLIAuthenticationWSA {
     <#
         .SYNOPSIS
-        Configure Workspace ONE Access Intergration
+        Configure Workspace ONE Access as an authentication provider
 
         .DESCRIPTION
-        The Set-vRLIAuthenticationWSA cmdlet configures the Workspace ONE Access Integration
+        The Set-vRLIAuthenticationWSA cmdlet configures the Workspace ONE Access as an authentication provider in
+        VMware Operations for Logs
 
         .EXAMPLE
         Set-vRLIAuthenticationWSA -hostname sfo-wsa01.sfo.rainpole.io -port 443 -redirectUrl sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example configures Workspace ONE Access Integration
+        This example configures Workspace ONE Access as an authentication provider
     #>
 
     Param (
@@ -31105,6 +31222,83 @@ Function Get-vRLIAuthenticationAD {
     }
 }
 Export-ModuleMember -Function Get-vRLIAuthenticationAD
+
+Function Set-vRLIAuthenticationAD {
+    <#
+        .SYNOPSIS
+        Configure Active Directory as an authentication provider
+
+        .DESCRIPTION
+        The Set-vRLIAuthenticationAD cmdlet configures Active Directory as an authentication provider in VMware
+        Operations for Logs
+
+        .EXAMPLE
+        Set-vRLIAuthenticationAD -domain sfo.rainpole.io -domainServers sfo-ad01.sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -connectionType STANDARD
+        This example configures Active Directory as an authentication provider
+
+        .EXAMPLE
+        Set-vRLIAuthenticationAD -domain sfo.rainpole.io -domainServers sfo-ad01.sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -connectionType CUSTOM -port 636 -requireSsl:$true
+        This example configures Active Directory as an authentication provider using custom configuration
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainBindPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$domainServers,
+        [Parameter (Mandatory = $false)] [ValidateSet("STANDARD","GLOBAL_CAT","CUSTOM")] [String]$connectionType,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Boolean]$requireSsl=$false,
+        [Parameter (Mandatory = $false)] [ValidateSet("389","636","50001")] [String]$port='389'
+    )
+
+    Try {
+        $Global:jsonSpec = New-Object -TypeName psobject
+        $jsonSpec | Add-Member -notepropertyname 'enableAD' -notepropertyvalue $true
+        $jsonSpec | Add-Member -notepropertyname 'domain' -notepropertyvalue $domain
+        $jsonSpec | Add-Member -notepropertyname 'domainServers' -notepropertyvalue $domainServers
+        $jsonSpec | Add-Member -notepropertyname 'username' -notepropertyvalue $domainBindUser
+        $jsonSpec | Add-Member -notepropertyname 'password' -notepropertyvalue $domainBindPass
+        $jsonSpec | Add-Member -notepropertyname 'connType' -notepropertyvalue $connectionType
+        $jsonSpec | Add-Member -notepropertyname 'acceptCert' -notepropertyvalue $true
+        $jsonSpec | Add-Member -notepropertyname 'sslOnly' -notepropertyvalue $requireSsl
+        if ($connectionType -eq "Custom") {
+            $jsonSpec | Add-Member -notepropertyname 'port' -notepropertyvalue $port
+            $body = $jsonSpec | ConvertTo-Json
+        } else {
+            $body = $jsonSpec | ConvertTo-Json
+        }
+        $uri = "https://$vrliAppliance/api/v2/ad"
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrliHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRLIAuthenticationAD
+
+Function Remove-vRLIAuthenticationAD {
+    <#
+        .SYNOPSIS
+        Disable Active Directory as an authentication provider
+
+        .DESCRIPTION
+        The Remove-vRLIAuthenticationAD cmdlet disbales Active Directory as an authentication provider in VMware
+        Operations for Logs
+
+        .EXAMPLE
+        Remove-vRLIAuthenticationAD
+    #>
+
+    Try {
+        $jsonSpec = New-Object -TypeName psobject
+        $jsonSpec | Add-Member -notepropertyname 'enableAD' -notepropertyvalue $false
+        $body = $jsonSpec | ConvertTo-Json
+        $uri = "https://$vrliAppliance/api/v2/ad"
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrliHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRLIAuthenticationAD
 
 Function Get-vRLIAgentGroup {
     <#
