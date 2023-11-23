@@ -13,9 +13,14 @@
 - Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
 - Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
-- Added `Invoke-UndoIamDeployment` cmdlet to perform removal of  Identify and Access Management.
+- Added `Invoke-UndoIamDeployment` cmdlet to perform removal of Identify and Access Management.
 - Added `Add-NsxtIdentitySource` cmdlet to add LDAP/LDAPS Identity Source to NSX Manager.
 - Added `Undo-NsxtIdentitySource` cmdlet to remove LDAP/LDAPS Identity Source from NSX Manager.
+- Added `Export-IlaJsonSpec` cmdlet to generate a JSON specification file for Intelligent Logging and Analytics.
+- Added `Invoke-IlaDeployment` cmdlet to perform an end-to-end deployment of Intelligent Logging and Analytics.
+- Added `Invoke-UndoIlaDeployment` cmdlet to perform removal of Intelligent Logging and Analytics.
+- Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
+- Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 
 ## v2.7.1
 
