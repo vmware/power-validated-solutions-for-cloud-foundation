@@ -7918,11 +7918,11 @@ Function Invoke-IlaDeployment {
                 if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                 Show-PowerValidatedSolutionsOutput -message "Assigning $logsProductName Roles to Active Directory Groups"
-                $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaAdminGroup -role 'Super Admin' -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaAdminGroup -role 'Super Admin' -authProvider vidm -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaUserGroup -role 'User' -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaUserGroup -role 'User' -authProvider vidm  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaViewerGroup -role 'View Only Admin' -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaViewerGroup -role 'View Only Admin' -authProvider vidm  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                 if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                 Show-PowerValidatedSolutionsOutput -message "Connecting VI Workload Domains to $logsProductName"
@@ -9117,18 +9117,22 @@ Function Add-vRLIAuthenticationGroup {
         Adds a group from the authentication provider in VMware Aria Operations for Logs
 
         .DESCRIPTION
-        The Add-vRLIAuthenticationGroup cmdlet assigns access to a group based on the authentication providor.
+        The Add-vRLIAuthenticationGroup cmdlet assigns access to a group based on the authentication provider.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
         - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
-        - Validates that integration with Workspace ONE Access has been enabled
+        - Validates that integration with the authentication provider has been enabled
         - Validates that the group has not already been assigned access to VMware Aria Operations for Logs
         - Adds the group to the access control assigning the role provided in VMware Aria Operations for Logs
 
         .EXAMPLE
-        Add-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -role 'Super Admin'
-        This example adds the group gg-vrli-admins with Super Admin role in VMware Aria Operations for Logs
+        Add-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -role 'Super Admin' -authProvider vidm
+        This example adds the group gg-vrli-admins assigned from Workspace ONE Access with Super Admin role in VMware Aria Operations for Logs
+
+        .EXAMPLE
+        Add-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -role 'Super Admin' -authProvider ad
+        This example adds the group gg-vrli-admins assigned from Active Directory with Super Admin role in VMware Aria Operations for Logs
     #>
 
     Param (
@@ -9137,7 +9141,8 @@ Function Add-vRLIAuthenticationGroup {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
-        [ValidateSet("Super Admin","User","Dashboard User","View Only Admin")] [ValidateNotNullOrEmpty()] [String]$role
+        [ValidateSet("Super Admin","User","Dashboard User","View Only Admin")] [ValidateNotNullOrEmpty()] [String]$role,
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider
     )
 
     Try {
@@ -9146,8 +9151,8 @@ Function Add-vRLIAuthenticationGroup {
                 if ($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass) {
                     if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
                         if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
-                            if ((Get-vRLIAuthenticationWSA).enabled -eq "True") {
-                                if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
+                            if ($authProvider -eq "vidm") {
+                                if ((Get-vRLIAuthenticationWSA).enabled -eq "True") {
                                     if (!(Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain})) {
                                         Add-vRLIGroup -authProvider vidm -domain $domain -group $group -role $role | Out-Null
                                         if (Get-vRLIGroup -authProvider vidm | Where-Object {$_.name -eq $group + "@" + $domain}) {
@@ -9159,10 +9164,23 @@ Function Add-vRLIAuthenticationGroup {
                                         Write-Warning "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
                                     }
                                 } else {
-                                    Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier. Complete the process manually."
+                                    Write-Error "Workspace ONE Integration on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
                                 }
-                            } else {
-                                Write-Error "Workspace ONE Integration on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
+                            } elseif ($authProvider -eq "ad") { 
+                                if ((Get-vRLIAuthenticationAD).enabledAD -eq "True") {
+                                    if (!(Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group + "@" + $domain})) {
+                                        Add-vRLIGroup -authProvider ad -domain $domain -group $group -role $role | Out-Null
+                                        if (Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group + "@" + $domain}) {
+                                            Write-Output "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group), already exists: SKIPPED"
+                                    }
+                                } else {
+                                    Write-Error "Active Directory Integration on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
+                                }
                             }
                         }
                     }
@@ -9174,6 +9192,65 @@ Function Add-vRLIAuthenticationGroup {
     }
 }
 Export-ModuleMember -Function Add-vRLIAuthenticationGroup
+
+Function Undo-vRLIAuthenticationGroup {
+    <#
+		.SYNOPSIS
+        Remove a group from the authentication provider in VMware Aria Operations for Logs
+
+        .DESCRIPTION
+        The Undo-vRLIAuthenticationGroup cmdlet removes access to a group based on the authentication provider.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Validates that the group has not already been removed from VMware Aria Operations for Logs
+        - Removes access assigned from VMware Aria Operations for Logs
+
+        .EXAMPLE
+        Undo-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -authProvider vidm
+        This example removes the group gg-vrli-admins assigned via Workspace ONE Access from its assigned role in VMware Aria Operations for Logs
+
+        .EXAMPLE
+        Undo-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -authProvider ad
+        This example removes the group gg-vrli-admins assigned via Active Directory from its assigned role in VMware Aria Operations for Logs
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if ($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            if (Get-vRLIGroup -authProvider $authProvider | Where-Object {$_.name -eq $group + "@" + $domain}) {
+                                Remove-vRLIGroup -authProvider $authProvider -domain $domain -group $group | Out-Null
+                                if (!(Get-vRLIGroup -authProvider $authProvider | Where-Object {$_.name -eq $group + "@" + $domain})) {
+                                    Write-Output "Removing Group from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Group from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing Group from VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group), already removed: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRLIAuthenticationGroup
 
 Function Add-vRLIAlertDatacenter {
     <#
@@ -31419,14 +31496,14 @@ Function Get-vRLIGroup {
         Get list of groups by authentication provider
 
         .DESCRIPTION
-        The Get-vRLIGroup cmdlet gets a list of groups by authentication provider
+        The Get-vRLIGroup cmdlet gets a list of groups by authentication provider from VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIGroup -authProvider vidm
         This example gets a list groups assigned using the Identity Manager authenitcation provider
 
         .EXAMPLE
-        Get-vRLIGroup-authProvider ad
+        Get-vRLIGroup -authProvider ad
         This example gets a list groups assigned using the Active Directory authenitcation provider
     #>
 
@@ -31437,13 +31514,12 @@ Function Get-vRLIGroup {
     Try {
         if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
             $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider"
-            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
-            $response.authProviderGroups
+            (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders).authProviderGroups
         } else {
-            Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier"
+            $uri = "https://$vrliAppliance/api/v2/user-groups/$authProvider"
+            (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders).userGroups
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31455,11 +31531,15 @@ Function Add-vRLIGroup {
         Add a group by authentication provider
 
         .DESCRIPTION
-        The Add-vRLIGroup cmdlet adds a group by authentication provider
+        The Add-vRLIGroup cmdlet adds a group by authentication provider to VMware Aria Operations for Logs
 
         .EXAMPLE
         Add-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
         This example adds a group assigned using the the vIDM authenitcation provider and assigns the Super Admin role
+
+        .EXAMPLE
+        Add-vRLIGroup -authProvider ad -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
+        This example adds a group assigned using the the LDAP authenitcation provider and assigns the Super Admin role
     #>
 
     Param (
@@ -31471,14 +31551,18 @@ Function Add-vRLIGroup {
 
     Try {
         if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
-            $roleId = (Get-vRLIRole | Where-Object {$_.name -eq $role}).id
             $uri = "https://$vrliAppliance/api/v1/authgroups"
-            $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "groupIds": [ "'+ $roleId + '" ]}'
-            $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
-            $response
+            $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "groupIds": [ "'+ ((Get-vRLIRole | Where-Object {$_.name -eq $role}).id) + '" ]}'
+            Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
         } else {
-            Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier"
-        }
+            $uri = "https://$vrliAppliance/api/v2/user-groups"
+            if ($authProvider -eq "ad") {
+                $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group+'", "roleIds": [ "'+ ((Get-vRLIRole | Where-Object {$_.name -eq $role}).id) + '" ]}'
+            } elseif ($authProvider -eq "vidm") {
+                $json = '{ "provider": "' + $authProvider + '", "domain": "'+ $domain +'", "name": "'+ $group + "@" + $domain +'", "roleIds": [ "'+ ((Get-vRLIRole | Where-Object {$_.name -eq $role}).id) + '" ]}'
+            }
+            Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
+        }  
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -31491,10 +31575,14 @@ Function Remove-vRLIGroup {
         Remove a group by authentication provider
 
         .DESCRIPTION
-        The Remove-vRLIGroup cmdlet removes a group by authentication provider
+        The Remove-vRLIGroup cmdlet removes a group by authentication provider from VMware Aria Operations for Logs
 
         .EXAMPLE
         Remove-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins
+        This example removes a group assigned using the the vIDM authenitcation provider
+
+        .EXAMPLE
+        Remove-vRLIGroup -authProvider ad -domain sfo.rainpole.io -group gg-vrli-admins
         This example removes a group assigned using the the vIDM authenitcation provider
     #>
 
@@ -31507,10 +31595,10 @@ Function Remove-vRLIGroup {
     Try {
         if ((Get-vRLIVersion).version.Split("-")[0] -lt 8.6.2) {
             $uri = "https://$vrliAppliance/api/v1/authgroups/$authProvider/$domain/$group@$domain"
-            $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
-            $response
+            Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
         } else {
-            Write-Warning "API only supported with VMware Aria Operations for Logs 8.6.2 or earlier"
+            $uri = "https://$vrliAppliance/api/v2/user-groups/$authProvider/$domain/$group@$domain"
+            Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
         }
     } Catch {
         Write-Error $_.Exception.Message
