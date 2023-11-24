@@ -8722,6 +8722,58 @@ Function Add-vRLIAuthenticationWSA {
 }
 Export-ModuleMember -Function Add-vRLIAuthenticationWSA
 
+Function Undo-vRLIAuthenticationWSA {
+    <#
+		.SYNOPSIS
+        Disable Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
+
+        .DESCRIPTION
+        The Undo-vRLIAuthenticationWSA cmdlet configures Workspace ONE Access as an authentication source in VMware
+        Aria Operations for Logs. The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations for Logs has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations for Logs
+        - Disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs if not already configured
+
+        .EXAMPLE
+        Undo-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            if ((Get-vRLIAuthenticationWSA).enabled -eq $true) {
+                                Remove-vRLIAuthenticationWSA | Out-Null
+                                Start-Sleep 2
+                                if ((Get-vRLIAuthenticationWSA).enabled -eq $false) {
+                                    Write-Output "Disabling Workspace ONE Access Integration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Disabling Workspace ONE Access Integration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Disabling Workspace ONE Access Integration in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), already disabled: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        } 
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRLIAuthenticationWSA
+
 Function Add-vRLIAuthenticationAD {
     <#
 		.SYNOPSIS
