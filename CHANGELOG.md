@@ -27,6 +27,7 @@
 - Added `Undo-vRLIAuthenticationAD` cmdlet to disable Active Directory as an authentication provider in VMware Aria Operations for Logs.
 - Added `Add-NsxtLdapRole` cmdlet to assign an LDAP user or group role-based access control in NSX Manager.
 - Added `Undo-NsxtLdapRole` cmdlet to remove an LDAP user or group role-based access control from NSX Manager.
+- Added `Undo-vRLIAuthenticationWSA` cmdlet to support disable Workspace ONE Access integration with VMware Aria Operations for Logs.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
