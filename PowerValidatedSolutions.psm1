@@ -26234,8 +26234,7 @@ Function Get-vRSLCMLoadbalancer {
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/controller/all?isAvailable=$available&type=$type"
         Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26275,8 +26274,7 @@ Function New-vRSLCMLoadbalancer {
             "controllerID": ""
         }'
         Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26304,8 +26302,7 @@ Function Remove-vRSLCMLoadbalancer {
         $controllerId = ((Get-vRSLCMLoadbalancer -type $type) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}).controller_id
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/controller/loadbalancer/delete?controllerID=$controllerId&loadBalancerFQDN=$loadBalancerFqdn"
         Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }

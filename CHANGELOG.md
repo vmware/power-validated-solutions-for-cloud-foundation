@@ -28,7 +28,7 @@
 - Added `Add-NsxtLdapRole` cmdlet to assign an LDAP user or group role-based access control in NSX Manager.
 - Added `Undo-NsxtLdapRole` cmdlet to remove an LDAP user or group role-based access control from NSX Manager.
 - Added `Undo-vRLIAuthenticationWSA` cmdlet to support disable Workspace ONE Access integration with VMware Aria Operations for Logs.
-- Added `Get-vRSLCMLoadbalancer` cmdlet to support retrieving a list of load balancers configure in VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMLoadbalancer` cmdlet to support retrieving a list of load balancers configured in VMware Aria Suite Lifecycle.
 - Added `New-vRSLCMLoadbalancer` cmdlet to support adding a new load balancer to VMware Aria Suite Lifecycle.
 - Added `Remove-vRSLCMLoadbalancer` cmdlet to support removing a load balancer from VMware Aria Suite Lifecycle.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
@@ -39,9 +39,9 @@
 - Enhanced `Remove-vRLIGroup` cmdlet to support v2 API for removing group membership by authentication provider in VMware Aria Operations for Logs.
 - Enhanced `Add-vRLIAuthenticationGroup` cmdlet to support updated `Add-vRLIGroup` cmdlet usage and Active Directory support.
 - Enhanced `New-WSADeployment` cmdlet to better handle checking for and reporting a missing Cross-Instance Datacenter.
-- Enhanced `New-WSADeployment` cmdlet to check for existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
-- Enhanced `New-vROPSDeployment` cmdlet to check for existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
-- Enhanced `New-vRADeployment` cmdlet to check for existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
+- Enhanced `New-WSADeployment` cmdlet to check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
+- Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
+- Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 
 ## v2.7.1
 
