@@ -9452,10 +9452,10 @@ Function Add-vRLIAuthenticationGroup {
                                     Write-Error "Workspace ONE Integration on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
                                 }
                             } elseif ($authProvider -eq "ad") { 
-                                if ((Get-vRLIAuthenticationAD).enabledAD -eq "True") {
-                                    if (!(Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group + "@" + $domain})) {
+                                if ((Get-vRLIAuthenticationAD).enableAD -eq "True") {
+                                    if (!(Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group})) {
                                         Add-vRLIGroup -authProvider ad -domain $domain -group $group -role $role | Out-Null
-                                        if (Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group + "@" + $domain}) {
+                                        if (Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group}) {
                                             Write-Output "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
                                         } else {
                                             Write-Error "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): POST_VALIDATION_FAILED"
@@ -26673,37 +26673,41 @@ Function New-WSADeployment {
                             if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                 $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
                             }
-                            Invoke-Expression "Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) | Out-Null"
-                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
-                            $json = (Get-Content -Raw $jsonSpecFileName)
-                            $jsonSpec = $json | ConvertFrom-Json
-                            if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
-                                if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
-                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
-                                        if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
-                                            $newRequest = Add-vRSLCMEnvironment -json $json
-                                            if ($newRequest) {
-                                                if ($PsBoundParameters.ContainsKey("monitor")) {
-                                                    Start-Sleep 10
-                                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                            Invoke-Expression "Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) -ErrorAction SilentlyContinue -ErrorVariable ErrorMsg"
+                            if (!$ErrorMsg) { 
+                                $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
+                                $json = (Get-Content -Raw $jsonSpecFileName)
+                                $jsonSpec = $json | ConvertFrom-Json
+                                if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
+                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
+                                        if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
+                                            if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
+                                                $newRequest = Add-vRSLCMEnvironment -json $json
+                                                if ($newRequest) {
+                                                    if ($PsBoundParameters.ContainsKey("monitor")) {
+                                                        Start-Sleep 10
+                                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                                    } else {
+                                                        Write-Output "Deployment Request for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
+                                                    }
                                                 } else {
-                                                    Write-Output "Deployment Request for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
+                                                    Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI"
                                                 }
+                                                
                                             } else {
-                                                Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI"
+                                                Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
                                             }
-                                            
                                         } else {
-                                            Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: FAILED"
+                                            Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])), does not exist: FAILED"
+                                        Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
                                     }
                                 } else {
-                                    Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])), does not exist: FAILED"
+                                    Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
                                 }
                             } else {
-                                Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                Write-Error "JSON specification validation: PRE_VALIDATED_FAILED"
                             }
                         }
                     }
