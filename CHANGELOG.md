@@ -35,6 +35,7 @@
 - Enhanced `Add-vRLIGroup` cmdlet to support v2 API for adding group membership by authentication provider in VMware Aria Operations for Logs.
 - Enhanced `Remove-vRLIGroup` cmdlet to support v2 API for removing group membership by authentication provider in VMware Aria Operations for Logs.
 - Enhanced `Add-vRLIAuthenticationGroup` cmdlet to support updated `Add-vRLIGroup` cmdlet usage and Active Directory support.
+- Enhanced `New-WSADeployment` cmdlet to better handle checking for reporting a missing Cross-Instance Datacenter.
 
 ## v2.7.1
 
