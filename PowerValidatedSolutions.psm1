@@ -11066,6 +11066,12 @@ Function New-vROPSDeployment {
                             $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vropsDeploymentSpec.json")
                             $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
+                            $pnpWorkbook = Open-ExcelPackage -Path $workbook
+                            $loadBalancerFqdn = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+                            $loadBalancerIp = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_ip"].Value
+                            if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}))) {
+                                New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $loadBalancerIp -loadBalancerFqdn $loadBalancerFqdn | Out-Null
+                            }
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
@@ -13546,6 +13552,12 @@ Function New-vRADeployment {
                             $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vraDeploymentSpec.json")
                             $json = (Get-Content -Raw $jsonSpecFileName)
                             $jsonSpec = $json | ConvertFrom-Json
+                            $pnpWorkbook = Open-ExcelPackage -Path $workbook
+                            $loadBalancerFqdn = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
+                            $loadBalancerIp = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_ip"].Value
+                            if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}))) {
+                                New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $loadBalancerIp -loadBalancerFqdn $loadBalancerFqdn | Out-Null
+                            }
                             if (!((Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName}).products.id -contains $jsonSpec.products.id)) {
                                 if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.productPassword.Split(":")[3])) {
                                     if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
@@ -26200,6 +26212,102 @@ Function Remove-vRSLCMEnvironment {
 }
 Export-ModuleMember -Function Remove-vRSLCMEnvironment
 
+
+Function Get-vRSLCMLoadbalancer {
+    <#
+        .SYNOPSIS
+        Get paginated list of load balancers from VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Get-vRSLCMLoadbalancer cmdlet gets a paginated list of load balancers from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMLoadbalancer -type NSX_T
+        This example gets all load balancers in VMware Aria Suite Lifecycle with a type of NSX_T
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('NSX_T','NSX_ALB','OTHERS')] [String]$type,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Bool]$available=$false
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/controller/all?isAvailable=$available&type=$type"
+        Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMLoadbalancer
+
+Function New-vRSLCMLoadbalancer {
+    <#
+        .SYNOPSIS
+        Add a load balancer to VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The New-vRSLCMLoadbalancer cmdlet adds a new loadbalancers to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp 192.168.11.60 -loadBalancerFqdn xint-wsa01.rainpole.io
+        This example adds load balancers in VMware Aria Suite Lifecycle with a type of NSX_T
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('NSX_T')] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$loadBalancerIp,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$loadBalancerFqdn
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/controller/save"
+        $Global:body = ' {
+            "type": "'+ $type +'",
+            "userName": "",
+            "controllerFqdn": "",
+            "passwordReference": "",
+            "loadBalancerFQDN": "'+ $loadBalancerFqdn +'",
+            "loadBalancerIP": "'+ $loadBalancerIp +'",
+            "controllerMeta": {},
+            "loadBalancerMeta": {},
+            "controllerIP": "",
+            "controllerID": ""
+        }'
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRSLCMLoadbalancer
+
+Function Remove-vRSLCMLoadbalancer {
+    <#
+        .SYNOPSIS
+        Delete a load balancer from VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Remove-vRSLCMLoadbalancer cmdlet removes a load balancer from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Remove-vRSLCMLoadbalancer -type NSX_T -loadBalancerFqdn xint-wsa01.rainpole.io
+        This example deletes the load balancer from VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('NSX_T','NSX_ALB','OTHERS')] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$loadBalancerFqdn
+    )
+
+    Try {
+        $controllerId = ((Get-vRSLCMLoadbalancer -type $type) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}).controller_id
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/controller/loadbalancer/delete?controllerID=$controllerId&loadBalancerFQDN=$loadBalancerFqdn"
+        Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRSLCMLoadbalancer
+
 Function Get-vRSLCMRequest {
     <#
         .SYNOPSIS
@@ -26674,7 +26782,13 @@ Function New-WSADeployment {
                                 $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
                             }
                             Invoke-Expression "Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) -ErrorAction SilentlyContinue -ErrorVariable ErrorMsg"
-                            if (!$ErrorMsg) { 
+                            if (!$ErrorMsg) {
+                                $pnpWorkbook = Open-ExcelPackage -Path $workbook
+                                $loadBalancerFqdn = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
+                                $loadBalancerIp = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value
+                                if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}))) {
+                                    New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $loadBalancerIp -loadBalancerFqdn $loadBalancerFqdn | Out-Null
+                                }
                                 $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
                                 $json = (Get-Content -Raw $jsonSpecFileName)
                                 $jsonSpec = $json | ConvertFrom-Json
@@ -31425,7 +31539,7 @@ Function Set-vRLIAuthenticationAD {
     )
 
     Try {
-        $Global:jsonSpec = New-Object -TypeName psobject
+        $jsonSpec = New-Object -TypeName psobject
         $jsonSpec | Add-Member -notepropertyname 'enableAD' -notepropertyvalue $true
         $jsonSpec | Add-Member -notepropertyname 'domain' -notepropertyvalue $domain
         $jsonSpec | Add-Member -notepropertyname 'domainServers' -notepropertyvalue $domainServers
