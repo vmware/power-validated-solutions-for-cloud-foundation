@@ -26597,6 +26597,7 @@ Function Export-WsaJsonSpec {
                                                 if (!$PsBoundParameters.ContainsKey("standard")) {
                                                     $clusterLbProperties = @()
                                                     $clusterLbProperties += [pscustomobject]@{
+                                                        'controllerType'        = "NSX_T"
                                                         'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
                                                         'lockerCertificate'     = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
                                                     }
