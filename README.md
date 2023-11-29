@@ -1,7 +1,7 @@
 <!-- markdownlint-disable first-line-h1 no-inline-html -->
 <img src=".github/icon-400px.svg" alt="A PowerShell Module for VMware Validated Solutions" width="150"></br></br>
 
-# A PowerShell Module for VMware Validated Solutions
+# PowerShell Module for VMware Validated Solutions
 
 [<img src="https://img.shields.io/badge/Documentation-Read-blue?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Documentation">][docs-module]&nbsp;&nbsp;
 [<img src="https://img.shields.io/badge/Changelog-Read-blue?style=for-the-badge&logo=github&logoColor=white" alt="CHANGELOG" >][changelog]
@@ -46,7 +46,7 @@ You can also start a discussion on the GitHub [discussions][gh-discussions] area
 
 ## License
 
-Copyright 2021-2023 VMware, Inc.
+Copyright 2023 Broadcom. All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
