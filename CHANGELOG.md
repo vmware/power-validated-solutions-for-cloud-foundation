@@ -41,7 +41,7 @@
 - Enhanced `New-WSADeployment` cmdlet to better handle checking for and reporting a missing Cross-Instance Datacenter.
 - Enhanced `New-WSADeployment` cmdlet to check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
-- Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.`
+- Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 
 ## v2.7.1
 
