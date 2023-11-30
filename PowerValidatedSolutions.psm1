@@ -31037,26 +31037,21 @@ Function Request-vRLIToken {
         $Global:vrliHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $vrliHeaders.Add("Content-Type", "application/json")
         $uri = "https://$vrliAppliance/api/v1/sessions"
-
         $body = '{
             "username": "'+$username+'",
             "password": "'+$password+'",
             "provider": "Local"
         }'
-        
         if ($PSEdition -eq 'Core') {
             $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $vrliResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vrliHeaders -Body $body
         }
-
         if ($vrliResponse.sessionId) {
             $vrliHeaders.Add("Authorization", "Bearer " + $vrliResponse.sessionId)
             Write-Output "Successfully Connected to VMware Aria Operations for Logs: $vrliAppliance"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31179,7 +31174,6 @@ Function Remove-vRLIAuthenticationWSA {
         $jsonSpec += [pscustomobject]@{
             'enabled'       = $false
         }
-        
         $body = $jsonSpec | ConvertTo-Json -Depth 12
         $uri = "https://$vrliAppliance/api/v1/vidm"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
@@ -31306,8 +31300,7 @@ Function Get-vRLIAgentGroup {
         $uri = "https://$vrliAppliance/api/v1/agent/groups"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response.groups
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31350,13 +31343,11 @@ Function New-vRLIAgentGroup {
             $pollLoopCounter ++
             if ($pollLoopCounter -ne $count) {
                 $criteriaInput += '(hostname=~\"'+$component+'\") or '
-            }
-            else {
+            } else {
                 $criteriaInput += '(hostname=~\"'+$component+'\")'
             }
         }
-    }
-    else {
+    } else {
         $criteriaInput = '"hostname=~\"'+$criteria+'\""'
     }
 
@@ -31368,8 +31359,7 @@ Function New-vRLIAgentGroup {
             "agentConfig":"'+$agentGroupConfig+'"
         }'
         Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31396,8 +31386,7 @@ Function Remove-vRLIAgentGroup {
         $groupName = $groupName.replace(' ','%20')
         $uri = "https://$vrliAppliance/api/v1/agent/groups/$groupName"
         Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vrliHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31420,8 +31409,7 @@ Function Get-vRLISmtpConfiguration {
         $uri = "https://$vrliAppliance/api/v1/notification/channels"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response.channels.config
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31466,8 +31454,7 @@ Function Set-vRLISmtpConfiguration {
         }'
         Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body | Out-Null
         Get-vRLISmtpConfiguration # API returns no output, calling Get-vRLISmtpConfiguration to display updated information
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31490,8 +31477,7 @@ Function Get-vRLIRetentionThreshold {
         $uri = "https://$vrliAppliance/api/v1/notification/config/retention-threshold"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31524,8 +31510,7 @@ Function Set-vRLIRetentionThreshold {
             "intervalUnit" : "'+ $intervalUnit.ToUpper() +'"
         }'
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31548,8 +31533,7 @@ Function Get-vRLIIndexPartition {
         $uri = "https://$vrliAppliance/api/v1/partitioning"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response.partitions
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31588,8 +31572,7 @@ Function Set-vRLILogArchive {
             "archiveLocation": "'+ $archiveLocation +'"
         }'
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31612,8 +31595,7 @@ Function Get-vRLIEmailNotification {
         $uri = "https://$vrliAppliance/api/v1/notification/email"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31644,8 +31626,7 @@ Function Set-vRLIEmailNotification {
         }'
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31836,8 +31817,7 @@ Function New-vRLIAlert {
         $uri = "https://$vrliAppliance/api/v1/alerts"
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $json
         $response   
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31864,8 +31844,7 @@ Function Remove-vRLIAlert {
         $uri = "https://$vrliAppliance/api/v1/alerts/$alertId"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vrliHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31972,8 +31951,7 @@ Function Get-vRLILogForwarder {
             $uri = "https://$vrliAppliance/api/v2/log-forwarder/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrliAppliance/api/v2/log-forwarder"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
             $response.forwarders
@@ -32191,8 +32169,7 @@ Function Get-vRLIContentPack {
         $uri = "https://$vrliAppliance/api/v1/content/contentpack"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vrliHeaders
         $response.contentPackMetadataList
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
