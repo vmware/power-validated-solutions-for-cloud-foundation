@@ -33514,13 +33514,6 @@ Function Set-VrmsConfiguration {
     )
 
     Try {
-        # $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
-        # $webRequest.GetResponse()
-        # $certificate = $webRequest.ServicePoint.Certificate
-        # $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
-        # Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
-        # $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
-        # $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
         $command = 'openssl s_client -connect ' + $vcenterFQDN + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
         $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
 
@@ -33721,8 +33714,7 @@ Function Request-SrmToken {
         $uri = "https://$srmAppliance/api/rest/configure/v1/session"
         if ($PSEdition -eq 'Core') {
             $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -UseBasicParsing
         }
         if ($srmResponse.StatusCode -eq 200) {
@@ -33852,7 +33844,6 @@ Function Get-SrmService {
         if ($PsBoundParameters.ContainsKey("serviceId")) {
             $uri = "https://$srmAppliance/api/rest/configure/v1/services/$serviceId"
             Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
-
         } else {
             $uri = "https://$srmAppliance/api/rest/configure/v1/services"
             (Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader).list
@@ -34092,13 +34083,6 @@ Function Set-SrmConfiguration {
     )
 
     Try {
-        # $webRequest = [Net.WebRequest]::Create("https://$($vcenterFqdn):443")
-        # $webRequest.GetResponse() | Out-Null
-        # $certificate = $webRequest.ServicePoint.Certificate
-        # $exportCertificate = $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
-        # Set-Content -value $exportCertificate -encoding byte -path $ENV:TMP\cert-temp
-        # $thumbprint = (Get-FileHash -Path $ENV:TMP\cert-temp -Algorithm SHA256).Hash
-        # $thumbprint = $thumbprint -replace '(..(?!$))','$1:'
         $command = 'openssl s_client -connect ' + $vcenterFQDN + ':443 2>&1 | openssl x509 -sha256 -fingerprint -noout'
         $thumbprint = (Invoke-Expression "& $command").Split("=")[1]
 
