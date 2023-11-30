@@ -19911,10 +19911,10 @@ Function Set-WSASyncSetting {
         Set directory sync schedule
 
         .DESCRIPTION
-    	The Set-WSASyncSetting cmdlets configures the directory sync schedule in Workspace ONE Access
+        The Set-WSASyncSetting cmdlets configures the directory sync schedule in Workspace ONE Access
 
         .EXAMPLE
-    	Set-WSASyncSetting -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
+        Set-WSASyncSetting -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
         This example configures the directory sync schedule in Workspace ONE Access
     #>
 
@@ -20992,7 +20992,6 @@ Function New-NsxtLdap {
     }
 
     Try {
-        
         $Global:body = '{
             "resource_type": "ActiveDirectoryIdentitySource",
             "ldap_servers": [
@@ -21066,10 +21065,10 @@ Function Get-NsxtPrincipalIdentity {
         This example get an NSX Principal Identity by its name.
     #>
 
-        Param (
-            [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$principalId,
-            [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$name
-        )
+    Param (
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$principalId,
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$name
+    )
 
     Try {
         if ($PsBoundParameters.ContainsKey("id")) {
@@ -21150,10 +21149,10 @@ Function Set-NsxtPrincipalIdentityCertificate {
         This example updates the certificate of the NSX Principal Identity
     #>
 
-        Param (
-            [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId,
-            [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$certificateId
-        )
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId,
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$certificateId
+    )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities?action=update_certificate"
@@ -21181,9 +21180,9 @@ Function Remove-NsxtPrincipalIdentity {
         This example deletes an NSX Principal Identity
     #>
 
-        Param (
-            [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId
-        )
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId
+    )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities/$principalId"
@@ -21208,10 +21207,8 @@ Function Get-NsxtRole {
     #>
 
     Try {
-        
         $uri = "https://$nsxtManager/api/v1/aaa/roles"
         (Invoke-RestMethod $uri -Method 'GET' -Headers $nsxtHeaders).results
-
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -21496,9 +21493,7 @@ Function New-NsxtSegment {
     } else {
         Write-Error "Gateway type not defined"
     }
-
     $transportZonePath = (Get-NsxtTransportZone -Name $TransportZone).path
-
     if ($SegmentType -match "overlay") {
         $json = @"
 {
@@ -21508,7 +21503,6 @@ Function New-NsxtSegment {
 "transport_zone_path" : "$transportZonePath"
 }
 "@
-
     } elseif ($SegmentType -match "vlan") {
         $json = @"
 {
@@ -21517,7 +21511,6 @@ Function New-NsxtSegment {
 "transport_zone_path" : "$transportZonePath"
 }
 "@
-
     } else {
         Write-Error "SegmentType $SegmentType is invalid."
     }
@@ -21908,9 +21901,7 @@ Function Add-NsxtPrefix {
     }
 
     $prefixes = @()
-
     $prefixes += $existingPrefixes
-
     if (!$GE -or !$LE) {
         $newPrefix = @{
             network = $subnetCIDR
@@ -21929,7 +21920,6 @@ Function Add-NsxtPrefix {
 
     $prefixes += $newPrefix
     $prefixesJson = $prefixes | ConvertTo-Json
-
     $json = @"
     {
         "display_name": "$PrefixListName",
@@ -22055,7 +22045,6 @@ Function New-NsxtRouteMap {
     if (!$PrefixListPath) {
         $PrefixListPath = $uriPath+"/prefix-lists/"+$PrefixList
     }
-
     $json = @"
 {
     "display_name" : "$Name",
@@ -23315,6 +23304,18 @@ Function New-vRealizeLoadBalancerSpec {
 Export-ModuleMember -Function New-vRealizeLoadBalancerSpec
 
 Function Get-NsxtGlobalSegmentID {
+    <#
+        .SYNOPSIS
+        Gets the segment ID
+    
+        .DESCRIPTION
+        The Get-NsxtGlobalSegmentID cmdlet gets the Id for a global segment
+    
+        .EXAMPLE
+        Get-NsxtGlobalSegmentID -segmentName xint-m01-seg01
+        This example returns the Id for a global segment
+    #>
+
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$segmentName
     )
@@ -23331,6 +23332,18 @@ Function Get-NsxtGlobalSegmentID {
 Export-ModuleMember -Function Get-NsxtGlobalSegmentID
 
 Function Add-CertToNsxCertificateStore {
+    <#
+        .SYNOPSIS
+        Adds a certificate to the certificate store
+    
+        .DESCRIPTION
+        The Add-CertToNsxCertificateStore cmdlet adds a certificate to the NSX Manager certificate store
+    
+        .EXAMPLE
+        Add-CertToNsxCertificateStore -certName <name>
+        This example returns the Id for a global segment
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certName 
     )
@@ -24613,7 +24626,7 @@ Function Get-NsxtGroup {
         Get-NsxtGroup -id <id>
         This example retrieves the specified group
     #>
-    
+
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
     )
