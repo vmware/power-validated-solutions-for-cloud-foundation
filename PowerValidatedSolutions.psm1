@@ -29262,26 +29262,21 @@ Function Request-vROPSToken {
         $vropsHeaders.Add("Accept", "application/json")
         $vropsHeaders.Add("Content-Type", "application/json")
         $uri = "https://$vropsAppliance/suite-api/api/auth/token/acquire"
-
         $body = "{
         `n  `"username`" : `"$username`",
         `n  `"authSource`" : `"LOCAL`",
         `n  `"password`" : `"$password`"
         `n}"
-        
         if ($PSEdition -eq 'Core') {
             $vropsResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vropsHeaders -Body $body -SkipCertificateCheck # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $vropsResponse = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $vropsHeaders -Body $body
         }
-
         if ($vropsResponse.token) {
             $vropsHeaders.Add("Authorization", "vRealizeOpsToken " + $vropsResponse.token)
             Write-Output "Successfully connected to VMware Aria Operations: $vropsAppliance"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29313,14 +29308,12 @@ Function Get-vROPSVersion {
             $uri = "https://$vropsAppliance/suite-api/api/versions"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.values
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/versions/current"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29352,14 +29345,12 @@ Function Get-vROPSCollector {
             $uri = "https://$vropsAppliance/suite-api/api/collectors/$id/adapters"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.adapterInstancesInfoDto
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/collectors"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.collector
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29391,14 +29382,12 @@ Function Get-vROPSCollectorGroup {
             $uri = "https://$vropsAppliance/suite-api/api/collectorgroups/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/collectorgroups"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.collectorGroups
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29427,14 +29416,11 @@ Function Add-vROPSCollectorGroup {
         $uri = "https://$vropsAppliance/suite-api/api/collectorgroups"
         if ($description) {
             $body = '{ "name" : "'+ $name +'", "description" : "'+ $description +'", "collectorId" : ['+ $collectorIds +'], "systemDefined" : false }'
-        }
-        else {
+        } else {
             $body = '{ "name" : "'+ $name +'", "collectorId" : ['+ $collectorIds +'], "systemDefined" : false }'
         }
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
-
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29460,8 +29446,7 @@ Function Remove-vROPSCollectorGroup {
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/collectorgroups/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vropsHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29493,14 +29478,12 @@ Function Get-vROPSAdapter {
             $uri = "https://$vropsAppliance/suite-api/api/adapters/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/adapters"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.adapterInstancesInfoDto
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29528,23 +29511,19 @@ Function Set-vROPSAdapter {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
-
         if ($PsBoundParameters.ContainsKey("patch")) {
             $uri = "https://$vropsAppliance/suite-api/api/adapters"
             Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vropsHeaders -Body $body
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/adapters"
             $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $vropsHeaders -Body $body
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29571,17 +29550,14 @@ Function Add-vROPSAdapter {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
-
         $uri = "https://$vropsAppliance/suite-api/api/adapters"
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29608,8 +29584,7 @@ Function Remove-vROPSAdapter {
         $uri = "https://$vropsAppliance/suite-api/api/adapters/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29642,23 +29617,19 @@ Function Test-vROPSAdapterConnection {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
-
         if ($PsBoundParameters.ContainsKey("patch")) {
             $uri = "https://$vropsAppliance/suite-api/api/adapters/testConnection"
             Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vropsHeaders -Body $body
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/adapters/testConnection"
             $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29684,8 +29655,7 @@ Function Start-vROPSAdapter {
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/adapters/$adapterId/monitoringstate/start"
         Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders # API has no response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29712,8 +29682,7 @@ Function Stop-vROPSAdapter {
         $uri = "https://$vropsAppliance/suite-api/api/adapters/$adapterId/monitoringstate/stop"
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29745,14 +29714,12 @@ Function Get-vROPSAdapterKind {
             $uri = "https://$vropsAppliance/suite-api/api/adapterkinds/$adapterKind"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.resourceKinds
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/adapterkinds"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.'adapter-kind'
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29781,8 +29748,7 @@ Function Get-vROPSResourceDetail {
         $uri = "https://$vropsAppliance/suite-api/api/adapterkinds/$adapter/resourcekinds/$resource/resources?identifiers[VMEntityName]=$objectName"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
         $response.resourceList.resourceKey.resourceIdentifiers
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29812,24 +29778,20 @@ Function Get-vROPSCredential {
             $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("credentialId") -and ($PsBoundParameters.ContainsKey("adapter"))) {
+        } elseif ($PsBoundParameters.ContainsKey("credentialId") -and ($PsBoundParameters.ContainsKey("adapter"))) {
             $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId/adapters"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.adapterInstancesInfoDto
-        }
-        elseif ($PsBoundParameters.ContainsKey("credentialId") -and ($PsBoundParameters.ContainsKey("resource"))) {
+        } elseif ($PsBoundParameters.ContainsKey("credentialId") -and ($PsBoundParameters.ContainsKey("resource"))) {
             $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId/resources"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/credentials"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.credentialInstances
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29856,16 +29818,14 @@ Function Add-vROPSCredential {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
         $uri = "https://$vropsAppliance/suite-api/api/credentials"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29891,8 +29851,7 @@ Function Remove-vROPSCredential {
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/credentials/$credentialId"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vropsHeaders
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29915,8 +29874,7 @@ Function Get-vROPSCurrency {
         $uri = "https://$vropsAppliance/suite-api/api/costconfig/currency"
         $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29947,8 +29905,7 @@ Function Set-vROPSCurrency {
         }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -29982,24 +29939,20 @@ Function Get-vROPSSolution {
             $uri = "https://$vropsAppliance/suite-api/api/solutions/$solutionId"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("solutionId") -and ($PsBoundParameters.ContainsKey("adapterKind"))) {
+        } elseif ($PsBoundParameters.ContainsKey("solutionId") -and ($PsBoundParameters.ContainsKey("adapterKind"))) {
             $uri = "https://$vropsAppliance/suite-api/api/solutions/$solutionId/adapterkinds"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.'adapter-kind'
-        }
-        elseif ($PsBoundParameters.ContainsKey("solutionId") -and ($PsBoundParameters.ContainsKey("license"))) {
+        } elseif ($PsBoundParameters.ContainsKey("solutionId") -and ($PsBoundParameters.ContainsKey("license"))) {
             $uri = "https://$vropsAppliance/suite-api/api/solutions/$solutionId/licenses"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.solutionLicenses
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/solutions"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response.solution
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30031,30 +29984,23 @@ Function Import-vROPSManagementPack {
                 Throw "Management Pack file $pak not found"
             }
         }
-        
         $uri = "https://$server/casa/upgrade/cluster/pak/reserved/operation/upload?pak_handling_advice=CLOBBER"
         $contentType = "application/octet-stream"
 
         Add-Type -AssemblyName System.Net.Http
         $httpClientHandler = New-Object System.Net.Http.HttpClientHandler
-
         $networkCredential = New-Object System.Net.NetworkCredential @($userName, $password)
         $httpClientHandler.Credentials = $networkCredential
         $httpClient = New-Object System.Net.Http.Httpclient $httpClientHandler
-
         $packageFileStream = New-Object System.IO.FileStream @($pak, [System.IO.FileMode]::Open)
-                
         $fileHeaderValue = New-Object System.Net.Http.Headers.ContentDispositionHeaderValue "form-data"
         $fileHeaderValue.Name = "contents"
         $fileHeaderValue.FileName = (Split-Path $pak -leaf)
-
         $streamContent = New-Object System.Net.Http.StreamContent $packageFileStream
         $streamContent.Headers.ContentDisposition = $fileHeaderValue
         $streamContent.Headers.ContentType = New-Object System.Net.Http.Headers.MediaTypeHeaderValue $contentType
-
         $content = New-Object System.Net.Http.MultipartFormDataContent
         $content.Add($streamContent)
-
         $response = $httpClient.PostAsync($uri, $content).Result
 
         if (!$response.IsSuccessStatusCode) {
@@ -30063,8 +30009,7 @@ Function Import-vROPSManagementPack {
             Throw [System.Net.Http.HttpRequestException] $errorMessage
         }
         Return $response.Content.ReadAsStringAsync().Result
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30095,11 +30040,9 @@ Function Install-vROPSManagementPack {
         $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
         $vropsBasicHeaders.Add("Content-Type", "application/json")
-
         $response = Invoke-RestMethod "https://$server/casa/upgrade/cluster/pak/$pakId/operation/install" -Method 'POST' -Headers $vropsBasicHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30135,7 +30078,6 @@ Function Set-vROPSManagementPack {
         $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
         $vropsBasicHeaders.Add("Content-Type", "application/json")
-
         $body = '{
             "pak_id" : "'+ $pakId +'",
             "version" : "'+ $version +'",
@@ -30143,8 +30085,7 @@ Function Set-vROPSManagementPack {
         }'
         $response = Invoke-RestMethod "https://$server/casa/upgrade/cluster/pak/operation/$status" -Method 'POST' -Headers $vropsBasicHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30174,11 +30115,9 @@ Function Get-vROPSManagementPack {
         $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
         $vropsBasicHeaders.Add("Content-Type", "application/json")
-
         $response = Invoke-RestMethod "https://$server/casa/upgrade/cluster/pak/reserved/list" -Method 'GET' -Headers $vropsBasicHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30208,11 +30147,9 @@ Function Get-vROPSManagementPackStatus {
         $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
         $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
-
         $response = Invoke-RestMethod "https://$server/casa/upgrade/cluster/pak/$pakId/status" -Method 'GET' -Headers $vropsBasicHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30242,11 +30179,9 @@ Function Get-vROPSManagementPackActivity {
         $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
         $vropsBasicHeaders = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
-
         $response = Invoke-RestMethod "https://$server/casa/upgrade/cluster/pak/reserved/current_activity" -Method 'GET' -Headers $vropsBasicHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30269,8 +30204,7 @@ Function Get-vROPSAlertPlugin {
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
         $response.notificationPluginInstances
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30297,16 +30231,14 @@ Function Add-vROPSAlertPlugin {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
 
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins"
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30333,17 +30265,14 @@ Function Set-vROPSAlertPlugin {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
-
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins"
         $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30370,8 +30299,7 @@ Function Remove-vROPSAlertPlugin {
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins/$pluginId"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30458,8 +30386,7 @@ Function Set-vROPSAlertPluginStatus {
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins/$pluginId/enable/$status"
         $response = Invoke-RestMethod -Method 'PUT' -Uri $uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30491,14 +30418,12 @@ Function Get-vROPSAuthSource {
             $uri = "https://$vropsAppliance/suite-api/api/auth/sources/$sourceId"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/auth/sources"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.sources
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30526,14 +30451,12 @@ Function Get-vROPSAuthRole {
             $uri = "https://$vropsAppliance/suite-api/api/auth/roles/$name"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/auth/roles"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.userRoles
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30626,19 +30549,16 @@ Function Get-vROPSUserGroup {
             $uri = "https://$vropsAppliance/suite-api/api/auth/usergroups?id=$id&_no_links=true"
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("name")) {
+        } elseif ($PsBoundParameters.ContainsKey("name")) {
             $uri = "https://$vropsAppliance/suite-api/api/auth/usergroups?name=$name&_no_links=true"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.userGroups
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/auth/usergroups"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.userGroups
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30684,8 +30604,7 @@ Function Add-vROPSUserAccount {
         }]}'
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30722,8 +30641,7 @@ Function Add-vROPSUserGroup {
         }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30750,8 +30668,7 @@ Function Remove-vROPSUserAccount {
         $uri = "https://$vropsAppliance/suite-api/api/auth/users/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30778,8 +30695,7 @@ Function Remove-vROPSUserGroup {
         $uri = "https://$vropsAppliance/suite-api/api/auth/usergroups/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30813,8 +30729,7 @@ Function Search-vROPSUserAccount {
             }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
         $response.'user-search-response'
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30848,8 +30763,7 @@ Function Search-vROPSUserGroup {
             }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
         $response.'usergroup-search-response'
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30876,8 +30790,7 @@ Function Update-vROPSUserAccount {
         $uri = "https://$vropsAppliance/suite-api/api/auth/users/$id"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vropsHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30904,8 +30817,7 @@ Function Get-vROpsLogForwarding {
             $response = Invoke-RestMethod -Method 'GET' -Uri $Uri -Headers $vropsHeaders 
         }
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -30938,14 +30850,12 @@ Function Get-vROPSNotification {
             $uri = "https://$vropsAppliance/suite-api/api/notifications/rules/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vropsAppliance/suite-api/api/notifications/rules"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vropsHeaders
             $response.rules
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31046,8 +30956,7 @@ Function Remove-vROPSNotification {
         $uri = "https://$vropsAppliance/suite-api/api/notifications/rules/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vropsHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -31085,8 +30994,7 @@ Function Test-vROPsAdapterStatus {
         } else { 
             Write-Output "Adapter Name : $($name), Health Status: $($vropsresponse.resourceHealth), please check adapter log for details"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
