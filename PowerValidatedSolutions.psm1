@@ -34645,8 +34645,7 @@ Function Get-ExternalFileName ($title, $fileType, $location) {
     $OpenFileDialog.Title = "$title"
     if ($location -eq "default") {
         $OpenFileDialog.initialDirectory = Get-Location
-    }
-    else {
+    } else {
         $OpenFileDialog.initialDirectory = $location
     }
     $OpenFileDialog.filter = "All files (*.$fileType) | *.$fileType"
@@ -34703,13 +34702,10 @@ Function cidrMaskLookup {
         ($1 = @{ cidr = "1"; mask = "128.0.0.0" }),
         ($0 = @{ cidr = "0"; mask = "0.0.0.0" })			
     )
-    If ($source -eq "Mask")
-    {
+    If ($source -eq "Mask") {
         $found = $subnetMasks | Where-Object { $_.'mask' -eq $value }
         $returnValue = $found.cidr
-    }
-    else
-    {
+    } else {
         $found = $subnetMasks | Where-Object { $_.'cidr' -eq $value }
         $returnValue = $found.mask
     }   
@@ -34773,7 +34769,7 @@ Function Test-PowerValidatedSolutionsPrereq {
         $modules = @(
             @{ Name=("VMware.PowerCLI"); MinimumVersion=("13.1.0")}
             @{ Name=("VMware.vSphere.SsoAdmin"); MinimumVersion=("1.3.9")}
-            @{ Name=("ImportExcel"); MinimumVersion=("7.8.4")}
+            @{ Name=("ImportExcel"); MinimumVersion=("7.8.5")}
             @{ Name=("PowerVCF"); MinimumVersion=("2.4.0")}
         )
 
@@ -34832,8 +34828,7 @@ Function Test-EndpointConnection {
             if ($status = Test-Connection -TargetName $server -TcpPort $port -Quiet) {
                 $connection = $True
                 Return $connection
-            }
-            else {
+            } else {
                 $connection = $False
                 Return $connection
             } 
@@ -34843,14 +34838,12 @@ Function Test-EndpointConnection {
             if ($status = Test-NetConnection -ComputerName $server -Port $port -WarningAction SilentlyContinue) {
                 $Global:ProgressPreference = $OriginalProgressPreference
                 Return $status.TcpTestSucceeded
-            }
-            else {
+            } else {
                 $Global:ProgressPreference = $OriginalProgressPreference
                 Return $status.TcpTestSucceeded
             }
         }
-    }
-    Catch {
+    } Catch {
         $_.Exception.Message
     }
 }
@@ -34911,15 +34904,18 @@ Function Test-VCFAuthentication {
 
     Remove-Item variable:accessToken -Force -Confirm:$false -ErrorAction Ignore
 
-    Request-VCFToken -fqdn $server -Username $user -Password $pass -skipCertificateCheck -ErrorAction SilentlyContinue -ErrorVariable ErrMsg | Out-Null
-    if ($accessToken) {
-        $vcfAuthentication = $True
-        Return $vcfAuthentication
-    }   
-    else {
-        Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials: PRE_VALIDATION_FAILED"
-        $vcfAuthentication = $False
-        Return $vcfAuthentication
+    Try {
+        Request-VCFToken -fqdn $server -Username $user -Password $pass -skipCertificateCheck -ErrorAction SilentlyContinue -ErrorVariable ErrMsg | Out-Null
+        if ($accessToken) {
+            $vcfAuthentication = $True
+            Return $vcfAuthentication
+        } else {
+            Write-Error "Unable to obtain access token from SDDC Manager ($server), check credentials: PRE_VALIDATION_FAILED"
+            $vcfAuthentication = $False
+            Return $vcfAuthentication
+        }
+    } Catch {
+        $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Test-VCFAuthentication
@@ -34991,6 +34987,7 @@ Function Test-EsxiAuthentication {
         .PARAMETER pass
         The password to authenticate to the ESXi host.
     #>
+
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
 		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -35071,14 +35068,12 @@ Function Test-VsphereAuthentication {
         if ($DefaultVIServer.Name -eq $server) {
             $vsphereAuthentication = $True
             Return $vsphereAuthentication
-        }   
-        else {
+        }    else {
             Write-Error "Unable to authenticate to vCenter Server ($server), check credentials: PRE_VALIDATION_FAILED"
             $vsphereAuthentication = $False
             Return $vsphereAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35138,14 +35133,12 @@ Function Test-SSOAuthentication {
         if ($DefaultSsoAdminServers.Name -eq $server) {
             $ssoAuthentication = $True
             Return $ssoAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to authenticate to Single-Sign-On Server ($server), check credentials: PRE_VALIDATION_FAILED"
             $ssoAuthentication = $False
             Return $ssoAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35156,14 +35149,17 @@ Function Test-vSphereApiConnection {
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
     )
 
-    if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
-        $vSphereApiConnection = $True
-        Return $vSphereApiConnection
-    }   
-    else { 
-        Write-Error "Unable to communicate with vSphere API Endpoint ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
-        $vSphereApiConnection = $False
-        Return $vSphereApiConnection
+    Try {
+        if (Test-Connection -ComputerName ($server) -Quiet -Count 1) {
+            $vSphereApiConnection = $True
+            Return $vSphereApiConnection
+        } else { 
+            Write-Error "Unable to communicate with vSphere API Endpoint ($server), check FQDN/IP address: PRE_VALIDATION_FAILED"
+            $vSphereApiConnection = $False
+            Return $vSphereApiConnection
+        }
+    } Catch {
+        # Do Nothing
     }
 }
 Export-ModuleMember -Function Test-vSphereApiConnection
@@ -35179,21 +35175,18 @@ Function Test-vSphereApiAuthentication {
     Try {
         if ($PsBoundParameters.ContainsKey("admin")) {
             $response = Request-vSphereApiToken -fqdn $server -username $user -password $pass -admin
-        }
-        else {
+        } else {
             $response = Request-vSphereApiToken -fqdn $server -username $user -password $pass
         }
         if ($response -match "Successfully Requested") {
             $vSphereApiAuthentication = $True
             Return $vSphereApiAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to authenticate to vSphere API Endpoint ($server), check credentials: PRE_VALIDATION_FAILED"
             $vSphereApiAuthentication = $False
             Return $vSphereApiAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35259,14 +35252,12 @@ Function Test-NSXTAuthentication {
         if ($response -match "Successfully Requested") {
             $nsxtAuthentication = $True
             Return $nsxtAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to obtain access token from NSX Manager ($server), check credentials: PRE_VALIDATION_FAILED"
             $nsxtAuthentication = $False
             Return $nsxtAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35332,14 +35323,12 @@ Function Test-vRSLCMAuthentication {
         if ((Get-vRSLCMHealth).'vrlcm-server' -eq "UP") {
             $vrslcmAuthentication = $True
             Return $vrslcmAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to obtain access token from VMware Aria Suite Lifecycle instance ($server), check credentials: PRE_VALIDATION_FAILED"
             $vrslcmAuthentication = $False
             Return $vrslcmAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35405,14 +35394,12 @@ Function Test-vROPSAuthentication {
         if ($vropsHeaders.Authorization) {
             $vropsAuthentication = $True
             Return $vropsAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to obtain access token from VMware Aria Operations ($server), check credentials: PRE_VALIDATION_FAILED"
             $vropsAuthentication = $False
             Return $vropsAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35478,14 +35465,12 @@ Function Test-vRLIAuthentication {
         if ($vrliHeaders.Authorization) {
             $vrliAuthentication = $True
             Return $vrliAuthentication
-        }
-        else {
+        } else {
             Write-Error "Unable to obtain access token from VMware Aria Operations for Logs ($server), check credentials: PRE_VALIDATION_FAILED"
             $vrliAuthentication = $False
             Return $vrliAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35551,14 +35536,12 @@ Function Test-vRAAuthentication {
         if ($vraHeaders.Authorization) {
             $vraAuthentication = $True
             Return $vraAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to obtain access token from VMware Aria Automation ($server), check credentials: PRE_VALIDATION_FAILED"
             $vraAuthentication = $False
             Return $vraAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35624,14 +35607,12 @@ Function Test-WSAAuthentication {
         if ($sessionToken) {
             $wsaAuthentication = $True
             Return $wsaAuthentication
-        }   
-        else {
+        } else {
             Write-Error "Unable to obtain access token from Workspace ONE Access ($server), check credentials: PRE_VALIDATION_FAILED"
             $wsaAuthentication = $False
             Return $wsaAuthentication
         }
-    }
-    Catch {
+    } Catch {
         # Do Nothing
     }
 }
@@ -35693,14 +35674,12 @@ Function Test-VrmsVamiAuthentication {
         if ($vrmsHeader) {
             $vrmsVamiConnection = $True
             Return $vrmsVamiConnection
-        }   
-        else {
+        } else {
             Write-Error $response
             $vrmsVamiConnection = $False
             Return $vrmsVamiConnection
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $response
     }
 }
@@ -35762,14 +35741,12 @@ Function Test-SrmVamiAuthentication {
         if ($srmHeader) {
             $srmVamiConnection = $True
             Return $srmVamiConnection
-        }   
-        else {
+        } else {
             Write-Error $response
             $srmVamiConnection = $False
             Return $srmVamiConnection
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $response
     }
 }
@@ -35833,12 +35810,10 @@ Function Test-SRMAuthentication {
     Try {
         if ($remoteUser -and $remotePass) {
             Connect-SrmServer -SrmServerAddress $server -user $user -password $pass -remoteUser $remoteUser -remotePassword $remotePass | Out-Null
-        }
-        else {
+        } else {
             Connect-SrmServer -SrmServerAddress $server -user $user -password $pass | Out-Null
         }
-    }
-    Catch {
+    } Catch {
         if ($_.Exception.Message -eq "Cannot complete login due to an incorrect user name or password.") {
             $PSCmdlet.ThrowTerminatingError(
                 [System.Management.Automation.ErrorRecord]::new(
@@ -35848,8 +35823,7 @@ Function Test-SRMAuthentication {
                     ""
                 )
             )
-        }
-        elseif ($_.Exception.Message -eq "Unable to connect to the remote server: One or more errors occurred.") {
+        } elseif ($_.Exception.Message -eq "Unable to connect to the remote server: One or more errors occurred.") {
             $PSCmdlet.ThrowTerminatingError(
                 [System.Management.Automation.ErrorRecord]::new(
                     ([System.Management.Automation.ProviderNotFoundException]"Unable to authenticate with Site Recovery Manager ($server), check server IP address/FQDN: PRE_VALIDATION_FAILED"),
@@ -35858,8 +35832,7 @@ Function Test-SRMAuthentication {
                     ""
                 )
             )
-        }
-        elseif ($_.Exception.Message -eq "Unable to connect to the remote server: The connection to the remote server is down.") {
+        } elseif ($_.Exception.Message -eq "Unable to connect to the remote server: The connection to the remote server is down.") {
             $PSCmdlet.ThrowTerminatingError(
                 [System.Management.Automation.ErrorRecord]::new(
                     ([System.Management.Automation.RemoteException]"Unable to authenticate with the remote Site Recovery Manager instance: PRE_VALIDATION_FAILED"),
@@ -35873,8 +35846,7 @@ Function Test-SRMAuthentication {
     if ($defaultSrmServers) {
         $srmAuthentication = $True
         Return $srmAuthentication
-    }
-    else {
+    } else {
         $srmAuthentication = $False
         Return $srmAuthentication
     }
@@ -35900,7 +35872,6 @@ Function Test-WMSubnetInput {
         [Parameter (Mandatory = $true)][ValidateSet("Pod", "Service", "Egress", "Ingress")] [String]$SubnetType
     )
 
-  
     Switch ($subnetType) {
         "Pod" {
             $subnetMinimum = 23
@@ -35933,21 +35904,16 @@ Function Test-WMSubnetInput {
         $subnetStart = $Subnet.Split("/")[0]
         Try {
             $checkSubnet = [IPAddress]$subnetStart
-        }
-        Catch {
+        } Catch {
             #Do nothing
         }
 
         if ($checksubnet.IPAddressToString -ne $subnetStart -or !$checkSubnet) {
-            
-            Write-Error "Improperly formatted subnet ($subnet) : VALIDATION_FAILED"
-            
-        }
-        else {
+            Write-Error "Improperly formatted subnet ($subnet): PRE_VALIDATION_FAILED"
+        } else {
             $testElement = $true
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 
@@ -35957,20 +35923,17 @@ Function Test-WMSubnetInput {
         $checkSuffix = [int[]]$suffix
         if ($checkSuffix -gt $subnetMinimum -or !$checkSuffix) {
             Write-Error "Improperly sized $subnetType subnet ($subnet). Host prefix length should be at least {$subnetminimum)"
-            
         }
         else {
             $testSufix = $true
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 
     if ($testElement -and $testSufix) {
         Return $true
-    }
-    else {
+    } else {
         Return $false
     }
     
@@ -36078,21 +36041,18 @@ Function Test-IPaddressArray {
         [bool]$testElement = $false
         Try {
             $convertToIPv4 = [ipaddress]$ipAddress
-        }
-        Catch {
+        } Catch {
             Write-Error "Can not convert $ipAddress to valid IPv4 address."
             Return $false 
         }
         if (($convertToIPv4.IPAddressToString -ne $ipAddress) -or (!$convertToIPv4)) {
             Write-Error "Can not convert $ipAddress to valid IPv4 address due to missing octet"
             Return $false
-        }
-        else {
+        } else {
             $testElement = $true
         }
     }
     Return $testElement
-    
 }
 Export-ModuleMember -Function Test-IPaddressArray
 
@@ -36127,19 +36087,16 @@ Function Test-DnsServers {
                                                                 
             Try {
                 $checkDnsServer = Resolve-DnsName -Name $domainName -Type A -Server $dnsServer -QuickTimeout -ErrorAction Stop
-            } 
-            Catch [System.ComponentModel.Win32Exception] {
+            } Catch [System.ComponentModel.Win32Exception] {
                 Write-Error "Can not resolve: $domainName using dns server: $dnsServer"
                 Return $false
             }
             if (!$checkDnsServer) {
                 Write-Error "Can not resolve: $domainName using dns server: $dnsServer"
                 $resolveResult = $false
-            }
-            else {
+            } else {
                 $resolveResult = $true
             }
- 
         }
         Return $resolveResult
     }
@@ -36171,28 +36128,22 @@ Function Test-NtpServer {
         $Socket = New-Object Net.Sockets.Socket([Net.Sockets.AddressFamily]::InterNetwork,
                                                 [Net.Sockets.SocketType]::Dgram,
                                                 [Net.Sockets.ProtocolType]::Udp)
-    
         $Socket.ReceiveTimeout = 2000
         $Socket.SendTimeout = 2000
-    
         $Socket.Connect($Server,123)
-    
         [Void]$Socket.Send($NtpData)
         [Void]$Socket.Receive($NtpData)  
         $Socket.Close()
-    }
-    Catch {
+    } Catch {
         # Do nothing
     }   
 
     if ($ntpData -eq 0x1B) {
         $ntpStatus = $false
-    }
-    else {
+    } else {
         $ntpStatus = $true
     }
     Return $ntpStatus
-
 }
 Export-ModuleMember -Function Test-NtpServer
 
