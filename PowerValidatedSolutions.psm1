@@ -17424,12 +17424,10 @@ Function Test-ADAuthentication {
         }
         if ($principalContext.ValidateCredentials($user, $pass)) {
             Write-Output "$domain\$user - AD Authentication Successful"
-        }
-        else {
+        } else {
             Write-Error "$domain\$user - AD Authentication Failed"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17462,12 +17460,10 @@ Function Get-ADPrincipalGuid {
             $creds = New-Object System.Management.Automation.PSCredential ($user, $securePassword)
             $nsxAdminGroupObject = (Get-ADGroup -Server $domain -Credential $creds -Filter { SamAccountName -eq $principal })
             $nsxAdminGroupObject
-        }
-        else {
+        } else {
             Write-Error "Domain User $user Authentication Failed"
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17553,14 +17549,12 @@ Function Get-vCenterServerDetail {
                     $vcenterServer | Add-Member -notepropertyname 'root' -notepropertyvalue ($vcenterCredentialDetails | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "USER") }).username
                     $vcenterServer | Add-Member -notepropertyname 'rootPass' -notepropertyvalue ($vcenterCredentialDetails | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "USER") }).password
                     $vcenterServer
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17628,14 +17622,12 @@ Function Get-NsxtServerDetail {
                         $nsxtCluster | Add-Member -notepropertyname 'nodes' -notepropertyvalue $nsxtServerDetails.nodes
                     }
                     $nsxtCluster
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain type or domain named ($domain) in the inventory of SDDC Manager ($fqdn): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17685,14 +17677,12 @@ Function Get-vRSLCMServerDetail {
                     $vrslcmDetails | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($vRSLCMCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM") }).username
                     $vrslcmDetails | Add-Member -notepropertyname 'rootPassword' -notepropertyvalue ($vRSLCMCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM") }).password
                     $vrslcmDetails
-                }
-                else {
+                } else {
                     Write-Error "Unable to obtain VMware Aria Suite Lifecycle details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17731,25 +17721,26 @@ Function Get-WSAServerDetail {
 
         if (Test-VCFConnection -server $fqdn) {
             if (Test-VCFAuthentication -server $fqdn -user $username -pass $password) {
-                if (Get-VCFvRA) {
+                if (Get-VCFWSA) {
                     $vcfWsaDetails = Get-VCFWSA
-                    #$wsaCreds = Get-VCFCredential -resourceName $vcfWsaDetails.fqdn
+                    $wsaCreds = Get-VCFCredential -resourceName $vcfWsaDetails.loadBalancerFqdn
                     $wsaDetails = New-Object -TypeName PSCustomObject
                     $wsaDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcfWsaDetails.nodes.fqdn
                     $wsaDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vcfWsaDetails.loadBalancerIpAddress
                     $wsaDetails | Add-Member -notepropertyname 'loadBalancerFqdn' -notepropertyvalue $vcfWsaDetails.loadBalancerFqdn
+                    $wsaDetails | Add-Member -notepropertyname 'nodeCount' -notepropertyvalue ($vcfWsaDetails).nodes.Count
                     $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vcfWsaDetails.nodes.ipAddress[0]
                     $wsaDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vcfWsaDetails.nodes.ipAddress[1]
                     $wsaDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vcfWsaDetails.nodes.ipAddress[2]
+                    $wsaDetails | Add-Member -notepropertyname 'adminUser' -notepropertyvalue $wsaCreds.username
+                    $wsaDetails | Add-Member -notepropertyname 'adminPass' -notepropertyvalue $wsaCreds.password
                     $wsaDetails
-                }
-                else {
+                } else {
                     Write-Error "Unable to obtain Workspace ONE Access details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17799,14 +17790,12 @@ Function Get-vRAServerDetail {
                     $vraDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vcfVraDetails.nodes.ipAddress[1]
                     $vraDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vcfVraDetails.nodes.ipAddress[2]
                     $vraDetails
-                }
-                else {
+                } else {
                     Write-Error "Unable to obtain VMware Aria Automation details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17864,14 +17853,12 @@ Function Get-vROPsServerDetail {
                     $vropsDetails | Add-Member -notepropertyname 'adminUser' -notepropertyvalue $vropsCreds.username
                     $vropsDetails | Add-Member -notepropertyname 'adminPass' -notepropertyvalue $vropsCreds.password
                     $vropsDetails
-                }
-                else {
+                } else {
                     Write-Error "Unable to obtain VMware Aria Operations details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17925,14 +17912,12 @@ Function Get-vRLIServerDetail {
                     $vrliDetail | Add-Member -notepropertyname 'adminUser' -notepropertyvalue $vrliCreds.username
                     $vrliDetail | Add-Member -notepropertyname 'adminPass' -notepropertyvalue $vrliCreds.password
                     $vrliDetail
-                }
-                else {
+                } else {
                     Write-Error "Unable to obtain VMware Aria Operations for Logs details from SDDC Manager ($fqdn), check deployment status: PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -17947,7 +17932,7 @@ Function Get-VCFDnsSearchDomain {
         The Get-VCFDnsSearchDomain cmdlet gets the search domains configured in an SDDC Manager appliance
 
         .EXAMPLE
-        Get-VCFDnsSearchDomain
+        Get-VCFDnsSearchDomain -sddcManagerVmName sfo-vcf01 -sddcManagerRootPass VMw@re1!
         This example gets all search domains configured in an SDDC Manager appliance
     #>
 
@@ -17958,10 +17943,9 @@ Function Get-VCFDnsSearchDomain {
 
     Try {
         $scriptCommand = "cat /etc/resolv.conf"
-        try {
+        Try {
             $output = Invoke-VMScript -VM $sddcManagerVmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $sddcManagerRootPass -Server $vcfVcenterDetails.fqdn -ErrorAction Stop
-        }
-        catch {
+        } Catch {
             if ($_.Exception -match "Failed to authenticate with the guest operating system") {
                 $PSCmdlet.ThrowTerminatingError(
                     [System.Management.Automation.ErrorRecord]::new(
@@ -17971,8 +17955,7 @@ Function Get-VCFDnsSearchDomain {
                         ""
                     )
                 )
-            }
-            elseif ($_.Exception -match "Value cannot be found for the mandatory parameter VM" -or $_.Exception -match "Could not find VirtualMachine with name") {
+            } elseif ($_.Exception -match "Value cannot be found for the mandatory parameter VM" -or $_.Exception -match "Could not find VirtualMachine with name") {
                 $PSCmdlet.ThrowTerminatingError(
                     [System.Management.Automation.ErrorRecord]::new(
                         ([System.Management.Automation.ItemNotFoundException]"Retrieving DNS search domains from SDDC Manager - invalid SDDC Manager appliance name: PRE_VALIDATION_FAILED"),
@@ -17990,8 +17973,7 @@ Function Get-VCFDnsSearchDomain {
                 $searchDomains += $item
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
