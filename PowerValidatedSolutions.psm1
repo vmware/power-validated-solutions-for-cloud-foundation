@@ -27250,15 +27250,13 @@ Function Request-vRAToken {
         $uri = "https://$vraAppliance/csp/gateway/am/api/login?access_token"
         if ($PsBoundParameters.ContainsKey("tenant")) {
             $body = "{ ""username"":""$username"",""password"":""$password"",""domain"":""$tenant""}"
-        }
-        else {
+        } else {
             $body = "{ ""username"":""$username"",""password"":""$password""}"
         }
 
         if ($PSEdition -eq 'Core') {
             $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $vraResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vraBasicHeaders -Body $body -UseBasicParsing
         }
 
@@ -27274,8 +27272,7 @@ Function Request-vRAToken {
                 Write-Output "-------------------------------`n"
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27298,8 +27295,7 @@ Function Get-vRAOrganizationId {
         $uri = "https://$vraAppliance/csp/gateway/am/api/loggedin/user/orgs"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response.refLinks
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27326,8 +27322,7 @@ Function Get-vRAOrganizationDisplayName {
         $uri = "https://$vraAppliance/csp/gateway/am/api/orgs/$orgId"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27356,8 +27351,7 @@ Function Set-vRAOrganizationDisplayName {
         $json = '{ "displayName": "'+ $displayName +'" }'
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $json
         $response.refLink
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27395,14 +27389,12 @@ Function Get-vRACloudAccount {
             if ($type -eq "azure") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure"}
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response.content
-        }
-        else {
+        } else {
             $uri = "https://$vraAppliance/iaas/api/cloud-accounts"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response.content
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27440,8 +27432,7 @@ Function Add-vRACloudAccount {
         if ($type -eq "azure") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure"}
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27468,8 +27459,7 @@ Function Remove-vRACloudAccount {
         $uri = "https://$vraAppliance/iaas/api/cloud-accounts/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27492,8 +27482,7 @@ Function Get-vRANotification {
         $uri = "https://$vraAppliance/notification/api/email-config"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27546,8 +27535,7 @@ Function New-vRANotification {
         }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27570,8 +27558,7 @@ Function Remove-vRANotification {
         $uri = "https://$vraAppliance/notification/api/email-config"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27603,14 +27590,12 @@ Function Get-vRAResourceCompute {
             $uri = "https://$vraAppliance/iaas/api/fabric-computes/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vraAppliance/iaas/api/fabric-computes"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response.content
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27644,8 +27629,7 @@ Function Add-vRAResourceComputeTag {
                     'key'= $tag.key
                     'value' = $tag.value
                 }
-            }
-            elseif ($tag.key -eq $tagKey) {
+            } elseif ($tag.key -eq $tagKey) {
                 $tagObject += [pscustomobject]@{
                     'key'= $tagkey
                     'value' = $tagvalue
@@ -27666,8 +27650,7 @@ Function Add-vRAResourceComputeTag {
         $uri = "https://$vraAppliance/iaas/api/fabric-computes/$id"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27704,19 +27687,16 @@ Function Get-vRACloudZone {
             $uri = "https://$vraAppliance/iaas/api/zones/$id/computes"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response.content
-        }
-        elseif ($PsBoundParameters.ContainsKey("id")) {
+        } elseif ($PsBoundParameters.ContainsKey("id")) {
             $uri = "https://$vraAppliance/iaas/api/zones/$id"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vraAppliance/iaas/api/zones"
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response.content
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27737,8 +27717,7 @@ Function Get-vRAAPIVersion {
         $uri = "https://$vraAppliance/iaas/api/about"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response.latestApiVersion         
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27778,8 +27757,7 @@ Function Get-vRAIntegrationDetail {
                 (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match "\b$integrationName\b").id        
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27828,13 +27806,11 @@ Function Update-vRACloudZone {
                     $cloudZoneDetails.placementPolicy = $placementPolicy
                     $cloudZoneDetails.customProperties | Add-Member -Type NoteProperty  -Name "__ignoreAdvancedPolicyFailure" -Value "true" -Force
                     $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
-                }
-                else {
+                } else {
                     Write-Error "VMware Aria Operations is not integrated with VMware Aria Automation for the vCenter Server configured in CloudZone(id :$id) , check the integration: PRE_VALIDATION_FAILED"
-                    break
+                    Break
                 }
-            }
-            else {   
+            } else {   
                 $cloudZoneDetails.placementPolicy = $placementPolicy
                 $cloudZoneDetails.customProperties.PSObject.Properties.Remove('__ignoreAdvancedPolicyFailure')
                 $json = $cloudZoneDetails | ConvertTo-Json -Depth 4
@@ -27843,8 +27819,7 @@ Function Update-vRACloudZone {
         $uri = "https://$vraAppliance/iaas/api/zones/$id"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27871,8 +27846,7 @@ Function Remove-vRACloudZone {
         $uri = "https://$vraAppliance/iaas/api/zones/$id"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27899,8 +27873,7 @@ Function Get-vRAServices {
         $uri = "https://$vraAppliance/csp/gateway/slc/api/v2/orgs/$orgId/services"
         $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vraHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -27929,8 +27902,7 @@ Function Get-vRAUser {
         $uri = "https://$vraAppliance/csp/gateway/am/api/orgs/$orgId/users/search?userSearchTerm=$email"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -27978,8 +27950,7 @@ Function New-vRAUser {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/am/api/v3/users/$userId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28008,8 +27979,7 @@ Function Get-vRAGroup {
         $uri = "https://$vraAppliance/csp/gateway/am/api/orgs/$orgId/groups-search?groupSearchTerm=$displayName"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response.results
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28063,11 +28033,9 @@ Function New-vRAGroup {
                     }'
             $uri = "https://$vraAppliance/csp/gateway/portal/api/orgs/$orgId/groups"
             $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $body
-        }
-        elseif ($PsBoundParameters.ContainsKey("serviceRole") -or $PsBoundParameters.ContainsKey("serviceDefinitionId")) {
+        } elseif ($PsBoundParameters.ContainsKey("serviceRole") -or $PsBoundParameters.ContainsKey("serviceDefinitionId")) {
             Write-Error "Only one of serviceRole and serviceDefinitionId provided."
-        }  
-        else {
+        } else {
             $body = '{
                     "ids":[
                         "' + $groupId +'" 
@@ -28079,8 +28047,7 @@ Function New-vRAGroup {
             $uri = "https://$vraAppliance/csp/gateway/portal/api/orgs/$orgId/groups"
             $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $body
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28109,8 +28076,7 @@ Function Get-vRAUserRoles {
         $uri = "https://$vraAppliance/csp/gateway/am/api/users/$userid/orgs/$orgId/access"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28139,8 +28105,7 @@ Function Get-vRAGroupRoles {
         $uri = "https://$vraAppliance/csp/gateway/portal/api/groups/$groupId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28173,8 +28138,7 @@ Function Remove-vRAGroupRoles {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/portal/api/orgs/$orgId/groups"
         $response = Invoke-RestMethod -Method 'DELETE' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28215,8 +28179,7 @@ Function Set-vRAGroupOrgRole {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/portal/api/groups/$groupId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28257,8 +28220,7 @@ Function Remove-vRAGroupOrgRole {
         }'
         $uri = "https://$vraAppliance/csp/gateway/portal/api/groups/$groupId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -28302,8 +28264,7 @@ Function Set-vRAGroupServiceRole {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/portal/api/groups/$groupId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28348,8 +28309,7 @@ Function Remove-vRAGroupServiceRole {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/portal/api/groups/$groupId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28390,8 +28350,7 @@ Function Set-vRAUserOrgRole {
         }'
         $uri = "https://$vraAppliance/csp/gateway/am/api/v3/users/$userId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28432,8 +28391,7 @@ Function Remove-vRAUserOrgRole {
         }'
         $uri = "https://$vraAppliance/csp/gateway/am/api/v3/users/$userId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28474,8 +28432,7 @@ Function Set-vRAUserServiceRole {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/am/api/v3/users/$userId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28516,8 +28473,7 @@ Function Remove-vRAUserServiceRole {
                 }'
         $uri = "https://$vraAppliance/csp/gateway/am/api/v3/users/$userId/orgs/$orgId/roles"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 
@@ -28579,7 +28535,7 @@ Function Test-vRAIntegrationItem {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$integrationPassword
     )
-    
+
     if ($PsBoundParameters.ContainsKey("integrationType")) {
         if ($integrationType -eq "vrops") { $vropsuri = "https://$vropsAppliance/suite-api" } 
         $jsonObj = [PSCustomObject]@{
@@ -28646,7 +28602,7 @@ Function Remove-vRAIntegrationItem {
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationId
     )
-    
+
     Try {
         $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
         $uri = "https://$vraAppliance/iaas/api/integrations/$integrationId" + "?$vraapiVersion"     
@@ -28734,8 +28690,7 @@ Function Invoke-vRORestMethod {
     if ($PSBoundParameters.ContainsKey("body")) {
         $Params.Add("body", $body)
         Write-Debug -message $body
-    }
-    elseif ($PSBoundParameters.ContainsKey("outFile")) {
+    } elseif ($PSBoundParameters.ContainsKey("outFile")) {
         $Params.Add("outFile", $outFile)
     }
 
@@ -28743,21 +28698,17 @@ Function Invoke-vRORestMethod {
         if ($PSEdition -eq 'Core') {
             if ($PSBoundParameters.ContainsKey("webRequest")) {
                 Invoke-WebRequest @Params -SkipCertificateCheck -UseBasicParsing
-            }
-            else {
+            } else {
                 Invoke-RestMethod @Params -SkipCertificateCheck -UseBasicParsing
             }
-        }
-        else {
+        } else {
             if ($PSBoundParameters.ContainsKey("webRequest")) {
                 Invoke-WebRequest @Params -UseBasicParsing
-            }
-            else {
+            } else {
                 Invoke-RestMethod @Params -UseBasicParsing
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -28780,7 +28731,10 @@ function Get-vROVersion {
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
     
-    Param ()              
+    Param (
+
+    )
+
     Try {
         $uri = "/vco/api/about"
         $response = Invoke-vRORestMethod -method 'GET' -uri $uri
@@ -28791,14 +28745,13 @@ function Get-vROVersion {
             BuildDate = $response."build-date"
             APIVersion = $response."api-version"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-vROVersion
 
-function Get-vROWorkflow {
+Function Get-vROWorkflow {
     <#
         .SYNOPSIS
         Get VMware Aria Automation Orchestrator workflows
@@ -28946,14 +28899,13 @@ function Get-vROWorkflow {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-vROWorkflow
 
-function Invoke-vROWorkflow {
+Function Invoke-vROWorkflow {
     <#
         .SYNOPSIS
         Invoke a VMware Aria Automation Orchestrator workflow
@@ -29037,8 +28989,7 @@ function Invoke-vROWorkflow {
                     $object.parameters += $parameter
                 }
                 $body = $object | ConvertTo-Json -Depth 100
-            }
-            else {
+            } else {
                 $body = @"
 {"parameters":
 [
@@ -29055,23 +29006,21 @@ function Invoke-vROWorkflow {
                     StatusDescription = $response.StatusDescription
                     Execution         = ([System.Uri]$response.Headers.Location[0]).LocalPath
                 }
-            }
-            else {
+            } else {
                 [pscustomobject]@{
                     StatusCode        = $response.StatusCode
                     StatusDescription = $response.StatusDescription
                     Execution         = ([System.Uri]$response.Headers.Location).LocalPath
                 }
             }
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
 }
 Export-ModuleMember -Function Invoke-vROWorkflow
 
-function New-vROParameterDefinition {
+Function New-vROParameterDefinition {
     <#
         .SYNOPSIS
         Create a parameter definition for use with a VMware Aria Automation Orchestrator workflow
@@ -29113,8 +29062,7 @@ function New-vROParameterDefinition {
 "@
                 $parameterDefinition | ConvertFrom-Json
             }
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
@@ -29123,7 +29071,7 @@ function New-vROParameterDefinition {
 }
 Export-ModuleMember -Function New-vROParameterDefinition
 
-function Get-vROWorkflowExecution {
+Function Get-vROWorkflowExecution {
     <#
         .SYNOPSIS
         Get VMware Aria Automation Orchestrator workflow executions
@@ -29171,8 +29119,7 @@ function Get-vROWorkflowExecution {
                     EndDate   = ($execution.attributes | Where-Object { $_.name -eq 'EndDate' }).value
                 }
             }
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
@@ -29181,7 +29128,7 @@ function Get-vROWorkflowExecution {
 }
 Export-ModuleMember -Function Get-vROWorkflowExecution
 
-function Get-vROWorkflowExecutionState {
+Function Get-vROWorkflowExecutionState {
     <#
         .SYNOPSIS
         Get VMware Aria Automation Orchestrator workflow execution state
@@ -29218,8 +29165,7 @@ function Get-vROWorkflowExecutionState {
                     Execution         = ($response.Content | ConvertFrom-Json).Value
                 }
             }
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
@@ -29228,7 +29174,7 @@ function Get-vROWorkflowExecutionState {
 }
 Export-ModuleMember -Function Get-vROWorkflowExecutionState
 
-function Get-vROWorkflowExecutionResult {
+Function Get-vROWorkflowExecutionResult {
     <#
         .SYNOPSIS
         Get VMware Aria Automation Orchestrator workflow execution result
@@ -29269,8 +29215,7 @@ function Get-vROWorkflowExecutionResult {
                     }
                 } 
             }
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
