@@ -19622,12 +19622,12 @@ Function Request-WSAToken {
         $pass = $creds.GetNetworkCredential().password
     }
 
-    $Global:workSpaceOne = $fqdn
+    $Global:workspaceOne = $fqdn
 
     # Validate credentials by executing an API call
     $wsaHeaders = @{"Content-Type" = "application/json" }
     $wsaHeaders.Add("Accept", "application/json; charset=utf-8")
-    $uri = "https://$workSpaceOne/SAAS/API/1.0/REST/auth/system/login"
+    $uri = "https://$workspaceOne/SAAS/API/1.0/REST/auth/system/login"
     $body = '{"username": "' + $user + '", "password": "' + $pass + '", "issueToken": "true"}'
 
     Try {
@@ -19636,16 +19636,14 @@ Function Request-WSAToken {
         if ($PSEdition -eq 'Core') {
             $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body -SkipCertificateCheck
             $Global:sessionToken = "HZN " + $response.sessionToken
-        }
-        else {
+        } else {
             $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body
             $Global:sessionToken = "HZN " + $response.sessionToken
         }
         if ($response.sessionToken) {
             Write-Output "Successfully Requested New Session Token From Workspace ONE Access instance: $fqdn"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19670,8 +19668,7 @@ Function Get-WSAIdentityProvider {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/identityProviders?onlyEnabledAdapters=true"
         $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
         $response.items
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19696,8 +19693,7 @@ Function Get-WSAConnector {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/connectorinstances"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
         $response.items
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19734,8 +19730,7 @@ Function Add-WSAConnector {
         $body = '{"directoryId": "' + $directoryId + '", "directoryBindPassword":"' + $bindUserPass + '", "usedForAuthentication":true, "bindToAD":true}'
         $response = Invoke-RestMethod -Uri $uri -Method 'POST' -Headers $wsaHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19770,16 +19765,14 @@ Function Get-WSADirectory {
             $uri = "https://xint-wsa01.rainpole.io/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/connectors"
             $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
             $response.items
-        }
-        else {
+        } else {
         $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.horizon.manager.connector.management.directory.ad.over.ldap+json" }
             $wsaHeaders.Add("Authorization", "$sessionToken")
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs"
             $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
             $response.items
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19788,15 +19781,15 @@ Export-ModuleMember -Function Get-WSADirectory
 Function Get-WSADirectoryDomain {
     <#
 		.SYNOPSIS
-    	Get directory domains
+        Get directory domains
 
-    	.DESCRIPTION
-    	The Get-WSADirectoryDomain cmdlets retrieves a list of directory domains in Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSADirectoryDomain cmdlets retrieves a list of directory domains in Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSADirectoryDomain -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
+        .EXAMPLE
+        Get-WSADirectoryDomain -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
         This example retrieves a list of directory domains in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [string]$directoryId
@@ -19808,8 +19801,7 @@ Function Get-WSADirectoryDomain {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/domains"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
         $response.items
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19818,15 +19810,16 @@ Export-ModuleMember -Function Get-WSADirectoryDomain
 Function Add-WSALdapDirectory {
     <#
 		.SYNOPSIS
-    	Create an LDAP directory
+        Create an LDAP directory
 
-    	.DESCRIPTION
-    	The Add-WSALdapDirectory cmdlets creates a new LDAP Active Directory connection in Workspace ONE Access
+        .DESCRIPTION
+        The Add-WSALdapDirectory cmdlets creates a new LDAP Active Directory connection in Workspace ONE Access
 
-    	.EXAMPLE
-    	Add-WSALdapDirectory -domainName sfo.rainpole.io -baseDn "ou=VVD,dc=sfo,dc=rainpole,dc=io" -bindDn "cn=svc-wsa-ad,ou=VVD,dc=sfo,dc=rainpole,dc=io"
+        .EXAMPLE
+        Add-WSALdapDirectory -domainName sfo.rainpole.io -baseDn "ou=VVD,dc=sfo,dc=rainpole,dc=io" -bindDn "cn=svc-wsa-ad,ou=VVD,dc=sfo,dc=rainpole,dc=io"
         This example creates a new LDAP Active Directory connection in Workspace ONE Access
-  	#>
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDn,
@@ -19855,7 +19848,7 @@ Function Add-WSALdapDirectory {
                 "bindDN":"' + $bindDn + '",
                 "sslCertificate":"' + $certdata + '"
             }'
-        }else{
+        } else {
             $body = '{
                 "useSRV":true,
                 "directoryType":"ACTIVE_DIRECTORY_LDAP",
@@ -19873,8 +19866,7 @@ Function Add-WSALdapDirectory {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs"
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19883,15 +19875,15 @@ Export-ModuleMember -Function Add-WSALdapDirectory
 Function Set-WSABindPassword {
     <#
 		.SYNOPSIS
-    	Create an LDAP directory
+        Create an LDAP directory
 
-    	.DESCRIPTION
-    	The Set-WSABindPassword cmdlets creates a new LDAP Active Directory connection in Workspace ONE Access
+        .DESCRIPTION
+        The Set-WSABindPassword cmdlets creates a new LDAP Active Directory connection in Workspace ONE Access
 
-    	.EXAMPLE
-    	Set-WSABindPassword -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -connectorId 59ee9717-a09e-45b6-9e5f-8d92a55a1825 -password VMw@re1!
+        .EXAMPLE
+    Set-WSABindPassword -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -connectorId 59ee9717-a09e-45b6-9e5f-8d92a55a1825 -password VMw@re1!
         This example creates a new LDAP Active Directory connection in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -19907,8 +19899,7 @@ Function Set-WSABindPassword {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/connectorinstances/$connectorId/associatedirectory"
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19917,15 +19908,15 @@ Export-ModuleMember -Function Set-WSABindPassword
 Function Set-WSASyncSetting {
     <#
 		.SYNOPSIS
-    	Set directory sync schedule
+        Set directory sync schedule
 
-    	.DESCRIPTION
+        .DESCRIPTION
     	The Set-WSASyncSetting cmdlets configures the directory sync schedule in Workspace ONE Access
 
-    	.EXAMPLE
+        .EXAMPLE
     	Set-WSASyncSetting -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
         This example configures the directory sync schedule in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId
@@ -19938,8 +19929,7 @@ Function Set-WSASyncSetting {
         $body = '{"frequency":"fifteenMinutes"}'
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/syncprofile"
         Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19948,15 +19938,15 @@ Export-ModuleMember -Function Set-WSASyncSetting
 Function Start-WSADirectorySync {
     <#
 		.SYNOPSIS
-    	Start an directory sync
+        Start an directory sync
 
-    	.DESCRIPTION
+        .DESCRIPTION
     	The Start-WSADirectorySync cmdlets triggers a directory sync in Workspace ONE Access
 
-    	.EXAMPLE
-    	Start-WSADirectorySync -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
+        .EXAMPLE
+        Start-WSADirectorySync -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
         This example starts a directory sync in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId
@@ -19969,8 +19959,7 @@ Function Start-WSADirectorySync {
         $body = '{"ignoreSafeguards":true}'
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/syncprofile/sync"
         Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -Body $body
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19979,15 +19968,15 @@ Export-ModuleMember -Function Start-WSADirectorySync
 Function Set-WSADirectoryUser {
     <#
 		.SYNOPSIS
-    	Add users to directory
+        Add users to directory
 
-    	.DESCRIPTION
-    	The Set-WSADirectoryUser cmdlets configures the user/ou that should be sycncronised for Workspace ONE Access
+        .DESCRIPTION
+        The Set-WSADirectoryUser cmdlets configures the user/ou that should be sycncronised for Workspace ONE Access
 
-    	.EXAMPLE
-    	Set-WSADirectoryUser -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -json (Get-Content -Raw .\adUsers.json)
+        .EXAMPLE
+        Set-WSADirectoryUser -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -json (Get-Content -Raw .\adUsers.json)
         This example configures the user/ou that should be sycncronised for Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -20000,8 +19989,7 @@ Function Set-WSADirectoryUser {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/syncprofile"
         Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $json
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20010,15 +19998,15 @@ Export-ModuleMember -Function Set-WSADirectoryUser
 Function Set-WSADirectoryGroup {
     <#
 		.SYNOPSIS
-    	Add groups to directory
+        Add groups to directory
 
-    	.DESCRIPTION
-    	The Set-WSADirectoryGroup cmdlets configures the groups/ou that should be sycncronised for Workspace ONE Access
+        .DESCRIPTION
+        The Set-WSADirectoryGroup cmdlets configures the groups/ou that should be sycncronised for Workspace ONE Access
 
-    	.EXAMPLE
-    	Set-WSADirectoryUser -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -json (Get-Content -Raw .\adGroups.json)
+        .EXAMPLE
+        Set-WSADirectoryUser -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -json (Get-Content -Raw .\adGroups.json)
         This example configures the groups/ou that should be sycncronised for Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -20032,8 +20020,7 @@ Function Set-WSADirectoryGroup {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/syncprofile"
         $response = Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $json
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20042,15 +20029,15 @@ Export-ModuleMember -Function Set-WSADirectoryGroup
 Function Get-WSASmtpConfiguration {
     <#
 		.SYNOPSIS
-    	Get SMTP configuration
+        Get SMTP configuration
 
-    	.DESCRIPTION
-    	The Get-WSASmtpConfiguration cmdlets retrieves the SMTP configurtion of Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSASmtpConfiguration cmdlets retrieves the SMTP configurtion of Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSASmtpConfiguration
+        .EXAMPLE
+        Get-WSASmtpConfiguration
         This example gets the current SMTP configuration of Workspace ONE Access
-  	#>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/json, text/plain, */*" }
@@ -20058,8 +20045,7 @@ Function Get-WSASmtpConfiguration {
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/system/config/smtp"
         $response = Invoke-RestMethod $uri -Headers $wsaHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20068,15 +20054,15 @@ Export-ModuleMember -Function Get-WSASmtpConfiguration
 Function Set-WSASmtpConfiguration {
     <#
 		.SYNOPSIS
-    	Set SMTP configuration
+        Set SMTP configuration
 
-    	.DESCRIPTION
-    	The Set-WSASmtpConfiguration cmdlets configures the SMTP configurtion of Workspace ONE Access
+        .DESCRIPTION
+        The Set-WSASmtpConfiguration cmdlets configures the SMTP configurtion of Workspace ONE Access
 
-    	.EXAMPLE
-    	Set-WSASmtpConfiguration
+        .EXAMPLE
+        Set-WSASmtpConfiguration
         This example sets the SMTP configuration of Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -20091,15 +20077,13 @@ Function Set-WSASmtpConfiguration {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         if (-not $PsBoundParameters.ContainsKey("pass")) {
             $body = '{ "host": "' + $fqdn + '", "port": ' + $port + ', "user": "' + $user + '", "password": "' + $pass + '"}'
-        }
-        else {
+        } else {
             $body = '{ "host": "' + $fqdn + '", "port": ' + $port + ', "user": "' + $user + '" }'
         }
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/system/config/smtp"
         $response = Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20126,19 +20110,17 @@ Function Set-WSARoleMember {
 	Try {
 		$wsaHeaders = @{"Content-Type" = "application/json" }
 		$wsaHeaders.Add("Authorization", "$sessionToken")
-		#if ($PsBoundParameters.ContainsKey("id")) {
-            $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Roles/$id"
-            $json = '{
-                "schemas": [
-                    "urn:scim:schemas:core:1.0"
-                ],
-                "members": [ {
-                    "value": "$groupId",
-                    "type": "Group"
-				}]
-            }'
-			Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -body $json -headers $wsaHeaders
-		#}
+        $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Roles/$id"
+        $json = '{
+            "schemas": [
+                "urn:scim:schemas:core:1.0"
+            ],
+            "members": [ {
+                "value": "$groupId",
+                "type": "Group"
+            }]
+        }'
+        Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -body $json -headers $wsaHeaders
 	} Catch {
         Write-Error $_.Exception.Message
     }
@@ -20148,15 +20130,15 @@ Export-ModuleMember -Function Set-WSARoleMember
 Function Get-WSARole {
     <#
 		.SYNOPSIS
-    	Get roles
+        Get roles
 
-    	.DESCRIPTION
-    	The Get-WSARole cmdlets retrieves the roles in Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSARole cmdlets retrieves the roles in Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSARole
+        .EXAMPLE
+        Get-WSARole
         This example retrieves the roles in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20169,14 +20151,12 @@ Function Get-WSARole {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Roles/$id"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Roles"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response.Resources
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20185,15 +20165,15 @@ Export-ModuleMember -Function Get-WSARole
 Function Get-WSAGroup {
     <#
 		.SYNOPSIS
-    	Get groups
+        Get groups
 
-    	.DESCRIPTION
-    	The Get-WSAGroup cmdlets retrieves the groups in Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSAGroup cmdlets retrieves the groups in Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSAGroup
+        .EXAMPLE
+        Get-WSAGroup
         This example retrieves the groups in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20206,14 +20186,12 @@ Function Get-WSAGroup {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Groups/$id"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Groups"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response.Resources
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20222,15 +20200,15 @@ Export-ModuleMember -Function Get-WSAGroup
 Function Get-WSAUser {
     <#
 		.SYNOPSIS
-    	Get users
+        Get users
 
-    	.DESCRIPTION
-    	The Get-WSAUser cmdlets retrieves the users in Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSAUser cmdlets retrieves the users in Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSAUser
+        .EXAMPLE
+        Get-WSAUser
         This example retrieves the users in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20243,14 +20221,12 @@ Function Get-WSAUser {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Users/$id"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/scim/Users"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response.Resources
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20259,15 +20235,15 @@ Export-ModuleMember -Function Get-WSAUser
 Function Get-WSARuleSet {
     <#
 		.SYNOPSIS
-    	Get rulesets
+        Get rulesets
 
-    	.DESCRIPTION
-    	The Get-WSARuleSet cmdlets retrieves the rulesets in Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSARuleSet cmdlets retrieves the rulesets in Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSARuleSet
+        .EXAMPLE
+        Get-WSARuleSet
         This example retrieves the rulesets in Workspace ONE Access
-  	#>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept-Type" = "application/json, text/plain, */*" }
@@ -20276,8 +20252,7 @@ Function Get-WSARuleSet {
         $uri = "https://$workSpaceOne/acs/rulesets"
         $response = Invoke-RestMethod $uri -Headers $wsaHeaders
         $response.items
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20286,15 +20261,15 @@ Export-ModuleMember -Function Get-WSARuleSet
 Function Get-WSAOAuthToken {
     <#
 		.SYNOPSIS
-    	Get AOuth Token
+        Get AOuth Token
 
-    	.DESCRIPTION
-    	The Get-WSAOAuthToken cmdlets gets an OAuth token from Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSAOAuthToken cmdlets gets an OAuth token from Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSAOAuthToken
+        .EXAMPLE
+        Get-WSAOAuthToken
         This example retrieves the am OAuth oken from Workspace ONE Access
-  	#>
+    #>
 
     Try {
         $wsaHeaders = @{"Content-Type" = "application/x-www-form-urlencoded; charset=UTF-8" }
@@ -20303,8 +20278,7 @@ Function Get-WSAOAuthToken {
         $uri = "https://$workSpaceOne/SAAS/admin/settings/OAuthClient/generateRandomOAuthSecret"
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20313,15 +20287,15 @@ Export-ModuleMember -Function Get-WSAOAuthToken
 Function Get-WSAClient {
     <#
 		.SYNOPSIS
-    	Get clients
+        Get clients
 
-    	.DESCRIPTION
-    	The Get-WSAClient cmdlets gets a list of clients in Workspace ONE Access
+        .DESCRIPTION
+        The Get-WSAClient cmdlets gets a list of clients in Workspace ONE Access
 
-    	.EXAMPLE
-    	Get-WSAClient
+        .EXAMPLE
+        Get-WSAClient
         This example retrieves all clients in Workspace ONE Access
-  	#>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clientId
@@ -20334,14 +20308,12 @@ Function Get-WSAClient {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/oauth2clients/$clientId"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/oauth2clients"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $wsaHeaders
             $response.items
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -20350,13 +20322,13 @@ Export-ModuleMember -Function Get-WSAClient
 Function Add-WSAClient {
     <#
 		.SYNOPSIS
-    	Add a client
+        Add a client
 
-    	.DESCRIPTION
-    	The Add-WSAClient cmdlets add a client in Workspace ONE Access
+        .DESCRIPTION
+        The Add-WSAClient cmdlets add a client in Workspace ONE Access
 
-    	.EXAMPLE
-    	Add-WSAClient -json .\SampleJson\nsxClient.json
+        .EXAMPLE
+        Add-WSAClient -json .\SampleJson\nsxClient.json
         This example retrieves all clients in Workspace ONE Access
     #>
 
@@ -20394,48 +20366,47 @@ Export-ModuleMember -Function Add-WSAClient
 
 Function Add-WSARoleAssociation {
     <#
-       .SYNOPSIS
-       Add the AD group to the WSA role
+        .SYNOPSIS
+        Add the AD group to the WSA role
 
-       .DESCRIPTION
-       Add the AD group to the given WSA role.
+        .DESCRIPTION
+        Add the AD group to the given WSA role.
 
-       .EXAMPLE
-       Add-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010" -groupId "1e942dc6-94ba-43ef-97ce-9ba34fee1609"
-   #>
+        .EXAMPLE
+        Add-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010" -groupId "1e942dc6-94ba-43ef-97ce-9ba34fee1609"
+    #>
 
-   Param (
-       [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId,
-       [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId
-   )
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId
+    )
 
-   Try {
-       $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.vidm.accesscontrol.ruleset.associations.bulk.request+json" }
-       $wsaHeaders.Add("Authorization", "$sessionToken")
-       $uri = "https://$workSpaceOne/acs/associations/rulesets/$roleId"
-       $body = '{
-                   "operations": [
-                               {
-                               "users": [],
-                               "groups": [
-                                   "'+$groupId+'"
-                               ],
-                               "associationMethodTO": "POST"
-                               },
-                               {
-                               "users": [],
-                               "groups": [],
-                               "associationMethodTO": "DELETE"
-                               }
-                   ]
-               }'
+    Try {
+        $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.vidm.accesscontrol.ruleset.associations.bulk.request+json" }
+        $wsaHeaders.Add("Authorization", "$sessionToken")
+        $uri = "https://$workSpaceOne/acs/associations/rulesets/$roleId"
+        $body = '{
+            "operations": [
+                {
+                    "users": [],
+                    "groups": [
+                        "'+$groupId+'"
+                    ],
+                    "associationMethodTO": "POST"
+                },
+                {
+                    "users": [],
+                    "groups": [],
+                    "associationMethodTO": "DELETE"
+                }
+            ]
+        }'
 
-       $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -body $body
-       $response
-   }
-   Catch {
-       Write-Error $_.Exception.Message
-   }
+        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $wsaHeaders -body $body
+        $response
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 Export-ModuleMember -Function Add-WSARoleAssociation
 
