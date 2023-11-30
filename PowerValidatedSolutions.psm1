@@ -25419,15 +25419,13 @@ Function Request-vRSLCMToken {
         $uri = "https://$vrslcmAppliance/lcmversion"
         if ($PSEdition -eq 'Core') {
             $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
-        }
-        else {
+        } else {
             $vrslcmResponse = Invoke-WebRequest -Method GET -Uri $uri -Headers $vrslcmHeaders -UseBasicParsing
         }
         if ($vrslcmResponse.StatusCode -eq 200) {
             Write-Output "Successfully connected to the VMware Aria Suite Lifecycle Appliance: $vrslcmAppliance"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25450,8 +25448,7 @@ Function Get-vRSLCMHealth {
         $uri = "https://$vrslcmAppliance/lcm/health/api/v2/status"
         $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25488,19 +25485,16 @@ Function Get-vRSLCMLockerPassword {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords/$vmid"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("alias")){
+        } elseif ($PsBoundParameters.ContainsKey("alias")){
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords?aliasQuery=$alias"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response.passwords
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords?size=19"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response.passwords
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25528,7 +25522,6 @@ Function Add-vRSLCMLockerPassword {
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords"
-
         if ($PsBoundParameters.ContainsKey("description")) {
             $body = '{
                 "alias": "'+ $alias +'",
@@ -25536,19 +25529,16 @@ Function Add-vRSLCMLockerPassword {
                 "passwordDescription": "'+ $description +'",
                 "userName": "'+ $userName +'"
             }'
-        }
-        else {
+        } else {
             $body = '{
                 "alias": "'+ $alias +'",
                 "password": "'+ $password +'",
                 "userName": "'+ $userName +'"
             }'           
         }
-
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25575,8 +25565,7 @@ Function Remove-vRSLCMLockerPassword {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords/$vmid"
         $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25613,19 +25602,16 @@ Function Get-vRSLCMLockerCertificate {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/certificates/$vmid"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("alias")) {
+        } elseif ($PsBoundParameters.ContainsKey("alias")) {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/certificates"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response.certificates | Where-Object {$_.alias -eq $alias}
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/certificates"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response.certificates
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25661,29 +25647,26 @@ Function Add-vRSLCMLockerCertificate {
             $stringToAdd = $line + '\n'
             $newPEMString += $stringToAdd
         }
-    $chain = [regex]::split($newPEMString, "-----BEGIN RSA PRIVATE KEY-----")[0] -replace ".{2}$"
-    $key = [regex]::split($newPEMString, "-----END CERTIFICATE-----")[-1].substring(2)
-    if (!$PsBoundParameters.ContainsKey("certificatePassphrase")) {
-        $body = '{
-            "alias": "'+$certificateAlias+'",
-            "certificateChain": "'+$chain+'",
-            "privateKey": "'+$key+'"
-        }'
-    }
-    else {
-        $body = '{
-            "alias": "'+$certificateAlias+'",
-            "certificateChain": "'+$chain+'",
-            "certificatePassphrase": "'+$certificatePassphrase+'",
-            "privateKey": "'+$key+'"
-        }'
-        }
-
+        $chain = [regex]::split($newPEMString, "-----BEGIN RSA PRIVATE KEY-----")[0] -replace ".{2}$"
+        $key = [regex]::split($newPEMString, "-----END CERTIFICATE-----")[-1].substring(2)
+        if (!$PsBoundParameters.ContainsKey("certificatePassphrase")) {
+            $body = '{
+                "alias": "'+$certificateAlias+'",
+                "certificateChain": "'+$chain+'",
+                "privateKey": "'+$key+'"
+            }'
+        } else {
+            $body = '{
+                "alias": "'+$certificateAlias+'",
+                "certificateChain": "'+$chain+'",
+                "certificatePassphrase": "'+$certificatePassphrase+'",
+                "privateKey": "'+$key+'"
+            }'
+            }
         $uri = "https://$vrslcmFQDN/lcm/locker/api/v2/certificates/import"
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -ContentType application/json -body $body
         $response.certInfo
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25710,8 +25693,7 @@ Function Remove-vRSLCMLockerCertificate {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/certificates/$vmid"
         $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25748,19 +25730,16 @@ Function Get-vRSLCMLockerLicense {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/licenses/detail/$vmid"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("alias")) {
+        } elseif ($PsBoundParameters.ContainsKey("alias")) {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/licenses/alias/$alias"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/licenses"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25793,8 +25772,7 @@ Function Add-vRSLCMLockerLicense {
 
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25821,8 +25799,7 @@ Function Remove-vRSLCMLockerLicense {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/licenses/$vmid"
         $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25859,19 +25836,16 @@ Function Get-vRSLCMDatacenter {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$vmid"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("datacenterName")) {
+        } elseif ($PsBoundParameters.ContainsKey("datacenterName")) {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$datacenterName"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25903,8 +25877,7 @@ Function Add-vRSLCMDatacenter {
         }'  
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
-}
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25931,8 +25904,7 @@ Function Remove-vRSLCMDatacenter {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$datacenterVmid"
         $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
         $response
-}
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25970,19 +25942,16 @@ Function Get-vRSLCMDatacenterVcenter {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$datacenterVmid/vcenters/$vcenterName"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("datacenterVmid") -and $PsBoundParameters.ContainsKey("vcenterName") -and $PsBoundParameters.ContainsKey("environments")) {
+        } elseif ($PsBoundParameters.ContainsKey("datacenterVmid") -and $PsBoundParameters.ContainsKey("vcenterName") -and $PsBoundParameters.ContainsKey("environments")) {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$datacenterVmid/vcenters/$vcenterName/environments"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$datacenterVmid/vcenters"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26018,8 +25987,7 @@ Function Add-vRSLCMDatacenterVcenter {
         }'
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26047,14 +26015,12 @@ Function Get-vRSLCMEnvironment {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$vmid"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26088,14 +26054,12 @@ Function Add-vRSLCMEnvironment {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products"
             $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $json
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments"
             $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $json
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26123,8 +26087,7 @@ Function Remove-vRSLCMEnvironment {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId"
         $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26257,19 +26220,16 @@ Function Get-vRSLCMRequest {
             $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("errorCauses")) {
+        } elseif ($PsBoundParameters.ContainsKey("errorCauses")) {
             $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId/error-causes"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response | Select-Object -Property vmid, state, requestReason, requestType
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26292,12 +26252,10 @@ Function Remove-vRSLCMRequest {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId    )
 
     Try {
-
-            $uri = "https://$vrslcmAppliance/lcm/request/requests/$requestId"
-            $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
-            $response
-    }
-    Catch {
+        $uri = "https://$vrslcmAppliance/lcm/request/requests/$requestId"
+        $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
+        $response
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26326,8 +26284,7 @@ Function Watch-vRSLCMRequest {
         } 
         Until ($requestStatus -ne "INPROGRESS")
         Write-Output "VMware Aria Suite Lifecycle request: $vmid completed with the following state: $requestStatus"
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26354,8 +26311,7 @@ Function Resume-vRSLCMRequest {
         $uri = "https://$vrslcmAppliance/lcm/request/api/v2/requests/$requestId/retry"
         $response = Invoke-RestMethod $uri -Method 'PATCH' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26406,8 +26362,7 @@ Function Export-WsaJsonSpec {
 
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $workbook)) {
                 Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
                 Break
@@ -26415,9 +26370,7 @@ Function Export-WsaJsonSpec {
         }
 
         if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
-
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
-
         ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -26624,8 +26577,7 @@ Function Export-WsaJsonSpec {
             }
         }
         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -26772,26 +26724,23 @@ Function Set-WorkspaceOneApplianceNtpConfig {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
     )
 
-    try {
+    Try {
         $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
         $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
         if ($output.ScriptOutput -match "^server=$ntpServer$") {
             Write-Warning "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer), already performed: SKIPPED"
-        }
-        else {
+        } else {
             $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --set ' + $ntpServer
             $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
             $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
             $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
             if ($output.ScriptOutput -match "^server=$ntpServer$") {
                 Write-Output "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): SUCCESSFUL"
-            }
-            else {
+            } else {
                 Write-Error "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): POST_VALIDATION_FAILED"
             }
         }
-    }
-    catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26819,17 +26768,14 @@ Function New-vRSLCMAdapterOperation {
         if ($PsBoundParameters.ContainsKey("json")) {
             if (!(Test-Path $json)) {
                 Throw "JSON File Not Found"
-            }
-            else {
+            } else {
                 $body = (Get-Content $json) # Read the json file contents into the $body variable
             }
         }
-
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/vrops/adapterOperation"
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrslcmHeaders -Body $body
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26857,14 +26803,12 @@ Function Get-vRSLCMProductNtpServer {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ntp-servers"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response | Where-Object {$_.hostName -match $ntpServer}
-        }
-        else {
+        } else {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ntp-servers"
             $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26888,11 +26832,10 @@ Function Remove-vRSLCMProductNtpServer {
     )
 
     Try {
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v3/settings/ntp-servers?ntpHostname=$ntpServer"
-            $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
-            $response
-    }
-    Catch {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v3/settings/ntp-servers?ntpHostname=$ntpServer"
+        $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders
+        $response
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26913,12 +26856,10 @@ Function Get-vRSLCMApplianceNtpConfig {
     #>
 
     Try {
-
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/system-details/time"
-            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
-            $response
-    }
-    Catch {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/system-details/time"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        $response
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26942,19 +26883,15 @@ Function Add-vRSLCMProductNtpServer {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServerDesc
     )
 
-    $body = @"
-{
-    "hostName": "$ntpServer",
-    "name": "$ntpServerDesc"
-}
-"@
-
     Try {
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ntp-servers"
-            $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
-            $response
-        }
-    Catch {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ntp-servers"
+        $body = '{
+            "hostName": "'+ $ntpServer +'",
+            "name": "'+ $ntpServerDesc +'"
+        }'
+        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        $response
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -26979,20 +26916,18 @@ Function Add-vRSLCMApplianceNtpConfig {
 
     $existingNtpServers = (Get-vRSLCMApplianceNtpConfig).ntpServers
 
-    $body = @"
-{
-    "syncWithHost": false,
-    "ntpServerEnabled": true,
-    "ntpServers": "$existingNtpServers,$ntpServer"
-}
-"@
+
 
     Try {
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/settings/ntpsetting"
-            $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
-            $response
-        }
-    Catch {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/settings/ntpsetting"
+        $body = '{
+                "syncWithHost": false,
+                "ntpServerEnabled": true,
+                "ntpServers": "'+ $existingNtpServers +','+ $ntpServer+'"
+            }'
+        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        $response
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27014,20 +26949,17 @@ Function Set-vRSLCMApplianceNtpConfig {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer
     )
-    $body = @"
-{
-    "syncWithHost": false,
-    "ntpServerEnabled": true,
-    "ntpServers": "$ntpServer"
-}
-"@
 
     Try {
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/settings/ntpsetting"
-            $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
-            $response
-        }
-    Catch {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/settings/ntpsetting"
+        $body = '{
+                "syncWithHost": false,
+                "ntpServerEnabled": true,
+                "ntpServers": "'+ $ntpServer +'"
+            }'
+        $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        $response
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27054,9 +26986,9 @@ Function Get-vRSLCMProductNode {
     $environmentId = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -match $environmentName}).environmentId
 
     Try {
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products/$product/deployed-vms"
-            $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
-            $response
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products/$product/deployed-vms"
+        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        $response
         }
     Catch [System.Net.WebException] {
         $PSCmdlet.ThrowTerminatingError($PSItem)
@@ -27086,8 +27018,7 @@ Function Stop-vRSLCMProductNode {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environment/products/$product/power-off"
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -27115,8 +27046,7 @@ Function Start-vRSLCMProductNode {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environment/products/$product/power-on"
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
