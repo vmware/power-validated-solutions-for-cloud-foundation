@@ -18023,8 +18023,7 @@ Function Request-vSphereApiToken {
         $password = $inputObject.ssoAdminPass
         $fqdn = $inputObject.fqdn
         $sddcManager = (Get-VCFManager).fqdn
-    }
-    else {
+    } else {
         if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
             # Request Credentials
             $creds = Get-Credential
@@ -18069,7 +18068,6 @@ Function Request-vSphereApiToken {
         }
 
         # Validate credentials by executing an API call
-
         $newUri = "https://$vcApiServer/api/appliance/system/version"
         $oldUri = "https://$vcApiServer/rest/appliance/system/version"
 
@@ -18082,8 +18080,7 @@ Function Request-vSphereApiToken {
                     $responseSplit = $response.version.Split(".")
                     $global:vCenterApi = $responseSplit[0..2] -join ""
                 }
-            }
-            Catch {
+            } Catch {
                 $errorStatus = $_.Exception.Response.StatusCode
             }
             if ($errorStatus -eq "NotFound") {
@@ -18091,8 +18088,7 @@ Function Request-vSphereApiToken {
                 $responseSplit = $response.value.version.Split(".")
                 $global:vCenterApi = $responseSplit[0..2] -join ""
             }
-        }
-        else {
+        } else {
             Try {
                 $response = Invoke-RestMethod -Method GET -Uri $newUri -Headers $vcApiHeaders
 
@@ -18100,11 +18096,9 @@ Function Request-vSphereApiToken {
                     $responseSplit = $response.version.Split(".")
                     $global:vCenterApi = $responseSplit[0..2] -join ""
                 }
-            }
-            Catch {
+            } Catch {
                 $errorStatus = $_.Exception.Response.StatusCode
             }
-
             if ($errorStatus -eq "NotFound") {
                 $response = Invoke-RestMethod -Method GET -Uri $oldUri -Headers $vcApiHeaders
                 $responseSplit = $response.value.version.Split(".")
@@ -18114,13 +18108,11 @@ Function Request-vSphereApiToken {
         if ($response) {
             if ($inputObject) {
                 Write-Output "Successfully Requested New API Token for vCenter Server $vcApiServer via SDDC Manager $sddcManager"
-            }
-            else {
+            } else {
                 Write-Output "Successfully Requested New API Token for vCenter Server $vcApiServer"
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18135,7 +18127,7 @@ Function Request-VcenterApiToken {
         The Request-VcenterApiToken cmdlet requests an authentication token for the vCenter Server REST API
 
         .EXAMPLE
-        Request-VcenterApiToken -fqdn sfo-w01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
+        Request-VcenterApiToken -fqdn sfo-m01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
         This example requests a vCenter Server REST API authentication token for user administrator@vsphere.local from vCenter Server sfo-w01-vc01.sfo.rainpole.io
     #>
 
@@ -18208,8 +18200,7 @@ public static class Placeholder {
         if ($errorStatus -match "401") {
             Write-Warning "Unable to Obtain an API Session Token from vCenter Server: $vcenterApiServer (401 Unauthorized)"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18254,12 +18245,10 @@ Function Connect-vSphereMobServer {
             $Global:DefaultMobServer.SessionNonce = $matches[1]
             $Global:DefaultMobServer.WebSession = $mobSession
             Write-Output "Connected to vSphere MOB Server ($($Global:DefaultMobServer.Server))"
-        }
-        else {
+        } else {
             Throw "Failed to login to vSphere MOB Server ($($Global:DefaultMobServer.Server))"
         } 
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18286,8 +18275,7 @@ Function Disconnect-vSphereMobServer {
         if ($response.StatusCode -eq 200) {
             Write-Verbose "Disconnect from vSphere MOB Server ($($Global:DefaultMobServer.Server))"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18308,10 +18296,8 @@ Function Get-VCVersion {
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/system/version"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18332,10 +18318,8 @@ Function Get-VCConfigurationNTP {
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/ntp"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18356,10 +18340,8 @@ Function Get-VCConfigurationDNS {
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/networking/dns/servers"
-        $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
-        $response
-    }
-    Catch {
+        Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18420,7 +18402,7 @@ Export-ModuleMember -Function Set-VcenterPasswordExpiration
 
 Function Get-VcenterRootPasswordExpiration {
     <#
-    .SYNOPSIS
+        .SYNOPSIS
 		Retrieve the root user password expiration policy
 
         .DESCRIPTION
@@ -18709,6 +18691,7 @@ Function Set-LocalPasswordComplexity {
         Set-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx -minLength 15 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 0 -history 5 
         This example updates the NSX Manager sfo-w01-nsx01a with the values
     #>
+
     Param (
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
@@ -18784,8 +18767,7 @@ Function Set-LocalPasswordComplexity {
             $scriptCommand += "' /etc/pam.d/system-password"
         }
         Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false | Out-Null
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18878,6 +18860,7 @@ Function Set-LocalAccountLockout {
         Set-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 900 -rootUnlockInterval 900
         This example updates the account lockout policy for Workspace ONE Access
     #>
+
     Param (
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
             [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
@@ -18904,8 +18887,7 @@ Function Set-LocalAccountLockout {
 
         $scriptCommand += "' /etc/pam.d/system-auth"
         Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false | Out-Null
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -18969,8 +18951,7 @@ Function Get-GlobalPermission {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19002,8 +18983,7 @@ Function Add-GlobalPermission {
         # The POST data payload must include the vmware-session-nonce variable + URL-encoded
         if ($type -eq "group") {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&permissions=%3Cpermissions%3E%0D%0A+++%3Cprincipal%3E%0D%0A++++++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A++++++%3Cgroup%3Etrue%3C%2Fgroup%3E%0D%0A+++%3C%2Fprincipal%3E%0D%0A+++%3Croles%3E$roleId%3C%2Froles%3E%0D%0A+++%3Cpropagate%3E$propagate%3C%2Fpropagate%3E%0D%0A%3C%2Fpermissions%3E"
-        }
-        else {
+        } else {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&permissions=%3Cpermissions%3E%0D%0A+++%3Cprincipal%3E%0D%0A++++++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A++++++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A+++%3C%2Fprincipal%3E%0D%0A+++%3Croles%3E$roleId%3C%2Froles%3E%0D%0A+++%3Cpropagate%3E$propagate%3C%2Fpropagate%3E%0D%0A%3C%2Fpermissions%3E"
         }
         $params = @{
@@ -19018,8 +18998,7 @@ Function Add-GlobalPermission {
         if ($response.StatusCode -eq 200) {
             Write-Verbose "Successfully added vCenter Global Permission for ($principal)"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19048,8 +19027,7 @@ Function Remove-GlobalPermission {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/?moid=authorizationService&" + "method=AuthorizationService.RemoveGlobalAccess"
         if ($type -eq "group") {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&principals=%3Cprincipals%3E%0D%0A+++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A+++%3Cgroup%3Etrue%3C%2Fgroup%3E%0D%0A%3C%2Fprincipals%3E"
-        }
-        else {
+        } else {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&principals=%3Cprincipals%3E%0D%0A+++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A+++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A%3C%2Fprincipals%3E"
         }     
         $params = @{
@@ -19064,8 +19042,7 @@ Function Remove-GlobalPermission {
         if ($response.StatusCode -eq 200) {
             Write-Verbose "Successfully removed vCenter Gobal Permission for ($principal)"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19094,7 +19071,6 @@ Function Add-DrsVmToVmGroup {
 
     Try {
         $updateCluster = Get-Cluster | Where-Object {$_.Name -eq $cluster}
-
         $spec = New-Object VMware.Vim.ClusterConfigSpecEx
         $spec.RulesSpec = New-Object VMware.Vim.ClusterRuleSpec[] (1)
         $spec.RulesSpec[0] = New-Object VMware.Vim.ClusterRuleSpec
@@ -19108,8 +19084,7 @@ Function Add-DrsVmToVmGroup {
 
         $ClusterToReconfig = Get-View -Id $updateCluster.ExtensionData.MoRef
         $ClusterToReconfig.ReconfigureComputeResource_Task($spec, $true)
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19135,17 +19110,14 @@ Function Remove-DrsVmToVmGroup {
 
     Try {
         $updateCluster = Get-Cluster | Where-Object {$_.Name -eq $cluster}
-
         $spec = New-Object VMware.Vim.ClusterConfigSpecEx
         $spec.RulesSpec = New-Object VMware.Vim.ClusterRuleSpec[] (1)
         $spec.RulesSpec[0] = New-Object VMware.Vim.ClusterRuleSpec
         $spec.RulesSpec[0].RemoveKey = (Get-DrsVmToVmGroup -name $name -cluster $cluster).Key
         $spec.RulesSpec[0].Operation = 'remove'
-    
         $ClusterToReconfig = Get-View -Id $updateCluster.ExtensionData.MoRef
         $ClusterToReconfig.ReconfigureComputeResource_Task($spec, $true)
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19158,6 +19130,10 @@ Function Get-DrsVmToVmGroup {
 
         .DESCRIPTION
         The Get-DrsVmToVmGroup cmdlet retrieves the vSphere VM to VM Group
+
+        .EXAMPLE
+        Get-DrsVmToVmGroup -cluster sfo-m01-cl01
+        This example shows how to retrieve all VM to VM groups in the vCenter Server
 
         .EXAMPLE
         Get-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -cluster sfo-m01-cl01
@@ -19173,12 +19149,10 @@ Function Get-DrsVmToVmGroup {
         $getCluster = Get-Cluster | Where-Object {$_.Name -eq $cluster}
         if ($PsBoundParameters.ContainsKey("name")){
             $getCluster.ExtensionData.Configuration.Rule | Where-Object {$_.Name -eq $name}
-        }
-        else {
+        } else {
             $getCluster.ExtensionData.Configuration.Rule
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19200,8 +19174,7 @@ Function Get-VcLicense {
     Try {
         $licenseManager = Get-View LicenseManager
         $LicenseManager.Licenses
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19227,8 +19200,7 @@ Function New-VcLicense {
     Try {
         $licenseManager = Get-View LicenseManager
         $licenseManager.AddLicense($licenseKey,$null)
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19254,8 +19226,7 @@ Function Remove-VcLicense {
     Try {
         $licenseManager = Get-View LicenseManager
         $licenseManager.RemoveLicense($licenseKey)
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19283,8 +19254,7 @@ Function Get-SubscribedLibrary {
         $subscribedLibraryId = Invoke-RestMethod -Method POST -Uri "https://$vcApiServer/api/content/library?action=find" -Headers $vcApiHeaders -body $body
         $return = Invoke-RestMethod -Method GET -URI "https://$vcApiServer/api/content/subscribed-library/$subscribedLibraryId" -Headers $vcApiHeaders
         $return
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message 
     }
 }
@@ -19308,8 +19278,7 @@ Function Get-VcenterBackupStatus {
             $uri = "https://$vcenterApiServer/rest/appliance/recovery/backup/job/details"
             (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vcenterApiHeaders).Value
         }
-    }
-    Catch {
+    } Catch {
         $errorStatus = $_.Exception
     }
 }
@@ -19335,8 +19304,7 @@ Function Get-SnapshotStatus {
     Try {
         $response = Get-VM $vm | Get-Snapshot | Select-Object -Property Name, Created, isCurrent # Get the snapshot details
         $response # Return the snapshot details
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19362,8 +19330,7 @@ Function Get-SnapshotConsolidation {
     Try {
         $response = (Get-View -ViewType VirtualMachine -Filter @{'Name' = $vm }).Runtime.ConsolidationNeeded # Get the consolidation status
         $response # Return the consolidation status
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -19383,21 +19350,25 @@ Function Get-EsxiAlert {
     #>
 
     Param (
-
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$host
     )
-    $vmhosts = Get-VMHost
-    $vmhost = $vmhosts | Where-Object {$_.name -eq $host}
-    foreach ($triggeredAlarm in $vmhost.ExtensionData.TriggeredAlarmState) {
-        $alarm = "" | Select-Object Entity, Alarm, Status, Time, Acknowledged, AckBy, AckTime
-        $alarm.Alarm = (Get-AlarmDefinition -id $triggeredAlarm.alarm).name
-        $alarm.Entity =  ( $vmhosts | Where-Object {$_.id -eq $triggeredAlarm.Entity} ).name # or just $host
-        $alarm.Status = $triggeredAlarm.OverallStatus
-        $alarm.Time = $triggeredAlarm.Time
-        $alarm.Acknowledged = $triggeredAlarm.Acknowledged
-        $alarm.AckBy = $triggeredAlarm.AcknowledgedByUser
-        $alarm.AckTime = $triggeredAlarm.AcknowledgedTime
-        $alarm
+
+    Try {
+        $vmhosts = Get-VMHost
+        $vmhost = $vmhosts | Where-Object {$_.name -eq $host}
+        foreach ($triggeredAlarm in $vmhost.ExtensionData.TriggeredAlarmState) {
+            $alarm = "" | Select-Object Entity, Alarm, Status, Time, Acknowledged, AckBy, AckTime
+            $alarm.Alarm = (Get-AlarmDefinition -id $triggeredAlarm.alarm).name
+            $alarm.Entity =  ( $vmhosts | Where-Object {$_.id -eq $triggeredAlarm.Entity} ).name # or just $host
+            $alarm.Status = $triggeredAlarm.OverallStatus
+            $alarm.Time = $triggeredAlarm.Time
+            $alarm.Acknowledged = $triggeredAlarm.Acknowledged
+            $alarm.AckBy = $triggeredAlarm.AcknowledgedByUser
+            $alarm.AckTime = $triggeredAlarm.AcknowledgedTime
+            $alarm
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-EsxiAlert
@@ -19419,24 +19390,26 @@ Function Get-VsanHealthTest {
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
     )
 
-    $vsanClusterHealthSystem = Get-VSANView -Id "VsanVcClusterHealthSystem-vsan-cluster-health-system"
-    $clusterView = (Get-Cluster -Name $cluster).ExtensionData.MoRef
-    $results = $vsanClusterHealthSystem.VsanQueryVcClusterHealthSummary($clusterView,$null,$null,$true,$null,$null,'defaultView')
-    $healthCheckGroups = $results.groups
-    
-    $healthTests = New-Object System.Collections.ArrayList
-    
-    foreach ($healthCheckGroup in $healthCheckGroups) {
-        foreach ($test in $healthCheckGroup.GroupTests) {
-            $testResult = [pscustomobject] @{
-                GroupName = $healthCheckGroup.GroupName
-                TestName = $test.TestName
-                TestHealth = $test.TestHealth.ToUpper()
+    Try {
+        $vsanClusterHealthSystem = Get-VSANView -Id "VsanVcClusterHealthSystem-vsan-cluster-health-system"
+        $clusterView = (Get-Cluster -Name $cluster).ExtensionData.MoRef
+        $results = $vsanClusterHealthSystem.VsanQueryVcClusterHealthSummary($clusterView,$null,$null,$true,$null,$null,'defaultView')
+        $healthCheckGroups = $results.groups
+        $healthTests = New-Object System.Collections.ArrayList
+        foreach ($healthCheckGroup in $healthCheckGroups) {
+            foreach ($test in $healthCheckGroup.GroupTests) {
+                $testResult = [pscustomobject] @{
+                    GroupName = $healthCheckGroup.GroupName
+                    TestName = $test.TestName
+                    TestHealth = $test.TestHealth.ToUpper()
+                }
+                $healthTests += $testResult
             }
-            $healthTests += $testResult
         }
+        $healthTests
+    } Catch {
+        Write-Error $_.Exception.Message
     }
-    $healthTests 
 }
 Export-ModuleMember -Function Get-VsanHealthTest
 
@@ -19457,17 +19430,21 @@ Function Get-VcenterTriggeredAlarm {
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
     )
 
-    $rootFolder = Get-Folder -Server $server "Datacenters"
-    foreach ($triggeredAlarm in $rootFolder.ExtensionData.TriggeredAlarmState) {
-        $alarm = "" | Select-Object EntityType, Alarm, Status, Time, Acknowledged, AckBy, AckTime
-        $alarm.Alarm = (Get-View -Server $server $triggeredAlarm.Alarm).Info.Name
-        $alarm.EntityType = (Get-View -Server $server $triggeredAlarm.Entity).GetType().Name
-        $alarm.Status = $triggeredAlarm.OverallStatus
-        $alarm.Time = $triggeredAlarm.Time
-        $alarm.Acknowledged = $triggeredAlarm.Acknowledged
-        $alarm.AckBy = $triggeredAlarm.AcknowledgedByUser
-        $alarm.AckTime = $triggeredAlarm.AcknowledgedTime
-        $alarm
+    Try {
+        $rootFolder = Get-Folder -Server $server "Datacenters"
+        foreach ($triggeredAlarm in $rootFolder.ExtensionData.TriggeredAlarmState) {
+            $alarm = "" | Select-Object EntityType, Alarm, Status, Time, Acknowledged, AckBy, AckTime
+            $alarm.Alarm = (Get-View -Server $server $triggeredAlarm.Alarm).Info.Name
+            $alarm.EntityType = (Get-View -Server $server $triggeredAlarm.Entity).GetType().Name
+            $alarm.Status = $triggeredAlarm.OverallStatus
+            $alarm.Time = $triggeredAlarm.Time
+            $alarm.Acknowledged = $triggeredAlarm.Acknowledged
+            $alarm.AckBy = $triggeredAlarm.AcknowledgedByUser
+            $alarm.AckTime = $triggeredAlarm.AcknowledgedTime
+            $alarm
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-VcenterTriggeredAlarm
@@ -19488,15 +19465,19 @@ Function Get-ESXiAdminGroup {
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$esxiHost
     )
     
-    if (-Not $Global:DefaultVIServer.IsConnected) {
-        Write-Error "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
-    } else {
-        $esxAdminsGroupSettings = (Get-AdvancedSetting -Entity $esxiHost -Name Config.HostAgent.plugins.hostsvc.esxAdminsGroup).Value.toString()
-        $tmp = [pscustomobject] @{
-            Host = $esxiHost;
-            esxAdminsGroup = $esxAdminsGroupSettings;
+    Try {
+        if (-Not $Global:DefaultVIServer.IsConnected) {
+            Write-Error "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+        } else {
+            $esxAdminsGroupSettings = (Get-AdvancedSetting -Entity $esxiHost -Name Config.HostAgent.plugins.hostsvc.esxAdminsGroup).Value.toString()
+            $tmp = [pscustomobject] @{
+                Host = $esxiHost;
+                esxAdminsGroup = $esxAdminsGroupSettings;
+            }
+            $tmp
         }
-        $tmp
+    } Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-ESXiAdminGroup
@@ -19512,15 +19493,20 @@ Function Set-ESXiAdminGroup {
         .EXAMPLE
         Set-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io -groupName ug-esxi-admins
     #>
+
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$esxiHost,
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$groupName
     )
     
-    if (-Not $Global:DefaultVIServer.IsConnected) {
-        Write-Error "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
-    } else {
-        Get-AdvancedSetting -Entity $esxiHost -Name Config.HostAgent.plugins.hostsvc.esxAdminsGroup | Set-AdvancedSetting -Value $groupName -Confirm:$false
+    Try {
+        if (-Not $Global:DefaultVIServer.IsConnected) {
+            Write-Error "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+        } else {
+            Get-AdvancedSetting -Entity $esxiHost -Name Config.HostAgent.plugins.hostsvc.esxAdminsGroup | Set-AdvancedSetting -Value $groupName -Confirm:$false
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Set-ESXiAdminGroup
@@ -19537,16 +19523,20 @@ Function Get-VCenterCEIP {
         Get-VCenterCEIP
     #>
 
-    if (-Not $Global:DefaultVIServer.IsConnected) {
-        Write-Host "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
-    } else {
-        $ceipSettings = (Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData).Value.toString() | ConvertFrom-Json
-        $ceipEnabled = $ceipSettings.consentConfigurations[0].consentAccepted
-        $tmp = [pscustomobject] @{
-            FQDN = $Global:DefaultVIServer.Name;
-            CEIP = $ceipEnabled;
+    Try {
+        if (-Not $Global:DefaultVIServer.IsConnected) {
+            Write-Host "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
+        } else {
+            $ceipSettings = (Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData).Value.toString() | ConvertFrom-Json
+            $ceipEnabled = $ceipSettings.consentConfigurations[0].consentAccepted
+            $tmp = [pscustomobject] @{
+                FQDN = $Global:DefaultVIServer.Name;
+                CEIP = $ceipEnabled;
+            }
+            $tmp
         }
-        $tmp
+    } Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Get-VCenterCEIP
@@ -19560,10 +19550,10 @@ Function Set-VCenterCEIP {
         The Set-VCenterCEIP cmdlet enables or disables the CEIP setting for vCenter Server
     
         .EXAMPLE
-        Set-VCenterCEIP  -Enabled
+        Set-VCenterCEIP -Enabled
 
         .EXAMPLE
-        Set-VCenterCEIP  -Disabled
+        Set-VCenterCEIP -Disabled
     #>
 
     Param (
@@ -19571,27 +19561,31 @@ Function Set-VCenterCEIP {
         [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [Switch]$Disabled
     )
 
-    If (-Not $Global:DefaultVIServer.IsConnected) {
-        Write-Host "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
-    } else {
-        $ceipSettings = (Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData).Value.toString() | ConvertFrom-Json
-        If($Enabled) {
-            $originalVersion = $ceipSettings.version
-            $ceipSettings.version = [int]$originalVersion + 1
-            $ceipSettings.consentConfigurations[0].consentAccepted = $True
-            $ceipSettings.consentConfigurations[1].consentAccepted = $True
-            $updatedceipSettings = $ceipSettings | ConvertTo-Json
-            Write-Host "Enabling Customer Experience Improvement Program (CEIP) ..."
-            Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData | Set-AdvancedSetting -Value $updatedceipSettings -Confirm:$false
+    Try {
+        If (-Not $Global:DefaultVIServer.IsConnected) {
+            Write-Host "No valid vCenter Server Connection found, please use the Connect-VIServer to connect"; Break
         } else {
-            $originalVersion = $ceipSettings.version
-            $ceipSettings.version = [int]$originalVersion + 1
-            $ceipSettings.consentConfigurations[0].consentAccepted = $False
-            $ceipSettings.consentConfigurations[1].consentAccepted = $False
-            $updatedceipSettings = $ceipSettings | ConvertTo-Json
-            Write-Host "Disablng Customer Experience Improvement Program (CEIP) ..."
-            Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData | Set-AdvancedSetting -Value $updatedceipSettings -Confirm:$false
+            $ceipSettings = (Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData).Value.toString() | ConvertFrom-Json
+            If($Enabled) {
+                $originalVersion = $ceipSettings.version
+                $ceipSettings.version = [int]$originalVersion + 1
+                $ceipSettings.consentConfigurations[0].consentAccepted = $True
+                $ceipSettings.consentConfigurations[1].consentAccepted = $True
+                $updatedceipSettings = $ceipSettings | ConvertTo-Json
+                Write-Host "Enabling Customer Experience Improvement Program (CEIP) ..."
+                Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData | Set-AdvancedSetting -Value $updatedceipSettings -Confirm:$false
+            } else {
+                $originalVersion = $ceipSettings.version
+                $ceipSettings.version = [int]$originalVersion + 1
+                $ceipSettings.consentConfigurations[0].consentAccepted = $False
+                $ceipSettings.consentConfigurations[1].consentAccepted = $False
+                $updatedceipSettings = $ceipSettings | ConvertTo-Json
+                Write-Host "Disablng Customer Experience Improvement Program (CEIP) ..."
+                Get-AdvancedSetting -Entity $Global:DefaultVIServer -Name VirtualCenter.DataCollector.ConsentData | Set-AdvancedSetting -Value $updatedceipSettings -Confirm:$false
+            }
         }
+    } Catch {
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Set-VCenterCEIP
