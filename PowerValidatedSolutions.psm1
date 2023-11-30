@@ -24708,7 +24708,7 @@ Function Enable-WMRegistry {
 
     if ($vCenterApi -ge 800) {
         Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
-        break
+        Break
     }
 
     Try {
@@ -24725,20 +24725,17 @@ Function Enable-WMRegistry {
     if (!$getHarborInstalled) {
         Try {
             $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
 
         if (!$StoragePolicy) {
             Try {
                 $storagePolicyId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters/$wmClusterId -Headers $vcApiHeaders).image_storage.storage_policy
-            }
-            Catch {
+            } Catch {
                 Write-Error $_.Exception.Message
             }
-        }
-        elseif ($StoragePolicy) {
+        } elseif ($StoragePolicy) {
             Try {
                 if ($vCenterApi -ge 702) {
                     $storagePolicyId = ((Invoke-WebRequest -Method GET -URI https://$vcApiServer/api/vcenter/storage/policies -Headers $vcApiHeaders  -UseBasicParsing | ConvertFrom-Json) | Where-Object { $_.name -eq $StoragePolicy }).policy
@@ -24753,8 +24750,7 @@ Function Enable-WMRegistry {
     ]
 }
 "@
-                }
-                elseif ($vCenterApi -le 701) {
+                } elseif ($vCenterApi -le 701) {
                     $storagePolicyId = ((Invoke-WebRequest -Method GET -URI https://$vcApiServer/rest/vcenter/storage/policies -Headers $vcApiHeaders -UseBasicParsing | ConvertFrom-Json).value | Where-Object { $_.name -eq $StoragePolicy }).policy
                     $json = @"
 {
@@ -24771,8 +24767,7 @@ Function Enable-WMRegistry {
 }
 "@
                 }
-            }
-            Catch {
+            } Catch {
                 Write-Error $_.Exception.Message
             }
         }
@@ -24781,8 +24776,7 @@ Function Enable-WMRegistry {
         if ($vCenterApi -le 701) {
             Try {
                 $installHarbor = Invoke-RestMethod -Method POST -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -Headers $vcApiHeaders -Body $json -ContentType application/json
-            }
-            Catch {
+            } Catch {
                 Write-Error $_.Exception.Message
             }
 
@@ -24790,12 +24784,10 @@ Function Enable-WMRegistry {
                 $installHarborValue = $installHarbor.value
                 Write-Output "Embedded registry $installHarborValue deployment successfully started on Supervisor Cluster $cluster"
             }
-        }
-        elseif ($vCenterApi -ge 702) {
+        } elseif ($vCenterApi -ge 702) {
             Try {
                 $installHarbor = Invoke-RestMethod -Method POST -URI https://$vcApiServer/api/vcenter/content/registries/harbor -Headers $vcApiHeaders -Body $json -ContentType application/json
-            }
-            Catch {
+            } Catch {
                 Write-Error $_.Exception.Message
             }
 
@@ -24838,14 +24830,13 @@ Function Get-WMRegistry {
 
     if ($vCenterApi -ge 800) {
         Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
-        break
+        Break
     }
 
     if ($Cluster) {
         Try {
             $wmClusterId = (Invoke-RestMethod -Method GET -URI  https://$vcApiServer/api/vcenter/namespace-management/clusters -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $Cluster }).cluster
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
@@ -24855,18 +24846,15 @@ Function Get-WMRegistry {
             if ($vCenterApi -le 701) {
                 $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response.value
-            }
-            elseif ($vCenterApi -ge 702) {
+            } elseif ($vCenterApi -ge 702) {
                 $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/api/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response
             }
-        }
-        elseif ($PsBoundParameters.ContainsKey("Cluster")) {
+        } elseif ($PsBoundParameters.ContainsKey("Cluster")) {
             if ($vCenterApi -le 701) {
                 $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response.value | Where-Object { $_.cluster -eq $wmClusterId }
-            }
-            elseif ($vCenterApi -ge 702) {
+            } elseif ($vCenterApi -ge 702) {
                 $response = Invoke-RestMethod -Method GET -URI https://$vcApiServer/api/vcenter/content/registries/harbor -ContentType application/json -headers $vcApiHeaders
                 $response | Where-Object { $_.cluster -eq $wmClusterId }
             }
@@ -24902,20 +24890,18 @@ Function Remove-WMRegistry {
     Try {
         if ($vCenterApi -ge 800) {
             Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
-            break
+            Break
         }
 
         if ($inputObject) {
             $harborRegistryId = $inputObject.registry
-        }
-        else {
+        } else {
             $harborRegistryId = (Get-WMRegistry -cluster $cluster).registry
         }
 
         if ($vCenterApi -le 701) {
             $uri = "https://$vcApiServer/rest/vcenter/content/registries/harbor/$harborRegistryId"
-        }
-        elseif ($vCenterApi -ge 702) {
+        } elseif ($vCenterApi -ge 702) {
             $uri = "https://$vcApiServer/api/vcenter/content/registries/harbor/$harborRegistryId"
         }
         $response = Invoke-WebRequest -Method DELETE -URI $uri -ContentType application/json -headers $vcApiHeaders -UseBasicParsing
@@ -24953,9 +24939,9 @@ Function Get-WMRegistryHealth {
     Try {
         if ($vCenterApi -ge 800) {
             Write-Warning "The embedded Harbor registry is not supported on vSphere 8.0 and higher: SKIPPED"
-            break
+            Break
         }
-        
+
         if ($inputObject) {
             $registry = $inputObject.registry
         }
@@ -25075,28 +25061,21 @@ Function Get-TanzuKubernetesCluster {
         if ($PsBoundParameters.ContainsKey("detail")) {
             if (!$tkc -and !$namespace) {
                 Invoke-Expression "kubectl describe tkc --all-namespaces"
-            }
-            elseif (!$tkc -and $namespace) {
+            } elseif (!$tkc -and $namespace) {
                 Invoke-Expression "kubectl describe tkc -n $namespace"
-            }
-            elseif ($tkc -and !$namespace) {
+            } elseif ($tkc -and !$namespace) {
                 Write-Error "A resource cannot be retrieved by tkc name across all namespaces"
-            }
-            elseif ($tkc -and $namespace) {
+            } elseif ($tkc -and $namespace) {
                 Invoke-Expression "kubectl describe tkc $tkc -n $namespace"
             }
-        }
-        else {
+        } else {
             if (!$tkc -and !$namespace) {
                 Invoke-Expression "kubectl get tkc --all-namespaces"
-            }
-            elseif (!$tkc -and $namespace) {
+            } elseif (!$tkc -and $namespace) {
                 Invoke-Expression "kubectl get tkc -n $namespace"
-            }
-            elseif ($tkc -and !$namespace) {
+            } elseif ($tkc -and !$namespace) {
                 Write-Error "A resource cannot be retrieved by name across all namespaces"
-            }
-            elseif ($tkc -and $namespace) {
+            } elseif ($tkc -and $namespace) {
                 Invoke-Expression "kubectl get tkc $tkc -n $namespace"
             }
         }
@@ -25163,19 +25142,16 @@ Function Get-VMClass {
             $uri = "https://$vcApiServer/api/vcenter/namespace-management/virtual-machine-classes/$vmClass"
             $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
             $response
-        }
-        elseif ($PsBoundParameters.ContainsKey("namespace")) {
+        } elseif ($PsBoundParameters.ContainsKey("namespace")) {
             $uri = "https://$vcApiServer/api/vcenter/namespaces/instances/$namespace"
             $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
             $response.vm_service_spec.vm_classes
-        }
-        else {
+        } else {
             $uri = " https://$vcApiServer/api/vcenter/namespace-management/virtual-machine-classes"
             $response = Invoke-RestMethod -Method 'GET' -URI $uri -Headers $vcApiHeaders
             $response
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25212,16 +25188,14 @@ Function Add-VMClass {
             $jsonFormat = ConvertTo-Json $newVmClass
 
             $body = '{"vm_service_spec": { "vm_classes": '+ $jsonFormat +'}}'
-        }
-        else {
+        } else {
             $body = '{ "vm_service_spec": { "vm_classes": [ "' + $vmClass + '" ] }}'
         }
 
         $uri = "https://$vcApiServer/api/vcenter/namespaces/instances/$namespace"
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vcApiHeaders -body $body 
         $response
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25240,18 +25214,12 @@ Function Get-WMLicenseStatus {
         This example gets the vSphere with Tanzu licenses status from vCenter Server for Workload Management
     #>
 
-    # Param (
-    #     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-    #     [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain
-    # )
-
     Try {
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/capability"
         $response = Invoke-RestMethod -Method GET -Uri $uri -Headers $vcApiHeaders
         $response
 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_ 
     }
 }
@@ -25302,8 +25270,7 @@ Function Request-WMClusterCSR {
         $response = Invoke-RestMethod -Method POST -Uri $uri -Headers $vcApiHeaders -body $body
         $response | Out-File -FilePath $filePath
         Write-Output "Certificate Signing Request (.csr) file for ($commonName) has been successfully saved to file ($filePath)"
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -25331,19 +25298,16 @@ Function Install-WMClusterCertificate {
         if ($PsBoundParameters.ContainsKey("filepath")) {
             if (!(Test-Path $filepath)) {
                 Throw "Certificate File Not Found"
-            }
-            else {
+            } else {
                 $certificate = Get-Content -Path $filePath -Raw -ErrorAction SilentlyContinue
                 $inputFileName = Split-Path -Path $filePath -Leaf -ErrorAction SilentlyContinue
             }
         }
         if ($isMacOS -eq $true -or $isLinux -eq $true) {
             $certificateFormatted = $Certificate -Replace "`n","\n"
-        }
-        elseif ($isWindows -eq $true -or $PSEdition -eq "Desktop") {
+        } elseif ($isWindows -eq $true -or $PSEdition -eq "Desktop") {
             $certificateFormatted = $Certificate -Replace "`r`n","\n"
-        }
-        else {
+        } else {
             Write-Error "Unsupported Operating System"
             Break
         }
@@ -25357,20 +25321,17 @@ Function Install-WMClusterCertificate {
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters/$clusterId/"
         if ($PSEdition -eq 'Core') {
             $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcApiHeaders -body $body -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented
-        }
-        else {
+        } else {
             $response = Invoke-WebRequest -Method PATCH -Uri $uri -Headers $vcApiHeaders -body $body -UseBasicParsing
         }
         if ($response.StatusCode -lt 300) {
             if ($inputFileName) {
                 Write-Output "Signed Certificate ($inputFileName) has been successfully applied to Supervisor Cluster ($cluster)"
-            }
-            else {
+            } else {
                 Write-Output "Signed Certificate has been successfully applied to Supervisor Cluster ($cluster)"
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -25395,7 +25356,6 @@ Function Watch-WmClusterConfigStatus {
         [Parameter (Mandatory = $false)]  [int]$sleepTime = 30
     )
 
-
     Try {
         $try = 1
         Do {
@@ -25410,12 +25370,10 @@ Function Watch-WmClusterConfigStatus {
         if ($wmCluster.ConfigStatus -ne "Running") {
             Write-Error "Workload management on cluster: $wmClusterName status: $($wmCluster.ConfigStatus)"
             write-Error "Workload management on cluster: $wmClusterName status messages:  $($wmCluster.StatusMessages.Messages)"
-        }
-        else {
+        } else {
             Write-Output "Workload Management on cluster: $wmClusterName completed with status:  $($wmCluster.ConfigStatus)"
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
