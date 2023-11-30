@@ -43,7 +43,7 @@
 - Enhanced `New-WSADeployment` cmdlet to check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
-- Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node code for the VCF-Aware Workspace ONE Access instance.
+- Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
 
 ## v2.7.1
 
