@@ -11,6 +11,7 @@
 - Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
 - Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
 - Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
+- Fixed `Get-WSAServerDetails` cmdlet where incorrect initial check was looking for VMware Aria Automation not VMware Aria Suite Lifecycle.
 - Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
 - Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
@@ -42,6 +43,7 @@
 - Enhanced `New-WSADeployment` cmdlet to check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
+- Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node code for the VCF-Aware Workspace ONE Access instance.
 
 ## v2.7.1
 
