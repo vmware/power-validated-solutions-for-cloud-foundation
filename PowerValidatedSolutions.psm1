@@ -32251,7 +32251,6 @@ Function Request-CSPToken {
         } elseif ($environment -eq "production") {
             $Global:cspBaseUrl = "https://console.cloud.vmware.com"
         }
-
         if ($PSBoundParameters.ContainsKey('extensibilityProxy')) {
             $Global:cepAppliance = $extensibilityProxy
         }
@@ -32368,8 +32367,7 @@ Function Get-CloudProxy {
         } elseif ($PsBoundParameters.ContainsKey("ovaUrl")) {
             $response.providerUrl
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32402,13 +32400,11 @@ Function Get-CloudProxyOtk {
     Try {
         if ($environment -eq 'staging') {
             $baseUrl = 'https://api.staging.symphony-dev.com'
-        }
-        elseif ($environment -eq 'production') {
+        } elseif ($environment -eq 'production') {
             if ($PsBoundParameters.ContainsKey('region')) {
                 if ($region -eq 'us') {
                     $baseUrl = 'https://api.mgmt.cloud.vmware.com'
-                }
-                else {
+                } else {
                     $baseUrl = "https://$region.api.mgmt.cloud.vmware.com"
                 }       
             } else {
@@ -32417,7 +32413,6 @@ Function Get-CloudProxyOtk {
         }
         $apiUrl = "/api/otk-v3"
         $uri = $baseUrl + $apiUrl
-
         if ($type -eq "Cloud Proxy") {
             $body = '{"url":"' + $baseUrl + '","service":"cloud_assembly"}'
         } elseif ($type -eq "Cloud Extensibility Proxy") {
@@ -32425,9 +32420,7 @@ Function Get-CloudProxyOtk {
         }
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $cspHeader -Body $body
         $response
-
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32485,8 +32478,7 @@ Function Get-vROVersion {
         $path = "/vco/api/about"
         $uri = $baseUrl + $path
         Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
-    } 
-    Catch {
+    }  Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32637,8 +32629,7 @@ Function Get-CEPWorkflow {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32716,8 +32707,7 @@ Function Invoke-CEPWorkflow {
 	]
 }
 "@
-            }
-            elseif ($PSBoundParameters.ContainsKey('parameters')) {
+            } elseif ($PSBoundParameters.ContainsKey('parameters')) {
                 $object = [PSCustomObject]@{
                     parameters = @()
                 }
@@ -32749,8 +32739,7 @@ Function Invoke-CEPWorkflow {
                     Execution         = ([System.Uri]$response.Headers.Location).LocalPath
                 }
             }
-        }
-        Catch {
+        } Catch {
             Write-Error $_.Exception.Message
         }
     }
@@ -32802,8 +32791,7 @@ Function Get-CEPWorkflowExecution {
                 EndDate   = ($execution.attributes | Where-Object { $_.name -eq 'EndDate' }).value
             }
         }
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32831,8 +32819,7 @@ Function Get-CEPWorkflowExecutionState {
     Try {
         $uri = "https://$cepAppliance/vco/api/workflows/$workflowId/executions/$executionId/state"   
         (Invoke-RestMethod -method 'GET' -uri $uri -Headers $cspHeader).value
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32912,8 +32899,7 @@ Function Add-CEPTrustedCertificate {
                 Write-Error "Adding trusted certificate ($certFile) to the VMware Aria Automation Orchestrator ($($extensibilityProxy)): FAILED"
             }
         } 
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -33086,30 +33072,24 @@ Function Add-CEPvCenterServer {
                                 Until ($workflowStatus -ne "running")
                                 if ((Get-CEPWorkflowExecutionState -workflowId $workflow.ID -executionId $workflowExecution.ID) -eq "completed") { 
                                     Write-Output "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain): SUCCESSFUL"
-                                }
-                                else {
+                                } else {
                                     Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain), check credentials: POST_VALIDATION_FAILED"
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain): FAILED"
                             }
-                        }
-                        else {
+                        } else {
                             Write-Error "Unable to find the workflow named ($workflowName) to VMware Aria Automation Orchestrator ($cepAppliance): PRE_VALIDATION_FAILED"
                         }
-                    }
-                    else {
+                    } else {
                         Write-Warning "Adding vCenter Server ($($vcenter.fqdn)) to VMware Aria Automation Orchestrator ($cepAppliance) for Workload Domain ($domain), already exists: SKIPPED"
                     }                                
-                }
-                else {
+                } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
