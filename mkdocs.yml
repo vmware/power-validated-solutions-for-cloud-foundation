@@ -2,7 +2,7 @@
 site_name: PowerValidatedSolutions
 site_description: PowerShell Module for VMware Validated Solutions
 site_url: https://vmware.github.io/power-validated-solutions-for-cloud-foundation
-site_author: VMware, Inc.
+site_author: Broadcom
 docs_dir: docs
 site_dir: .site
 use_directory_urls: true
@@ -12,7 +12,9 @@ repo_url: https://github.com/vmware/power-validated-solutions-for-cloud-foundati
 edit_uri: blob/main/docs/
 
 # Copyright
-copyright: Copyright &copy; 2021-2023 - VMware, Inc.
+copyright: |
+  Copyright &copy; 2023 Broadcom. All Rights Reserved.<br/>
+  The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.<br/><br/>
 
 # Configuration
 theme:
