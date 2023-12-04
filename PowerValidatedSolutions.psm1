@@ -8328,8 +8328,8 @@ Function Export-vRLIJsonSpec {
                                             'licenseRef'					= ("locker:license:" + $($vrliLicense.vmid) + ":" + $($vrliLicense.alias))
                                             'nodeSize'						= $pnpWorkbook.Workbook.Names["region_vrli_appliance_size"].Value.ToLower()
                                             'configureClusterVIP'			= "false"
-                                            'affinityRule'					= $false
-                                            'isUpgradeVmCompatibility'		= $false
+                                            'affinityRule'					= $true
+                                            'isUpgradeVmCompatibility'		= $true
                                             'vrliAlwaysUseEnglish'			= $false
                                             'masterVidmEnabled'				= $false
                                             'configureAffinitySeparateAll'	= "true"

@@ -92,17 +92,22 @@
   - `vrli-vcf-vmVrslcm.json` -> `aria-operations-logs-alerts-vm-asl.json`
   - `vrops-srm-notifications.csv` -> `aria-operations-notifications-srm.csv`
   - `vrops-vcf-notifications.csv` -> `aria-operations-notifications-vcf.csv`
-- Enhanced `Export-vROPSJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations v8.14.0.
-- Enhanced `Export-vRLIJsonSpec` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
-- Enhanced `New-vRLIDeployment` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
-- Enhanced `Export-vRLIJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.14.0.
-- Enhanced `Export-VROPsJsonSpec` to support deployment of VMware Aria Operations OVA using vSphere Content Library.
+- Enhanced `Export-vROPSJsonSpec` cmdlet:
+  - to support VMware Cloud Foundation v5.1.0 and VMware Aria Operations v8.14.0.
+  - to support deployment of VMware Aria Operations OVA using vSphere Content Library.
 - Enhanced `New-vROPsDeployment` to support deployment of VMware Aria Operations OVA using vSphere Content Library.
-- Enhanced `Export-vRAJsonSpec` to support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.14.0.
+- Enhanced `Export-vRLIJsonSpec` cmdlet:
+  - support VMware Cloud Foundation v5.1.0 and VMware Aria Operations for Logs v8.14.0.
+  - support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
+  - support automatic creation of anti-affinity rule.
+- Enhanced `New-vRLIDeployment` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
+- Enhanced `Export-vRAJsonSpec` cmdlet:
+  - to support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.14.0.
+  - to support deployment of VMware Aria Automation OVA using vSphere Content Library.
 - Enhanced `Export-VraJsonSpec` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
-- Enhanced `New-VraDeployment` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
-- Enhanced `Export-WsaJsonSpec` to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
-- Enhanced `Export-WsaJsonSpec` to support deployment of Workspace ONE Access OVA using vSphere Content Library.
+- Enhanced `Export-WsaJsonSpec` cmdlet:
+  - to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
+  - to support deployment of Workspace ONE Access OVA using vSphere Content Library.
 - Enhanced `New-WsaDeployment` to support deployment of Workspace ONE Access OVA using vSphere Content Library.
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.
