@@ -32,6 +32,9 @@
 - Added `Get-vRSLCMLoadbalancer` cmdlet to support retrieving a list of load balancers configured in VMware Aria Suite Lifecycle.
 - Added `New-vRSLCMLoadbalancer` cmdlet to support adding a new load balancer to VMware Aria Suite Lifecycle.
 - Added `Remove-vRSLCMLoadbalancer` cmdlet to support removing a load balancer from VMware Aria Suite Lifecycle.
+- Added `Sync-vRSLCMDatacenterVcenter` cmdlet to trigger a data collection of a vCenter Server in VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMSshStatus` cmdlet to retrieve the status of the SSH service for VMware Aria Suite Lifecycle.
+- Added `Set-vRSLCMSshStatus` cmdlet to disable or enable the SSH service for VMware Aria Suite Lifecycle.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
@@ -39,11 +42,13 @@
 - Enhanced `Add-vRLIGroup` cmdlet to support v2 API for adding group membership by authentication provider in VMware Aria Operations for Logs.
 - Enhanced `Remove-vRLIGroup` cmdlet to support v2 API for removing group membership by authentication provider in VMware Aria Operations for Logs.
 - Enhanced `Add-vRLIAuthenticationGroup` cmdlet to support updated `Add-vRLIGroup` cmdlet usage and Active Directory support.
-- Enhanced `New-WSADeployment` cmdlet to better handle checking for and reporting a missing Cross-Instance Datacenter.
-- Enhanced `New-WSADeployment` cmdlet to check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
+- Enhanced `New-WSADeployment` cmdlet:
+  - better handle checking for and reporting a missing Cross-Instance Datacenter.
+  - check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
+- Enhanced `Export-vRLIJsonSpec` cmdlet to support automatic creation of anti-affinity rule.
 
 ## v2.7.1
 
@@ -102,12 +107,12 @@
   - support automatic creation of anti-affinity rule.
 - Enhanced `New-vRLIDeployment` to support deployment of VMware Aria Operations for Logs OVA using vSphere Content Library.
 - Enhanced `Export-vRAJsonSpec` cmdlet:
-  - to support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.14.0.
-  - to support deployment of VMware Aria Automation OVA using vSphere Content Library.
+  - support VMware Cloud Foundation v5.1.0 and VMware Aria Automation v8.14.0.
+  - support deployment of VMware Aria Automation OVA using vSphere Content Library.
 - Enhanced `Export-VraJsonSpec` to support deployment of VMware Aria Automation OVA using vSphere Content Library.
 - Enhanced `Export-WsaJsonSpec` cmdlet:
-  - to support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
-  - to support deployment of Workspace ONE Access OVA using vSphere Content Library.
+  - support VMware Cloud Foundation v5.1.0 and Workspace ONE Access v3.3.7.
+  - support deployment of Workspace ONE Access OVA using vSphere Content Library.
 - Enhanced `New-WsaDeployment` to support deployment of Workspace ONE Access OVA using vSphere Content Library.
 - Enhanced `Install-vRLIPhotonAgent` cmdlet to support VMware Aria Operations for Logs agent configuration.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet and examples with domainBindUser and domainBindUsePass as optional parameters for a local domain (_e.g._, `vsphere.local`) user.

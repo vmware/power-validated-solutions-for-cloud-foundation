@@ -25993,6 +25993,33 @@ Function Add-vRSLCMDatacenterVcenter {
 }
 Export-ModuleMember -Function Add-vRSLCMDatacenterVcenter
 
+Function Sync-vRSLCMDatacenterVcenter {
+    <#
+        .SYNOPSIS
+        Trigger a vCenter Server inventory sync in VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Sync-vRSLCMDatacenterVcenter cmdlet triggers a vCenter Server inventory sync VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Sync-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterName <vcenter_name>
+        This example triggers a vCenter Server inventory sync
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterName
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters/$datacenterVmid/vcenters/$vcenterName/data-collection"
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Sync-vRSLCMDatacenterVcenter
+
 Function Get-vRSLCMEnvironment {
     <#
         .SYNOPSIS
@@ -26092,7 +26119,6 @@ Function Remove-vRSLCMEnvironment {
     }
 }
 Export-ModuleMember -Function Remove-vRSLCMEnvironment
-
 
 Function Get-vRSLCMLoadbalancer {
     <#
@@ -27203,6 +27229,55 @@ Function Register-vRSLCMProductBinary {
     }
 }
 Export-ModuleMember -Function Register-vRSLCMProductBinary
+
+Function Get-vRSLCMSshStatus {
+    <#
+        .SYNOPSIS
+        Get the status of the SSH service in VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Get-vRSLCMSshStatus cmdlet gets the status of the SSH Server in VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMSshStatus
+        This example gets the SSH services
+    #>
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
+        Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMSshStatus
+
+Function Set-vRSLCMSshStatus {
+    <#
+        .SYNOPSIS
+        Set the status of the SSH service in VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Set-vRSLCMSshStatus cmdlet sets the status of the SSH Server in VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Set-vRSLCMSshStatus -enabled false
+        This example disables the SSH services
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$enabled
+    )
+
+    Try {
+        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
+        $body = '{"sshStatus": "'+ $enabled +'"}'
+        Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-vRSLCMSshStatus
 
 #EndRegion  End VMware Aria Suite Lifecycle Functions                        ######
 ###################################################################################
