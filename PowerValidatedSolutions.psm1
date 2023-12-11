@@ -43,7 +43,7 @@ if ($PSEdition -eq 'Desktop') {
 Function Export-IamJsonSpec {
     <#
         .SYNOPSIS
-        Create JSON specification for Identity and Access Management
+        Create JSON specification for Identity and Access Management.
 
         .DESCRIPTION
         The Export-IamJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -53,7 +53,7 @@ Function Export-IamJsonSpec {
 
         .EXAMPLE
         Export-IamJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\iamSpec.json
-        This example creates a JSON specification Identity and Access Management using the Planning and Preparation Workbook
+        This example creates a JSON specification Identity and Access Management using the Planning and Preparation Workbook.
     #>
 
     Param (
@@ -126,7 +126,7 @@ Export-ModuleMember -Function Export-IamJsonSpec
 Function Invoke-IamDeployment {
     <#
         .SYNOPSIS
-        End-to-end Deployment of Identity and Access Management
+        End-to-end Deployment of Identity and Access Management.
 
         .DESCRIPTION
         The Invoke-IamDeployment cmdlet is a single function to implement the configuration of the Identity and Access
@@ -134,7 +134,7 @@ Function Invoke-IamDeployment {
 
         .EXAMPLE
         Invoke-IamDeployment -jsonFile .\iamSpec.json -certificates "F:\VMware.PlatformTools\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
-        This example configures Identity and Access Management using JSON spec supplied
+        This example configures Identity and Access Management using JSON spec supplied.
     #>
 
     Param (
@@ -256,7 +256,7 @@ Function Invoke-IamDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Integrating NSX Manager with the Standalone Workspace ONE Access Instance"
                                     foreach ($sddcDomain in $allWorkloadDomains) {
                                         $StatusMsg = Set-WorkspaceOneNsxtIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -wsaFqdn $jsonInput.wsaFqdn -wsaUser admin -wsaPass $jsonInput.wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -message "Integrating NSX-T Data Center with Workspace ONE Access for Workload Domain ($($sddcDomain.name)): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
+                                        if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -message "Integrating NSX with Workspace ONE Access for Workload Domain ($($sddcDomain.name)): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
                                     }
 
                                     Show-PowerValidatedSolutionsOutput -message "Assigning NSX Manager Roles to Active Directory Groups"
@@ -322,7 +322,7 @@ Export-ModuleMember -Function Invoke-IamDeployment
 Function Invoke-UndoIamDeployment {
     <#
         .SYNOPSIS
-        End-to-end removal of Identity and Access Management
+        End-to-end removal of Identity and Access Management.
 
         .DESCRIPTION
         The Invoke-UndoIamDeployment cmdlet is a single function to remove the configuration of the Identity and Access
@@ -330,8 +330,8 @@ Function Invoke-UndoIamDeployment {
 
         .EXAMPLE
         Invoke-UndoIamDeployment -jsonFile .\iamSpec.json
-        This example removes the Identity and Access Management using JSON spec supplied
-    #>
+        This example removes the Identity and Access Management using JSON spec supplied.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
@@ -455,7 +455,7 @@ Export-ModuleMember -Function Invoke-UndoIamDeployment
 Function Add-IdentitySource {
     <#
 		.SYNOPSIS
-        Add Active Directory over LDAP/LDAPS as an Identity Provider to vCenter Server
+        Add Active Directory over LDAP/LDAPS as an Identity Provider to vCenter Server.
 
         .DESCRIPTION
         The Add-IdentitySource cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the vCenter
@@ -473,8 +473,44 @@ Function Add-IdentitySource {
 
         .EXAMPLE
         Add-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseGroupDn "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -baseUserDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
-        This example adds the sfo.rainpole.io domain as the default Identity Provider to vCenter Server using LDAPS
-    #>
+        This example adds the sfo.rainpole.io domain as the default Identity Provider to vCenter Server using LDAPS.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER domainBindUser
+        The Active Directory bind user.
+
+        .PARAMETER domainBindPass
+        The Active Directory bind user password.
+
+        .PARAMETER dcMachineName
+        The Active Directory Domain Controller machine name.
+
+        .PARAMETER baseGroupDn
+        The Active Directory base group DN.
+
+        .PARAMETER baseUserDn
+        The Active Directory base user DN.
+
+        .PARAMETER protocol
+        The protocol to use for communication with Active Directory (ldap or ldaps).
+
+        .PARAMETER certificate
+        The certificate to use for communication with Active Directory (ldaps only).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -555,7 +591,7 @@ Export-ModuleMember -Function Add-IdentitySource
 Function Undo-IdentitySource {
     <#
 		.SYNOPSIS
-        Removes Active Directory over LDAP/LDAPS as an Identity Provider from vCenter Server
+        Removes Active Directory over LDAP/LDAPS as an Identity Provider from vCenter Server.
 
         .DESCRIPTION
         The Undo-IdentitySource cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from the
@@ -566,8 +602,23 @@ Function Undo-IdentitySource {
 
         .EXAMPLE
         Undo-IdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io
-        This example removes the sfo.rainpole.io domain as an Identity Provider from vCenter Server
-    #>
+        This example removes the sfo.rainpole.io domain as an Identity Provider from vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -608,7 +659,7 @@ Export-ModuleMember -Function Undo-IdentitySource
 Function Add-SddcManagerRole {
     <#
 		.SYNOPSIS
-        Assign SDDC Manager roles to a user/group
+        Assign SDDC Manager roles to a user/group.
 
         .DESCRIPTION
         The Add-SddcManagerRole cmdlet assigns an SDDC Manager role to the user or group provided. The cmdlet connects
@@ -626,8 +677,35 @@ Function Add-SddcManagerRole {
 
         .EXAMPLE
         Add-SddcManagerRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -principal compliance -role OPERATOR -type user
-        This example assigns the user compliance from domain sfo.rainpole.io the SDDC Manager role OPERATOR
-    #>
+        This example assigns the user compliance from domain sfo.rainpole.io the SDDC Manager role OPERATOR.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER domainBindUser
+        The Active Directory bind user.
+
+        .PARAMETER domainBindPass
+        The Active Directory bind user password.
+
+        .PARAMETER principal
+        The user or group to assign the role to.
+
+        .PARAMETER role
+        The role to assign to the user or group.
+
+        .PARAMETER type
+        The type of user or group to assign the role to (group or user).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -705,7 +783,7 @@ Export-ModuleMember -Function Add-SddcManagerRole
 Function Undo-SddcManagerRole {
     <#
 		.SYNOPSIS
-        Remove access for a user/group in SDDC Manager
+        Remove access for a user/group in SDDC Manager.
 
         .DESCRIPTION
         The Undo-SddcManagerRole cmdlet removes access for a user or group in SDDC Manager. The cmdlet connects
@@ -715,8 +793,23 @@ Function Undo-SddcManagerRole {
 
         .EXAMPLE
         Undo-SddcManagerRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -principal gg-vcf-admins -type GROUP
-        This example removes access for the group gg-vcf-admins from SDDC Manager
-    #>
+        This example removes access for the group gg-vcf-admins from SDDC Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER principal
+        The user or group to remove access for.
+
+        .PARAMETER type
+        The type of user or group to remove access for (group or user).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -730,7 +823,7 @@ Function Undo-SddcManagerRole {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}) {
-                    Remove-VCFUser -id (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}).id | Out-Null
+                    Remove-VCFUser -id (Get-VCFUser -type $type | Where-Object {$_.name -match $principal}).id
                     if (!(Get-VCFUser -type $type | Where-Object {$_.name -match $principal})) { 
                         Write-Output "Removing $type from SDDC Manager ($server) named ($principal): SUCCESSFUL"
                     } else {
@@ -750,7 +843,7 @@ Export-ModuleMember -Function Undo-SddcManagerRole
 Function Install-WorkspaceOne {
     <#
 		.SYNOPSIS
-        Deploy Workspace ONE Access Virtual Appliance
+        Deploy Workspace ONE Access Virtual Appliance.
 
         .DESCRIPTION
         The Install-WorkspaceOne cmdlet deploys the Workspace ONE Access Virtual Appliance OVA. The cmdlet connects
@@ -763,7 +856,34 @@ Function Install-WorkspaceOne {
         .EXAMPLE
         Install-WorkspaceOne -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaIpAddress 192.168.31.60 -wsaGateway 192.168.31.1 -wsaSubnetMask 255.255.255.0 -wsaOvaPath F:\identity-manager.ova -wsaFolder sfo-m01-fd-wsa
         This example deploys the Workspace ONE Access Virtual Appliance named sfo-wsa01.sfo.rainpole.io into the sfo-m01-fd-wsa folder of the management domain
-    #>
+    
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaIpAddress
+        The IP Address of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaGateway
+        The Gateway of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaSubnetMask
+        The Subnet Mask of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaOvaPath
+        The path to the Workspace ONE Access Virtual Appliance OVA file.
+
+        .PARAMETER wsaFolder
+        The folder to deploy the Workspace ONE Access Virtual Appliance to.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -821,7 +941,7 @@ Function Install-WorkspaceOne {
                                             }
                                         } Catch {
                                             Write-Error "Failed to get a Response from Workspace ONE Access Instance ($wsaFqdn): POST_VALIDATION_FAILURE"
-                                        } Finally {
+                                        } Finally {                                   
                                             $timer.Stop()  ## Stop the timer
                                         }
                                         $Timeout = 900  ## seconds
@@ -844,7 +964,7 @@ Function Install-WorkspaceOne {
                                                 Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                                             }
                                             if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                                                    Write-Error "Workspace ONE Access Instance ($wsaFqdn) failed to initialize properly. Please delete the VM from vCenter Server ($($vcfVcenterDetails.fqdn)) and retry: POST_VAIDATION_FAILED"
+                                                Write-Error "Workspace ONE Access Instance ($wsaFqdn) failed to initialize properly. Please delete the VM from vCenter Server ($($vcfVcenterDetails.fqdn)) and retry: POST_VAIDATION_FAILED"
                                             }
                                         } Catch {
                                             Debug-ExceptionWriter -object $_
@@ -873,7 +993,7 @@ Export-ModuleMember -Function Install-WorkspaceOne
 Function Undo-WorkspaceOne {
     <#
 		.SYNOPSIS
-        Remove Workspace ONE Access Virtual Appliance
+        Remove Workspace ONE Access Virtual Appliance.
 
         .DESCRIPTION
         The Undo-WorkspaceOne cmdlet removes the Workspace ONE Access Virtual Appliance. The cmdlet connects
@@ -884,8 +1004,20 @@ Function Undo-WorkspaceOne {
 
         .EXAMPLE
         Undo-WorkspaceOne -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaHostname sfo-wsa01
-        This example removes the Workspace ONE Access Virtual Appliance named sfo-wsa01 from the Management Domain
-    #>
+        This example removes the Workspace ONE Access Virtual Appliance named sfo-wsa01 from the Management Domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER wsaHostname
+        The hostname of the Workspace ONE Access Virtual Appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -932,7 +1064,7 @@ Export-ModuleMember -Function Undo-WorkspaceOne
 Function Initialize-WorkspaceOne {
     <#
 		.SYNOPSIS
-        Initalize Workspace ONE Access Virtual Appliance
+        Initalize Workspace ONE Access Virtual Appliance.
 
         .DESCRIPTION
         The Initialize-WorkspaceOne cmdlet performs the initial configuration of Workspace ONE Access Virtual Appliance.
@@ -943,8 +1075,20 @@ Function Initialize-WorkspaceOne {
 
         .EXAMPLE
         Initialize-WorkspaceOne -wsaFqdn sfo-wsa01.sfo.rainpole.io -adminPass VMw@re1! -rootPass VMw@re1! -sshUserPass VMw@re1!
-        This example initialzes the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io and sets the default passwords for admin, root and SSH User
-    #>
+        This example initialzes the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io and sets the default passwords for admin, root and SSH User.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER adminPass
+        The default password for the admin user.
+
+        .PARAMETER rootPass
+        The default password for the root user.
+
+        .PARAMETER sshUserPass
+        The default password for the SSH User.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
@@ -957,7 +1101,7 @@ Function Initialize-WorkspaceOne {
         if (Test-WSAConnection -server $wsaFqdn) {
             if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationCallback').Type)
 {
-$certCallback = @"
+                $certCallback = @"
     using System;
     using System.Net;
     using System.Net.Security;
@@ -983,8 +1127,8 @@ $certCallback = @"
         }
     }
 "@
-    Add-Type $certCallback
-}
+                Add-Type $certCallback
+            }
 
             [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
             [ServerCertificateValidationCallback]::Ignore()
@@ -1028,7 +1172,7 @@ Export-ModuleMember -Function Initialize-WorkspaceOne
 Function Set-WorkspaceOneNtpConfig {
     <#
 		.SYNOPSIS
-        Configure NTP Server on Workspace ONE Access Appliance
+        Configure NTP Server on Workspace ONE Access Appliance.
 
         .DESCRIPTION
         The Set-WorkspaceOneNtpConfig cmdlet configures the NTP Server details of the Workspace ONE Access Appliance
@@ -1054,7 +1198,28 @@ Function Set-WorkspaceOneNtpConfig {
         .EXAMPLE
         Set-WorkspaceOneNtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -vrslcmIntegrated
         This example adds the primary NTP server defined in SDDC Manager to the VMware Aria Suite Lifecycle integrated Workspace ONE Access nodes
-    #>
+    
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER rootPass
+        The root password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER ntpServer
+        The NTP Server to configure on the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER vrslcmIntegrated
+        Flag to indicate if the Workspace ONE Access Virtual Appliance is integrated with VMware Aria Suite Lifecycle Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1126,7 +1291,7 @@ Export-ModuleMember -Function Set-WorkspaceOneNtpConfig
 Function Install-WorkspaceOneCertificate {
     <#
 		.SYNOPSIS
-        Install a Signed Certificate on Workspace ONE Access Appliance
+        Install a Signed Certificate on Workspace ONE Access Appliance.
 
         .DESCRIPTION
         The Install-WorkspaceOneCertificate cmdlet replaces the certificate on the Workspace ONE Access. The cmdlet
@@ -1137,8 +1302,32 @@ Function Install-WorkspaceOneCertificate {
 
         .EXAMPLE
         Install-WorkspaceOneCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -rootPass VMw@re1! -sshUserPass VMw@re1!
-        This example install the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with a the signed certificate provided
-    #>
+        This example install the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with a the signed certificate provided.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER rootPass
+        The root password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER sshUserPass
+        The SSH User password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER rootCa
+        The Root Certificate Authority certificate file (.cer).
+
+        .PARAMETER wsaCertKey
+        The Workspace ONE Access certificate key file (.key).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1216,8 +1405,29 @@ Function Set-WorkspaceOneSmtpConfig {
 
         .EXAMPLE
         Set-WorkspaceOneSmtpConfig -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -smtpFqdn smtp.sfo.rainpole.io -smtpPort 25 -smtpEmail sfo-wsa@rainpole.io
-        This example configures the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with the SMTP Server details
-    #>
+        This example configures the Workspace ONE Access Virtual Appliance sfo-wsa01.sfo.rainpole.io with the SMTP Server details.
+
+        .PARAMETER server
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER user
+        The admin username of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER pass
+        The admin password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER smtpFqdn
+        The FQDN of the SMTP Server.
+
+        .PARAMETER smtpPort
+        The port of the SMTP Server.
+
+        .PARAMETER smtpEmail
+        The email address to send emails from.
+
+        .PARAMETER smtpEmailPassword
+        The password of the email address to send emails from.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1258,7 +1468,7 @@ Export-ModuleMember -Function Set-WorkspaceOneSmtpConfig
 Function Add-WorkspaceOneDirectory {
     <#
 		.SYNOPSIS
-        Configure Active Directory LDAP Directory in Workspace ONE Access Appliance
+        Configure Active Directory LDAP Directory in Workspace ONE Access Appliance.
 
         .DESCRIPTION
         The Add-WorkspaceOneDirectory cmdlet configures Active Directory LDAP Directory in Workspace ONE Access
@@ -1270,7 +1480,40 @@ Function Add-WorkspaceOneDirectory {
         .EXAMPLE
         Add-WorkspaceOneDirectory -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -baseDnUser "OU=Security Users,DC=sfo,DC=rainpole,DC=io" -baseDnGroup "OU=Security Groups,DC=sfo,DC=rainpole,DC=io" -bindUserDn "CN=svc-wsa-ad,OU=Security Users,DC=sfo,DC=rainpole,DC=io" -bindUserPass VMw@re1! -adGroups "gg-nsx-enterprise-admins","gg-nsx-network-admins","gg-nsx-auditors","gg-wsa-admins","gg-wsa-directory-admins","gg-wsa-read-only" -protocol "ldaps" -certificate "F:\platformtools-l1-dev\certificates\Root64.pem"
         This example configures the domain sfo.rainpole.io as a directory source in Workspace ONE Access Virtual Appliance and syncronises the groups provided
-    #>
+    
+        .PARAMETER server
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER user
+        The admin username of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER pass
+        The admin password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER domain
+        The domain name of the Active Directory Domain.
+
+        .PARAMETER baseDnUser
+        The base DN of the Active Directory Users.
+
+        .PARAMETER baseDnGroup
+        The base DN of the Active Directory Groups.
+
+        .PARAMETER bindUserDn
+        The bind user DN of the Active Directory Domain.
+
+        .PARAMETER bindUserPass
+        The bind user password of the Active Directory Domain.
+
+        .PARAMETER adGroups
+        The Active Directory Groups to synchronize.
+
+        .PARAMETER protocol
+        The protocol to use for the connection to the Active Directory Domain.
+
+        .PARAMETER certificate
+        The Root Certificate Authority certificate file (.cer).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1366,7 +1609,7 @@ Export-ModuleMember -Function Add-WorkspaceOneDirectory
 Function Set-WorkspaceOneNsxtIntegration {
     <#
 		.SYNOPSIS
-        Integrate NSX Manager with Workspace ONE Access
+        Integrate NSX Manager with Workspace ONE Access.
 
         .DESCRIPTION
         The Set-WorkspaceOneNsxtIntegration cmdlet configures integration between NSX Manager and Workspace ONE Access. 
@@ -1379,8 +1622,29 @@ Function Set-WorkspaceOneNsxtIntegration {
 
         .EXAMPLE
         Set-WorkspaceOneNsxtIntegration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example integrates the Management Domain NSX Manager instance with Workspace ONE Access
-    #>
+        This example integrates the Management Domain NSX Manager instance with Workspace ONE Access.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaUser
+        The admin username of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaPass
+        The admin password of the Workspace ONE Access Virtual Appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1447,7 +1711,7 @@ Export-ModuleMember -Function Set-WorkspaceOneNsxtIntegration
 Function Undo-WorkspaceOneNsxtIntegration {
     <#
 		.SYNOPSIS
-        Disables the integrate between NSX Manager with Workspace ONE Access
+        Disables the integrate between NSX Manager with Workspace ONE Access.
 
         .DESCRIPTION
         The Undo-WorkspaceOneNsxtIntegration cmdlet disables integration between NSX Manager and Workspace ONE Access. 
@@ -1458,8 +1722,29 @@ Function Undo-WorkspaceOneNsxtIntegration {
 
         .EXAMPLE
         Undo-WorkspaceOneNsxtIntegration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example disables the integration between NSX Manager with Workspace ONE Access
-    #>
+        This example disables the integration between NSX Manager with Workspace ONE Access.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaUser
+        The admin username of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER wsaPass
+        The admin password of the Workspace ONE Access Virtual Appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1517,7 +1802,7 @@ Export-ModuleMember -Function Undo-WorkspaceOneNsxtIntegration
 Function Add-NsxtVidmRole {
     <#
         .SYNOPSIS
-        Configure Role-Based Access Control for NSX Manager
+        Configure Role-Based Access Control for NSX Manager.
 
         .DESCRIPTION
         The Add-NsxtVidmRole cmdlet configures role assignments in NSX Manager. The cmdlet connects to SDDC Manager
@@ -1532,8 +1817,29 @@ Function Add-NsxtVidmRole {
 
         .EXAMPLE
         Add-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type user -principal "svc-vra-nsx@rainpole.io" -role enterprise_admin
-        This example assigns the user svc-vra-nsx@rainpole.io with the enterprise_admin role in NSX Manager
-    #>
+        This example assigns the user svc-vra-nsx@rainpole.io with the enterprise_admin role in NSX Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER type
+        The type of principal to assign the role to.
+
+        .PARAMETER principal
+        The principal to assign the role to.
+
+        .PARAMETER role
+        The role to assign to the principal.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1582,7 +1888,7 @@ Export-ModuleMember -Function Add-NsxtVidmRole
 Function Undo-NsxtVidmRole {
     <#
         .SYNOPSIS
-        Remove Role-Based Access Control from NSX Manager
+        Remove Role-Based Access Control from NSX Manager.
 
         .DESCRIPTION
         The Undo-NsxtVidmRole cmdlet removes role assignments in NSX Manager. The cmdlet connects to SDDC Manager
@@ -1593,8 +1899,26 @@ Function Undo-NsxtVidmRole {
 
         .EXAMPLE
         Undo-NsxtVidmRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
-        This example removes the group gg-nsx-enterprise-admins@sfo.rainpole.io from NSX Manager
-    #>
+        This example removes the group gg-nsx-enterprise-admins@sfo.rainpole.io from NSX Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER principal
+        The principal to remove the role from.
+
+        .PARAMETER role
+        The role to remove from the principal.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1612,7 +1936,7 @@ Function Undo-NsxtVidmRole {
                         if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
                             if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
                                 if (Get-NsxtUser | Where-Object { $_.name -eq $principal }) {
-                                    Remove-NsxtRole -id (Get-NsxtUser | Where-Object { $_.name -eq $principal }).id | Out-Null
+                                    Remove-NsxtRole -id (Get-NsxtUser | Where-Object { $_.name -eq $principal }).id
                                     if (!(Get-NsxtUser | Where-Object { $_.name -eq $principal })) {
                                         Write-Output "Removing access for ($principal) from NSX for Workload Domain ($domain): SUCCESSFUL"
                                     } else {
@@ -1638,7 +1962,7 @@ Export-ModuleMember -Function Undo-NsxtVidmRole
 Function Add-NsxtLdapRole {
     <#
         .SYNOPSIS
-        Assign an LDAP user/group with role-based access control in NSX Manager
+        Assign an LDAP user/group with role-based access control in NSX Manager.
 
         .DESCRIPTION
         The Add-NsxtLdapRole cmdlet asignes role assignments in NSX Manager for LDAP users/groups. The cmdlet connects
@@ -1653,8 +1977,29 @@ Function Add-NsxtLdapRole {
 
         .EXAMPLE
         Add-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -type user -principal "svc-vcf-ca@sfo.rainpole.io" -role enterprise_admin
-        This example assigns the LDAP user svc-vra-nsx@rainpole.io with the enterprise_admin role in NSX Manager
-    #>
+        This example assigns the LDAP user svc-vra-nsx@rainpole.io with the enterprise_admin role in NSX Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER type
+        The type of principal to assign the role to.
+
+        .PARAMETER principal
+        The principal to assign the role to.
+
+        .PARAMETER role
+        The role to assign to the principal.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1699,7 +2044,7 @@ Export-ModuleMember -Function Add-NsxtLdapRole
 Function Undo-NsxtLdapRole {
     <#
         .SYNOPSIS
-        Remove an LDAP user/group role-based access control from NSX Manager
+        Remove an LDAP user/group role-based access control from NSX Manager.
 
         .DESCRIPTION
         The Undo-NsxtLdapRole cmdlet removes role assignments in NSX Manager for LDAP users/groups. The cmdlet connects
@@ -1710,7 +2055,22 @@ Function Undo-NsxtLdapRole {
 
         .EXAMPLE
         Undo-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
-        This example removes the group gg-nsx-enterprise-admins@sfo.rainpole.io from NSX Manager
+        This example removes the group gg-nsx-enterprise-admins@sfo.rainpole.io from NSX Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER principal
+        The principal to remove the role from.
     #>
 
     Param (
@@ -1755,7 +2115,7 @@ Export-ModuleMember -Function Undo-NsxtLdapRole
 Function Add-WorkspaceOneRole {
     <#
         .SYNOPSIS
-        Assign Active Directory Groups to Roles in Workspace ONE Access
+        Assign Active Directory Groups to Roles in the Workspace ONE Access.
 
         .DESCRIPTION
         The Add-WorkspaceOneRole cmdlet assigns roles to Active Directory groups provided to manage administrative
@@ -1768,7 +2128,22 @@ Function Add-WorkspaceOneRole {
 
         .EXAMPLE
         Add-WorkspaceOneRole -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -group "gg-wsa-admins" -role "Super Admin"
-        This example adds the Active Directory group gg-wsa-admins to the Super Admin role
+        This example adds the Active Directory group gg-wsa-admins to the Super Admin role.
+
+        .PARAMETER server
+        The FQDN of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER user
+        The admin username of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER pass
+        The admin password of the Workspace ONE Access Virtual Appliance.
+
+        .PARAMETER group
+        The Active Directory group to assign the role to.
+
+        .PARAMETER role
+        The role to assign to the group.
     #>
 
     Param (
@@ -1814,7 +2189,7 @@ Export-ModuleMember -Function Add-WorkspaceOneRole
 Function Add-NsxtIdentitySource {
     <#
 		.SYNOPSIS
-        Add Active Directory over LDAP/LDAPS as an Identity Provider to NSX Manager
+        Add Active Directory over LDAP/LDAPS as an Identity Provider to NSX Manager.
 
         .DESCRIPTION
         The Add-NsxtIdentitySource cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the NSX
@@ -1830,8 +2205,41 @@ Function Add-NsxtIdentitySource {
 
         .EXAMPLE
         Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
-        This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAPS
-    #>
+        This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAPS.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the Management Domain.
+
+        .PARAMETER domain
+        The name of the Active Directory Domain.
+
+        .PARAMETER domainBindUser
+        The username of the Active Directory Domain Bind User.
+
+        .PARAMETER domainBindPass
+        The password of the Active Directory Domain Bind User.
+
+        .PARAMETER dcMachineName
+        The name of the Active Directory Domain Controller.
+
+        .PARAMETER baseDn
+        The base DN of the Active Directory Domain.
+
+        .PARAMETER protocol
+        The protocol to use for the connection to the Active Directory Domain Controller.
+
+        .PARAMETER certificate
+        The certificate to use for the connection to the Active Directory Domain Controller.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1894,7 +2302,7 @@ Export-ModuleMember -Function Add-NsxtIdentitySource
 Function Undo-NsxtIdentitySource {
     <#
 		.SYNOPSIS
-        Remove Active Directory over LDAP/LDAPS as an Identity Provider from NSX Manager
+        Remove Active Directory over LDAP/LDAPS as an Identity Provider from NSX Manager.
 
         .DESCRIPTION
         The Undo-NsxtIdentitySource cmdlets removes Active Directory over LDAP/LDAPS as an Identity Provider from NSX
@@ -1905,8 +2313,23 @@ Function Undo-NsxtIdentitySource {
 
         .EXAMPLE
         Undo-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io
-        This example removes the sfo.rainpole.io domain as an Identity Provider from NSX Manager
-    #>
+        This example removes the sfo.rainpole.io domain as an Identity Provider from NSX Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the Management Domain.
+
+        .PARAMETER domain
+        The name of the Active Directory Domain.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1943,6 +2366,8 @@ Function Undo-NsxtIdentitySource {
 }
 Export-ModuleMember -Function Undo-NsxtIdentitySource
 
+
+
 #EndRegion                                  E N D  O F  F U N C T I O N S                                   ########### 
 #######################################################################################################################
 
@@ -1952,7 +2377,7 @@ Export-ModuleMember -Function Undo-NsxtIdentitySource
 Function Install-SiteRecoveryManager {
     <#
 		.SYNOPSIS
-        Deploy Site Recovery Manager Virtual Appliance
+        Deploy Site Recovery Manager Virtual Appliance.
 
         .DESCRIPTION
         The Install-SiteRecoveryManager cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.  The cmdlet
@@ -1964,8 +2389,56 @@ Function Install-SiteRecoveryManager {
 
         .EXAMPLE
         Install-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmFqdn sfo-wsa01.sfo.rainpole.io -srmIpAddress 192.168.31.60 -srmGateway 192.168.31.1 -srmNetPrefix 255.255.255.0 -srmNetworkSearchPath sfo.rainpole.io -srmFolder sfo-m01-fd-srm -srmVaRootPassword VMw@re1! -srmVaAdminPassword VMw@re1! -srmDbPassword VMw@re1! -deploymentOption standard -srmOvfPath F:\identity-manager.ova
-        This example deploys the Site Recovery Manager Virtual Appliance into the sfo-m01-fd-srm folder of the management domain
-    #>
+        This example deploys the Site Recovery Manager Virtual Appliance into the sfo-m01-fd-srm folder of the management domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SSO Administrator username
+        
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER srmFqdn
+        The FQDN of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmIpAddress
+        The IP Address of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmGateway
+        The Gateway of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmNetPrefix
+        The Netmask of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmNetworkSearchPath
+        The DNS Search Path of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmFolder
+        The folder to deploy the Site Recovery Manager Virtual Appliance into.
+
+        .PARAMETER srmVaRootPassword
+        The root password of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmVaAdminPassword
+        The admin password of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmDbPassword
+        The database password of the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER srmOvfPath
+        The path to the Site Recovery Manager Virtual Appliance OVA file.
+
+        .PARAMETER deploymentOption
+        The deployment option to use for the Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER vmwareOvfToolPath
+        The path to the VMware OVF Tool executable.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2064,7 +2537,7 @@ Export-ModuleMember -Function Install-SiteRecoveryManager
 Function Undo-SiteRecoveryManager {
     <#
 		.SYNOPSIS
-        Remove vSphere Replication Virtual Appliance
+        Remove vSphere Replication Virtual Appliance.
 
         .DESCRIPTION
         The Undo-SiteRecoveryManager cmdlet removes the vSphere Replication Virtual Appliance. The cmdlet
@@ -2075,8 +2548,23 @@ Function Undo-SiteRecoveryManager {
 
         .EXAMPLE
         Undo-SiteRecoveryManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmHostname sfo-m01-srm01
-        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain
-    #>
+        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER srmHostname
+        The hostname of the vSphere Replication Virtual Appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2124,7 +2612,7 @@ Export-ModuleMember -Function Undo-SiteRecoveryManager
 Function Install-vSphereReplicationManager {
     <#
 		.SYNOPSIS
-        Deploy vSphere Replication Manager Virtual Appliance
+        Deploy vSphere Replication Manager Virtual Appliance.
 
         .DESCRIPTION
         The Install-vSphereReplicationManager cmdlet deploys the vSphere Replication Manager Virtual Appliance OVA.
@@ -2136,7 +2624,49 @@ Function Install-vSphereReplicationManager {
 
         .EXAMPLE
         Install-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsIpAddress 192.168.31.60 -vrmsGateway 192.168.31.1 -vrmsNetPrefix 255.255.255.0 -vrmsNetworkSearchPath sfo.rainpole.io -vrmsFolder sfo-m01-fd-vrms -vrmsVaRootPassword VMw@re1! -vrmsVaAdminPassword VMw@re1! -vrmsOvfPath F:\vrms.ova
-        This example deploys the vSphere Replication Manager Virtual Appliance into the sfo-m01-fd-vrms folder of the management domain
+        This example deploys the vSphere Replication Manager Virtual Appliance into the sfo-m01-fd-vrms folder of the management domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER vrmsFqdn
+        The FQDN of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsIpAddress
+        The IP Address of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsGateway
+        The Gateway of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsNetPrefix
+        The Netmask of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsNetworkSearchPath
+        The DNS Search Path of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsFolder
+        The folder to deploy the vSphere Replication Manager Virtual Appliance into.
+
+        .PARAMETER vrmsVaRootPassword
+        The root password of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsVaAdminPassword
+        The admin password of the vSphere Replication Manager Virtual Appliance.
+
+        .PARAMETER vrmsOvfPath
+        The path to the vSphere Replication Manager Virtual Appliance OVA file.
+
+        .PARAMETER vmwareOvfToolPath
+        The path to the VMware OVF Tool executable.
     #>
 
     Param (
@@ -2205,11 +2735,11 @@ Function Install-vSphereReplicationManager {
                                         $timer = [Diagnostics.Stopwatch]::StartNew()  ## Start the timer
                                         Write-Output "Waiting for vSphere Replication Instance ($vrmsFQDN) using IP Address ($vrmsIpAddress) to Become Pingable."
                                         While (!(Test-NetConnection $vrmsIpAddress -Port 5480 -WarningAction silentlyContinue | Where-Object { $_.TcpTestSucceeded -eq $True })) {
-                                        ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
-                                        if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
-                                            Throw "Timeout Exceeded. Giving up on ping availability to $vrmsIpAddress"
-                                        }
-                                        Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
+                                            ## If the timer has waited greater than or equal to the timeout, throw an exception exiting the loop
+                                            if ($timer.Elapsed.TotalSeconds -ge $Timeout) {
+                                                Throw "Timeout Exceeded. Giving up on ping availability to $vrmsIpAddress"
+                                            }
+                                            Start-Sleep -Seconds $CheckEvery  ## Stop the loop every $CheckEvery seconds
                                         }
                                     } Catch {
                                         Write-Error "Failed to get a Response from vSphere Replication Instance ($vrmsFQDN): POST_VALIDATION_FAILURE"
@@ -2234,7 +2764,7 @@ Export-ModuleMember -Function Install-vSphereReplicationManager
 Function Undo-vSphereReplicationManager {
     <#
 		.SYNOPSIS
-        Remove vSphere Replication Virtual Appliance
+        Remove vSphere Replication Virtual Appliance.
 
         .DESCRIPTION
         The Undo-vSphereReplicationManager cmdlet removes the vSphere Replication Virtual Appliance. The cmdlet
@@ -2245,7 +2775,22 @@ Function Undo-vSphereReplicationManager {
 
         .EXAMPLE
         Undo-vSphereReplicationManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsHostname sfo-m01-vrms01
-        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain
+        This example removes the vSphere Replication Virtual Appliance named sfo-m01-vrms01 from the Management Domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER vrmsHostname
+        The hostname of the vSphere Replication Virtual Appliance.
     #>
 
     Param (
@@ -2270,7 +2815,7 @@ Function Undo-vSphereReplicationManager {
                                         Break
                                     }
                                 }
-                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-Null
+                                Remove-VM $vrmsHostname -DeletePermanently -Confirm:$false | Out-null
                                 if (!(Get-VM -Name $vrmsHostname -ErrorAction Ignore)) {
                                     Write-Output "Removing virtual machine from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vrmsHostname): SUCCESSFUL"
                                 } else {
@@ -2294,7 +2839,7 @@ Export-ModuleMember -Function Undo-vSphereReplicationManager
 Function Connect-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
-        Register Site Recovery Manager or vSphere Replication with vCenter Server
+        Register Site Recovery Manager or vSphere Replication with vCenter Server.
 
         .DESCRIPTION
         The Connect-DRSolutionTovCenter cmdlet registers Site Recovery Manager or vSphere Replication with a vCenter
@@ -2311,7 +2856,34 @@ Function Connect-DRSolutionTovCenter {
 
         .EXAMPLE
         Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "vrms-administrator@rainpole.io" -solution VRMS 
-        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain .
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER applianceFqdn
+        The FQDN of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER vamiAdminPassword
+        The admin password of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER siteName
+        The name of the Site.
+
+        .PARAMETER adminEmail
+        The email address of the Site Administrator.
+
+        .PARAMETER solution
+        The solution to register with the vCenter Server.
     #>
 
     Param (
@@ -2410,7 +2982,7 @@ Export-ModuleMember -Function Connect-DRSolutionTovCenter
 Function Undo-DRSolutionTovCenter {
     <#
 		.SYNOPSIS
-        Remove registration of Site Recovery Manager or vSphere Replication with vCenter Server
+        Remove registration of Site Recovery Manager or vSphere Replication with vCenter Server.
 
         .DESCRIPTION
         The Undo-DRSolutionTovCenter cmdlet removes registration of Site Recovery Manager or vSphere Replication with
@@ -2427,8 +2999,29 @@ Function Undo-DRSolutionTovCenter {
 
         .EXAMPLE
         Undo-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -solution VRMS 
-        This example registers Site Recovery Manager with the vCenter Server of the Management Domain 
-    #>
+        This example registers Site Recovery Manager with the vCenter Server of the Management Domain .
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER applianceFqdn
+        The FQDN of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER vamiAdminPassword
+        The admin password of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER solution
+        The solution to register with the vCenter Server.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2492,7 +3085,7 @@ Export-ModuleMember -Function Undo-DRSolutionTovCenter
 Function Install-VamiCertificate {
     <#
 		.SYNOPSIS
-        Install a new certificate for a VAMI interface
+        Install a new certificate for a VAMI interface.
 
         .DESCRIPTION
         The Install-VamiCertificate cmdlet allows you to replace the certificate of a VAMI interface. Supports:
@@ -2505,8 +3098,26 @@ Function Install-VamiCertificate {
         
         .EXAMPLE
         Install-VamiCertificate -server sfo-m01-srm01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution SRM
-        This example replaces the certificate for the VAMI interface of the Site Recovery Manager appliance
-    #>
+        This example replaces the certificate for the VAMI interface of the Site Recovery Manager appliance.
+
+        .PARAMETER server
+        The FQDN of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER user
+        The admin username of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER pass
+        The admin password of the vSphere Replication or Site Recovery Manager Virtual Appliance.
+
+        .PARAMETER certFile
+        The path to the certificate file (.p12).
+
+        .PARAMETER certPassword
+        The password of the certificate file (.p12).
+
+        .PARAMETER solution
+        The solution to register with the vCenter Server.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2552,7 +3163,7 @@ Export-ModuleMember -Function Install-VamiCertificate
 Function Add-VrmsNetworkAdapter {
     <#
 		.SYNOPSIS
-        Adds a second ethernet adapter and configures the required routing for vSphere Replication appliance
+        Adds a second ethernet adapter and configures the required routing for vSphere Replication appliance.
 
         .DESCRIPTION
         The Add-VrmsNetworkAdapter cmdlet adds a second ethernet adapter and configures the required routing for the
@@ -2566,7 +3177,46 @@ Function Add-VrmsNetworkAdapter {
         .EXAMPLE
         Add-VrmsNetworkAdapter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vrmsFqdn sfo-m01-vrms01.sfo.rainpole.io -vrmsRootPass VMw@re1! -vrmsAdminPass VMw@re1! -vrmsIpAddress 172.18.95.125 -replicationSubnet 172.18.111.0/24 -replicationIpAddress 172.18.111.125 -replicationGateway 172.18.111.1  -replicationPortgroup sfo-m01-cl01-vds01-pg-vrms -replicationRemoteNetwork 172.18.96.0/24
         This example configures the protected and recovery site vSphere Replication appliances to use a secondary ethernet adapter for vSphere Replication traffic.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Management Domain.
+
+        .PARAMETER vrmsFqdn
+        The FQDN of the vSphere Replication Virtual Appliance.
+
+        .PARAMETER vrmsRootPass
+        The root password of the vSphere Replication Virtual Appliance.
+
+        .PARAMETER vrmsAdminPass
+        The admin password of the vSphere Replication Virtual Appliance.
+
+        .PARAMETER vrmsIpAddress
+        The IP Address of the vSphere Replication Virtual Appliance.
+
+        .PARAMETER replicationSubnet
+        The subnet of the vSphere Replication network.
+
+        .PARAMETER replicationIpAddress
+        The IP Address of the vSphere Replication Virtual Appliance on the vSphere Replication network.
+
+        .PARAMETER replicationGateway
+        The gateway of the vSphere Replication network.
+
+        .PARAMETER replicationPortgroup
+        The name of the vSphere Distributed Port Group for the vSphere Replication network.
+
+        .PARAMETER replicationRemoteNetwork
+        The subnet of the remote vSphere Replication network.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2645,7 +3295,7 @@ Export-ModuleMember -Function Add-VrmsNetworkAdapter
 Function Backup-VMOvfProperties {
     <#
 		.SYNOPSIS
-        Backup-VMOvfProperties
+        Backup-VMOvfProperties.
 
         .DESCRIPTION
         The Backup-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
@@ -2655,7 +3305,19 @@ Function Backup-VMOvfProperties {
         .EXAMPLE
         Backup-VMOvfProperties -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example creates a backup of the OVF properties for each supplied VM.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER fileDir
+        The directory to store the backup files.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2742,7 +3404,7 @@ Export-ModuleMember -Function Backup-VMOvfProperties
 Function Restore-VMOvfProperties {
     <#
 		.SYNOPSIS
-        Restore-VMOvfProperties
+        Restore-VMOvfProperties.
 
         .DESCRIPTION
         The Restore-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
@@ -2752,7 +3414,19 @@ Function Restore-VMOvfProperties {
         .EXAMPLE
         Restore-VMOvfProperties -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example creates a backup of the OVF properties for each supplied VM.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER fileDir
+        The directory where the OVF property backup files are stored.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2823,8 +3497,11 @@ Function Get-VMvAppConfig {
         Saves the setting of the passed VM object to a JSON file
 
         .EXAMPLE
-        Get-VMAppConfig -vm $vm
-    #>
+        Get-VMAppConfig -vm $vm.
+
+        .PARAMETER vm
+        The virtual appliance to retrieve the OVF properties from.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm
@@ -2855,8 +3532,14 @@ Function New-VMOvfProperty {
         Accepts a object with propery details, parses it and adds it to supplied VM
 
         .EXAMPLE
-        New-VMOvfProperty -vm $vm -property $propertyObject
-    #>
+        New-VMOvfProperty -vm $vm -property $propertyObject.
+
+        .PARAMETER vm
+        The virtual appliance to set the property on.
+
+        .PARAMETER property
+        The property to set on the virtual appliance.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -2896,14 +3579,20 @@ Export-ModuleMember -Function New-VMOvfProperty
 Function Set-VMOvfIPAssignment {
     <#
         .SYNOPSIS
-        Sets the IP Assignment OVF Setting
+        Sets the IP Assignment OVF Setting.
 
         .DESCRIPTION
         Accepts a object with IP Assigment details and assigns it to the supplied VM
 
         .EXAMPLE
-        Set-VMOvfIPAssignment -vm $vm -assignment $assignmentObject
-    #>
+        Set-VMOvfIPAssignment -vm $vm -assignment $assignmentObject.
+
+        .PARAMETER vm
+        The virtual appliance to set the IP Assignment on.
+
+        .PARAMETER assignment
+        The IP Assignment to set on the virtual appliance.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -2933,14 +3622,20 @@ Export-ModuleMember -Function Set-VMOvfIPAssignment
 Function Set-VMOvfEnvTransport {
     <#
         .SYNOPSIS
-        Sets the Environment Transport setting for OVF properties
+        Sets the Environment Transport setting for OVF properties.
 
         .DESCRIPTION
         Accepts a object with Environment Transport details and assigns it to the supplied VM
 
         .EXAMPLE
-        Set-VMOvfEnvTransport -vm $vm -transport $transportObject
-    #> 
+        Set-VMOvfEnvTransport -vm $vm -transport $transportObject.
+
+        .PARAMETER vm
+        The virtual appliance to set the Environment Transport on.
+
+        .PARAMETER transport
+        The Environment Transport to set on the virtual appliance.
+   #> 
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -2971,8 +3666,14 @@ Function New-VMOvfProduct {
         Accepts a object with produt details, parses it and adds it to supplied VM
 
         .EXAMPLE
-        New-VMOvfProduct -vm $vm -product $productObject
-    #>
+        New-VMOvfProduct -vm $vm -product $productObject.
+
+        .PARAMETER vm
+        The virtual appliance to set the product on.
+
+        .PARAMETER product
+        The product to set on the virtual appliance.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()][PSObject]$vm,
@@ -3010,14 +3711,20 @@ Export-ModuleMember -Function New-VMOvfProduct
 Function Set-VMOvfEULA {
     <#
         .SYNOPSIS
-        Sets the EULA setting for OVF properties
+        Sets the EULA setting for OVF properties.
 
         .DESCRIPTION
         Accepts a object with EULA details and assigns it to the supplied VM
 
         .EXAMPLE
-        Set-VMOvfEULA -vm $vm -eula $eulaObject
-    #>    
+        Set-VMOvfEULA -vm $vm -eula $eulaObject.
+
+        .PARAMETER vm
+        The virtual appliance to set the EULA on.
+
+        .PARAMETER eula
+        The EULA to set on the virtual appliance.
+   #>    
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3042,15 +3749,18 @@ Export-ModuleMember -Function Set-VMOvfEULA
 Function Get-VMOvfProperty {
     <#
         .SYNOPSIS
-        Get OVF properties of a virtual appliance
+        Get OVF properties of a virtual appliance.
 
         .DESCRIPTION
         Returns OVF properties of a virtual appliance
 
         .EXAMPLE
         Get-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a)
-        This example returns an object that contains a full list of OVF properties for xreg-wsa01a
-    #>
+        This example returns an object that contains a full list of OVF properties for xreg-wsa01a.
+
+        .PARAMETER vm
+        The virtual appliance to get the OVF properties from.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [psObject]$vm
@@ -3072,7 +3782,7 @@ Export-ModuleMember -Function Get-VMOvfProperty
 Function Set-VMOvfProperty {
     <#
         .SYNOPSIS
-        Sets OVF properties on a virtual appliance
+        Sets OVF properties on a virtual appliance.
 
         .DESCRIPTION
         Accepts a hash table with property ID and value and sets the defined OVF property and value for a virtual
@@ -3080,8 +3790,14 @@ Function Set-VMOvfProperty {
 
         .EXAMPLE
         Set-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
-        This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xreg-wsa01a
-    #>
+        This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xreg-wsa01a.
+
+        .PARAMETER vm
+        The virtual appliance to set the OVF properties on.
+
+        .PARAMETER properties
+        A hash table of OVF properties to set on the virtual appliance.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3119,7 +3835,7 @@ Export-ModuleMember -Function Set-VMOvfProperty
 Function Get-NSXLBDetails {
     <#
 		.SYNOPSIS
-        Get-NSXLBDetails
+        Get-NSXLBDetails.
 
         .DESCRIPTION
         The Get-NSXLBDetails cmdlet gets the IP addresses of the VIPs and pool members for the NSX Load Balancer for VMware Aria.
@@ -3128,7 +3844,16 @@ Function Get-NSXLBDetails {
         .EXAMPLE
         Get-NSXLBDetails -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example gets the IP addresses of the VIPs and pool members for the NSX Load Balancer for VMware Aria.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3141,28 +3866,28 @@ Function Get-NSXLBDetails {
         $wsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass
         if ($wsaDetails) {
             Write-Output "Found Workspace ONE Access. Getting Virtual Server and Node IP Addresses."
-                $wsaVIP = $wsaDetails.loadBalancerIpAddress
-                $wsaNode1IP = $wsaDetails.node1IpAddress
-                $wsaNode2IP = $wsaDetails.node2IpAddress
-                $wsaNode3IP = $wsaDetails.node3IpAddress
-            }
+            $wsaVIP = $wsaDetails.loadBalancerIpAddress
+            $wsaNode1IP = $wsaDetails.node1IpAddress
+            $wsaNode2IP = $wsaDetails.node2IpAddress
+            $wsaNode3IP = $wsaDetails.node3IpAddress
+        }
         # Retrieve VMware Aria Operations VM Names
         $vropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass
         if ($vropsDetails) {
             Write-Output "Found VMware Aria Operations. Getting Virtual Server and Node IP Addresses."                
-                $vropsVIP = $vropsDetails.loadBalancerIpAddress
-                $vopsNode1IP = $vropsDetails.node1IpAddress
-                $vopsNode2IP = $vropsDetails.node2IpAddress
-                $vopsNode3IP = $vropsDetails.node3IpAddress
-            }
+            $vropsVIP = $vropsDetails.loadBalancerIpAddress
+            $vopsNode1IP = $vropsDetails.node1IpAddress
+            $vopsNode2IP = $vropsDetails.node2IpAddress
+            $vopsNode3IP = $vropsDetails.node3IpAddress
+        }
         # Retrieve VMware Aria Automation VM Names
         $vraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass
         if ($vraDetails) {
             Write-Output "Found VMware Aria Automation. Getting Virtual Server and Node IP Addresses."
-                $vraVIP = $vraDetails.loadBalancerIpAddress
-                $vraNode1IP = $vraDetails.node1IpAddress
-                $vraNode2IP = $vraDetails.node2IpAddress
-                $vraNode3IP = $vraDetails.node3IpAddress
+            $vraVIP = $vraDetails.loadBalancerIpAddress
+            $vraNode1IP = $vraDetails.node1IpAddress
+            $vraNode2IP = $vraDetails.node2IpAddress
+            $vraNode3IP = $vraDetails.node3IpAddress
         }
         # Gather NSX Manager Details
         Write-Output "Getting NSX Login Details"
@@ -3177,7 +3902,7 @@ Export-ModuleMember -Function Get-NSXLBDetails
 Function Add-vRSLCMNtpServer {
     <#
 		.SYNOPSIS
-        Add an NTP Server for the VMware Aria Suite Lifecycle appliance
+        Add an NTP Server for the VMware Aria Suite Lifecycle appliance.
 
         .DESCRIPTION
         The Add-vRSLCMNtpServer cmdlet configures the NTP Server details of the VMware Aria Suite Lifecycle
@@ -3189,8 +3914,23 @@ Function Add-vRSLCMNtpServer {
         
         .EXAMPLE
         Add-vRSLCMNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -ntpServer ntp.lax.rainpole.io -ntpServerDesc "VCF NTP Server 2"
-        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add ntp.lax.rainpole.io to its list of NTP servers
-    #>
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add ntp.lax.rainpole.io to its list of NTP servers.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER ntpServer
+        The NTP server to add to the VMware Aria Suite Lifecycle appliance.
+
+        .PARAMETER ntpServerDesc
+        The NTP server description to add to the VMware Aria Suite Lifecycle appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3255,7 +3995,7 @@ Export-ModuleMember -Function Add-vRSLCMNtpServer
 Function Set-vRSLCMDnsConfig {
     <#
 		.SYNOPSIS
-        Configure DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle appliance
+        Configure DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle appliance.
 
         .DESCRIPTION
         The Set-vRSLCMDnsConfig cmdlet configures the DNS server and search domain details of the VMware Aria Suite
@@ -3271,8 +4011,23 @@ Function Set-vRSLCMDnsConfig {
 
         .EXAMPLE
         Set-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5 172.17.11.4 172.17.11.5" -dnsSearchDomains "rainpole.io sfo.rainpole.io lax.rainpole.io"
-        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains
-    #>
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains.
+
+        .PARAMETER server
+        The SDDC Manager hostname or IP address.
+
+        .PARAMETER user
+        The username used to connect to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER dnsServers
+        The DNS servers to configure on the VMware Aria Suite Lifecycle appliance.
+
+        .PARAMETER dnsSearchDomains
+        The DNS search domains to configure on the VMware Aria Suite Lifecycle appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3339,7 +4094,7 @@ Export-ModuleMember -Function Set-vRSLCMDnsConfig
 Function Undo-vRSLCMNtpServer {
     <#
 		.SYNOPSIS
-        Set the NTP Server configuration of VMware Aria Suite Lifecycle to match SDDC Manager
+        Set the NTP Server configuration of VMware Aria Suite Lifecycle to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-vRSLCMNtpServer cmdlet sets the NTP Server details of the VMware Aria Suite Lifecycle appliance
@@ -3352,8 +4107,17 @@ Function Undo-vRSLCMNtpServer {
         
         .EXAMPLE
         Undo-vRSLCMNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use only the NTP servers found in SDDC Manager
-    #>
+        This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use only the NTP servers found in SDDC Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3430,7 +4194,7 @@ Export-ModuleMember -Function Undo-vRSLCMNtpServer
 Function Undo-vRSLCMDnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-vRSLCMDnsConfig cmdlet configures the DNS server and search domain details of the VMware Aria Suite Lifecycle appliance to the values stored in SDDC Manager. The cmdlet connects to SDDC Manager using
@@ -3443,7 +4207,19 @@ Function Undo-vRSLCMDnsConfig {
         .EXAMPLE
         Undo-vRSLCMDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! 
         This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER sddcManagerRootPass
+        The root password used to authenticate to the VMware Aria Suite Lifecycle appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3470,7 +4246,7 @@ Function Undo-vRSLCMDnsConfig {
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                     Try {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
-                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
+                                    } Catch [System.Security.Authentication.InvalidCredentialException]{                                           
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                     }                                
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
@@ -3501,7 +4277,7 @@ Export-ModuleMember -Function Undo-vRSLCMDnsConfig
 Function Set-WorkspaceOneDnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS server and/or DNS search domains for all Workspace ONE Access appliances
+        Sets the DNS server and/or DNS search domains for all Workspace ONE Access appliances.
 
         .DESCRIPTION
         The Set-WorkspaceOneDnsConfig cmdlet configures the DNS server and search domain details of all Workspace ONE
@@ -3513,8 +4289,23 @@ Function Set-WorkspaceOneDnsConfig {
 
         .EXAMPLE
         Set-WorkspaceOneDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains "rainpole.io sfo.rainpole.io lax.rainpole.io"
-        This example configures all Workspace ONE Access appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 amd 172.16.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains
-    #>
+        This example configures all Workspace ONE Access appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 amd 172.16.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER dnsServers
+        The DNS servers to configure on all Workspace ONE Access appliances.
+
+        .PARAMETER dnsSearchDomains
+        The DNS search domains to configure on all Workspace ONE Access appliances.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3603,7 +4394,7 @@ Export-ModuleMember -Function Set-WorkspaceOneDnsConfig
 Function Undo-WorkspaceOneDnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on Workspace ONE Access to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on Workspace ONE Access to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-WorkspaceOneDnsConfig cmdlet configures the DNS server and search domain details of all Workspace
@@ -3617,7 +4408,19 @@ Function Undo-WorkspaceOneDnsConfig {
         .EXAMPLE
         Undo-WorkspaceOneDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcManagerRootPass VMw@re1!
         This example configures all Workspace ONE Access appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER sddcManagerRootPass
+        The root password of the SDDC Manager instance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3643,7 +4446,7 @@ Function Undo-WorkspaceOneDnsConfig {
                                 if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
                                     Try {
                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop
-                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
+                                    } Catch [System.Security.Authentication.InvalidCredentialException]{       
                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                     }                                
                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
@@ -3674,7 +4477,7 @@ Export-ModuleMember -Function Undo-WorkspaceOneDnsConfig
 Function Set-vROPSDnsConfig {
     <#
 		.SYNOPSIS
-        Configure DNS Server and/or DNS search domains on VMware Aria Operations appliance
+        Configure DNS Server and/or DNS search domains on VMware Aria Operations appliance.
 
         .DESCRIPTION
         The Set-vROPSDnsConfig cmdlet configures the DNS server and search domain details of all VMWare Aria Operations
@@ -3687,8 +4490,26 @@ Function Set-vROPSDnsConfig {
 
         .EXAMPLE
         Set-vROPSDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env -dnsServers "172.16.11.4 172.16.11.5" -dnsSearchDomains rainpole.io
-        This example configures the VMware Aria Operations analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain
-    #>
+        This example configures the VMware Aria Operations analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.16.11.5 as its DNS servers and rainpole.io as its search domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER environmentName
+        The name of the environment to configure DNS on.
+
+        .PARAMETER dnsServers
+        The DNS servers to configure on the VMware Aria Operations analytics cluster appliances.
+
+        .PARAMETER dnsSearchDomains
+        The DNS search domains to configure on the VMware Aria Operations analytics cluster appliances.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3785,7 +4606,7 @@ Export-ModuleMember -Function Set-vROPSDnsConfig
 Function Undo-vROPSDnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on VMware Aria Operations appliances to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on VMware Aria Operations appliances to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-vROPSDnsConfig cmdlet configures the DNS server and search domain details of VMware Aria Operations
@@ -3800,7 +4621,22 @@ Function Undo-vROPSDnsConfig {
         .EXAMPLE
         Undo-vROPSDnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcManagerRootPass VMw@re1! -environmentName xint-env
         This example configures all VMware Aria Operations analytics cluster appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER sddcManagerRootPass
+        The SDDC Manager root password to connect with.
+
+        .PARAMETER environmentName
+        The SDDC Manager environment name to connect with.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3829,7 +4665,7 @@ Function Undo-vROPSDnsConfig {
                                     if (Test-vROPSConnection -server $vcfVROPSDetails.loadBalancerFqdn) {
                                         Try {
                                             $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop 
-                                        } Catch [System.Security.Authentication.InvalidCredentialException]{
+                                        } Catch [System.Security.Authentication.InvalidCredentialException]{                                       
                                             $PSCmdlet.ThrowTerminatingError($PSItem)
                                         }                                
                                         if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
@@ -3867,7 +4703,7 @@ Export-ModuleMember -Function Undo-vROPSDnsConfig
 Function Add-vROPSNtpServer {
     <#
 		.SYNOPSIS
-        Adds an NTP server to all VMware Aria Operations appliances
+        Adds an NTP server to all VMware Aria Operations appliances.
 
         .DESCRIPTION
         The Add-vROPSNtpServer cmdlet adds an NTP server to all VMware Aria Operations appliances. The cmdlet 
@@ -3880,7 +4716,22 @@ Function Add-vROPSNtpServer {
         .EXAMPLE
         Add-vROPSNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env -ntpServer ntp.lax.rainpole.io
         This example configures the VMware Aria Operations appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to add the NTP server ntp.lax.rainpole.io.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER environmentName
+        The name of the environment to configure.
+
+        .PARAMETER ntpServer
+        The NTP server to add to the VMware Aria Operations appliances.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3962,7 +4813,7 @@ Export-ModuleMember -Function Add-vROPSNtpServer
 Function Undo-vROPSNtpServer {
     <#
 		.SYNOPSIS
-        Configure NTP settings for all VMware Aria Operations appliances to match SDDC Manager
+        Configure NTP settings for all VMware Aria Operations appliances to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-vROPSNtpServer cmdlet removes any added NTP server(s) to all VMware Aria Operations appliances by
@@ -3975,7 +4826,19 @@ Function Undo-vROPSNtpServer {
         .EXAMPLE
         Undo-vROPSNtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env
         This example configures the VMware Aria Operations appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use the NTP server(s) defined in SDDC Manager.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER environmentName
+        The name of the environment to configure.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4048,7 +4911,7 @@ Export-ModuleMember -Function Undo-vROPSNtpServer
 Function Set-vRADnsConfig {
     <#
 		.SYNOPSIS
-        Configure DNS Server and/or DNS search domains on VMware Aria Automation appliances
+        Configure DNS Server and/or DNS search domains on VMware Aria Automation appliances.
 
         .DESCRIPTION
         The Set-vRADnsConfig cmdlet configures the DNS server and search domain details of all VMWare Aria Automation
@@ -4061,8 +4924,32 @@ Function Set-vRADnsConfig {
 
         .EXAMPLE
         Set-vRADnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env -dnsServers "172.16.11.4 172.17.11.4" -dnsSearchDomains rainpole.io
-        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.17.11.4 as its DNS servers and rainpole.io as its search domain
-    #>
+        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4 and 172.17.11.4 as its DNS servers and rainpole.io as its search domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user to connect with.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password to connect with.
+
+        .PARAMETER environmentName
+        The VMware Aria Suite Lifecycle environment name.
+
+        .PARAMETER dnsServers
+        The DNS server(s) to configure the VMware Aria Automation appliances to use.
+
+        .PARAMETER dnsSearchDomains
+        The DNS search domain(s) to configure the VMware Aria Automation appliances to use.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4243,7 +5130,7 @@ Export-ModuleMember -Function Set-vRADnsConfig
 Function Undo-vRADnsConfig {
     <#
 		.SYNOPSIS
-        Sets the DNS Server and/or DNS search domains on VMware Aria Automation appliances to match SDDC Manager
+        Sets the DNS Server and/or DNS search domains on VMware Aria Automation appliances to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-vROPSDnsConfig cmdlet configures the DNS server and search domain details of VMware Aria Automation
@@ -4257,7 +5144,28 @@ Function Undo-vRADnsConfig {
         .EXAMPLE
         Undo-vRADnsConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcManagerRootPass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env
         This example configures all VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use values for DNS servers and search domains to the values stored in SDDC Manager.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER sddcManagerRootPass
+        The SDDC Manager root password to connect with.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation appliance user to connect with.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation appliance password to connect with.
+
+        .PARAMETER environmentName
+        The VMware Aria Automation appliance environment name to connect with.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4289,7 +5197,7 @@ Function Undo-vRADnsConfig {
                                                 if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
                                                     Try {
                                                         $sddcManagerSearchDomains = Get-VCFDnsSearchDomain -sddcManagerVmName $sddcManagerVmName -sddcManagerRootPass $sddcManagerRootPass -ErrorAction Stop                               
-                                                    } Catch [System.Security.Authentication.InvalidCredentialException]{
+                                                    } Catch [System.Security.Authentication.InvalidCredentialException]{                                        
                                                         $PSCmdlet.ThrowTerminatingError($PSItem)
                                                     }
                                                     if (!$sddcManagerDnsServers -or !$sddcManagerSearchDomains) {
@@ -4322,7 +5230,7 @@ Export-ModuleMember -Function Undo-vRADnsConfig
 Function Set-vRANtpConfig {
     <#
 		.SYNOPSIS
-        Configure NTP servers on VMware Aria Automation appliances
+        Configure NTP servers on VMware Aria Automation appliances.
 
         .DESCRIPTION
         The Set-vRANtpConfig cmdlet configures the NTP server details of all VMware Aria Automation appliances to the 
@@ -4335,8 +5243,29 @@ Function Set-vRANtpConfig {
 
         .EXAMPLE
         Set-vRANtpConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env -ntpServers "ntp.sfo.rainpole.io ntp.lax.rainpole.io"
-        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use ntp.sfo.rainpole.io and ntp.lax.rainpole.io as their NTP servers
-    #>
+        This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use ntp.sfo.rainpole.io and ntp.lax.rainpole.io as their NTP servers.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username of the SDDC Manager instance.
+
+        .PARAMETER pass
+        The password of the SDDC Manager instance.
+
+        .PARAMETER vraUser
+        The username of the VMware Aria Automation appliance.
+
+        .PARAMETER vraPass
+        The password of the VMware Aria Automation appliance.
+
+        .PARAMETER environmentName
+        The name of the environment to configure.
+
+        .PARAMETER ntpServers
+        The NTP server(s) to configure on the VMware Aria Automation appliances.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4461,7 +5390,7 @@ Export-ModuleMember -Function Set-vRANtpConfig
 Function Undo-vRANtpConfig {
     <#
 		.SYNOPSIS
-        Configure NTP settings for all VMware Aria Automation appliances to match SDDC Manager
+        Configure NTP settings for all VMware Aria Automation appliances to match SDDC Manager.
 
         .DESCRIPTION
         The Undo-vRANtpServer cmdlet removes any added NTP server(s) on all VMware Aria Automation appliances by
@@ -4474,7 +5403,25 @@ Function Undo-vRANtpConfig {
         .EXAMPLE
         Undo-vRANtpServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -environmentName xint-env
         This example configures the VMware Aria Automation appliances managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use the NTP server(s) defined in SDDC Manager.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account used to connect to the SDDC Manager API.
+
+        .PARAMETER pass
+        The SDDC Manager user account password used to connect to the SDDC Manager API.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user account used to connect to the VMware Aria Automation API.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation user account password used to connect to the VMware Aria Automation API.
+
+        .PARAMETER environmentName
+        The VMware Aria Automation environment name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4521,7 +5468,7 @@ Function Add-SRMMapping {
     <#
 		.SYNOPSIS
         Create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-        instances in Site Recovery Manager
+        instances in Site Recovery Manager.
 
         .DESCRIPTION
         The Add-SRMMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the 
@@ -4544,7 +5491,34 @@ Function Add-SRMMapping {
         .EXAMPLE
         Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
         This example creates a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
-    #>
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager. managing the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The username of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager. managing the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The username of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER type
+        The type of object to be mapped between the protected and recovery sites. Valid values are Folder, Network, or Resource.
+
+        .PARAMETER protected
+        The name of the object to be mapped in the protected site.
+
+        .PARAMETER recovery
+        The name of the object to be mapped in the recovery site.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -4760,7 +5734,7 @@ Function Undo-SRMMapping {
     <#
 		.SYNOPSIS
         Remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-        instances in Site Recovery Manager
+        instances in Site Recovery Manager.
 
         .DESCRIPTION
         The Undo-SRMMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the 
@@ -4783,7 +5757,34 @@ Function Undo-SRMMapping {
         .EXAMPLE
         Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
         This example removes a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
-    #>
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager. managing the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The user name of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance managing the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager. managing the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The user name of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance managing the recovery site.
+
+        .PARAMETER type
+        The type of object to be mapped between the protected and recovery sites. Valid values are Folder, Network, or Resource.
+
+        .PARAMETER protected
+        The name of the object to be mapped in the protected site.
+
+        .PARAMETER recovery
+        The name of the object to be mapped in the recovery site.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -4998,7 +5999,7 @@ Export-ModuleMember -Function Undo-SRMMapping
 Function New-SRMSitePair {
     <#
 		.SYNOPSIS
-        Create a site pair between Site Recovery Manager instances
+        Create a site pair between Site Recovery Manager instances.
 
         .DESCRIPTION
         The New-SRMSitePair cmdlet creates a site pair between Site Recovery Manager instances. The cmdlet connects to
@@ -5013,7 +6014,25 @@ Function New-SRMSitePair {
         .EXAMPLE
         New-SRMSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
         This example creates a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.
-    #>
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager. in the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The user name of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager. in the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The user name of the SDDC Manager instance in the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance in the recovery site.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -5075,11 +6094,11 @@ Function New-SRMSitePair {
                                                                     Write-Output "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
                                                                 } else {
                                                                     $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
-                                                                        'New-SRMSitePair',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
+                                                                            'New-SRMSitePair',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
                                                                         )
                                                                     )
                                                                 }
@@ -5108,7 +6127,7 @@ Export-ModuleMember -Function New-SRMSitePair
 Function Undo-SRMSitePair {
     <#
 		.SYNOPSIS
-        Removes an existing site pair between Site Recovery Manager instances
+        Removes an existing site pair between Site Recovery Manager instances.
 
         .DESCRIPTION
         The Undo-SRMSitePair cmdlet removes an existing site pair between Site Recovery Manager instances. The cmdlet 
@@ -5123,7 +6142,25 @@ Function Undo-SRMSitePair {
         .EXAMPLE
         Undo-SRMSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
         This example removes a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.
-    #>
+
+        .PARAMETER sddcManagerAFqdn
+        The fully qualified domain name of the SDDC Manager. in the protected site.
+
+        .PARAMETER sddcManagerAUser
+        The user name of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerAPass
+        The password of the SDDC Manager instance in the protected site.
+
+        .PARAMETER sddcManagerBFqdn
+        The fully qualified domain name of the SDDC Manager. in the recovery site.
+
+        .PARAMETER sddcManagerBUser
+        The user name of the SDDC Manager instance in the recovery site.
+
+        .PARAMETER sddcManagerBPass
+        The password of the SDDC Manager instance in the recovery site.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -5174,11 +6211,11 @@ Function Undo-SRMSitePair {
                                                             $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
                                                             else {
                                                                 $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
                                                                     ([System.Management.Automation.GetValueException]"Remove Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
-                                                                    'New-SRMSitePair',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
+                                                                        'New-SRMSitePair',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
                                                                     )
                                                                 )
                                                             }
@@ -5208,7 +6245,7 @@ Export-ModuleMember -Function Undo-SRMSitePair
 Function Add-EsxiVrmsVMkernelPort {
     <#
 		.SYNOPSIS
-        Create a VMkernel port on ESXi hosts
+        Create a VMkernel port on ESXi hosts.
 
         .DESCRIPTION
         The Add-EsxiVrmsVMkernelPort cmdlet creates a VMkernel port on each ESXi host for vSphere Replication traffic. The
@@ -5219,8 +6256,29 @@ Function Add-EsxiVrmsVMkernelPort {
 
         .EXAMPLE
         Add-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
-        This example creates a VMkernel port for each ESXi host Management Domain
-    #>
+        This example creates a VMkernel port for each ESXi host Management Domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER portgroup
+        The vSphere Distributed Port Group name.
+
+        .PARAMETER netmask
+        The subnet mask for the VMkernel port.
+
+        .PARAMETER ipAddresses
+        The IP addresses for the VMkernel port.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5278,7 +6336,7 @@ Export-ModuleMember -Function Add-EsxiVrmsVMkernelPort
 Function Undo-EsxiVrmsVMkernelPort {
     <#
 		.SYNOPSIS
-        Removes VMkernel ports on ESXi hosts
+        Removes VMkernel ports on ESXi hosts.
 
         .DESCRIPTION
         The Undo-EsxiVrmsVMkernelPort cmdlet removes the VMkernel port on each ESXi host for vSphere Replication traffic. The
@@ -5289,8 +6347,23 @@ Function Undo-EsxiVrmsVMkernelPort {
 
         .EXAMPLE
         Undo-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
-        This example removes a VMkernel from each ESXi host Management Domain
-    #>
+        This example removes a VMkernel from each ESXi host Management Domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER portgroup
+        The vSphere Distributed Port Group name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5343,7 +6416,7 @@ Export-ModuleMember -Function Undo-EsxiVrmsVMkernelPort
 Function Add-EsxiVrmsStaticRoute {
     <#
 		.SYNOPSIS
-        Create a static route on ESXi hosts for vSphere Replication traffic
+        Create a static route on ESXi hosts for vSphere Replication traffic.
 
         .DESCRIPTION
         The Add-EsxiVrmsStaticRoute cmdlet creates a static route on each ESXi hosts for vSphere Replication traffic. 
@@ -5354,8 +6427,29 @@ Function Add-EsxiVrmsStaticRoute {
 
         .EXAMPLE
         Add-EsxiVrmsStaticRoute -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -subnet 172.27.15.0/24 -gateway 172.27.15.1 -portgroup sfo-sfo-m01-cl01-vds01-pg-vrms
-        This example adds a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet
-    #>
+        This example adds a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER subnet
+        The vSphere Replication subnet in CIDR notation.
+
+        .PARAMETER gateway
+        The vSphere Replication gateway.
+
+        .PARAMETER portgroup
+        The vSphere Distributed Port Group name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5412,7 +6506,7 @@ Export-ModuleMember -Function Add-EsxiVrmsStaticRoute
 Function Undo-EsxiVrmsStaticRoute {
     <#
 		.SYNOPSIS
-        Removes a static route from ESXi hosts for vSphere Replication traffic
+        Removes a static route from ESXi hosts for vSphere Replication traffic.
 
         .DESCRIPTION
         The Undo-EsxiVrmsStaticRoute cmdlet removes a static route on each ESXi hosts for vSphere Replication traffic. 
@@ -5423,8 +6517,23 @@ Function Undo-EsxiVrmsStaticRoute {
 
         .EXAMPLE
         Undo-EsxiVrmsStaticRoute -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -network 172.27.15.0
-        This example removes a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet
-    #>
+        This example removes a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER network
+        The network address of the static route to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5468,7 +6577,7 @@ Export-ModuleMember -Function Undo-EsxiVrmsStaticRoute
 Function Add-SrmLicenseKey {
     <#
 		.SYNOPSIS
-        Add a license for Site Recovery Manager
+        Add a license for Site Recovery Manager.
 
         .DESCRIPTION
         The Add-SrmLicenseKey cmdlet adds a license for Site Recovery Manager in vCenter Server. The cmdlet connects
@@ -5481,8 +6590,23 @@ Function Add-SrmLicenseKey {
 
         .EXAMPLE
         Add-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
-        This example adds a license key to the Site Recovery Manager instance
-    #>
+        This example adds a license key to the Site Recovery Manager instance.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER srmLicenseKey
+        The Site Recovery Manager license key.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5553,7 +6677,7 @@ Export-ModuleMember -Function Add-SrmLicenseKey
 Function Undo-SrmLicenseKey {
     <#
 		.SYNOPSIS
-        Removes a license for Site Recovery Manager
+        Removes a license for Site Recovery Manager.
 
         .DESCRIPTION
         The Undo-SrmLicenseKey cmdlet removes a license for Site Recovery Manager from vCenter Server. The cmdlet
@@ -5565,8 +6689,23 @@ Function Undo-SrmLicenseKey {
 
         .EXAMPLE
         Undo-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmLicenseKey 00000-11111-22222-33333-4444
-        This example removes the license key from Site Recovery Manager
-    #>
+        This example removes the license key from Site Recovery Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER srmLicenseKey
+        The Site Recovery Manager license key.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5644,15 +6783,45 @@ Function Add-NetworkSegment {
         -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Create the NSX segment if not already created in NSX Manager
+        - Create the NSX segment if not already created in NSX Manager.
 
         .DESCRIPTION
         The Add-NetworkSegment cmdlet creates an NSX Segment
 
         .EXAMPLE
         Add-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-kub-seg01 -gatewayType Tier1 -connectedGateway sfo-w01-ec01-t1-gw01 -cidr 192.168.31.1/24 -transportZone overlay-tz-sfo-w01-nsx01.sfo.rainpole.io -segmentType Overlay
-        This example creates an overlay-backed NSX segment in the workload domain sfo-w01
-    #>
+        This example creates an overlay-backed NSX segment in the workload domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER segmentName
+        The NSX Segment name.
+
+        .PARAMETER gatewayType
+        The NSX Gateway type.
+
+        .PARAMETER connectedGateway
+        The NSX Gateway name.
+
+        .PARAMETER cidr
+        The NSX Segment CIDR.
+
+        .PARAMETER transportZone
+        The NSX Transport Zone name.
+
+        .PARAMETER segmentType
+        The NSX Segment type.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5717,15 +6886,33 @@ Function Undo-NetworkSegment {
         -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Removes the NSX segment if not already removed from NSX Manager
+        - Removes the NSX segment if not already removed from NSX Manager.
 
         .DESCRIPTION
         The Undo-NetworkSegment cmdlet removes an NSX Segment from NSX Manager
 
         .EXAMPLE
         Undo-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-kub-seg01
-        This example removes an NSX segment from the NSX Manager of Workload Domain sfo-w01
-    #>
+        This example removes an NSX segment from the NSX Manager of Workload Domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER segmentName
+        The NSX Segment name.
+
+        .PARAMETER segmentType
+        The NSX Segment type.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5769,15 +6956,51 @@ Function Add-PrefixList {
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Create an NSX Prefix List if not already created in NSX Manager
+        - Create an NSX Prefix List if not already created in NSX Manager.
 
         .DESCRIPTION
         The Add-PrefixList cmdlet creates an NSX Prefix List
 
         .EXAMPLE
         Add-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -subnetCIDR 192.168.20.0/24 -ingressSubnetCidr "192.168.21.0/24" -egressSubnetCidr "192.168.22.0/24" -GE "28" -LE "32" -action PERMIT
-        This example creates an NSX Prefix List in the workload domain NSX Manager cluster
-    #>
+        This example creates an NSX Prefix List in the workload domain NSX Manager cluster.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER tier0Gateway
+        The NSX Tier0 Gateway name.
+
+        .PARAMETER prefixListName
+        The NSX Prefix List name.
+
+        .PARAMETER subnetCidr
+        The NSX Prefix List subnet CIDR.
+
+        .PARAMETER ingressSubnetCidr
+        The NSX Prefix List ingress subnet CIDR.
+
+        .PARAMETER egressSubnetCidr
+        The NSX Prefix List egress subnet CIDR.
+
+        .PARAMETER GE
+        The NSX Prefix List greater than or equal to value.
+
+        .PARAMETER LE
+        The NSX Prefix List less than or equal to value.
+
+        .PARAMETER action
+        The NSX Prefix List action.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5834,15 +7057,33 @@ Function Undo-PrefixList {
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Removes an NSX Prefix List if not already removed from NSX Manager
+        - Removes an NSX Prefix List if not already removed from NSX Manager.
 
         .DESCRIPTION
         The Undo-PrefixList cmdlet removes an NSX Prefix List
 
         .EXAMPLE
         Undo-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist
-        This example removes an NSX Prefix List in the Workload Domain NSX Manager cluster
-    #>
+        This example removes an NSX Prefix List in the Workload Domain NSX Manager cluster.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER tier0Gateway
+        The NSX Tier0 Gateway to connect to.
+
+        .PARAMETER prefixListName
+        The NSX Prefix List name to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5891,15 +7132,42 @@ Function Add-RouteMap {
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Create an NSX Route Map if not already created in NSX Manager
+        - Create an NSX Route Map if not already created in NSX Manager.
 
         .DESCRIPTION
         The Add-RouteMap cmdlet creates an NSX Route Map
 
         .EXAMPLE
         Add-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -action PERMIT -applyPolicy:$true
-        This example creates an NSX Route Map in workload domain sfo-w01
-    #>
+        This example creates an NSX Route Map in workload domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER tier0Gateway
+        The NSX Tier0 Gateway to connect to.
+
+        .PARAMETER routeMapName
+        The NSX Route Map name to create.
+
+        .PARAMETER prefixListName
+        The NSX Prefix List name to create.
+
+        .PARAMETER action
+        The NSX Route Map action to create.
+
+        .PARAMETER applyPolicy
+        Specifies whether to apply the NSX Route Map to the NSX Tier0 Gateway.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5958,15 +7226,33 @@ Function Undo-RouteMap {
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to NSX Manager
-        - Removes an NSX Route Map from NSX Manager
+        - Removes an NSX Route Map from NSX Manager.
 
         .DESCRIPTION
         The Undo-RouteMap cmdlet removes an NSX Route Map
 
         .EXAMPLE
         Undo-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap
-        This example removes an NSX Route Map in the workload domain sfo-w01
-    #>
+        This example removes an NSX Route Map in the workload domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER tier0Gateway
+        The NSX Tier0 Gateway to connect to.
+
+        .PARAMETER routeMapName
+        The NSX Route Map name to create.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6015,15 +7301,33 @@ Function Set-DatastoreTag {
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Creates and applies a vSphere Tag to the primary datastore
+        - Creates and applies a vSphere Tag to the primary datastore.
 
         .DESCRIPTION
         The Set-DatastoreTag cmdlet creates and applies a vSphere Tag to the primary datastore
 
         .EXAMPLE
         Set-DatastoreTag -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tagName vsphere-with-tanzu-tag -tagCategoryName vsphere-with-tanzu-category
-        This example creates a new tag and assigns it to the primary datastore of Workload Domain sfo-w01
-    #>
+        This example creates a new tag and assigns it to the primary datastore of Workload Domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER tagName
+        The vSphere Tag name to create.
+
+        .PARAMETER tagCategoryName
+        The vSphere Tag Category name to create.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6084,15 +7388,33 @@ Function Undo-DatastoreTag {
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Removes the vSphere Tag
+        - Removes the vSphere Tag.
 
         .DESCRIPTION
         The Undo-DatastoreTag cmdlet removes the vSphere Tag
 
         .EXAMPLE
         Undo-DatastoreTag -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tagName vsphere-with-tanzu-tag -tagCategoryName vsphere-with-tanzu-category
-        This example removes the vSphere tag from the Workload Domain sfo-w01 vCenter Server
-    #>
+        This example removes the vSphere tag from the Workload Domain sfo-w01 vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER tagName
+        The name of the tag to remove.
+
+        .PARAMETER tagCategoryName
+        The name of the tag category to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6143,15 +7465,33 @@ Function Add-StoragePolicy {
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Creates a VM vSphere Storage Policy
+        - Creates a VM vSphere Storage Policy.
 
         .DESCRIPTION
         The Add-StoragePolicy cmdlet creates a VM vSphere Storage Policy
 
         .EXAMPLE
         Add-StoragePolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -policyName vsphere-with-tanzu-storage-policy -tagName vsphere-with-tanzu-tag
-        This example creates a VM Storage Policy named vsphere-with-tanzu-policy in the Wrkload Domain vCenter Server
-    #>
+        This example creates a VM Storage Policy named vsphere-with-tanzu-policy in the Wrkload Domain vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER policyName
+        The name of the storage policy to create.
+
+        .PARAMETER tagName
+        The name of the tag to use for the storage policy.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6205,15 +7545,30 @@ Function Undo-StoragePolicy {
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
-        - Removes a VM vSphere Storage Policy
+        - Removes a VM vSphere Storage Policy.
 
         .DESCRIPTION
         The Undo-StoragePolicy cmdlet removes a VM vSphere Storage Policy
 
         .EXAMPLE
         Undo-StoragePolicy -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -policyName vsphere-with-tanzu-storage-policy
-        This example removes a VM Storage Policy named vsphere-with-tanzu-storage-policy from the Wrkload Domain vCenter Server
-    #>
+        This example removes a VM Storage Policy named vsphere-with-tanzu-storage-policy from the Wrkload Domain vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER policyName
+        The name of the storage policy to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6277,8 +7632,32 @@ Function Add-ContentLibrary {
     
         .EXAMPLE
         Add-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName Kubernetes -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json"
-        This example creates subscribed content library named Kubernetes on the primary datastore in workload domain sfo-w01
-    #>
+        This example creates subscribed content library named Kubernetes on the primary datastore in workload domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER contentLibraryName
+        The name of the content library to create.
+
+        .PARAMETER datastore
+        The datastore to create the content library on.
+
+        .PARAMETER subscriptionUrl
+        The subscription URL to create the content library from.
+
+        .PARAMETER published
+        The content library to be published.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6331,7 +7710,7 @@ Function Add-ContentLibrary {
                                             $sslThumbprint = $sslCertificate.GetCertHashString()
                                             $sslThumbprint = $sslThumbprint -replace '(..(?!$))', '$1:'
                                             New-ContentLibrary -Name $contentLibraryName -AutomaticSync -Datastore $datastore -SubscriptionUrl $subscriptionUrl -SslThumbprint $sslThumbprint -Server $vcfVcenterDetails.fqdn | Out-Null
-                                        } elseif ($published) {
+                                        } elseif ($published) {                                      
                                             New-ContentLibrary -Name $contentLibraryName -Published -Datastore $datastore -Server $vcfVcenterDetails.fqdn | Out-Null
                                         }
                                         if (Get-ContentLibrary -Name $contentLibraryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
@@ -6363,7 +7742,7 @@ Export-ModuleMember -Function Add-ContentLibrary
 Function Undo-ContentLibrary {
     <#
         .SYNOPSIS
-        Remove Content Library
+        Remove Content Library.
 
         .DESCRIPTION
         The Undo-ContentLibrary cmdlet removes a content library. The cmdlet connects to SDDC Manager using the
@@ -6374,8 +7753,23 @@ Function Undo-ContentLibrary {
 
         .EXAMPLE
         Undo-ContentLibrary -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -contentLibraryName sfo-w01-lib01
-        This example removes the content library from the Workload Domain vCenter Server
-    #>
+        This example removes the content library from the Workload Domain vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER contentLibraryName
+        The content library name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6420,7 +7814,7 @@ Export-ModuleMember -Function Undo-ContentLibrary
 Function Enable-SupervisorCluster {
     <#
         .SYNOPSIS
-        Enables Workload Management on a VCF cluster
+        Enables Workload Management on a VCF cluster.
 
         .DESCRIPTION
         The Enable-SupervisorCluster cmdlet enables Workload Management on a VCF cluster. The cmdlet connects to SDDC
@@ -6468,8 +7862,98 @@ Function Enable-SupervisorCluster {
 
         .EXAMPLE
         Enable-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -sizeHint Tiny -managementVirtualNetwork sfo-w01-kub-seg01 -managementNetworkMode StaticRange -managementNetworkStartIpAddress 192.168.20.10 -managementNetworkAddressRangeSize 5 -managementNetworkGateway 192.168.20.1 -managementNetworkSubnetMask 255.255.255.0 -cluster sfo-w01-cl01 -contentLibrary Kubernetes -ephemeralStoragePolicy vsphere-with-tanzu-storage-policy -imageStoragePolicy vsphere-with-tanzu-storage-policy -masterStoragePolicy vsphere-with-tanzu-storage-policy -nsxEdgeCluster sfo-w01-ec01 -distributedSwitch sfo-w01-sfo-w01-vc01-sfo-w01-cl01-vds01 -podCIDRs "100.100.0.0/20" -serviceCIDR "100.200.0.0/22" -externalIngressCIDRs "192.168.21.0/24" -externalEgressCIDRs "192.168.22.0/24" -masterNtpServers @("172.16.11.253", "172.16.12.253") -masterDnsServers @("172.16.11.4", "172.16.11.5") -masterDnsName sfo-w01-cl01.sfo.rainpole.io -masterDnsSearchDomain sfo.rainpole.io -workerDnsServers @("172.16.11.4", "172.16.11.5")
-        This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01
-    #>
+        This example enables Workload Management on a vSphere Cluster in workload domain sfo-w01.
+
+        .PARAMETER server
+        The IP or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to connect to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain.
+
+        .PARAMETER cluster
+        The name of the vSphere cluster.
+
+        .PARAMETER sizeHint
+        The size of the vSphere cluster.
+
+        .PARAMETER managementVirtualNetwork
+        The name of the management virtual network.
+
+        .PARAMETER managementNetworkMode
+        The management network mode.
+
+        .PARAMETER managementNetworkStartIpAddress
+        The management network starting IP address.
+
+        .PARAMETER managementNetworkAddressRangeSize
+        The management network address range size.
+
+        .PARAMETER managementNetworkGateway
+        The management network gateway.
+
+        .PARAMETER managementNetworkSubnetMask
+        The management network subnet mask.
+
+        .PARAMETER masterDnsName
+        The master DNS name.
+
+        .PARAMETER masterNtpServers
+        The master NTP servers.
+
+        .PARAMETER masterDnsServers
+        The master DNS servers.
+
+        .PARAMETER contentLibrary
+        The name of the content library.
+
+        .PARAMETER ephemeralStoragePolicy
+        The name of the ephemeral storage policy.
+
+        .PARAMETER imageStoragePolicy
+        The name of the image storage policy.
+
+        .PARAMETER masterStoragePolicy
+        The name of the master storage policy.
+
+        .PARAMETER nsxEdgeCluster
+        The name of the NSX Edge cluster.
+
+        .PARAMETER distributedSwitch
+        The name of the distributed switch.
+
+        .PARAMETER podCIDRs
+        The pod CIDRs.
+
+        .PARAMETER serviceCIDR
+        The service CIDR.
+
+        .PARAMETER externalIngressCIDRs
+        The external ingress CIDRs.
+
+        .PARAMETER externalEgressCIDRs
+        The external egress CIDRs.
+
+        .PARAMETER masterDnsSearchDomain
+        The master DNS search domain.
+
+        .PARAMETER workerDnsServers
+        The worker DNS servers.
+
+        .PARAMETER ConfigurationTimeoutSeconds
+        The timeout in seconds for the configuration to complete.
+
+        .PARAMETER skipValidation
+        Skips the input parameter validation.
+
+        .PARAMETER validateOnly
+        Validates the input parameters and exits.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6855,7 +8339,7 @@ Export-ModuleMember -Function Enable-SupervisorCluster
 Function Undo-SupervisorCluster {
     <#
         .SYNOPSIS
-        Remove Supervisor Cluster
+        Remove Supervisor Cluster.
 
         .DESCRIPTION
         The Undo-SupervisorCluster cmdlet removes the Supervisor Cluster from a Workload Domain. The cmdlet connects to
@@ -6867,8 +8351,26 @@ Function Undo-SupervisorCluster {
 
         .EXAMPLE
         Undo-SupervisorCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01
-        This example disables Workload Management on a vSphere Cluster in workload domain sfo-w01
-    #>
+        This example disables Workload Management on a vSphere Cluster in workload domain sfo-w01.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username of the SDDC Manager account with permissions to request a certificate.
+
+        .PARAMETER pass
+        The password of the SDDC Manager account with permissions to request a certificate.
+
+        .PARAMETER domain
+        The name of the Workload Domain.
+
+        .PARAMETER cluster
+        The name of the vSphere Cluster.
+
+        .PARAMETER RunAsync
+        Run the cmdlet in the background.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6922,7 +8424,7 @@ Export-ModuleMember -Function Undo-SupervisorCluster
 Function New-SupervisorClusterCSR {
     <#
         .SYNOPSIS
-        Create a new certificate signing request for the defined Supervisor Cluster
+        Create a new certificate signing request for the defined Supervisor Cluster.
 
         .DESCRIPTION
         The New-SupervisorClusterCSR cmdlet creates a new certificate signing request for the defined Supervisor
@@ -6933,8 +8435,50 @@ Function New-SupervisorClusterCSR {
 
         .EXAMPLE
         New-SupervisorClusterCSR -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -commonName sfo-m01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
-        This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
-    #>
+        This example returns a certificate signing request for the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username of the SDDC Manager account with permissions to request a certificate.
+
+        .PARAMETER pass
+        The password of the SDDC Manager account with permissions to request a certificate.
+
+        .PARAMETER domain
+        The name of the Workload Domain.
+
+        .PARAMETER cluster
+        The name of the vSphere Cluster.
+
+        .PARAMETER commonName
+        The common name of the certificate.
+
+        .PARAMETER organization
+        The organization name of the certificate.
+
+        .PARAMETER organizationalUnit
+        The organizational unit name of the certificate.
+
+        .PARAMETER country
+        The country name of the certificate.
+
+        .PARAMETER stateOrProvince
+        The state or province name of the certificate.
+
+        .PARAMETER locality
+        The locality name of the certificate.
+
+        .PARAMETER adminEmailAddress
+        The email address of the certificate administrator.
+
+        .PARAMETER keySize
+        The key size of the certificate.
+
+        .PARAMETER filePath
+        The file path of the certificate signing request file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7002,8 +8546,35 @@ Function Request-SignedCertificate {
 
         .EXAMPLE
         Request-SignedCertificate -mscaComputerName dc-rpl01.rainpole.io -mscaName rainpole-DC-RPL01-CA -domainUsername "administrator@rainpole.io" -domainPassword "VMw@re1!" -certificateTemplate VMware -certificateRequestFile "c:\temp\SupervisorCluster.csr" -CertificateFile "c:\temp\SupervisorCluster.cer" 
-        This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer" 
-    #>
+        This example requests a Signed Certificate from a Microsoft Enterprise Certificate Authority providing certificate signing request in file "c:\temp\SupervisorCluster.csr" and if the CA policy is configured to automaticaly issue certificate the certificate will be issued to Base64-encoded output file "c:\temp\SupervisorCluster.cer" .
+
+        .PARAMETER mscaComputerName
+        The IP address or FQDN of the Microsoft Enterprise Certificate Authority.
+
+        .PARAMETER mscaName
+        The name of the Microsoft Enterprise Certificate Authority.
+
+        .PARAMETER domainUsername
+        The username of the domain account with permissions to request a certificate from the Microsoft Enterprise Certificate Authority.
+
+        .PARAMETER domainPassword
+        The password of the domain account with permissions to request a certificate from the Microsoft Enterprise Certificate Authority.
+
+        .PARAMETER certificateTemplate
+        The name of the certificate template to use when requesting a certificate from the Microsoft Enterprise Certificate Authority.
+
+        .PARAMETER certificateRequestFile
+        The path to the certificate signing request file.
+
+        .PARAMETER certificateFile
+        The path to the Base64-encoded output file.
+
+        .PARAMETER SkipValidation
+        Skip pre-validation checks.
+
+        .PARAMETER ValidateOnly
+        Only perform pre-validation checks.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mscaComputerName,
@@ -7076,7 +8647,7 @@ Export-ModuleMember -Function Request-SignedCertificate
 Function Install-SupervisorClusterCertificate {
     <#
         .SYNOPSIS
-        Add a signed TLS certificate for the defined Supervisor Cluster
+        Add a signed TLS certificate for the defined Supervisor Cluster.
 
         .DESCRIPTION
         The Install-SupervisorClusterCertificate cmdlet adds a signed TLS certificate for the defined Supervisor
@@ -7087,8 +8658,26 @@ Function Install-SupervisorClusterCertificate {
 
         .EXAMPLE
         Install-SupervisorClusterCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 -FilePath ".\SupervisorCluster.cer"
-        This example applies the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
-    #>
+        This example applies the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Workload Domain.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER filePath
+        The path to the signed TLS certificate file (.cer).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7140,7 +8729,7 @@ Export-ModuleMember -Function Install-SupervisorClusterCertificate
 Function Add-SupervisorClusterLicense {
     <#
         .SYNOPSIS
-        Adds a Supervisor Cluster license
+        Adds a Supervisor Cluster license.
 
         .DESCRIPTION
         The Add-SupervisorClusterLicense cmdlet adds a Supervisor Cluster licence. The cmdlet connects to SDDC Manager
@@ -7151,8 +8740,26 @@ Function Add-SupervisorClusterLicense {
 
         .EXAMPLE
         Add-SupervisorClusterLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -Cluster sfo-w01-cl01 -LicenseKey "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-        This example adds a license to the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
-    #>
+        This example adds a license to the Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the Workload Domain.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER licenseKey
+        The license key to add to the Supervisor Cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7220,7 +8827,7 @@ Export-ModuleMember -Function Add-SupervisorClusterLicense
 Function Add-Namespace {
     <#
         .SYNOPSIS
-        Creates a Namespace and applies extra configuration to it
+        Creates a Namespace and applies extra configuration to it.
 
         .DESCRIPTION
         The Add-Namespace cmdlet creates a Namespace and applies its configuration.. The cmdlet connects to SDDC
@@ -7231,8 +8838,29 @@ Function Add-Namespace {
 
         .EXAMPLE
         Add-Namespace -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -namespace sfo-w01-ns01 -storagePolicy vsphere-with-tanzu-storage-policy
-        This example creates a Namespace named sfo-w01-ns01 in the Supervisor Cluster sfo-w01-cl01 with a vSphere Storage Policy vsphere-with-tanzu-storage-policy
-    #>
+        This example creates a Namespace named sfo-w01-ns01 in the Supervisor Cluster sfo-w01-cl01 with a vSphere Storage Policy vsphere-with-tanzu-storage-policy.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account.
+
+        .PARAMETER pass
+        The SDDC Manager user password.
+
+        .PARAMETER domain
+        The Active Directory domain.
+
+        .PARAMETER cluster
+        The vSphere Cluster name.
+
+        .PARAMETER namespace
+        The Namespace name.
+
+        .PARAMETER storagePolicy
+        The vSphere Storage Policy name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7288,7 +8916,7 @@ Export-ModuleMember -Function Add-Namespace
 Function Undo-Namespace {
     <#
         .SYNOPSIS
-        Remove a Namespace
+        Remove a Namespace.
 
         .DESCRIPTION
         The Undo-Namespace cmdlet removes a Namespace from the Supervisor Cluster.. The cmdlet connects to SDDC Manager
@@ -7299,8 +8927,23 @@ Function Undo-Namespace {
 
         .EXAMPLE
         Undo-Namespace -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -namespace sfo-w01-ns02
-        This example removes the Namespace named sfo-w01-ns02
-    #>
+        This example removes the Namespace named sfo-w01-ns02.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account.
+
+        .PARAMETER pass
+        The SDDC Manager user password.
+
+        .PARAMETER domain
+        The Active Directory domain.
+
+        .PARAMETER namespace
+        The Namespace name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7345,7 +8988,7 @@ Export-ModuleMember -Function Undo-Namespace
 Function Add-NamespacePermission {
     <#
         .SYNOPSIS
-        Adds permissions to a Namespace
+        Adds permissions to a Namespace.
 
         .DESCRIPTION
         The Add-NamespacePermission cmdlet adds permissions to a Namespace. The cmdlet connects to SDDC Manager using
@@ -7356,8 +8999,41 @@ Function Add-NamespacePermission {
 
         .EXAMPLE
         Add-NamespacePermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -namespace sfo-w01-ns01 -principal gg-kub-admins -role edit -type group
-        This example adds the edit role to the group gg-kub-admins in the domain sfo.rainpole.io to the Namespace sfo-w01-ns01
-    #>
+        This example adds the edit role to the group gg-kub-admins in the domain sfo.rainpole.io to the Namespace sfo-w01-ns01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account.
+
+        .PARAMETER pass
+        The SDDC Manager user password.
+
+        .PARAMETER sddcDomain
+        The SDDC Manager domain.
+
+        .PARAMETER domain
+        The Active Directory domain.
+
+        .PARAMETER domainBindUser
+        The Active Directory user account.
+
+        .PARAMETER domainBindPass
+        The Active Directory user password.
+
+        .PARAMETER namespace
+        The Namespace name.
+
+        .PARAMETER principal
+        The Active Directory group or user name.
+
+        .PARAMETER role
+        The role to assign to the group or user.
+
+        .PARAMETER type
+        The type of the principal (group or user).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7437,7 +9113,7 @@ Export-ModuleMember -Function Add-NamespacePermission
 Function Undo-NamespacePermission {
     <#
         .SYNOPSIS
-        Remove permissions from a Namespace
+        Remove permissions from a Namespace.
 
         .DESCRIPTION
         The Undo-NamespacePermission cmdlet removes a permissions from a Namespace. The cmdlet connects to SDDC Manager
@@ -7448,8 +9124,26 @@ Function Undo-NamespacePermission {
 
         .EXAMPLE
         Undo-NamespacePermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -namespace sfo-w01-ns01 -principal gg-kub-admins
-        This example removes the edit role from the Namespace sfo-w01-ns01
-    #>
+        This example removes the edit role from the Namespace sfo-w01-ns01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to run against.
+
+        .PARAMETER namespace
+        The Namespace name.
+
+        .PARAMETER principal
+        The Active Directory group or user name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7499,7 +9193,7 @@ Export-ModuleMember -Function Undo-NamespacePermission
 Function Enable-Registry {
     <#
         .SYNOPSIS
-        Enable the embedded Harbor Registry on a Supervisor Cluster
+        Enable the embedded Harbor Registry on a Supervisor Cluster.
 
         .DESCRIPTION
         The Enable-Registry cmdlet enables the embedded Harbor Registry on a Supervisor Cluster. The cmdlet connects to
@@ -7510,8 +9204,23 @@ Function Enable-Registry {
 
         .EXAMPLE
         Enable-Registry -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -storagePolicy vsphere-with-tanzu-storage-policy
-        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy
-    #>
+        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER storagePolicy
+        The vSphere Storage Policy name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7568,7 +9277,7 @@ Export-ModuleMember -Function Enable-Registry
 Function Undo-Registry {
     <#
         .SYNOPSIS
-        Disable the embedded Harbor Registry on a Supervisor Cluster
+        Disable the embedded Harbor Registry on a Supervisor Cluster.
 
         .DESCRIPTION
         The Undo-Registry cmdlet disables the embedded Harbor Registry on a Supervisor Cluster. The cmdlet connects to
@@ -7579,8 +9288,20 @@ Function Undo-Registry {
 
         .EXAMPLE
         Undo-Registry -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
-        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy
-    #>
+        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7632,7 +9353,7 @@ Export-ModuleMember -Function Undo-Registry
 Function Add-NamespaceVmClass {
     <#
         .SYNOPSIS
-        Add a Virtual Machine class to a Namespace
+        Add a Virtual Machine class to a Namespace.
 
         .DESCRIPTION
         The Add-NamespaceVmClass cmdlet adds a Virtual Machine Class to a Namespace. The cmdlet connects to SDDC
@@ -7643,8 +9364,26 @@ Function Add-NamespaceVmClass {
 
         .EXAMPLE
         Add-NamespaceVmClass -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -namespace sfo-w01-tkc01 -vmClass guaranteed-small
-        This example adds the VM Class guaranteed-small to Supervisor Namespace sfo-tkc-01 in Workload domain sfo-w01
-    #>
+        This example adds the VM Class guaranteed-small to Supervisor Namespace sfo-tkc-01 in Workload domain sfo-w01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER namespace
+        The Supervisor Namespace name.
+
+        .PARAMETER vmClass
+        The Virtual Machine Class to add to the Namespace.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7695,7 +9434,7 @@ Export-ModuleMember -Function Add-NamespaceVmClass
 Function Add-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Create a new Tanzu Kubernetes Cluster on a Supervisor Cluster
+        Create a new Tanzu Kubernetes Cluster on a Supervisor Cluster.
 
         .DESCRIPTION
         The Add-TanzuKubernetesCluster cmdlet creates a new Tanzu Kubernetes Cluster on a Supervisor Cluster. The
@@ -7706,8 +9445,26 @@ Function Add-TanzuKubernetesCluster {
 
         .EXAMPLE
         Add-TanzuKubernetesCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -yaml .\SampleYaml\sfo-w01-tkc01-cluster.yaml
-        This example creates a Tanzu Kubernetes cluster based on the YAML file .\SampleYaml\sfo-w01-tkc01-cluster.yaml as the vSphere SSO user administrator@vsphere.local on Supervisor Cluster sfo-w01-cl01
-    #>
+        This example creates a Tanzu Kubernetes cluster based on the YAML file .\SampleYaml\sfo-w01-tkc01-cluster.yaml as the vSphere SSO user administrator@vsphere.local on Supervisor Cluster sfo-w01-cl01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER cluster
+        The Supervisor Cluster name.
+
+        .PARAMETER yaml
+        The YAML file to use to create the Tanzu Kubernetes Cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7756,7 +9513,7 @@ Export-ModuleMember -Function Add-TanzuKubernetesCluster
 Function Undo-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Remove a Tanzu Kubernetes Cluster
+        Remove a Tanzu Kubernetes Cluster.
 
         .DESCRIPTION
         The Undo-TanzuKubernetesCluster cmdlet removes a new Tanzu Kubernetes Cluster. The cmdlet connects to SDDC
@@ -7767,8 +9524,29 @@ Function Undo-TanzuKubernetesCluster {
 
         .EXAMPLE
         Undo-TanzuKubernetesCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -cluster sfo-w01-cl01 -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01 
-        This example removes a Tanzu Kubernetes Cluster from the a Supervisor Cluster 
-    #>
+        This example removes a Tanzu Kubernetes Cluster from the a Supervisor Cluster .
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER cluster
+        The Supervisor Cluster name.
+
+        .PARAMETER namespace
+        The Supervisor Namespace name.
+
+        .PARAMETER tkc
+        The Tanzu Kubernetes Cluster name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7827,7 +9605,7 @@ Export-ModuleMember -Function Undo-TanzuKubernetesCluster
 Function Export-IlaJsonSpec {
     <#
         .SYNOPSIS
-        Create JSON specification for Intelligent Logging and Analytics
+        Create JSON specification for Intelligent Logging and Analytics.
 
         .DESCRIPTION
         The Export-IlaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -7837,8 +9615,8 @@ Function Export-IlaJsonSpec {
 
         .EXAMPLE
         Export-IlaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\ilaSpec.json
-        This example creates a JSON specification Intelligent Logging and Analytics using the Planning and Preparation Workbook
-    #>
+        This example creates a JSON specification Intelligent Logging and Analytics using the Planning and Preparation Workbook.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
@@ -7921,7 +9699,7 @@ Export-ModuleMember -Function Export-IlaJsonSpec
 Function Invoke-IlaDeployment {
     <#
         .SYNOPSIS
-        End-to-end Deployment of Intelligent Logging and Analytics
+        End-to-end Deployment of Intelligent Logging and Analytics.
 
         .DESCRIPTION
         The Invoke-IlaDeployment cmdlet is a single function to implement the configuration of the Intelligent Logging
@@ -7929,8 +9707,8 @@ Function Invoke-IlaDeployment {
 
         .EXAMPLE
         Invoke-IlaDeployment -jsonFile .\ilaSpec.json -certificates "F:\VMware.PlatformTools\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
-        This example configures the Intelligent Logging and Analytics using JSON spec supplied
-    #>  
+        This example configures the Intelligent Logging and Analytics using JSON spec supplied.
+   #>  
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
@@ -8088,7 +9866,7 @@ Export-ModuleMember -Function Invoke-IlaDeployment
 Function Invoke-UndoIlaDeployment {
     <#
         .SYNOPSIS
-        End-to-end removal of Intelligent Logging and Analytics
+        End-to-end removal of Intelligent Logging and Analytics.
 
         .DESCRIPTION
         The Invoke-UndoIlaDeployment cmdlet is a single function to remove the configuration of the Intelligent Logging
@@ -8096,8 +9874,8 @@ Function Invoke-UndoIlaDeployment {
 
         .EXAMPLE
         Invoke-UndoIlaDeployment -jsonFile .\ilaSpec.json
-        This example removes the configuration of Intelligent Logging and Analytics using JSON spec supplied
-    #>
+        This example removes the configuration of Intelligent Logging and Analytics using JSON spec supplied.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
@@ -8181,7 +9959,7 @@ Export-ModuleMember -Function Invoke-UndoIlaDeployment
 Function Export-vRLIJsonSpec {
     <#
         .SYNOPSIS
-        Create VMware Aria Operations for Logs Deployment JSON specification using the Planning and Preparation workbook
+        Create VMware Aria Operations for Logs Deployment JSON specification using the Planning and Preparation workbook.
 
         .DESCRIPTION
         The Export-vRLIJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -8206,7 +9984,28 @@ Function Export-vRLIJsonSpec {
 
         .EXAMPLE
         Export-vRLIJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example creates a JSON specification file for deploying VMware Aria Operations for Logs deploying the OVA from a vSphere Conent Library and the Planning and Preparation Workbook data
+        This example creates a JSON specification file for deploying VMware Aria Operations for Logs deploying the OVA from a vSphere Conent Library and the Planning and Preparation Workbook data.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER workbook
+        The Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER customVersion
+        The custom version of VMware Aria Operations for Logs to deploy.
+
+        .PARAMETER useContentLibrary
+        Use a vSphere Content Library to deploy the VMware Aria Operations for Logs OVA.
+
+        .PARAMETER contentLibrary
+        The vSphere Content Library name to use to deploy the VMware Aria Operations for Logs OVA
         #>
 
     Param (
@@ -8272,31 +10071,31 @@ Function Export-vRLIJsonSpec {
                                         
                                         $infrastructurePropertiesObject = @()
                                         $infrastructurePropertiesObject += [pscustomobject]@{
-                                            'dataCenterVmid'		= $datacenterName.dataCenterVmid
-                                            'regionName'			= "default"
-                                            'zoneName'				= "default"
-                                            'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                            'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                            'vcUsername'			= $vcCredentials.userName
-                                            'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                            'acceptEULA'			= "true"
-                                            'enableTelemetry'		= "true"
-                                            'defaultPassword'		= ("locker:password:" + $($vrliPassword.vmid) + ":" + $($vrliPassword.alias))
-                                            'certificate'			= ("locker:certificate:" + $($vrliCertificate.vmid) + ":" + $($vrliCertificate.alias))
-                                            'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                            'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                            'diskMode'				= "thin"
-                                            'network'				= $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
-                                            'masterVidmEnabled'		= "false"
-                                            'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                            'domain'				= $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                                            'gateway'				= $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                                            'netmask'				= $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-                                            'searchpath'			= $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
-                                            'timeSyncMode'			= "ntp"
-                                            'ntp'					= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                                            'isDhcp'				= "false"
-                                            'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                            'dataCenterVmid'        = $datacenterName.dataCenterVmid
+                                            'regionName'            = "default"
+                                            'zoneName'              = "default"
+                                            'vCenterName'           = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                            'vCenterHost'           = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                            'vcUsername'            = $vcCredentials.userName
+                                            'vcPassword'            = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                            'acceptEULA'            = "true"
+                                            'enableTelemetry'       = "true"
+                                            'defaultPassword'       = ("locker:password:" + $($vrliPassword.vmid) + ":" + $($vrliPassword.alias))
+                                            'certificate'           = ("locker:certificate:" + $($vrliCertificate.vmid) + ":" + $($vrliCertificate.alias))
+                                            'cluster'               = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                            'storage'               = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                            'diskMode'              = "thin"
+                                            'network'               = $pnpWorkbook.Workbook.Names["reg_seg01_name"].Value
+                                            'masterVidmEnabled'     = "false"
+                                            'dns'                   = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                            'domain'                = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                                            'gateway'               = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
+                                            'netmask'               = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
+                                            'searchpath'            = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+                                            'timeSyncMode'          = "ntp"
+                                            'ntp'                   = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                                            'isDhcp'                = "false"
+                                            'vcfProperties'         = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                         }
                                         $infrastructureObject = @()
                                         $infrastructureObject += [pscustomobject]@{
@@ -8328,74 +10127,74 @@ Function Export-vRLIJsonSpec {
                                             'masterVidmEnabled'				= $false
                                             'configureAffinitySeparateAll'	= "true"
                                             'contentLibraryItemId'          = $contentLibraryItemId
-                                            'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                                            'timeSyncMode'					= "ntp"
+                                            'ntp'                           = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                                            'timeSyncMode'                  = "ntp"
                                         }
 
                                         #### Generate VMware Aria Operations for Logs Cluster Details
                                         $clusterVipProperties = @()
                                         $clusterVipProperties += [pscustomobject]@{
                                             'hostName'	= $pnpWorkbook.Workbook.Names["region_vrli_virtual_fqdn"].Value
-                                            'ip'		= $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
+                                            'ip'        = $pnpWorkbook.Workbook.Names["region_vrli_virtual_ip"].Value
                                         }
                                         $clusterVipsObject = @()
                                         $clusterVipsObject += [pscustomobject]@{
-                                            'type'			= "vrli-cluster-1"
+                                            'type'          = "vrli-cluster-1"
                                             'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                         }
                                         $clusterObject = @()
                                         $clusterObject += [pscustomobject]@{
-                                        'clusterVips'	= $clusterVipsObject
+                                            'clusterVips'	= $clusterVipsObject
                                         }
 
                                         #### Generate VMware Aria Operations for Logs Node Details
                                         $masterProperties = @()
                                         $masterProperties += [pscustomobject]@{
-                                            'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value
-                                            'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_fqdn"].Value
-                                            'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
-                                            'folderName'    = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
+                                            'vmName'      = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value
+                                            'hostName'    = $pnpWorkbook.Workbook.Names["region_vrli_nodea_fqdn"].Value
+                                            'ip'          = $pnpWorkbook.Workbook.Names["region_vrli_nodea_ip"].Value
+                                            'folderName'  = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
                                         }
                                         $worker1Properties = @()
                                         $worker1Properties += [pscustomobject]@{
-                                            'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
-                                            'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
-                                            'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
+                                            'vmName'   = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value
+                                            'hostName' = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_fqdn"].Value
+                                            'ip'       = $pnpWorkbook.Workbook.Names["region_vrli_nodeb_ip"].Value
                                         }
                                         $worker2Properties = @()
                                         $worker2Properties += [pscustomobject]@{
-                                            'vmName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
-                                            'hostName'	    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
-                                            'ip'		    = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
+                                            'vmName'   = $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
+                                            'hostName' = $pnpWorkbook.Workbook.Names["region_vrli_nodec_fqdn"].Value
+                                            'ip'       = $pnpWorkbook.Workbook.Names["region_vrli_nodec_ip"].Value
                                         }
                                         $nodesObject = @()
                                         $nodesobject += [pscustomobject]@{
-                                            'type'			= "vrli-master"
+                                            'type'       = "vrli-master"
                                             'properties'	= ($masterProperties | Select-Object -Skip 0)
                                         }
                                         $nodesobject += [pscustomobject]@{
-                                            'type'			= "vrli-worker"
+                                            'type'       = "vrli-worker"
                                             'properties'	= ($worker1Properties | Select-Object -Skip 0)
                                         }
                                         $nodesobject += [pscustomobject]@{
-                                            'type'			= "vrli-worker"
+                                            'type'       = "vrli-worker"
                                             'properties'	= ($worker2Properties | Select-Object -Skip 0)
                                         }
 
                                         
                                         $productsObject = @()
                                         $productsObject += [pscustomobject]@{
-                                            'id' 			= "vrli"
-                                            'version'		= $vrliVersion
+                                            'id'         = "vrli"
+                                            'version'    = $vrliVersion
                                             'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                             'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                            'nodes'			= $nodesObject	
+                                            'nodes'      = $nodesObject	
                                         }
                                         $vrliDeploymentObject = @()
                                         $vrliDeploymentObject += [pscustomobject]@{
-                                            'environmentName'                   = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
-                                            'infrastructure'                    = ($infrastructureObject  | Select-Object -Skip 0)
-                                            'products'                          = $productsObject     
+                                            'environmentName' = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
+                                            'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                            'products'        = $productsObject     
                                         }
                                         $vrliDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
                                         Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
@@ -8423,7 +10222,7 @@ Export-ModuleMember -Function Export-vRLIJsonSpec
 Function New-vRLIDeployment {
     <#
         .SYNOPSIS
-        Deploy VMware Aria Operations for Logs Cluster via VMware Aria Suite Lifecycle
+        Deploy VMware Aria Operations for Logs Cluster via VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRLIDeployment cmdlet deploys VMware Aria Operations for Logs via VMware Aria Suite Lifecycle. The
@@ -8445,8 +10244,32 @@ Function New-vRLIDeployment {
 
         .EXAMPLE
         New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using a content library for the OVA deployment and the Planning and Preparation Workbook data
-    #>
+        This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using a content library for the OVA deployment and the Planning and Preparation Workbook data.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER workbook
+        The Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER Monitor
+        Monitor the deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle.
+
+        .PARAMETER customVersion
+        The custom version of VMware Aria Operations for Logs to deploy.
+
+        .PARAMETER useContentLibrary
+        Use a vSphere Content Library to deploy the VMware Aria Operations for Logs OVA.
+
+        .PARAMETER contentLibrary
+        The vSphere Content Library name to use to deploy the VMware Aria Operations for Logs OVA.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8532,7 +10355,7 @@ Export-ModuleMember -Function New-vRLIDeployment
 Function Undo-vRLIDeployment {
     <#
         .SYNOPSIS
-        Remove the VMware Aria Operations for Logs Environment from VMware Aria Suite Lifecycle
+        Remove the VMware Aria Operations for Logs Environment from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Undo-vRLIDeployment cmdlet removes VMware Aria Operations for Logs from VMware Aria Suite Lifecycle. The
@@ -8544,8 +10367,23 @@ Function Undo-vRLIDeployment {
 
         .EXAMPLE
         Undo-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName sfo-intance-env
-        This example starts a removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle
-    #>
+        This example starts a removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER environmentName
+        The VMware Aria Operations for Logs Environment Name.
+
+        .PARAMETER monitor
+        Monitor the VMware Aria Suite Lifecycle request.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8595,7 +10433,7 @@ Export-ModuleMember -Function Undo-vRLIDeployment
 Function Add-vRLISmtpConfiguration {
     <#
 		.SYNOPSIS
-        Configure SMTP settings in VMware Aria Operations for Logs
+        Configure SMTP settings in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLISmtpConfiguration cmdlet configures the SMTP sever settings in VMware Aria Operations for Logs.
@@ -8608,8 +10446,32 @@ Function Add-vRLISmtpConfiguration {
 
         .EXAMPLE
         Add-vRLISmtpConfiguration -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io
-        This example configures the SMTP server settings on VMware Aria Operations for Logs
-    #>
+        This example configures the SMTP server settings on VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER smtpServer
+        The SMTP server FQDN or IP Address.
+
+        .PARAMETER port
+        The SMTP server port.
+
+        .PARAMETER sender
+        The sender email address.
+
+        .PARAMETER smtpUser
+        The SMTP server username.
+
+        .PARAMETER smtpPass
+        The SMTP server password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8657,7 +10519,7 @@ Export-ModuleMember -Function Add-vRLISmtpConfiguration
 Function Add-vRLIAuthenticationWSA {
     <#
 		.SYNOPSIS
-        Configure Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
+        Configure Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAuthenticationWSA cmdlet configures Workspace ONE Access as an authentication source in VMware
@@ -8670,8 +10532,26 @@ Function Add-vRLIAuthenticationWSA {
 
         .EXAMPLE
         Add-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example configures Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
-    #>
+        This example configures Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER wsaFqdn
+        The Workspace ONE Access FQDN or IP Address.
+
+        .PARAMETER wsaUser
+        The Workspace ONE Access administrator username.
+
+        .PARAMETER wsaPass
+        The Workspace ONE Access administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8703,6 +10583,7 @@ Function Add-vRLIAuthenticationWSA {
                                     }
                                 } else {
                                     Write-Error "Unable to communicate with Workspace ONE Access Instance ($wsaFqdn), check details: POST_VALIDATION_FAILED"
+                                
                                 }
                             }
                         }
@@ -8719,7 +10600,7 @@ Export-ModuleMember -Function Add-vRLIAuthenticationWSA
 Function Undo-vRLIAuthenticationWSA {
     <#
 		.SYNOPSIS
-        Disable Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
+        Disable Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Undo-vRLIAuthenticationWSA cmdlet configures Workspace ONE Access as an authentication source in VMware
@@ -8731,8 +10612,8 @@ Function Undo-vRLIAuthenticationWSA {
 
         .EXAMPLE
         Undo-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs
-    #>
+        This example disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8771,7 +10652,7 @@ Export-ModuleMember -Function Undo-vRLIAuthenticationWSA
 Function Add-vRLIAuthenticationAD {
     <#
 		.SYNOPSIS
-        Configure Active Directory as an authentication source for VMware Aria Operations for Logs
+        Configure Active Directory as an authentication source for VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAuthenticationAD cmdlet configures Active Diretory as an authentication source in VMware Aria
@@ -8785,8 +10666,8 @@ Function Add-vRLIAuthenticationAD {
 
         .EXAMPLE
         Add-vRLIAuthenticationAD -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -domainServers sfo-ad01.sfo.rainpole.io
-        This example enables Active Directory as an authentication source in VMware Aria Operations for Logs
-    #>
+        This example enables Active Directory as an authentication source in VMware Aria Operations for Logs.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8835,7 +10716,7 @@ Export-ModuleMember -Function Add-vRLIAuthenticationAD
 Function Undo-vRLIAuthenticationAD {
     <#
 		.SYNOPSIS
-        Disable Active Directory as an authentication source for VMware Aria Operations for Logs
+        Disable Active Directory as an authentication source for VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAuthenticationAD cmdlet disables Active Diretory as an authentication source in VMware Aria
@@ -8847,8 +10728,8 @@ Function Undo-vRLIAuthenticationAD {
 
         .EXAMPLE
         Undo-vRLIAuthenticationAD -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io
-        This example enables Active Directory as an authentication source in VMware Aria Operations for Logs
-    #>
+        This example enables Active Directory as an authentication source in VMware Aria Operations for Logs.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8887,7 +10768,7 @@ Export-ModuleMember -Function Undo-vRLIAuthenticationAD
 Function Install-vRLIPhotonAgent {
     <#
 		.SYNOPSIS
-        Install VMware Aria Operations for Logs Photon Agent in a Virtual Machine
+        Install VMware Aria Operations for Logs Photon Agent in a Virtual Machine.
 
         .DESCRIPTION
         The Install-vRLIPhotonAgent cmdlet installs and configures the VMware Aria Operations for Logs Photon Agent on
@@ -8902,8 +10783,23 @@ Function Install-vRLIPhotonAgent {
 
         .EXAMPLE
         Install-vRLIPhotonAgent -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName sfo-wsa01 -vmRootPass VMw@re1!
-        This example installs and configures the VMware Aria Operations for Logs Agent on the virtual machine named 'sfo-wsa01'
-    #>
+        This example installs and configures the VMware Aria Operations for Logs Agent on the virtual machine named 'sfo-wsa01'.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER vmName
+        The Virtual Machine name.
+
+        .PARAMETER vmRootPass
+        The Virtual Machine root password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8980,7 +10876,7 @@ Export-ModuleMember -Function Install-vRLIPhotonAgent
 Function Undo-vRLIPhotonAgent {
     <#
 		.SYNOPSIS
-        Removes the VMware Aria Operations for Logs Photon Agent from a Virtual Machine
+        Removes the VMware Aria Operations for Logs Photon Agent from a Virtual Machine.
 
         .DESCRIPTION
         The Undo-vRLIPhotonAgent cmdlet removes the VMware Aria Operations for Logs Photon Agent from a virtual
@@ -8994,8 +10890,23 @@ Function Undo-vRLIPhotonAgent {
 
         .EXAMPLE
         Undo-vRLIPhotonAgent -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName sfo-wsa01 -vmRootPass VMw@re1!
-        This example removes the VMware Aria Operations for Logs Agent from the virtual machine named 'sfo-wsa01'
-    #>
+        This example removes the VMware Aria Operations for Logs Agent from the virtual machine named 'sfo-wsa01'.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER vmName
+        The Virtual Machine name.
+
+        .PARAMETER vmRootPass
+        The Virtual Machine root password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9045,7 +10956,7 @@ Export-ModuleMember -Function Undo-vRLIPhotonAgent
 Function Add-vRLIAgentGroup {
     <#
 		.SYNOPSIS
-        Creates an agent group in VMware Aria Operations for Logs
+        Creates an agent group in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAgentGroup cmdlet creates a new agent group in VMware Aria Operations for Logs. The cmdlet
@@ -9061,8 +10972,26 @@ Function Add-vRLIAgentGroup {
 
         .EXAMPLE
         Add-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupType photon -agentGroupName "Photon OS - Appliance Agent Group" -criteria "sfo-vcf01.sfo.rainpole.io","xint-vrslcm01.rainpole.io","xint-wsa01a.rainpole.io","xint-wsa01b.rainpole.io","xint-wsa01c.rainpole.io"
-        This example creates an agent group for Photon OS in VMare Aria Operations for Logs and assigns the SDDC Manager, VMware Aria Suite Lifecycle and Workspace ONE Access Cluster Virtual Machines
-    #>
+        This example creates an agent group for Photon OS in VMare Aria Operations for Logs and assigns the SDDC Manager, VMware Aria Suite Lifecycle and Workspace ONE Access Cluster Virtual Machines.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER agentGroupName
+        The Agent Group Name.
+
+        .PARAMETER agentGroupType
+        The Agent Group Type (wsa or photon).
+
+        .PARAMETER criteria
+        The Agent Group Criteria.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9104,7 +11033,7 @@ Export-ModuleMember -Function Add-vRLIAgentGroup
 Function Undo-vRLIAgentGroup {
     <#
 		.SYNOPSIS
-        Deletes an agent group in VMware Aria Operations for Logs
+        Deletes an agent group in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Undo-vRLIAgentGroup cmdlet deletes an agent group from VMware Aria Operations for Logs. The cmdlet
@@ -9116,8 +11045,20 @@ Function Undo-vRLIAgentGroup {
 
         .EXAMPLE
         Undo-vRLIAgentGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -agentGroupName "Workspace ONE Access (IAM) - Appliance Agent Group"
-        This example deletes an agent group for Workspace ONE Access in VMware Aria Operations for Logs
-    #>
+        This example deletes an agent group for Workspace ONE Access in VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER agentGroupName
+        The Agent Group Name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9156,7 +11097,7 @@ Export-ModuleMember -Function Undo-vRLIAgentGroup
 Function Register-vRLIWorkloadDomain {
     <#
 		.SYNOPSIS
-        Connect a Workload Domain to VMware Aria Operations for Logs
+        Connect a Workload Domain to VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Register-vRLIWorkloadDomain cmdlet connects a Workload Domain to VMware Aria Operations for Logs.
@@ -9173,8 +11114,23 @@ Function Register-vRLIWorkloadDomain {
 
         .EXAMPLE
         Register-vRLIWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
-        This example DISABLES the Workload Domain in VMware Aria Operations for Logs
-    #>
+        This example DISABLES the Workload Domain in VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER status
+        The status of the Workload Domain in VMware Aria Operations for Logs "ENABLED" "DISABLED".
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9221,7 +11177,7 @@ Export-ModuleMember -Function Register-vRLIWorkloadDomain
 Function Set-vRLISyslogEdgeCluster {
     <#
 		.SYNOPSIS
-        Configure Syslog settings on NSX Edge Cluster Nodes
+        Configure Syslog settings on NSX Edge Cluster Nodes.
 
         .DESCRIPTION
         The Set-vRLISyslogEdgeCluster cmdlet configures Syslog settings on NSX Edge Cluster The cmdlet connects to SDDC
@@ -9234,8 +11190,23 @@ Function Set-vRLISyslogEdgeCluster {
 
         .EXAMPLE
         Set-vRLISyslogEdgeCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -exportname SFO-VRLI
-        This example configures the Syslog settings for each NSX Edge node to sent logs to VMware Aria Operations for Logs
-    #>
+        This example configures the Syslog settings for each NSX Edge node to sent logs to VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER exportName
+        The Syslog Exporter name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9283,7 +11254,7 @@ Export-ModuleMember -Function Set-vRLISyslogEdgeCluster
 Function Undo-vRLISyslogEdgeCluster {
     <#
 		.SYNOPSIS
-        Removes the Syslog settings on NSX Edge Cluster Nodes
+        Removes the Syslog settings on NSX Edge Cluster Nodes.
 
         .DESCRIPTION
         The Undo-vRLISyslogEdgeCluster cmdlet removes the Syslog settings on NSX Edge Cluster. The cmdlet connects to
@@ -9296,8 +11267,23 @@ Function Undo-vRLISyslogEdgeCluster {
 
         .EXAMPLE
         Undo-vRLISyslogEdgeCluster -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -exportname SFO-VRLI
-        This example removes the Syslog settings for each NSX Edge node
-    #>
+        This example removes the Syslog settings for each NSX Edge node.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER exportName
+        The Syslog Exporter name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9340,7 +11326,7 @@ Export-ModuleMember -Function Undo-vRLISyslogEdgeCluster
 Function Add-vRLILogArchive {
     <#
 		.SYNOPSIS
-        Configure log archiving in VMware Aria Operations for Logs
+        Configure log archiving in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLILogArchive cmdlet configure log archiving in VMware Aria Operations for Logs. The cmdlet
@@ -9354,8 +11340,32 @@ Function Add-vRLILogArchive {
 
         .EXAMPLE
         Add-vRLILogArchive -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -emailAddress administrator@rainpole.io -retentionNotificationDays 1 -retentionInterval weeks -retentionPeriodDays 7 -archiveLocation "nfs://172.27.11.4/sfo-m01-vrli01-400GB"
-        This example configures the log archive and retention period in VMware Aria Operations for Logs
-    #>
+        This example configures the log archive and retention period in VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER emailAddress
+        The email address to send notifications to.
+
+        .PARAMETER retentionNotificationDays
+        The number of days to send notifications.
+
+        .PARAMETER retentionInterval
+        The interval to send notifications "minutes","hours","days","weeks","months".
+
+        .PARAMETER retentionPeriodDays
+        The number of days to retain logs.
+
+        .PARAMETER archiveLocation
+        The archive location to store logs.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9393,7 +11403,7 @@ Export-ModuleMember -Function Add-vRLILogArchive
 Function Add-vRLIAuthenticationGroup {
     <#
 		.SYNOPSIS
-        Adds a group from the authentication provider in VMware Aria Operations for Logs
+        Adds a group from the authentication provider in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAuthenticationGroup cmdlet assigns access to a group based on the authentication provider.
@@ -9411,8 +11421,26 @@ Function Add-vRLIAuthenticationGroup {
 
         .EXAMPLE
         Add-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -role 'Super Admin' -authProvider ad
-        This example adds the group gg-vrli-admins assigned from Active Directory with Super Admin role in VMware Aria Operations for Logs
-    #>
+        This example adds the group gg-vrli-admins assigned from Active Directory with Super Admin role in VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER domain
+        The domain name.
+
+        .PARAMETER group
+        The group name.
+
+        .PARAMETER role
+        The role to assign to the group "Super Admin","User","Dashboard User","View Only Admin".
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9475,7 +11503,7 @@ Export-ModuleMember -Function Add-vRLIAuthenticationGroup
 Function Undo-vRLIAuthenticationGroup {
     <#
 		.SYNOPSIS
-        Remove a group from the authentication provider in VMware Aria Operations for Logs
+        Remove a group from the authentication provider in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Undo-vRLIAuthenticationGroup cmdlet removes access to a group based on the authentication provider.
@@ -9492,8 +11520,8 @@ Function Undo-vRLIAuthenticationGroup {
 
         .EXAMPLE
         Undo-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -authProvider ad
-        This example removes the group gg-vrli-admins assigned via Active Directory from its assigned role in VMware Aria Operations for Logs
-    #>
+        This example removes the group gg-vrli-admins assigned via Active Directory from its assigned role in VMware Aria Operations for Logs.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9534,7 +11562,7 @@ Export-ModuleMember -Function Undo-vRLIAuthenticationGroup
 Function Add-vRLIAlertDatacenter {
     <#
 		.SYNOPSIS
-        Adds datacenter based alerts in VMware Aria Operations for Logs
+        Adds datacenter based alerts in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAlertsDatacenter cmdlet adds datacenter based alerts to VMware Aria Operations for Logs.
@@ -9551,8 +11579,32 @@ Function Add-vRLIAlertDatacenter {
 
         .EXAMPLE
         Add-vRLIAlertDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -datacenterName sfo-m01-dc01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\aria-operations-logs-alerts-datacenter-vcf.json" -vropsIntegration
-        This example adds the alerts provided in the JSON file
-    #>
+        This example adds the alerts provided in the JSON file.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER sddcDomainName
+        The name of the workload domain to run against.
+
+        .PARAMETER datacenterName
+        The Datacenter name.
+
+        .PARAMETER email
+        The email address to send notifications to.
+
+        .PARAMETER alertTemplate
+        The JSON file containing the alerts to be added.
+
+        .PARAMETER vropsIntegration
+        Enables integration with VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9630,7 +11682,7 @@ Export-ModuleMember -Function Add-vRLIAlertDatacenter
 Function Add-vRLIAlertVirtualMachine {
     <#
 		.SYNOPSIS
-        Adds virtual machine based alerts in VMware Aria Operations for Logs
+        Adds virtual machine based alerts in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLIAlertVirtualMachine cmdlet adds virtual machine based alerts to VMware Aria Operations for Logs.
@@ -9647,8 +11699,32 @@ Function Add-vRLIAlertVirtualMachine {
 
         .EXAMPLE
         Add-vRLIAlertVirtualMachine -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomainName sfo-m01 -vmName xint-vrslcm01 -email administrator@rainpole.io -alertTemplate ".\SampleNotifications\aria-operations-logs-alerts-vm-asl.json" -vropsIntegration
-        This example adds the alerts provided in the JSON file for the VMware Aria Suite Lifecycle Virtual Machine
-    #>
+        This example adds the alerts provided in the JSON file for the VMware Aria Suite Lifecycle Virtual Machine.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to connect to SDDC Manager.
+
+        .PARAMETER sddcDomainName
+        The name of the SDDC Domain.
+
+        .PARAMETER vmName
+        The name of the Virtual Machine.
+
+        .PARAMETER email
+        The email address to send notifications to.
+
+        .PARAMETER alertTemplate
+        The path to the JSON file containing the alerts to be added.
+
+        .PARAMETER vropsIntegration
+        Enables integration with VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9729,7 +11805,7 @@ Export-ModuleMember -Function Add-vRLIAlertVirtualMachine
 Function Undo-vRLIAlert {
     <#
 		.SYNOPSIS
-        Removes alerts from VMware Aria Operations for Logs
+        Removes alerts from VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Undo-vRLIAlert cmdlet removes datacenter based alerts from VMware Aria Operations for Logs.
@@ -9741,8 +11817,20 @@ Function Undo-vRLIAlert {
 
         .EXAMPLE
         Undo-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name sfo-m01-dc01
-        This example removes all alerts that contain the name 'sfo-m01-dc01'
-    #>
+        This example removes all alerts that contain the name 'sfo-m01-dc01'.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER name
+        The name of the alert to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9779,7 +11867,7 @@ Export-ModuleMember -Function Undo-vRLIAlert
 Function Enable-vRLIAlert {
     <#
 		.SYNOPSIS
-        Enables alerts in VMware Aria Operations for Logs
+        Enables alerts in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Enable-vRLIAlert cmdlet enables alerts in VMware Aria Operations for Logs. The cmdlet connects to SDDC
@@ -9791,8 +11879,23 @@ Function Enable-vRLIAlert {
 
         .EXAMPLE
         Enable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -email administrator@rainpole.io -alertDefinition ".\SampleNotifications\aria-operations-logs-alerts-vcf.json"
-        This example enables the alerts provided in the JSON file and configures an email address
-    #>
+        This example enables the alerts provided in the JSON file and configures an email address.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER email
+        The email address to send notifications to.
+
+        .PARAMETER alertDefinition
+        The alert definition file to use.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9843,7 +11946,7 @@ Export-ModuleMember -Function Enable-vRLIAlert
 Function Disable-vRLIAlert {
     <#
 		.SYNOPSIS
-        Disables alerts in VMware Aria Operations for Logs
+        Disables alerts in VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Disable-vRLIAlert cmdlet enables alerts in VMware Aria Operations for Logs. The cmdlet connects to SDDC
@@ -9855,8 +11958,20 @@ Function Disable-vRLIAlert {
 
         .EXAMPLE
         Disable-vRLIAlert -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alertDefinition ".\SampleNotifications\aria-operations-logs-alerts-vcf.json"
-        This example disables the alerts provided in the JSON file
-    #>
+        This example disables the alerts provided in the JSON file.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER alertDefinition
+        The alert definition file to use.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9905,7 +12020,7 @@ Export-ModuleMember -Function Disable-vRLIAlert
 Function Add-vRLILogForwarder {
     <#
 		.SYNOPSIS
-        Adds a log forwarder destination to VMware Aria Operations for Logs
+        Adds a log forwarder destination to VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-vRLILogForwarder cmdlet adds log forwarder destination to VMware Aria Operations for Logs.
@@ -9921,8 +12036,41 @@ Function Add-vRLILogForwarder {
 
         .EXAMPLE
         Add-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -name "SFO to LAX" -fqdn lax-vrli01.lax.rainpole.io -protocol CFAPI -port 9543 -acceptCert true -sslEnabled true -testConnection true
-        This example adds a log forwarder destination to VMware Aria Operations for Logs
-    #>
+        This example adds a log forwarder destination to VMware Aria Operations for Logs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER name
+        The name of the log forwarder destination.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the log forwarder destination.
+
+        .PARAMETER protocol
+        The protocol to use for the log forwarder destination. "CFAPI", "SYSLOG", "RAW".
+
+        .PARAMETER port
+        The port to use for the log forwarder destination.
+
+        .PARAMETER transport
+        The transport to use for the log forwarder destination. "TCP", "UDP".
+
+        .PARAMETER acceptCert
+        Accepts the certificate for the log forwarder destination. "true", "false".
+
+        .PARAMETER sslEnabled
+        Enables SSL for the log forwarder destination. "true", "false".
+
+        .PARAMETER testConnection
+        Tests the connection to the log forwarder destination. "true", "false".
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9979,7 +12127,7 @@ Export-ModuleMember -Function Add-vRLILogForwarder
 Function Undo-vRLILogForwarder {
     <#
 		.SYNOPSIS
-        Removes a log forwarder destination to VMware Aria Operations for Logs
+        Removes a log forwarder destination to VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Undo-vRLILogForwarder cmdlet removes log forwarder destination to VMware Aria Operations for Logs.
@@ -9992,7 +12140,31 @@ Function Undo-vRLILogForwarder {
         .EXAMPLE
         Undo-vRLILogForwarder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -fqdn lax-vrli01.lax.rainpole.io -protocol SYSLOG -port 514
         This example removes a log forwarder to VMware Aria Operations for Logs using syslog over TCP 514.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER name
+        The name of the log forwarder to remove.
+
+        .PARAMETER fqdn
+        The FQDN of the log forwarder to remove.
+
+        .PARAMETER protocol
+        The protocol of the log forwarder to remove. 'CFAPI", "SYSLOG", "RAW".
+
+        .PARAMETER port
+        The port of the log forwarder to remove.
+
+        .PARAMETER transport
+        The transport of the log forwarder to remove. 'TCP', 'UDP'.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10050,7 +12222,7 @@ Export-ModuleMember -Function Undo-vRLILogForwarder
 Function Add-NsxtNodeProfileSyslogExporter {
     <#
         .SYNOPSIS
-        Sets a syslog exporter on an NSX node profile to VMware Aria Operations for Logs
+        Sets a syslog exporter on an NSX node profile to VMware Aria Operations for Logs.
 
         .DESCRIPTION
         The Add-NsxtNodeProfileSyslogExporter cmdlet adds a syslog exporter for VMware Aria Operations for Logs to an NSX node
@@ -10069,7 +12241,22 @@ Function Add-NsxtNodeProfileSyslogExporter {
         .EXAMPLE
         Add-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -id "********-****-****-****-************"
         This example adds a syslog exporter to VMware Aria Operations for Logs for a specific node profile with the -id parameter.
-    #>
+
+        .PARAMETER id
+        The id of the NSX node profile to add the syslog exporter to. If not specified, the default (All NSX Nodes) node profile is used.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager.
+
+        .PARAMETER user
+        The user name to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The domain name of the SDDC Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10139,7 +12326,22 @@ Function Undo-NsxtNodeProfileSyslogExporter {
         .EXAMPLE
         Undo-NsxtNodeProfileSyslogExporter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -id "********-****-****-****-************"
         This example removes all syslog exporters from a specific node profile with the -id parameter.
-    #>
+
+        .PARAMETER id
+        The NSX node profile ID to remove the syslog exporter from. If not specified, the default (All NSX Nodes) node profile is used.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10199,7 +12401,16 @@ Function Get-vROpsLogForwardingConfig {
         .EXAMPLE
         Get-vROpsLogForwardingConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example returns the log forwarding configuration on VMware Aria Operations.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10258,7 +12469,19 @@ Function Get-vRAvRLIConfig {
         .EXAMPLE
         Get-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
         This example returns the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER rootPass
+        The root password to connect to the first VMware Aria Automation appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10321,7 +12544,25 @@ Function Set-vRAvRLIConfig {
         .EXAMPLE
         Set-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1! -protocol HTTPS
         This example sets the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER rootPass
+        The root password to connect to the first VMware Aria Automation appliance.
+
+        .PARAMETER protocol
+        The protocol to use for the VMware Aria Operations for Logs logging configuration. The acceptable values for this parameter are: "HTTPS", "HTTP"
+
+        .Parameter port
+        The port to use for the VMware Aria Operations for Logs logging configuration. The default value for this parameter is 9543.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10394,8 +12635,7 @@ Function Set-vRAvRLIConfig {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10418,7 +12658,19 @@ Function Remove-vRAvRLIConfig {
         .EXAMPLE
         Remove-vRAvRLIConfig -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
         This example removes the VMware Aria Operations for Logs logging configuration on VMware Aria Automation.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager.
+
+        .PARAMETER user
+        The user name to authenticate with SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate with SDDC Manager.
+
+        .PARAMETER rootPass
+        The root password to authenticate with the first VMware Aria Automation appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10480,6 +12732,20 @@ Function Enable-vRLIContentPack {
         .EXAMPLE
         Enable-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -token <your_base64_github_token> -contentPack VRO
         This examples installs the VMware Aria Automation Orchestrator content pack from the marketplace.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager.
+
+        .PARAMETER user
+        The user name to authenticate with SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate with SDDC Manager.
+
+        .PARAMETER token.
+
+        .PARAMETER contentPack
+        The content pack to install from the marketplace. 'VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD'
         #>
 
     Param (
@@ -10565,6 +12831,18 @@ Function Update-vRLIContentPack {
         .EXAMPLE
         Update-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack NSX
         This example updates the VMware Aria Operations for Logs content pack for NSX to the latest version from the marketplace.
+
+        .PARAMETER Server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager.
+
+        .PARAMETER User
+        The user name to authenticate with SDDC Manager.
+
+        .PARAMETER Pass
+        The password to authenticate with SDDC Manager.
+
+        .PARAMETER ContentPack
+        The content pack to update. The supported content packs are: VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD'
         #>
 
     Param (
@@ -10625,8 +12903,7 @@ Function Update-vRLIContentPack {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -10641,7 +12918,7 @@ Export-ModuleMember -Function Update-vRLIContentPack
 Function Export-vROPsJsonSpec {
     <#
         .SYNOPSIS
-        Create VMware Aria Operations Deployment JSON specification
+        Create VMware Aria Operations Deployment JSON specification.
 
         .DESCRIPTION
         The Export-vROPsJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -10670,8 +12947,32 @@ Function Export-vROPsJsonSpec {
 
         .EXAMPLE
         Export-vROPsJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data and deplpying OVAs from a vSphere Content Library
-    #>
+        This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using the Planning and Preparation Workbook data and deplpying OVAs from a vSphere Content Library.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER workbook
+        The Planning and Preparation Workbook (.xlsx) to use for the deployment. If not provided, the cmdlet will prompt for the workbook.
+
+        .PARAMETER nested
+        Specifies to use the reduced footprint JSON specification file for deploying VMware Aria Operations.
+
+        .PARAMETER customVersion
+        The custom version to use for deploying VMware Aria Operations.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library for deploying VMware Aria Operations.
+
+        .PARAMETER contentLibrary
+        The vSphere Content Library to use for deploying VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10742,31 +13043,31 @@ Function Export-vROPsJsonSpec {
                                                 # $pnpWorkbook.Workbook.Names["xint-m01-fd-vrops"].Value
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
-                                                    'dataCenterVmid'		= $datacenterName.dataCenterVmid
-                                                    'regionName'			= "default"
-                                                    'zoneName'				= "default"
-                                                    'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                                    'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                                    'vcUsername'			= $vcCredentials.userName
-                                                    'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                    'acceptEULA'			= "true"
-                                                    'enableTelemetry'		= "true"
-                                                    'defaultPassword'		= ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
-                                                    'certificate'			= ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
-                                                    'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                                    'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                                    'diskMode'				= "thin"
-                                                    'network'				= $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                                                    'masterVidmEnabled'		= "false"
-                                                    'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                                    'domain'				= $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                                                    'gateway'				= $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                                                    'netmask'				= $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                                                    'searchpath'			= $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                                                    'timeSyncMode'			= "ntp"
-                                                    'ntp'					= $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                                                    'isDhcp'				= "false"
-                                                    'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                                    'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                    'regionName'        = "default"
+                                                    'zoneName'          = "default"
+                                                    'vCenterName'       = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                                    'vCenterHost'       = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                                    'vcUsername'        = $vcCredentials.userName
+                                                    'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                    'acceptEULA'        = "true"
+                                                    'enableTelemetry'   = "true"
+                                                    'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                                    'certificate'       = ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
+                                                    'cluster'           = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                                    'storage'           = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                                    'diskMode'          = "thin"
+                                                    'network'           = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                                    'masterVidmEnabled' = "false"
+                                                    'dns'               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                                    'domain'            = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                    'gateway'           = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                                    'netmask'           = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                                    'searchpath'        = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                                    'timeSyncMode'      = "ntp"
+                                                    'ntp'               = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                                    'isDhcp'            = "false"
+                                                    'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                                 }
                                                 $infrastructureObject = @()
                                                 $infrastructureObject += [pscustomobject]@{
@@ -10775,10 +13076,10 @@ Function Export-vROPsJsonSpec {
 
                                                 ### Generate the Properties Details
                                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object {$_.contentLibraryName -eq $contentLibrary}).contentLibraryItems
+                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
                                                     if ($contentLibraryItems) {
-                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Operations-Manager-Appliance-$vropsVersion"}).contentLibraryItemId
-                                                        $contentLibraryProxyItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Operations-Cloud-Proxy-$vropsVersion"}).contentLibraryItemId
+                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "Operations-Manager-Appliance-$vropsVersion" }).contentLibraryItemId
+                                                        $contentLibraryProxyItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "Operations-Cloud-Proxy-$vropsVersion" }).contentLibraryItemId
                                                     } else {
                                                         Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
                                                         Break
@@ -10786,36 +13087,36 @@ Function Export-vROPsJsonSpec {
                                                 }
                                                 $productPropertiesObject = @()
                                                 $productPropertiesObject += [pscustomobject]@{
-                                                    'certificate'					= ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
-                                                    'productPassword'				= ("locker:password:" + $($vropsPassword.vmid) + ":" + $($vropsPassword.alias))
-                                                    'licenseRef'					= ("locker:license:" + $($vropsLicense.vmid) + ":" + $($vropsLicense.alias))
-                                                    'disableTls'					= "TLSv1,TLSv1.1"
-                                                    'fipsMode'						= "false"
-                                                    'timeSyncMode'					= "ntp"
-                                                    'masterVidmEnabled'				= $true
-                                                    'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                                                    'affinityRule'					= $false
-                                                    'configureAffinitySeparateAll'  = "true"
-                                                    'contentLibraryItemId'          = $contentLibraryItemId
-                                                    'contentLibraryItemId:proxy'    = $contentLibraryProxyItemId
-                                                    'deployOption'					= $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
-                                                    'isCaEnabled'                   = "false"
+                                                    'certificate'                  = ("locker:certificate:" + $($vropsCertificate.vmid) + ":" + $($vropsCertificate.alias))
+                                                    'productPassword'              = ("locker:password:" + $($vropsPassword.vmid) + ":" + $($vropsPassword.alias))
+                                                    'licenseRef'                   = ("locker:license:" + $($vropsLicense.vmid) + ":" + $($vropsLicense.alias))
+                                                    'disableTls'                   = "TLSv1,TLSv1.1"
+                                                    'fipsMode'                     = "false"
+                                                    'timeSyncMode'                 = "ntp"
+                                                    'masterVidmEnabled'            = $true
+                                                    'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                                                    'affinityRule'                 = $false
+                                                    'configureAffinitySeparateAll' = "true"
+                                                    'contentLibraryItemId'         = $contentLibraryItemId
+                                                    'contentLibraryItemId:proxy'   = $contentLibraryProxyItemId
+                                                    'deployOption'                 = $pnpWorkbook.Workbook.Names["xreg_vrops_appliance_size"].Value.ToLower()
+                                                    'isCaEnabled'                  = "false"
                                                 }
 
                                                 #### Generate VMware Aria Operations Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
-                                                    'controllerType'    = "NSX_T"
-                                                    'hostName'	        = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
+                                                    'controllerType' = "NSX_T"
+                                                    'hostName'       = $pnpWorkbook.Workbook.Names["xreg_vrops_virtual_fqdn"].Value
                                                 }
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
-                                                    'type'			= "vrops-cluster"
+                                                    'type'          = "vrops-cluster"
                                                     'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                                 }
                                                 $clusterObject = @()
                                                 $clusterObject += [pscustomobject]@{
-                                                'clusterVips'	= $clusterVipsObject
+                                                    'clusterVips'	= $clusterVipsObject
                                                 }
 
                                                 #### Generate VMware Aria Operations Node Details
@@ -10847,15 +13148,15 @@ Function Export-vROPsJsonSpec {
                                                 }
                                                 $replicaProperties = @()
                                                 $replicaProperties += [pscustomobject]@{
-                                                    'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
-                                                    'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
-                                                    'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_fqdn"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodeb_ip"].Value
                                                 }
                                                 $dataProperties = @()
                                                 $dataProperties += [pscustomobject]@{
-                                                    'vmName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
-                                                    'hostName'	= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
-                                                    'ip'		= $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_fqdn"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_vrops_nodec_ip"].Value
                                                 }
                                                 if ($vcfVersion -ge "4.5.1") {
                                                     $deployOption = "smallcp"
@@ -10910,52 +13211,52 @@ Function Export-vROPsJsonSpec {
                                                 }
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= "master"
+                                                    'type'       = "master"
                                                     'properties'	= ($masterProperties | Select-Object -Skip 0)
                                                 }
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= "replica"
+                                                    'type'       = "replica"
                                                     'properties'	= ($replicaProperties | Select-Object -Skip 0)
                                                 }
                                                 if (!$PsBoundParameters.ContainsKey("nested")) {
                                                     $nodesobject += [pscustomobject]@{
-                                                        'type'			= "data"
+                                                        'type'       = "data"
                                                         'properties'	= ($dataProperties | Select-Object -Skip 0)
                                                     }
                                                 }
 
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= $type
+                                                    'type'       = $type
                                                     'properties'	= ($remoteCollector1Properties | Select-Object -Skip 0)
                                                 }
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= $type
+                                                    'type'       = $type
                                                     'properties'	= ($remoteCollector2Properties | Select-Object -Skip 0)
                                                 }
 
                                                 #### Generate the VMware Aria Operations Properties Section
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
-                                                    'id' 			= "vrops"
-                                                    'version'		= $vropsVersion
-                                                    'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
-                                                    'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'			= $nodesObject	
+                                                    'id'         = "vrops"
+                                                    'version'    = $vropsVersion
+                                                    'properties' = ($productPropertiesObject  | Select-Object -Skip 0)
+                                                    'clusterVIP' = ($clusterObject  | Select-Object -Skip 0)
+                                                    'nodes'      = $nodesObject	
                                                 }
                                                 if (!($xintEnvironment)) { 
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
-                                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'environmentName' = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                                        'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                                        'products'        = $productsObject     
                                                     }
                                                 } else {
                                                     $vropsDeploymentObject = @()
                                                     $vropsDeploymentObject += [pscustomobject]@{
-                                                        'environmentId'         = $xintEnvironment.environmentId
-                                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'environmentId'   = $xintEnvironment.environmentId
+                                                        'environmentName' = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                                        'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                                        'products'        = $productsObject     
                                                     }
                                                 }
 
@@ -10991,7 +13292,7 @@ Export-ModuleMember -Function Export-vROPsJsonSpec
 Function New-vROPSDeployment {
     <#
         .SYNOPSIS
-        Deploy Aria Operations to VMware Aria Suite Lifecycle
+        Deploy Aria Operations to VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vROPSDeployment cmdlet deploys VMware Aria Operations via VMware Aria Suite Lifecycle. The cmdlet
@@ -11016,8 +13317,35 @@ Function New-vROPSDeployment {
 
         .EXAMPLE
         New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data and a vSphere Content Library for OVA installs
-    #>
+        This example starts a deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using the Planning and Preparation Workbook data and a vSphere Content Library for OVA installs.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER workbook
+        The Planning and Preparation Workbook (.xlsx) to use for the deployment. If not provided, the cmdlet will prompt for the workbook.
+
+        .PARAMETER monitor
+        Specifies to monitor the deployment request in VMware Aria Suite Lifecycle.
+
+        .PARAMETER nested
+        Specifies to use the reduced footprint JSON specification file for deploying VMware Aria Operations.
+
+        .PARAMETER customVersion
+        The custom version to use for deploying VMware Aria Operations.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library for deploying VMware Aria Operations.
+
+        .PARAMETER contentLibrary
+        The vSphere Content Library to use for deploying VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11111,7 +13439,7 @@ Export-ModuleMember -Function New-vROPSDeployment
 Function Import-vROPSUserAccount {
     <#
         .SYNOPSIS
-        Import a user from Workspace ONE Access and assign access in VMware Aria Operations
+        Import a user from Workspace ONE Access and assign access in VMware Aria Operations.
 
         .DESCRIPTION
         The Import-vROPSUserAccount cmdlet imports a user from Workspace ONE Access and assigns access in VMware Aria Operations.
@@ -11126,8 +13454,26 @@ Function Import-vROPSUserAccount {
 
         .EXAMPLE
         Import-vROPSUserAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -userName nigel.mccloud -role Administrator
-        This example imports a user into VMware Aria Operations and assigns the role
-    #>
+        This example imports a user into VMware Aria Operations and assigns the role.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The domain of the user to import.
+
+        .PARAMETER userName
+        The username of the user to import.
+
+        .PARAMETER role
+        The role to assign to the user.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11180,7 +13526,7 @@ Export-ModuleMember -Function Import-vROPSUserAccount
 Function Import-vROPSUserGroup {
     <#
         .SYNOPSIS
-        Import a Group from Workspace ONE Access and assign access in VMware Aria Operations
+        Import a Group from Workspace ONE Access and assign access in VMware Aria Operations.
 
         .DESCRIPTION
         The Import-vROPSUserGroup cmdlet imports a Group from Workspace ONE Access and assigns access in VMware Aria
@@ -11195,8 +13541,26 @@ Function Import-vROPSUserGroup {
 
         .EXAMPLE
         Import-vROPSUserGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -groupName gg-vrops-admins -role Administrator
-        This example imports a group into VMware Aria Operations and assigns the role
-    #>
+        This example imports a group into VMware Aria Operations and assigns the role.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The domain of the group to import.
+
+        .PARAMETER groupName
+        The group name of the group to import.
+
+        .PARAMETER role
+        The role to assign to the group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11249,7 +13613,7 @@ Export-ModuleMember -Function Import-vROPSUserGroup
 Function Register-vROPSWorkloadDomain {
     <#
 		.SYNOPSIS
-        Connect a Workload Domain to VMware Aria Operations
+        Connect a Workload Domain to VMware Aria Operations.
 
         .DESCRIPTION
         The Register-vROPSWorkloadDomain cmdlet connects a Workload Domain to VMware Aria Operations. The cmdlet
@@ -11266,8 +13630,23 @@ Function Register-vROPSWorkloadDomain {
 
         .EXAMPLE
         Register-vROPSWorkloadDomain -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -status DISABLED
-        This example DISABLES the Workload Domain in VMware Aria Operations
-    #>
+        This example DISABLES the Workload Domain in VMware Aria Operations.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The Workload Domain to connect to VMware Aria Operations.
+
+        .PARAMETER status
+        The status of the Workload Domain in VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11311,7 +13690,7 @@ Export-ModuleMember -Function Register-vROPSWorkloadDomain
 Function Add-vROPSGroupRemoteCollectors {
     <#
 		.SYNOPSIS
-        Creates a Collector group and assigns nodes in VMwre Aria Operations
+        Creates a Collector group and assigns nodes in VMwre Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSGroupRemoteCollectors cmdlet creates a collector group in VMware Aria Operations and
@@ -11326,8 +13705,20 @@ Function Add-vROPSGroupRemoteCollectors {
 
         .EXAMPLE
         Add-vROPSGroupRemoteCollectors -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creates a Collector group called 'sfo-remote-collectors' and assigns the Remove Collector Nodes in VMware Aria Operations
-    #>
+        This example creates a Collector group called 'sfo-remote-collectors' and assigns the Remove Collector Nodes in VMware Aria Operations.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER collectorGroupName
+        The name of the Collector Group to create in VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11368,7 +13759,7 @@ Export-ModuleMember -Function Add-vROPSGroupRemoteCollectors
 Function Update-vROPSAdapterVcenter {
     <#
 		.SYNOPSIS
-        Updates the assigned collector group for vCenter Adapter
+        Updates the assigned collector group for vCenter Adapter.
 
         .DESCRIPTION
         The Update-vROPSAdapterVcenter cmdlet updates the assigned collector group for all vCenter Adapters in
@@ -11383,8 +13774,20 @@ Function Update-vROPSAdapterVcenter {
 
         .EXAMPLE
         Update-vROPSAdapterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example updates all vCenter Adapters to use the collector group named 'sfo-remote-collectors'
-    #>
+        This example updates all vCenter Adapters to use the collector group named 'sfo-remote-collectors'.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER collectorGroupName
+        The name of the Collector Group to assign to the vCenter Adapter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11462,7 +13865,7 @@ Export-ModuleMember -Function Update-vROPSAdapterVcenter
 Function Update-vROPSAdapterCollecterGroup {
     <#
 		.SYNOPSIS
-        Updates the assigned Collector Group for the specified Adapter type
+        Updates the assigned Collector Group for the specified Adapter type.
 
         .DESCRIPTION
         The Update-vROPSAdapterCollecterGroup cmdlet updates the assigned Collector group for all Adapters in
@@ -11489,8 +13892,26 @@ Function Update-vROPSAdapterCollecterGroup {
 
         .EXAMPLE
         Update-vROPSAdapterCollecterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -adaptertype "IdentityManagerAdapter" -adaptername "vRSLCM_VCF_Workspace ONE Access Adapter"
-        This example updates Identity Manager Adapter with name "vRSLCM_VCF_Workspace ONE Access Adapter" to use the default Collector group named "Default collector group"
-    #>
+        This example updates Identity Manager Adapter with name "vRSLCM_VCF_Workspace ONE Access Adapter" to use the default Collector group named "Default collector group".
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER collectorGroupName
+        The name of the Collector Group to assign to the Adapter.
+
+        .PARAMETER adapterType
+        The type of Adapter to update.
+
+        .PARAMETER adapterName
+        The name of the Adapter to update.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11520,16 +13941,16 @@ Function Update-vROPSAdapterCollecterGroup {
                                 Foreach ($adapter in $adapters) {
                                     $json =  $adapter
                                     if (!($($json.collectorGroupId) -eq $collectorGroupId)) {
-                                                $json.collectorGroupId=$collectorGroupId
-                                                #Remove collectorId as the request body can accept a collectorId or a collectorGroupId, but not both.
-                                                $json.PSObject.Properties.Remove('collectorId')
-                                                $json  | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json                                                
-                                                Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
-                                                Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
-                                                Remove-Item .\updateAdapter.json -Force -Confirm:$false
-                                            } else {
-                                                Write-Warning "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)) already assigned: SKIPPED"
-                                            }
+                                        $json.collectorGroupId=$collectorGroupId
+                                        #Remove collectorId as the request body can accept a collectorId or a collectorGroupId, but not both.
+                                        $json.PSObject.Properties.Remove('collectorId')
+                                        $json  | ConvertTo-Json -Depth 4 | Out-File .\updateAdapter.json                                                
+                                        Set-vROPSAdapter -json .\updateAdapter.json | Out-Null
+                                        Write-Output "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)): SUCCESSFUL"
+                                        Remove-Item .\updateAdapter.json -Force -Confirm:$false
+                                    } else {
+                                        Write-Warning "Assigning Collector Group ($collectorGroupName) to instance ($($adapter.resourceKey.name)) already assigned: SKIPPED"
+                                    }
                                 }
                             } else {
                                 Write-Error "Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
@@ -11548,7 +13969,7 @@ Export-ModuleMember -Function Update-vROPSAdapterCollecterGroup
 Function Add-vROPSCurrency {
     <#
 		.SYNOPSIS
-        Configures the currency in VMware Aria Operations
+        Configures the currency in VMware Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSCurrency cmdlet configures the currency in VMware Aria Operations. The cmdlet connects to SDDC
@@ -11561,8 +13982,20 @@ Function Add-vROPSCurrency {
 
         .EXAMPLE
         Add-vROPSCurrency -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -currency USD
-        This example configures the currency to USD in VMware Aria Operations
-    #>
+        This example configures the currency to USD in VMware Aria Operations.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER currency
+        The currency to configure in VMware Aria Operations.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11601,7 +14034,7 @@ Export-ModuleMember -Function Add-vROPSCurrency
 Function Enable-vROPSManagementPack {
     <#
 		.SYNOPSIS
-        Install a Management Pack in VMware Aria Operations
+        Install a Management Pack in VMware Aria Operations.
 
         .DESCRIPTION
         The Enable-vROPSManagementPack cmdlet uploads and installs a management pack in VMware Aria Operations.
@@ -11616,8 +14049,23 @@ Function Enable-vROPSManagementPack {
 
         .EXAMPLE
         Enable-vROPSManagementPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -packType "SDDC Health" -pakfile .\management.pak
-        This example installs the SDDC Health Management Pack in VMware Aria Operations
-    #>
+        This example installs the SDDC Health Management Pack in VMware Aria Operations.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER packType
+        The Management Pack type to install.
+
+        .PARAMETER pakFile
+        The path to the Management Pack (.pak) file to install.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11675,7 +14123,7 @@ Export-ModuleMember -Function Enable-vROPSManagementPack
 Function Register-vROPSManagementPack {
     <#
 		.SYNOPSIS
-        Enable / Disable a Management Pack
+        Enable / Disable a Management Pack.
 
         .DESCRIPTION
         The Register-vROPSManagementPack cmdlet activates or deactivates a management pack in VMware Aria Operations.
@@ -11692,8 +14140,23 @@ Function Register-vROPSManagementPack {
 
         .EXAMPLE
         Register-vROPSManagementPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -state disable -packType Ping
-        This example deactivates the Ping management pack in VMware Aria Operations
-    #>
+        This example deactivates the Ping management pack in VMware Aria Operations.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER state
+        The state of the Management Pack to activate or deactivate.
+
+        .PARAMETER packType
+        The Management Pack type to activate or deactivate.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11760,7 +14223,7 @@ Export-ModuleMember -Function Register-vROPSManagementPack
 Function Add-vROPSAdapterNsxt {
     <#
 		.SYNOPSIS
-        Adds an NSX Adapter to VMware Aria Operations
+        Adds an NSX Adapter to VMware Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSAdapterNsxt cmdlet adds an NSX Adapter for a Workload Domains NSX Manager cluster to VMware Aria
@@ -11785,8 +14248,23 @@ Function Add-vROPSAdapterNsxt {
 
         .EXAMPLE
         Add-vROPSAdapterNsxt -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01
-        This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the "Default collector group"
-    #>
+        This example creates an NSX Adapter for the Management Workload Domain named in VMware Aria Operations and assigns to the "Default collector group".
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The Workload Domain to add the NSX Adapter for.
+
+        .PARAMETER collectorGroupName
+        The name of the Collector Group to assign to the NSX Adapter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11876,7 +14354,7 @@ Export-ModuleMember -Function Add-vROPSAdapterNsxt
 Function Add-vROPSAdapterPing {
     <#
 		.SYNOPSIS
-        Adds a Ping Adapter to VMware Aria Operations
+        Adds a Ping Adapter to VMware Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSAdapterPing cmdlet adds a Ping adapter to VMware Aria Operations. The cmdlet connects to SDDC
@@ -11894,8 +14372,26 @@ Function Add-vROPSAdapterPing {
 
         .EXAMPLE
         Add-vROPSAdapterPing -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -addressList "192.168.11.50,192.168.11.51,192.168.11.52,192.168.11.53" -adapterName xint-vra01
-        This example creates a new Ping adapter called 'xint-vra01', assigns the IP Addresses provided and assigns to the 'Default collector group'
-    #>
+        This example creates a new Ping adapter called 'xint-vra01', assigns the IP Addresses provided and assigns to the 'Default collector group'.
+
+        .PARAMETER server   
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER addressList
+        The list of IP Addresses to ping.
+
+        .PARAMETER adapterName
+        The name of the Ping Adapter to create.
+
+        .PARAMETER collectorGroupName
+        The name of the Collector Group to assign to the Ping Adapter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11992,7 +14488,7 @@ Export-ModuleMember -Function Add-vROPSAdapterPing
 Function Update-vROPSAdapterSddcHealth {
     <#
 		.SYNOPSIS
-        Updates the SDDC Health Adapters names in VMware Aria Operations
+        Updates the SDDC Health Adapters names in VMware Aria Operations.
 
         .DESCRIPTION
         The Update-vROPSAdapterSddcHealth cmdlet updates the names of the SDDC Health Adapters in VMware Aria
@@ -12007,8 +14503,17 @@ Function Update-vROPSAdapterSddcHealth {
 
         .EXAMPLE
         Update-vROPSAdapterSddcHealth -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example updates all the name of all SDDC Health Adapters 
-    #>
+        This example updates all the name of all SDDC Health Adapters .
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12074,7 +14579,7 @@ Export-ModuleMember -Function Update-vROPSAdapterSddcHealth
 Function Add-vROPSAdapterSddcHealth {
     <#
 		.SYNOPSIS
-        Adds an SDDC Health Adapters for Collectors
+        Adds an SDDC Health Adapters for Collectors.
 
         .DESCRIPTION
         The Add-vROPSAdapterSddcHealth cmdlet adds SDDC Health Adapters for the Remove Collectors in VMware Aria
@@ -12088,8 +14593,17 @@ Function Add-vROPSAdapterSddcHealth {
 
         .EXAMPLE
         Add-vROPSAdapterSddcHealth -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example creates an SDDC Health Adapter for each Collector Node found in VMware Aria Operations
-    #>
+        This example creates an SDDC Health Adapter for each Collector Node found in VMware Aria Operations.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12104,7 +14618,7 @@ Function Add-vROPSAdapterSddcHealth {
                     if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
                         if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
                             $vropsVersion = ((Get-vROPSVersion).releaseName -split '\s+' -match '\S')[-1] 
-                            if ($remoteCollectors = (Get-vROPSCollector | Where-Object {$_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY"})) {
+                            if ($remoteCollectors = (Get-vROPSCollector | Where-Object { $_.type -eq "REMOTE" -or $_.type -eq "CLOUD_PROXY" })) {
                                 Foreach ($collector in $remoteCollectors) {
                                     $adapterName = "SDDC Health Adapter Instance - " + $collector.name
                                     if ($vropsVersion -lt 8.5.0) {
@@ -12158,7 +14672,7 @@ Export-ModuleMember -Function Add-vROPSAdapterSddcHealth
 Function Add-vROPSAdapterIdentityManager {
     <#
 		.SYNOPSIS
-        Adds an Identity Manager adapter to VMware Aria Operations
+        Adds an Identity Manager adapter to VMware Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSAdapterIdentityManager cmdlet adds a Identity Manager adapter to VMware Aria Operations.
@@ -12176,8 +14690,29 @@ Function Add-vROPSAdapterIdentityManager {
 
         .EXAMPLE
         Add-vROPSAdapterIdentityManager -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -wsaFqdn sfo-wsa01.sfo.rainpole.io -wsaUser admin -wsaPass VMw@re1!
-        This example creates a new Identity Manager adapter and assigns it to the 'Default collector group'
-    #>
+        This example creates a new Identity Manager adapter and assigns it to the 'Default collector group'.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER wsaFqdn
+        The FQDN of the Workspace ONE Access appliance.
+
+        .PARAMETER wsaUser
+        The Workspace ONE Access administrator user.
+
+        .PARAMETER wsaPass
+        The Workspace ONE Access administrator password.
+
+        .PARAMETER collectorGroupName
+        The name of the Collector Group to assign to the Identity Manager Adapter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12273,7 +14808,7 @@ Export-ModuleMember -Function Add-vROPSAdapterIdentityManager
 Function Add-vROPSAdapterSrm {
     <#
 		.SYNOPSIS
-        Adds a Site Recovery Manager Adapter to VMware Aria Operations
+        Adds a Site Recovery Manager Adapter to VMware Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSAdapterSrm cmdlet adds an Site Recovery Manager Adapter to VMware Aria Operations. The cmdlet
@@ -12289,8 +14824,29 @@ Function Add-vROPSAdapterSrm {
 
         .EXAMPLE
         Add-vROPSAdapterSrm -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -srmFqdn sfo-m01-srm01.sfo.rainpole.io -srmUser vrops-srm -srmPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creates a Site Recovery Manager Adapter in VMware Aria Operations and assigns to the collector group defined
-    #>
+        This example creates a Site Recovery Manager Adapter in VMware Aria Operations and assigns to the collector group defined.
+
+        .PARAMETER server
+        The IP Address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER srmFqdn
+        The FQDN of the Site Recovery Manager instance.
+
+        .PARAMETER srmUser
+        The username to authenticate to Site Recovery Manager.
+
+        .PARAMETER srmPass
+        The password to authenticate to Site Recovery Manager.
+
+        .PARAMETER collectorGroupName
+        The name of the collector group to assign the adapter to.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12379,7 +14935,7 @@ Export-ModuleMember -Function Add-vROPSAdapterSrm
 Function Add-vROPSAdapterVr {
     <#
 		.SYNOPSIS
-        Adds a vSphere Replication Adapter to VMware Aria Operations
+        Adds a vSphere Replication Adapter to VMware Aria Operations.
 
         .DESCRIPTION
         The Add-vROPSAdapterVr cmdlet adds an vSphere Replication Adapter to VMware Aria Operations. The cmdlet
@@ -12395,8 +14951,29 @@ Function Add-vROPSAdapterVr {
 
         .EXAMPLE
         Add-vROPSAdapterVr -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vrFqdn sfo-m01-vrms01.sfo.rainpole.io -vrUser vrops-vr@vsphere.local -vrPass VMw@re1!VMw@re1! -collectorGroupName "sfo-remote-collectors"
-        This example creates a vSphere Replication Adapter in VMware Aria Operations and assigns to the collector group defined
-    #>
+        This example creates a vSphere Replication Adapter in VMware Aria Operations and assigns to the collector group defined.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER vrFqdn
+        The fully qualified domain name of the vSphere Replication Manager.
+
+        .PARAMETER vrUser
+        The username used to connect to the vSphere Replication Manager.
+
+        .PARAMETER vrPass
+        The password used to connect to the vSphere Replication Manager.
+
+        .PARAMETER collectorGroupName
+        The name of the collector group to assign the vSphere Replication Adapter to.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12484,7 +15061,7 @@ Export-ModuleMember -Function Add-vROPSAdapterVr
 Function Undo-vROPSAdapter {
     <#
 		.SYNOPSIS
-        Removes an adapter from VMware Aria Operations
+        Removes an adapter from VMware Aria Operations.
 
         .DESCRIPTION
         The Undo-vROPSAdapter cmdlet adds a Identity Manager adapter to VMware Aria Operations.
@@ -12497,8 +15074,23 @@ Function Undo-vROPSAdapter {
 
         .EXAMPLE
         Undo-vROPSAdapter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -adapterName sfo-wsa01.sfo.rainpole.io -adapterType IdentityManagerAdapter
-        This example deletes the adapter type IdentityManagerAdapter, with a name of sfo-wsa01.sfo.rainpole.io
-    #>
+        This example deletes the adapter type IdentityManagerAdapter, with a name of sfo-wsa01.sfo.rainpole.io.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER adapterName
+        The name of the adapter.
+
+        .PARAMETER adapterType
+        The type of adapter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12542,7 +15134,7 @@ Export-ModuleMember -Function Undo-vROPSAdapter
 Function Undo-vROPSCredential {
     <#
 		.SYNOPSIS
-        Removes a credential from VMware Aria Operations
+        Removes a credential from VMware Aria Operations.
 
         .DESCRIPTION
         The Undo-vROPSCredential cmdlet removes a credential from VMware Aria Operations. The cmdlet connects to
@@ -12555,8 +15147,23 @@ Function Undo-vROPSCredential {
 
         .EXAMPLE
         Undo-vROPSCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credentialName sfo-wsa01.sfo.rainpole.io -credentialType IdentityManagerAdapter
-        This example deletes the credential type IdentityManagerAdapter, with a name of sfo-wsa01.sfo.rainpole.io
-    #>
+        This example deletes the credential type IdentityManagerAdapter, with a name of sfo-wsa01.sfo.rainpole.io.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER credentialName
+        The name of the credential.
+
+        .PARAMETER credentialType
+        The type of credential.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12600,7 +15207,7 @@ Export-ModuleMember -Function Undo-vROPSCredential
 Function Add-vROPSAlertPluginEmail {
     <#
 		.SYNOPSIS
-        Adds an Email based Alert Plugin
+        Adds an Email based Alert Plugin.
 
         .DESCRIPTION
         The Add-vROPSAlertPluginEmail cmdlet adds an Email based Alert Plugin in VMware Aria Operations. The
@@ -12617,8 +15224,44 @@ Function Add-vROPSAlertPluginEmail {
 
         .EXAMPLE
         Add-vROPSAlertPluginEmail -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -pluginName "Email-Alert-Plugin" -smtpServer smtp.rainpole.io -smtpPort 25 -senderAddress "vrops-alerts@rainpole.io" -secureConnection true -protocol TLS -authentication true -authUser administrator -authPass VMw@re1!
-        This example creates and enables an Email Alert Plugin in VMware Aria Operations with authentication
-    #>
+        This example creates and enables an Email Alert Plugin in VMware Aria Operations with authentication.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER pluginName
+        The name of the Email Alert Plugin.
+
+        .PARAMETER smtpServer
+        The SMTP server to use for sending emails.
+
+        .PARAMETER smtpPort
+        The SMTP port to use for sending emails.
+
+        .PARAMETER senderAddress
+        The email address to use for sending emails.
+
+        .PARAMETER secureConnection
+        Whether to use a secure connection or not.
+
+        .PARAMETER protocol
+        The protocol to use for the secure connection.
+
+        .PARAMETER authentication
+        Whether to use authentication or not.
+
+        .PARAMETER authUser
+        The username to use for authentication.
+
+        .PARAMETER authPass
+        The password to use for authentication.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12728,7 +15371,7 @@ Export-ModuleMember -Function Add-vROPSAlertPluginEmail
 Function Import-vROPSNotification {
     <#
 		.SYNOPSIS
-        Adds notifications to VMware Aria Operations
+        Adds notifications to VMware Aria Operations.
 
         .DESCRIPTION
         The Import-vROPSNotification cmdlet adds notifications in VMware Aria Operations. The cmdlet connects to SDDC
@@ -12741,8 +15384,20 @@ Function Import-vROPSNotification {
 
         .EXAMPLE
         Import-vROPSNotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
-        This example adds notifications based on the comma seperated value file provided to VMware Aria Operations
-    #>
+        This example adds notifications based on the comma seperated value file provided to VMware Aria Operations.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER csvPath
+        The path to the .csv file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12802,7 +15457,19 @@ Function Test-vROPsAdapterStatusByType {
         .EXAMPLE
         Test-vROPsAdapterStatusByType -server sfo-vcf01.sfo.rainpole.io "administrator@vsphere.local" -pass "VMw@re1!" -adapterKind CASAdapter
         This example validates the integration status between VMware Aria Operations and VMware Aria Automation adapter.
-    #>
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER adapterKind
+        The adapter kind.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12843,7 +15510,7 @@ Export-ModuleMember -Function Test-vROPsAdapterStatusByType
 Function Update-vROPSvRAAdapterCredential {
     <#
 		.SYNOPSIS
-        Update the credential of VMware Aria Automation adapter in VMware Aria Operations
+        Update the credential of VMware Aria Automation adapter in VMware Aria Operations.
 
         .DESCRIPTION
         The Update-vROPSvRAAdapterCredential cmdlet update the credential of VMware Aria Automation adapter in VMware
@@ -12860,8 +15527,29 @@ Function Update-vROPSvRAAdapterCredential {
 
         .EXAMPLE
         Update-vROPSvRAAdapterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -credential_displayname "VMware Aria Automation Credentials" -credential_username svc-vrops-vra@sfo.rainpole.io -credential_password VMw@re1! -adapterKind CASAdapter
-        This example update the credential of VMware Aria Automation adapter with name "VMware Aria Automation Credentials" in VMware Aria Operations
-    #>
+        This example update the credential of VMware Aria Automation adapter with name "VMware Aria Automation Credentials" in VMware Aria Operations.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER credential_displayname
+        The credential display name.
+
+        .PARAMETER credential_username
+        The credential user name.
+
+        .PARAMETER credential_password
+        The credential password.
+
+        .PARAMETER adapterKind
+        The adapter kind.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12959,7 +15647,7 @@ Export-ModuleMember -Function Update-vROPSvRAAdapterCredential
 Function Add-vROPSVcfCredential {
     <#
 		.SYNOPSIS
-        Adds a VMware Cloud Foundation Credential
+        Adds a VMware Cloud Foundation Credential.
 
         .DESCRIPTION
         The Add-vROPSVcfCredential cmdlet adds a VMware Cloud Foundation credential to VMware Aria Operations.
@@ -12972,8 +15660,23 @@ Function Add-vROPSVcfCredential {
 
         .EXAMPLE
         Add-vROPSVcfCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -serviceUser svc-iom-vcf@sfo.rainpole.io -servicePassword VMw@re1!
-        This example adds a VMware Cloud Foundation credential to VMware Aria Operations
-    #>
+        This example adds a VMware Cloud Foundation credential to VMware Aria Operations.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER serviceUser
+        The username of the VMware Cloud Foundation service account.
+
+        .PARAMETER servicePassword
+        The password of the VMware Cloud Foundation service account.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13024,7 +15727,7 @@ Export-ModuleMember -Function Add-vROPSVcfCredential
 Function Add-vROPSVcenterCredential {
     <#
 		.SYNOPSIS
-        Adds a vCenter Server Credential
+        Adds a vCenter Server Credential.
 
         .DESCRIPTION
         The Add-vROPSVcenterCredential cmdlet adds a vCenter Server credential to VMware Aria Operations.
@@ -13037,8 +15740,26 @@ Function Add-vROPSVcenterCredential {
 
         .EXAMPLE
         Add-vROPSVcenterCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -serviceUser svc-iom-vsphere@sfo.rainpole.io -servicePassword VMw@re1!
-        This example adds a vCenter Server credential to VMware Aria Operations
-    #>
+        This example adds a vCenter Server credential to VMware Aria Operations.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to add the vCenter Server credential to.
+
+        .PARAMETER serviceUser
+        The username of the vCenter Server service account.
+
+        .PARAMETER servicePassword
+        The password of the vCenter Server service account.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13090,7 +15811,7 @@ Export-ModuleMember -Function Add-vROPSVcenterCredential
 Function Add-vROPSNsxCredential {
     <#
 		.SYNOPSIS
-        Adds an NSX Credential
+        Adds an NSX Credential.
 
         .DESCRIPTION
         The Add-vROPSNsxCredential cmdlet adds an NSX credential to VMware Aria Operations, this can be either a
@@ -13108,8 +15829,35 @@ Function Add-vROPSNsxCredential {
 
         .EXAMPLE
         Add-vROPSNsxCredential -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -certificate -certificateData sfo-m01-nsx01.cer -certificateKey sfo-m01-nsx01.key
-        This example adds an NSX Principal Identity as a client certificate credential to VMware Aria Operations
-    #>
+        This example adds an NSX Principal Identity as a client certificate credential to VMware Aria Operations.
+
+        .PARAMETER server
+        The IP address or FQDN of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload domain to add the NSX credential to.
+
+        .PARAMETER serviceUser
+        The username of the NSX service account.
+
+        .PARAMETER servicePassword
+        The password of the NSX service account.
+
+        .PARAMETER certificate
+        Switch to indicate that the NSX credential is a Principal Identity (certificate based).
+
+        .PARAMETER certificateData
+        The path to the NSX certificate file (.cer).
+
+        .PARAMETER certificateKey
+        The path to the NSX certificate key file (.key).
+   #>
 
     [CmdletBinding(DefaultParametersetName = "credential")][OutputType('System.Management.Automation.PSObject')]
 
@@ -13231,7 +15979,7 @@ Export-ModuleMember -Function Add-vROPSNsxCredential
 Function Export-vRAJsonSpec {
     <#
         .SYNOPSIS
-        Create VMware Aria Automation Deployment JSON specification
+        Create VMware Aria Automation Deployment JSON specification.
 
         .DESCRIPTION
         The Export-vRAJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -13251,8 +15999,29 @@ Function Export-vRAJsonSpec {
 
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example creates a JSON deployment specification of VMware Aria Automation using the Planning and Preparation Workbook and deploys using the OVA using a vSphere Content Library
-    #>
+        This example creates a JSON deployment specification of VMware Aria Automation using the Planning and Preparation Workbook and deploys using the OVA using a vSphere Content Library.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER workbook
+        The Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER customVersion
+        The custom version of VMware Aria Automation.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library to deploy the VMware Aria Automation OVA.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to use to deploy the VMware Aria Automation OVA.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13323,30 +16092,30 @@ Function Export-vRAJsonSpec {
 
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
-                                                    'acceptEULA'			= "true"
-                                                    'enableTelemetry'		= "true"
-                                                    'regionName'			= "default"
-                                                    'zoneName'				= "default"
-                                                    'dataCenterVmid'		= $datacenterName.dataCenterVmid
-                                                    'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                                    'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                                    'vcUsername'			= $vcCredentials.userName
-                                                    'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                    'defaultPassword'		= ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
-                                                    'certificate'			= ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
-                                                    'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                                    'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                                    'diskMode'				= "thin"
-                                                    'network'				= $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                                                    'masterVidmEnabled'		= "false"
-                                                    'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                                    'domain'				= $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                                                    'gateway'				= $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                                                    'netmask'				= $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                                                    'searchpath'			= $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                                                    'timeSyncMode'			= "ntp"
-                                                    'ntp'					= $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                                                    'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                                    'acceptEULA'        = "true"
+                                                    'enableTelemetry'   = "true"
+                                                    'regionName'        = "default"
+                                                    'zoneName'          = "default"
+                                                    'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                    'vCenterName'       = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                                    'vCenterHost'       = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                                    'vcUsername'        = $vcCredentials.userName
+                                                    'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                    'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                                    'certificate'       = ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
+                                                    'cluster'           = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                                    'storage'           = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                                    'diskMode'          = "thin"
+                                                    'network'           = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                                    'masterVidmEnabled' = "false"
+                                                    'dns'               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                                    'domain'            = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                    'gateway'           = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                                    'netmask'           = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                                    'searchpath'        = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                                    'timeSyncMode'      = "ntp"
+                                                    'ntp'               = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                                    'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                                 }
 
                                                 $infrastructureObject = @()
@@ -13356,9 +16125,9 @@ Function Export-vRAJsonSpec {
 
                                                 ### Generate the Properties Details
                                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object {$_.contentLibraryName -eq $contentLibrary}).contentLibraryItems
+                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
                                                     if ($contentLibraryItems) {
-                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "Prelude_VA-$vraVersion"}).contentLibraryItemId
+                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "Prelude_VA-$vraVersion" }).contentLibraryItemId
                                                     } else {
                                                         Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
                                                         Break
@@ -13367,92 +16136,92 @@ Function Export-vRAJsonSpec {
 
                                                 $productPropertiesObject = @()
                                                 $productPropertiesObject += [pscustomobject]@{
-                                                    'certificate'					= ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
-                                                    'productPassword'				= ("locker:password:" + $($vraPassword.vmid) + ":" + $($vraPassword.alias))
-                                                    'licenseRef'					= ("locker:license:" + $($vraLicense.vmid) + ":" + $($vraLicense.alias))
-                                                    'fipsMode'						= "false"
-                                                    'timeSyncMode'					= "ntp"
-                                                    'ntp'							= $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                                                    'affinityRule'					= $false
-                                                    'configureAffinitySeparateAll'  = "true"
-                                                    'contentLibraryItemId'          = $contentLibraryItemId
-                                                    'nodeSize'					    = $pnpWorkbook.Workbook.Names["xreg_vra_appliance_size"].Value.ToLower()
-                                                    'vraK8ServiceCidr'              = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_cluster_cidr"].Value
-                                                    'vraK8ClusterCidr'              = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_service_cidr"].Value
-                                                    'clusterFqdn'                   = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
+                                                    'certificate'                  = ("locker:certificate:" + $($vraCertificate.vmid) + ":" + $($vraCertificate.alias))
+                                                    'productPassword'              = ("locker:password:" + $($vraPassword.vmid) + ":" + $($vraPassword.alias))
+                                                    'licenseRef'                   = ("locker:license:" + $($vraLicense.vmid) + ":" + $($vraLicense.alias))
+                                                    'fipsMode'                     = "false"
+                                                    'timeSyncMode'                 = "ntp"
+                                                    'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+                                                    'affinityRule'                 = $false
+                                                    'configureAffinitySeparateAll' = "true"
+                                                    'contentLibraryItemId'         = $contentLibraryItemId
+                                                    'nodeSize'                     = $pnpWorkbook.Workbook.Names["xreg_vra_appliance_size"].Value.ToLower()
+                                                    'vraK8ServiceCidr'             = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_cluster_cidr"].Value
+                                                    'vraK8ClusterCidr'             = $pnpWorkbook.Workbook.Names["xreg_vra_k8s_service_cidr"].Value
+                                                    'clusterFqdn'                  = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
 
                                                 #### Generate VMware Aria Automation Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
-                                                    'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
                                                 $clusterVipsObject = @()
                                                 $clusterVipsObject += [pscustomobject]@{
-                                                    'type'			= "vra-va"
+                                                    'type'       = "vra-va"
                                                     'properties'	= ($clusterVipProperties | Select-Object -Skip 0)
                                                 }
                                                 $clusterObject = @()
                                                 $clusterObject += [pscustomobject]@{
-                                                'clusterVips'	= $clusterVipsObject
+                                                    'clusterVips'	= $clusterVipsObject
                                                 }
 
                                                 #### Generate VMware Aria Automation Node Details
                                                 $vraPrimaryProperties = @()
                                                 $vraPrimaryProperties += [pscustomobject]@{
-                                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value
-                                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
-                                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_ip"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_vra_nodea_ip"].Value
                                                 }
                                                 $vraSecondary1Properties = @()
                                                 $vraSecondary1Properties += [pscustomobject]@{
-                                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_fqdn"].Value
-                                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
-                                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_ip"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_vra_nodeb_ip"].Value
                                                 }
                                                 $vraSecondary2Properties = @()
                                                 $vraSecondary2Properties += [pscustomobject]@{
-                                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_fqdn"].Value
-                                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
-                                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_ip"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_vra_nodec_ip"].Value
                                                 }
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= "vrava-primary"
+                                                    'type'       = "vrava-primary"
                                                     'properties'	= ($vraPrimaryProperties | Select-Object -Skip 0)
                                                 }
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= "vrava-secondary"
+                                                    'type'       = "vrava-secondary"
                                                     'properties'	= ($vraSecondary1Properties | Select-Object -Skip 0)
                                                 }
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= "vrava-secondary"
+                                                    'type'       = "vrava-secondary"
                                                     'properties'	= ($vraSecondary2Properties | Select-Object -Skip 0)
                                                 }
 
                                                 #### Generate the VMware Aria Automation Properties Section
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
-                                                    'id' 			= "vra"
-                                                    'version'		= $vraVersion
+                                                    'id'         = "vra"
+                                                    'version'    = $vraVersion
                                                     'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'			= $nodesObject	
+                                                    'nodes'      = $nodesObject	
                                                 }
                                                 if (!($xintEnvironment)) { 
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
-                                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'environmentName' = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                                        'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                                        'products'        = $productsObject     
                                                     }
                                                 } else {
                                                     $vraDeploymentObject = @()
                                                     $vraDeploymentObject += [pscustomobject]@{
-                                                        'environmentId'         = $xintEnvironment.environmentId
-                                                        'environmentName'       = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
-                                                        'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                        'products'              = $productsObject     
+                                                        'environmentId'   = $xintEnvironment.environmentId
+                                                        'environmentName' = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                                                        'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                                        'products'        = $productsObject     
                                                     }
                                                 }
                                                 $vraDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
@@ -13487,7 +16256,7 @@ Export-ModuleMember -Function Export-vRAJsonSpec
 Function New-vRADeployment {
     <#
         .SYNOPSIS
-        Deploy VMware Aria Automation to VMware Aria Suite Lifecycle
+        Deploy VMware Aria Automation to VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRADeployment cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle. The cmdlet
@@ -13506,8 +16275,29 @@ Function New-vRADeployment {
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook and deploys the OVAs from a vSphere Content Library
-    #>
+        This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook and deploys the OVAs from a vSphere Content Library.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER workbook
+        The Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER customVersion
+        The custom version of VMware Aria Automation.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library to deploy the VMware Aria Automation OVA.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to use to deploy the VMware Aria Automation OVA.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13597,7 +16387,7 @@ Export-ModuleMember -Function New-vRADeployment
 Function Update-vRAOrganizationDisplayName {
     <#
         .SYNOPSIS
-        Configures the organization name
+        Configures the organization name.
 
         .DESCRIPTION
         The Update-vRAOrganizationDisplayName cmdlet configures the organization display name in VMware Aria Automation. The
@@ -13610,8 +16400,26 @@ Function Update-vRAOrganizationDisplayName {
 
         .EXAMPLE
         Update-vRAOrganizationDisplayName -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -displayName "Rainpole" -vraUser configadmin -vraPass VMw@re1!
-        This example configures the organization display name as 'Rainpole'
-    #>
+        This example configures the organization display name as 'Rainpole'.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER displayName
+        The organization display name.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13653,7 +16461,7 @@ Export-ModuleMember -Function Update-vRAOrganizationDisplayName
 Function New-vRACloudAccount {
     <#
         .SYNOPSIS
-        Creates vSphere and NSX Cloud Accounts
+        Creates vSphere and NSX Cloud Accounts.
 
         .DESCRIPTION
         The New-vRACloudAccount cmdlet creates the vSphere and NSX Cloud Accounts for a Workload Domain in VMware Aria
@@ -13666,8 +16474,29 @@ Function New-vRACloudAccount {
 
         .EXAMPLE
         New-vRACloudAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -capabilityTab private
-        This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation
-    #>
+        This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+
+        .PARAMETER capabilityTab
+        The capability tag.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13752,7 +16581,7 @@ Export-ModuleMember -Function New-vRACloudAccount
 Function Undo-vRACloudAccount {
     <#
         .SYNOPSIS
-        Removes the vSphere and NSX Cloud Accounts
+        Removes the vSphere and NSX Cloud Accounts.
 
         .DESCRIPTION
         The Undo-vRACloudAccount cmdlet removes the vSphere and NSX Cloud Accounts for a Workload Domain in VMware
@@ -13765,8 +16594,26 @@ Function Undo-vRACloudAccount {
 
         .EXAMPLE
         Undo-vRACloudAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1!
-        This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation
-    #>
+        This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13823,7 +16670,7 @@ Export-ModuleMember -Function Undo-vRACloudAccount
 Function Update-vRACloudAccountZone {
     <#
         .SYNOPSIS
-        Update Cloud Zone Configuration
+        Update Cloud Zone Configuration.
 
         .DESCRIPTION
         The Update-vRACloudAccountZone cmdlet updated the Cloud Zone with folder and tags on the resource pool for a
@@ -13846,8 +16693,41 @@ Function Update-vRACloudAccountZone {
         
         .EXAMPLE
         Update-vRACloudAccountZone -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -placementPolicy ADVANCED
-        This example updates the placement policy for the Cloud Zone to ADVANCED in VMware Aria Automation
-    #>
+        This example updates the placement policy for the Cloud Zone to ADVANCED in VMware Aria Automation.
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+
+        .PARAMETER tagKey
+        The tag key.
+
+        .PARAMETER tagValue
+        The tag value.
+
+        .PARAMETER folder
+        The folder name.
+
+        .PARAMETER resourcePool
+        The resource pool name.
+
+        .PARAMETER placementPolicy
+        The placement policy.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13923,7 +16803,31 @@ Function Add-vROvCenterServer {
         .EXAMPLE
         Add-vROvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1! -vcUser administrator@vsphere.local -vcPass VMw@re1!
         This example adds the vCenter Server instance from the "sfo-w01" workload domain from the embedded VMware Aria Automation Orchestrator catalog.
-    #>
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation Orchestrator user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation Orchestrator password.
+
+        .PARAMETER vcUser
+        The vCenter Server user name.
+
+        .PARAMETER vcPass
+        The vCenter Server password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14116,7 +17020,25 @@ Function Remove-vROvCenterServer {
         .EXAMPLE
         Remove-vROvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -vraUser configadmin -vraPass VMw@re1!
         This example removes the vCenter Server instance from the "sfo-w01" workload domain from the embedded VMware Aria Automation Orchestrator catalog.
-    #>
+
+        .PARAMETER server
+        The SDDC Manager FQDN or IP Address.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The SDDC Manager password.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14193,7 +17115,7 @@ Export-ModuleMember -Function Remove-vROvCenterServer
 Function Add-vROTrustedCertificate {
     <#
         .SYNOPSIS
-        Adds a trusted certificate to an embedded VMware Aria Automation Orchestrator
+        Adds a trusted certificate to an embedded VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
         The Add-vROTrustedCertificate cmdlet invokes a workflow in VMware Aria Automation Orchestrator to add trusted
@@ -14204,8 +17126,26 @@ Function Add-vROTrustedCertificate {
 
         .EXAMPLE
         Add-vROTrustedCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -certFile "C:\Root64.pem"
-        This example adds a trusted certificate in PEM-encoded format to the embedded VMware Aria Automation Orchestrator
-    #>
+        This example adds a trusted certificate in PEM-encoded format to the embedded VMware Aria Automation Orchestrator.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account to use for authentication.
+
+        .PARAMETER pass
+        The SDDC Manager user password to use for authentication.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user account to use for authentication.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation user password to use for authentication.
+
+        .PARAMETER certFile
+        The trusted certificate file in PEM-encoded format.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14281,7 +17221,7 @@ Export-ModuleMember -Function Add-vROTrustedCertificate
 Function Add-vRANotification {
     <#
         .SYNOPSIS
-        Adds notification settings in VMware Aria Automation
+        Adds notification settings in VMware Aria Automation.
 
         .DESCRIPTION
         The Add-vRANotification cmdlet adds notification settings to VMware Aria Automation. The cmdlet connects to SDDC
@@ -14293,8 +17233,35 @@ Function Add-vRANotification {
 
         .EXAMPLE
         Add-vRANotification -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -smtpServer smtp.raipole.io -emailAddress vra-no-reply@rainpole.io -sender "Rainpole Cloud" -connection NONE
-        This example adds notifications settings for VMware Aria Automation
-    #>
+        This example adds notifications settings for VMware Aria Automation.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account to use for authentication.
+
+        .PARAMETER pass
+        The SDDC Manager user password to use for authentication.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user account to use for authentication.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation user password to use for authentication.
+
+        .PARAMETER smtpServer
+        The SMTP server to use for notifications.
+
+        .PARAMETER emailAddress
+        The email address to use for notifications.
+
+        .PARAMETER sender
+        The sender name to use for notifications.
+
+        .PARAMETER connection
+        The connection type to use for notifications.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14349,7 +17316,31 @@ Function Add-vRAUser {
         This example adds user access in VMware Aria Automation by userId and orgId along with the required orgRole and serviceRole.
 
         Note: This cmdlet currently only supports a single serviceRole.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager user account to use for authentication.
+
+        .PARAMETER pass
+        The SDDC Manager user password to use for authentication.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user account to use for authentication.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation user password to use for authentication.
+
+        .PARAMETER email
+        The user email address to add to VMware Aria Automation.
+
+        .PARAMETER orgRole
+        The organization role to add to VMware Aria Automation.
+
+        .PARAMETER serviceRole
+        The service role to add to VMware Aria Automation.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14413,7 +17404,39 @@ Function Undo-vRAUser {
         .EXAMPLE
         Undo-vRAUser -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -email jdoe@rainpole.io
         This example removes user access from VMware Aria Automation by email.
-    #>
+
+        Note: This cmdlet currently only supports a single serviceRole.
+
+        Note: This cmdlet does not remove the user from the organization, only the organization role and service roles.
+
+        Note: This cmdlet does not remove the user from the VMware Cloud Foundation SDDC Manager.
+
+        Note: This cmdlet does not remove the user from Workspace ONE Access.
+
+        Note: This cmdlet does not remove the user from the vCenter Server.
+
+        Note: This cmdlet does not remove the user from the vRealize Automation Cloud Zone.
+
+        Note: This cmdlet does not remove the user from the vRealize Automation Cloud Zone Configuration.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager.
+
+        .PARAMETER user
+        The user name of the SDDC Manager.
+
+        .PARAMETER pass
+        The password of the SDDC Manager.
+
+        .PARAMETER vraUser
+        The user name of the VMware Aria Automation Orchestrator.
+
+        .PARAMETER vraPass
+        The password of the VMware Aria Automation Orchestrator.
+
+        .PARAMETER email
+        The email address of the user to remove from the organization role and service roles.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14523,7 +17546,31 @@ Function Add-vRAGroup {
         This example adds a group to VMware Aria Automation by groupId and orgId along with the required orgRole and serviceRole.
 
         Note: This cmdlet currently only supports a single serviceRole.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user to connect with.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password to connect with.
+
+        .PARAMETER displayName
+        The group display name to add.
+
+        .PARAMETER orgRole
+        The organization role to add.
+
+        .PARAMETER serviceRole
+        The service role to add.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14552,12 +17599,10 @@ Function Add-vRAGroup {
                                         New-vRAGroup -groupId $groupId -orgId $orgId -orgRole $orgRole -serviceRole $serviceRole -serviceDefinitionId $serviceDefinitionId | Out-Null
                                         if (Get-vRAGroupRoles -groupId $groupId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoleNames -eq $serviceRole -and $_.serviceRoles.serviceDefinitionId -eq $serviceDefinitionId}) {
                                             Write-Output "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation: SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Assigning group ($displayName) the organization role ($orgRole) and service role ($serviceRole) in VMware Aria Automation, already exists: SKIPPED"
                                     }
                                 }
@@ -14566,17 +17611,14 @@ Function Add-vRAGroup {
                                         New-vRAGroup -groupId $groupId -orgId $orgId -orgRole $orgRole | Out-Null
                                         if (Get-vRAGroupRoles -groupId $groupId -orgId $orgId | Where-Object { $_.organizationRoles.name -eq $orgRole -and $_.serviceRoles.serviceRoleNames -eq $null -and $_.serviceRoles.serviceDefinitionId -eq $null}) {
                                             Write-Output "Assigning group ($displayName) the organization role ($orgRole) in VMware Aria Automation: SUCCESSFUL"
-                                        }
-                                        else {
+                                        } else {
                                             Write-Error "Assigning group ($displayName) the organization role ($orgRole) in VMware Aria Automation: POST_VALIDATION_FAILED"
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         Write-Warning "Assigning group ($displayName) the organization role ($orgRole) in VMware Aria Automation, already exists: SKIPPED"
                                     }
                                 }
-                            }
-                            else {
+                            } else {
                                 Write-Error "Unable to find group ($displayName) in Workspace ONE Access for VMware Aria Automation, check group synchronization or displayName: PRE_VALIDATION_FAILED"
                             }
                         }
@@ -14584,8 +17626,7 @@ Function Add-vRAGroup {
                 }
             }
         }
-    }
-    Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -14606,8 +17647,26 @@ Function Undo-vRAGroup {
 
         .EXAMPLE
         Undo-vRAGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vraUser configadmin -vraPass VMw@re1! -displayName gg-vra-cloud-assembly-admins@rainpole.io
-        This example removes a group from VMware Aria Automation by displayName
-    #>
+        This example removes a group from VMware Aria Automation by displayName.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+
+        .PARAMETER displayName
+        The group display name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14654,7 +17713,7 @@ Export-ModuleMember -Function Undo-vRAGroup
 Function New-vRAvROPSIntegrationItem {
     <#
         .SYNOPSIS
-        Creates new VMware Aria Operations integration in VMware Aria Automation
+        Creates new VMware Aria Operations integration in VMware Aria Automation.
 
         .DESCRIPTION
         The New-vRAvROPSIntegrationItem cmdlet creates an integration in VMware Aria Automation.
@@ -14668,8 +17727,32 @@ Function New-vRAvROPSIntegrationItem {
 
         .EXAMPLE
         New-vRAvROPSIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "configadmin@rainpole.io" -vraPass "VMw@re1!" -vropsIntegrationUser  "svc-vrops-vra@sfo.rainpole.io@vIDMAuthSource" -vropsIntegrationPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
-        This example creates VMware Aria Operations integration with name "VMware Aria Operations" in VMware Aria Automation
-    #>
+        This example creates VMware Aria Operations integration with name "VMware Aria Operations" in VMware Aria Automation.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+
+        .PARAMETER vropsIntegrationUser
+        The VMware Aria Operations integration user name.
+
+        .PARAMETER vropsIntegrationPass
+        The VMware Aria Operations integration password.
+
+        .PARAMETER vropsIntegrationName
+        The VMware Aria Operations integration name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14718,7 +17801,7 @@ Export-ModuleMember -Function New-vRAvROPSIntegrationItem
 Function Undo-vRAvROPsIntegrationItem {
     <#
         .SYNOPSIS
-        Deletes VMware Aria Operations from VMware Aria Automation
+        Deletes VMware Aria Operations from VMware Aria Automation.
 
         .DESCRIPTION
         The Undo-vRAvROPsIntegrationItem cmdlet deletes VMware Aria Operations integration from VMware Aria Automation.
@@ -14732,8 +17815,26 @@ Function Undo-vRAvROPsIntegrationItem {
 
         .EXAMPLE
         Undo-vRAvROPsIntegrationItem -server "sfo-vcf01.sfo.rainpole.io" -user "administrator@vsphere.local" -pass "VMw@re1!"  -vraUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -vraPass "VMw@re1!" -vropsIntegrationName "VMware Aria Operations"
-        This example deletes VMware Aria Operations in VMware Aria Automation
-    #>
+        This example deletes VMware Aria Operations in VMware Aria Automation.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER vraUser
+        The VMware Aria Automation user name.
+
+        .PARAMETER vraPass
+        The VMware Aria Automation password.
+
+        .PARAMETER vropsIntegrationName
+        The VMware Aria Operations integration name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14809,7 +17910,43 @@ Function Add-vCenterGlobalPermission {
         .EXAMPLE
 		Add-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain vsphere.local -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -role "NSX to vSphere Integration" -propagate true -type user -localdomain
 		This example adds the user svc-sfo-m01-nsx01-sfo-m01-vc01@vsphere.local from the vCenter Single Sign-on domain vsphere.local to Global Permissions with the "NSX to vSphere Integration" role for vCenter Server instances in the same vCenter Single Sign-On domain as management domain sfo-m01.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The SDDC Manager management or workload domain name.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER domainBindUser
+        The Active Directory bind user name.
+
+        .PARAMETER domainBindPass
+        The Active Directory bind password.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER role
+        The role to assign.
+
+        .PARAMETER propagate
+        Specifies whether to propagate the permission to child objects.
+
+        .PARAMETER type
+        Specifies whether the principal is a user or group.
+
+        .PARAMETER localDomain
+        Specifies whether the principal is a user or group in the local directory.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14823,19 +17960,19 @@ Function Add-vCenterGlobalPermission {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role,
         [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [String]$propagate,
         [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type,
-		[Parameter (Mandatory = $false)] [Switch]$localDomain
+        [Parameter (Mandatory = $false)] [Switch]$localDomain
     )
 
     Try {
-		if (!$localDomain) {
-			$checkAdAuthentication = Test-ADAuthentication -user $domainBindUser -pass $domainBindPass -server $domain -domain $domain -ErrorAction SilentlyContinue
-			$securePass = ConvertTo-SecureString -String $domainBindPass -AsPlainText -Force
+        if (!$localDomain) {
+            $checkAdAuthentication = Test-ADAuthentication -user $domainBindUser -pass $domainBindPass -server $domain -domain $domain -ErrorAction SilentlyContinue
+            $securePass = ConvertTo-SecureString -String $domainBindPass -AsPlainText -Force
             $domainCreds = New-Object System.Management.Automation.PSCredential ($domainBindUser, $securePass)
             if (!($checkAdAuthentication[1] -match "Authentication Successful")) {
-				Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDTION_FAILED"
-				Return
-			}
-		}
+                Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDTION_FAILED"
+                Return
+            }
+        }
 
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -14923,7 +18060,31 @@ Function Undo-vCenterGlobalPermission {
         .EXAMPLE
 		Undo-vCenterGlobalPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -domain vsphere.local -principal testUser -type user -localdomain
         This example removes the user testUser from the vCenter Single Sign-on domain vsphere.local from the Global Permissions for vCenter Server instances in the same vCenter Single Sign-On domain as workload domain sfo-w01.
-    #>
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The SDDC Manager management or workload domain name.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER type
+        Specifies whether the principal is a user or group.
+
+        .PARAMETER localDomain
+        Specifies whether the principal is a user or group in the local directory.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14933,7 +18094,7 @@ Function Undo-vCenterGlobalPermission {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
         [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type,
-		[Parameter (Mandatory = $false)] [Switch]$localDomain = $false
+        [Parameter (Mandatory = $false)] [Switch]$localDomain = $false
     )
 
     Try {
@@ -14971,7 +18132,7 @@ Function Undo-vCenterGlobalPermission {
 Export-ModuleMember -Function Undo-vCenterGlobalPermission
 
 Function Set-vCenterPermission {
-	<#
+    <#
 		.SYNOPSIS
         Sets Permission for user or group in the vCenter Server. This overrides any existing Global Permissions for the user or group in the vCenter Server.
 
@@ -14991,21 +18152,48 @@ Function Set-vCenterPermission {
 		Set-vCenterPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo -workloadDomain sfo-m01 -principal sfo-vra-vsphere -role "NoAccess" -folderName "local" -folderType "Datastore"
         This example assigns the NoAccess role to the user svc-vra-vsphere from domain SFO on the datastore folder named "local".
         Note: The functionality is limited to non-nested folders in the default datacenter.
-    #>
 
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER workloadDomain
+        The SDDC Manager workload domain name.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER role
+        The role to assign.
+
+        .PARAMETER folderName
+        The folder name.
+
+        .PARAMETER folderType
+        The folder type.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workloadDomain,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role,
         [Parameter (ParameterSetName = 'Folders', Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$folderName,
         [Parameter (ParameterSetName = 'Folders', Mandatory = $false)] [ValidateSet("Datacenter", "Datastore", "HostAndCluster", "Network", "VM")] [String]$folderType
-	)
+    )
 
-	Try {
+    Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (Get-VCFWorkloadDomain | Where-Object { $_.name -eq $workloadDomain }) {
@@ -15038,7 +18226,7 @@ Function Set-vCenterPermission {
                                                 }
                                             } else {
                                                 if ($folderName -or $folderType) {
-                                                Write-Error "Only one of -folderName or -folderType parameters provided: PRE_VALIDATATION_FAILED"
+                                                    Write-Error "Only one of -folderName or -folderType parameters provided: PRE_VALIDATATION_FAILED"
                                                 } else {
                                                     if ($objectCheck = Get-VIPermission -Server $vcfVcenterDetails.fqdn -Principal $principal -Entity (Get-Folder "Datacenters" -Type Datacenter | Where-Object {$_.Uid -like "*"+$vcfVcenterDetails.fqdn+"*"}))  {
                                                         if (!($objectCheck.Role -eq $role)) {
@@ -15068,7 +18256,7 @@ Function Set-vCenterPermission {
                 }
             }
         }
-	} Catch {
+    } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
@@ -15077,7 +18265,7 @@ Export-ModuleMember -Function Set-vCenterPermission
 Function Add-SsoPermission {
     <#
 		.SYNOPSIS
-        Assign vCenter Single Sign-On Group to user/group
+        Assign vCenter Single Sign-On Group to user/group.
 
         .DESCRIPTION
         The Add-SsoPermission cmdlet assigns the vCenter Single Sign-On Role to the user or group provided. The cmdlet
@@ -15095,8 +18283,41 @@ Function Add-SsoPermission {
 
         .EXAMPLE
         Add-SsoPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain vsphere.local -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -ssoGroup "License.Administrators" -type user -source local
-        This example adds the user svc-sfo-m01-nsx01-sfo-m01-vc01 from domain vspherel.local to the License.Administrators vCenter Single Sign-On Group
-    #>
+        This example adds the user svc-sfo-m01-nsx01-sfo-m01-vc01 from domain vspherel.local to the License.Administrators vCenter Single Sign-On Group.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        .
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER domainBindUser
+        The Active Directory bind user name.
+
+        .PARAMETER domainBindPass
+        The Active Directory bind password.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER ssoGroup
+        The vCenter Single Sign-On Group to assign.
+
+        .PARAMETER type
+        Specifies whether the principal is a user or group.
+
+        .PARAMETER source
+        Specifies whether the principal is a user or group in the local directory.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15125,7 +18346,7 @@ Function Add-SsoPermission {
                                 if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
                                     if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         if ($targetGroup = Get-SsoGroup -Domain $vcfVcenterDetails.ssoDomain -Name $ssoGroup -Server $ssoConnectionDetail) {
-                                        if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
+                                            if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
                                                 if ($type -eq "group") {
                                                     $adObjectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                     if ($adObjectCheck) {
@@ -15151,8 +18372,8 @@ Function Add-SsoPermission {
                                                             $ldapUser | Add-UserToSsoGroup -TargetGroup $targetGroup -ErrorAction SilentlyContinue
                                                             if (Get-SsoPersonUser -Group $targetGroup | Where-Object {$_.Name -eq $principal}) {
                                                                 Write-Output "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): SUCCESSFUL"
-                                                            }
-                                                            else { Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
+                                                            } else {
+                                                                Write-Error "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain): POST_VALIDATION_FAILED"
                                                             }
                                                         } else {
                                                             Write-Warning "Assigning SSO Group ($ssoGroup) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal) for domain ($domain), already exists: SKIPPED"
@@ -15234,7 +18455,7 @@ Export-ModuleMember -Function Add-SsoPermission
 Function Undo-SsoPermission {
     <#
 		.SYNOPSIS
-        Remove user/group from vCenter Single Sign-On Group
+        Remove user/group from vCenter Single Sign-On Group.
 
         .DESCRIPTION
         The Undo-SsoPermission cmdlet removes the user or group provided from vCenter Single Sign-On Role. The cmdlet
@@ -15250,8 +18471,35 @@ Function Undo-SsoPermission {
 
         .EXAMPLE
         Undo-SsoPermission -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain vsphere.local -principal svc-sfo-m01-nsx01-sfo-m01-vc01 -ssoGroup "LicenseService.Administrators" -type user -source local
-        This example removes the user svc-sfo-m01-nsx01-sfo-m01-vc01 in domain vspherel.local from the LicenseService.Administrators vCenter Single Sign-On Group
-    #>
+        This example removes the user svc-sfo-m01-nsx01-sfo-m01-vc01 in domain vspherel.local from the LicenseService.Administrators vCenter Single Sign-On Group.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER ssoGroup
+        The vCenter Single Sign-On Group to assign.
+
+        .PARAMETER type
+        Specifies whether the principal is a user or group.
+
+        .PARAMETER source
+        Specifies whether the principal is a user or group in the local directory.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15370,7 +18618,7 @@ Export-ModuleMember -Function Undo-SsoPermission
 Function Add-SsoUser {
     <#
 		.SYNOPSIS
-        Assign vCenter Single Sign-On Group to user/group
+        Assign vCenter Single Sign-On Group to user/group.
 
         .DESCRIPTION
         The Add-SsoUser cmdlet adds a user to the vCenter Single Sign-On domain The cmdlet connects to SDDC Manager
@@ -15382,8 +18630,23 @@ Function Add-SsoUser {
 
         .EXAMPLE
         Add-SsoUser -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -ssoUser svc-vrslcm-vsphere-sfo-m01-vc01 -ssoPass VMw@re1!VMw@re1!
-        This example adds the user svc-vrslcm-vsphere-sfo-m01-vc01 to the vCenter Single Sign-On domain vsphere.local
-    #>
+        This example adds the user svc-vrslcm-vsphere-sfo-m01-vc01 to the vCenter Single Sign-On domain vsphere.local.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER ssoUser
+        The vCenter Single Sign-On user name.
+
+        .PARAMETER ssoPass
+        The vCenter Single Sign-On user password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15424,7 +18687,7 @@ Export-ModuleMember -Function Add-SsoUser
 Function Add-vSphereRole {
     <#
         .SYNOPSIS
-        Add a vSphere role
+        Add a vSphere role.
 
         .DESCRIPTION
         The Add-vSphereRole cmdlet creates a role in vCenter Server. The cmdlet connects to SDDC Manager using the
@@ -15435,8 +18698,26 @@ Function Add-vSphereRole {
 
         .EXAMPLE
         Add-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX to vSphere Integration" -template .\vSphereRoles\nsx-vsphere-integration.role
-        This example adds the "NSX to vSphere Integration" role in the management domain vCenter Server
-    #>
+        This example adds the "NSX to vSphere Integration" role in the management domain vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+.
+
+        .PARAMETER roleName
+        The name of the role to create.
+
+        .PARAMETER template
+        The template file to use for the role.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15493,7 +18774,7 @@ Export-ModuleMember -Function Add-vSphereRole
 Function Undo-vSphereRole {
     <#
         .SYNOPSIS
-        Remove a vSphere role
+        Remove a vSphere role.
 
         .DESCRIPTION
         The Undo-vSphereRole cmdlet removes a role from vCenter Server. The cmdlet connects to SDDC Manager using the
@@ -15504,8 +18785,23 @@ Function Undo-vSphereRole {
 
         .EXAMPLE
         Undo-vSphereRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -roleName "NSX to vSphere Integration"
-        This example removes the "NSX to vSphere Integration" role from the management domain vCenter Server
-    #>
+        This example removes the "NSX to vSphere Integration" role from the management domain vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+.
+
+        .PARAMETER roleName
+        The name of the role to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15546,7 +18842,7 @@ Export-ModuleMember -Function Undo-vSphereRole
 Function Add-VMFolder {
     <#
         .SYNOPSIS
-        Create a VM Folder
+        Create a VM Folder.
 
         .DESCRIPTION
         The Add-VMFolder cmdlet creates a VM and Template folder. The cmdlet connects to SDDC Manager using the
@@ -15560,8 +18856,23 @@ Function Add-VMFolder {
 
         .EXAMPLE
         Add-VMFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myFolder"
-        This example shows how to create the folder myFolder within the VMware Cloud Foundation domain sfo-m01
-    #>
+        This example shows how to create the folder myFolder within the VMware Cloud Foundation domain sfo-m01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER folderName
+        The name of the folder to create.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15608,7 +18919,7 @@ Export-ModuleMember -Function Add-VMFolder
 Function Add-StorageFolder {
     <#
         .SYNOPSIS
-        Create a Storage Folder
+        Create a Storage Folder.
 
         .DESCRIPTION
         The Add-StorageFolder cmdlet creates a Storage folder. The cmdlet connects to SDDC Manager using the -server,
@@ -15622,8 +18933,23 @@ Function Add-StorageFolder {
 
         .EXAMPLE
         Add-StorageFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myStorageFolder"
-        This example shows how to create the folder myStorageFolder within the VMware Cloud Foundation domain sfo-m01
-    #>
+        This example shows how to create the folder myStorageFolder within the VMware Cloud Foundation domain sfo-m01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER folderName
+        The name of the folder to create.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15670,7 +18996,7 @@ Export-ModuleMember -Function Add-StorageFolder
 Function Undo-VMFolder {
     <#
         .SYNOPSIS
-        Remove a VM Folder
+        Remove a VM Folder.
 
         .DESCRIPTION
         The Undo-VMFolder cmdlet removes a VM and Template folder. The cmdlet connects to SDDC Manager using the
@@ -15688,7 +19014,25 @@ Function Undo-VMFolder {
 
         .EXAMPLE
         Undo-VMFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -foldername "myFolder" -folderType Datastore
-        This example shows how to remove the storage folder myStorageFolder within the VMware Cloud Foundation domain sfo-m01
+        This example shows how to remove the storage folder myStorageFolder within the VMware Cloud Foundation domain sfo-m01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER folderName
+        The name of the folder to remove.
+
+        .PARAMETER folderType
+        The type of folder to remove. Valid values are Datacenter, VM, Network, HostAndCluster, and Datastore.
         #>
 
     Param (
@@ -15735,7 +19079,7 @@ Export-ModuleMember -Function Undo-VMFolder
 Function Add-ResourcePool {
     <#
         .SYNOPSIS
-        Create a resource pool
+        Create a resource pool.
 
         .DESCRIPTION
         The Add-ResourcePool cmdlet creates a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
@@ -15746,8 +19090,23 @@ Function Add-ResourcePool {
 
         .EXAMPLE
         Add-ResourcePool -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -resourcePoolName "sfo-w01-cl01-rp-workload"
-        This example shows how to create the folder myFolder within the VMware Cloud Foundation domain sfo-m01
-    #>
+        This example shows how to create the folder myFolder within the VMware Cloud Foundation domain sfo-m01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER resourcePoolName
+        The name of the resource pool to create.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15793,7 +19152,7 @@ Export-ModuleMember -Function Add-ResourcePool
 Function Undo-ResourcePool {
     <#
         .SYNOPSIS
-        Remove a resource pool
+        Remove a resource pool.
 
         .DESCRIPTION
         The Undo-ResourcePool cmdlet removes a resource pool. The cmdlet connects to SDDC Manager using the -server, -user, and -password values
@@ -15804,8 +19163,23 @@ Function Undo-ResourcePool {
 
         .EXAMPLE
         Undo-ResourcePool -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -resourcePoolName "sfo-w01-cl01-rp-workload"
-        This example shows how to create the folder myFolder within the VMware Cloud Foundation domain sfo-m01
-    #>
+        This example shows how to create the folder myFolder within the VMware Cloud Foundation domain sfo-m01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER resourcePoolName
+        The name of the resource pool to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15851,7 +19225,7 @@ Export-ModuleMember -Function Undo-ResourcePool
 Function Add-AntiAffinityRule {
     <#
         .SYNOPSIS
-        Creates a vSphere Anti-Affinity rule
+        Creates a vSphere Anti-Affinity rule.
 
         .DESCRIPTION
         The Add-AntiAffinityRule cmdlet creates a vSphere Anti-Affinity rule. The cmdlet connects to SDDC Manager using
@@ -15863,8 +19237,26 @@ Function Add-AntiAffinityRule {
 
         .EXAMPLE
         Add-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa -antiAffinityVMs "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c"
-        This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain
-    #>
+        This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER ruleName
+        The name of the anti-affinity rule to create.
+
+        .PARAMETER antiAffinityVMs
+        The comma separated list of VMs to add to the anti-affinity rule.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -15913,7 +19305,7 @@ Export-ModuleMember -Function Add-AntiAffinityRule
 Function Undo-AntiAffinityRule {
     <#
         .SYNOPSIS
-        Removes a vSphere Anti-Affinity rule
+        Removes a vSphere Anti-Affinity rule.
 
         .DESCRIPTION
         The Undo-AntiAffinityRule cmdlet removes a vSphere Anti-Affinity rule. The cmdlet connects to SDDC Manager using
@@ -15925,8 +19317,23 @@ Function Undo-AntiAffinityRule {
 
         .EXAMPLE
         Undo-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa
-        This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain
-    #>
+        This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER Domain
+        The VMware Cloud Foundation domain name.
+
+        .PARAMETER ruleName
+        The name of the anti-affinity rule to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -15972,7 +19379,7 @@ Export-ModuleMember -Function Undo-AntiAffinityRule
 Function Add-ClusterGroup {
     <#
     .SYNOPSIS
-        Creates a vSphere DRS Cluster Group
+        Creates a vSphere DRS Cluster Group.
 
         .DESCRIPTION
         The Add-ClusterGroup cmdlet creates a vSphere DRS Cluster Group. The cmdlet connects to SDDC Manager using the
@@ -15984,8 +19391,26 @@ Function Add-ClusterGroup {
 
         .EXAMPLE
         Add-ClusterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drsGroupName "xint-vm-group-wsa" -drsGroupVMs "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c"
-        This example shows how to create a vSphere DRS Cluster group in the vCenter Server of the sfo-m01 workload domain
-    #>
+        This example shows how to create a vSphere DRS Cluster group in the vCenter Server of the sfo-m01 workload domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER drsGroupName
+        The name of the vSphere DRS Cluster Group to create.
+
+        .PARAMETER drsGroupVMs
+        The list of VMs to add to the vSphere DRS Cluster Group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -16035,7 +19460,7 @@ Export-ModuleMember -Function Add-ClusterGroup
 Function Undo-ClusterGroup {
     <#
         .SYNOPSIS
-        Removes a vSphere DRS Cluster Group
+        Removes a vSphere DRS Cluster Group.
 
         .DESCRIPTION
         The Undo-ClusterGroup cmdlet removes the vSphere DRS Cluster Group. The cmdlet connects to SDDC Manager using the
@@ -16047,8 +19472,23 @@ Function Undo-ClusterGroup {
 
         .EXAMPLE
         Undo-ClusterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drsGroupName "sfo-m01-vm-group-wsa"
-        This example shows how to delete a vSphere DRS Cluster group from the vCenter Server of the sfo-m01 workload domain
-    #>
+        This example shows how to delete a vSphere DRS Cluster group from the vCenter Server of the sfo-m01 workload domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER drsGroupName
+        The name of the vSphere DRS Cluster Group to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -16099,7 +19539,7 @@ Export-ModuleMember -Function Undo-ClusterGroup
 Function Add-VmStartupRule {
     <#
         .SYNOPSIS
-        Creates a VM to VM DRS rule
+        Creates a VM to VM DRS rule.
 
         .DESCRIPTION
         The Add-VmStartupRule cmdlet creates a vSphere DRS Virtual Machine to Virtual Machine startup rule. The cmdlet
@@ -16111,8 +19551,29 @@ Function Add-VmStartupRule {
 
         .EXAMPLE
         Add-VmStartupRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName vm-vm-rule-wsa-vra -vmGroup sfo-m01-vm-group-wsa -dependOnVmGroup sfo-m01-vm-group-vra
-        This example shows how to create a vSphere DRS Cluster group in the vCenter Server of the sfo-m01 workload domain
-    #>
+        This example shows how to create a vSphere DRS Cluster group in the vCenter Server of the sfo-m01 workload domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER ruleName
+        The name of the vSphere DRS Virtual Machine to Virtual Machine startup rule to create.
+
+        .PARAMETER vmGroup
+        The name of the vSphere DRS Group (VM Group to start first).
+
+        .PARAMETER dependOnVmGroup
+        The name of the vSphere DRS Group (VM Group to start after dependency).
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -16169,7 +19630,7 @@ Export-ModuleMember -Function Add-VmStartupRule
 Function Undo-VmStartupRule {
     <#
         .SYNOPSIS
-        Remove a VM to VM DRS rule
+        Remove a VM to VM DRS rule.
 
         .DESCRIPTION
         The Undo-VmStartupRule cmdlet removes a vSphere DRS Virtual Machine to Virtual Machine startup rule. The cmdlet
@@ -16181,8 +19642,23 @@ Function Undo-VmStartupRule {
 
         .EXAMPLE
         Undo-VmStartupRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName vm-vm-rule-wsa-vrli
-        This example shows how to remove a vSphere DRS Cluster group from the vCenter Server of the sfo-m01 workload domain
-    #>
+        This example shows how to remove a vSphere DRS Cluster group from the vCenter Server of the sfo-m01 workload domain.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER ruleName
+        The name of the vSphere DRS Virtual Machine to Virtual Machine startup rule to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -16229,7 +19705,7 @@ Export-ModuleMember -Function Undo-VmStartupRule
 Function Move-VMtoFolder {
     <#
         .SYNOPSIS
-        Moves VMs to a folder
+        Moves VMs to a folder.
 
         .DESCRIPTION
         The Move-VMtoFolder cmdlet moves the Virtual Machines to a folder. The cmdlet connects to SDDC Manager using
@@ -16242,8 +19718,26 @@ Function Move-VMtoFolder {
 
         .EXAMPLE
         Move-VMtoFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmList "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c" -folder xinst-m01-fd-wsa
-        This example shows how to move a list of virtual machines to a new folder
-    #>
+        This example shows how to move a list of virtual machines to a new folder.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER vmList
+        The list of virtual machines to move to the folder.
+
+        .PARAMETER folder
+        The folder to move the virtual machines to.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -16291,7 +19785,7 @@ Export-ModuleMember -Function Move-VMtoFolder
 Function Add-VdsPortGroup {
     <#
 		.SYNOPSIS
-        Create vSphere Distributed port group
+        Create vSphere Distributed port group.
 
         .DESCRIPTION
         The Add-VdsPortGroup cmdlet creates a vSphere Distributed port groups in vCenter Server. The cmdlet connects
@@ -16302,8 +19796,26 @@ Function Add-VdsPortGroup {
 
         .EXAMPLE
         Add-VdsPortGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -vlan 2619
-        This example creates a vSphere Distributed port group for VLAN ID 2619 named sfo-m01-cl01-vds01-pg-vrms in vCenter Server
-    #>
+        This example creates a vSphere Distributed port group for VLAN ID 2619 named sfo-m01-cl01-vds01-pg-vrms in vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER portgroup
+        The name of the vSphere Distributed port group to create.
+
+        .PARAMETER vlan
+        The VLAN ID to assign to the vSphere Distributed port group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16346,7 +19858,7 @@ Export-ModuleMember -Function Add-VdsPortGroup
 Function Undo-VdsPortGroup {
     <#
 		.SYNOPSIS
-        Removes vSphere Distributed port group
+        Removes vSphere Distributed port group.
 
         .DESCRIPTION
         The Undo-VdsPortGroup cmdlet removes a vSphere Distributed port groups in vCenter Server. The cmdlet connects
@@ -16357,8 +19869,23 @@ Function Undo-VdsPortGroup {
 
         .EXAMPLE
         Undo-VdsPortGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms
-        This example removes the vSphere Distributed port group named sfo-m01-cl01-vds01-pg-vrms from vCenter Server
-    #>
+        This example removes the vSphere Distributed port group named sfo-m01-cl01-vds01-pg-vrms from vCenter Server.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The SDDC Manager domain.
+
+        .PARAMETER portgroup
+        The name of the vSphere Distributed port group to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16399,7 +19926,7 @@ Export-ModuleMember -Function Undo-VdsPortGroup
 Function Import-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Add a certificate to the VMware Aria Suite Lifecycle locker
+        Add a certificate to the VMware Aria Suite Lifecycle locker.
 
         .DESCRIPTION
         The Import-vRSLCMLockerCertificate cmdlet imports a PEM encoded chain file to the VMware Aria Suite Lifecycle
@@ -16411,8 +19938,26 @@ Function Import-vRSLCMLockerCertificate {
 
         .EXAMPLE
         Import-vRSLCMLockerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -certificateAlias "xint-vrops01" -certificatePassphrase "VMw@re1!"
-        This example adds a certificate to the VMware Aria Suite Lifecycle locker
-    #>
+        This example adds a certificate to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER certificateAlias
+        The alias of the certificate to add to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER certificatePassphrase
+        The passphrase of the certificate to add to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER certChainPath
+        The path to the certificate chain file to add to the VMware Aria Suite Lifecycle locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16426,8 +19971,7 @@ Function Import-vRSLCMLockerCertificate {
     Try {
         if (!$PsBoundParameters.ContainsKey("certChainPath")) {
             $certChainPath = Get-ExternalFileName -title "Select the Certificate Chain PEM File (.pem)" -fileType "pem" -location "default"
-        }
-        else {
+        } else {
             if (!(Test-Path -Path $certChainPath)) {
                 Write-Error  "Certificate Chain '$certChainPath' File Not Found"
                 Break
@@ -16467,7 +20011,7 @@ Export-ModuleMember -Function Import-vRSLCMLockerCertificate
 Function Undo-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Remove a certificate from the VMware Aria Suite Lifecycle locker
+        Remove a certificate from the VMware Aria Suite Lifecycle locker.
 
         .DESCRIPTION
         The Undo-vRSLCMLockerCertificate cmdlet removes a certificate from the VMware Aria Suite Lifecycle locker.
@@ -16479,8 +20023,20 @@ Function Undo-vRSLCMLockerCertificate {
 
         .EXAMPLE
         Undo-vRSLCMLockerCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -certificateAlias "xint-vrops01"
-        This example removes a certificate with an alias of 'xint-vrops01' from the VMware Aria Suite Lifecycle locker
-    #>
+        This example removes a certificate with an alias of 'xint-vrops01' from the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER certificateAlias
+        The alias of the certificate to remove from the VMware Aria Suite Lifecycle locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16520,7 +20076,7 @@ Export-ModuleMember -Function Undo-vRSLCMLockerCertificate
 Function New-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Add a password to the VMware Aria Suite Lifecycle locker Locker
+        Add a password to the VMware Aria Suite Lifecycle locker Locker.
 
         .DESCRIPTION
         The New-vRSLCMLockerPassword cmdlet adds a password to the VMware Aria Suite Lifecycle locker.
@@ -16532,8 +20088,29 @@ Function New-vRSLCMLockerPassword {
 
         .EXAMPLE
         New-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin -password VMw@re1! -description "VMware Aria Operations Admin" -userName xint-vrops01-admin
-        This example adds a password with an alias of 'xint-vrops01-admin' to the VMware Aria Suite Lifecycle locker
-    #>
+        This example adds a password with an alias of 'xint-vrops01-admin' to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the password to add to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER password
+        The password to add to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER description
+        The description of the password to add to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER userName
+        The username of the password to add to the VMware Aria Suite Lifecycle locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16579,7 +20156,7 @@ Export-ModuleMember -Function New-vRSLCMLockerPassword
 Function Undo-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Remove a password from the VMware Aria Suite Lifecycle locker
+        Remove a password from the VMware Aria Suite Lifecycle locker.
 
         .DESCRIPTION
         The Undo-vRSLCMLockerPassword cmdlet removes a password from the Aria Suite Lifecycle locker.
@@ -16591,8 +20168,20 @@ Function Undo-vRSLCMLockerPassword {
 
         .EXAMPLE
         Undo-vRSLCMLockerPassword -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias xint-vrops01-admin
-        This example removes a password with an alias of 'xint-vrops01-admin' from the VMware Aria Suite Lifecycle locker
-    #>
+        This example removes a password with an alias of 'xint-vrops01-admin' from the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the password to remove from the VMware Aria Suite Lifecycle locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16631,7 +20220,7 @@ Export-ModuleMember -Function Undo-vRSLCMLockerPassword
 Function New-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Add a license to the VMware Aria Suite Lifecycle locker
+        Add a license to the VMware Aria Suite Lifecycle locker.
 
         .DESCRIPTION
         The New-vRSLCMLockerLicense cmdlet adds a license to the Aria Suite Lifecycle locker.
@@ -16643,8 +20232,23 @@ Function New-vRSLCMLockerLicense {
 
         .EXAMPLE
         New-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "VMware Aria Automation" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-        This example adds a license with an alias of 'VMware Aria Automation' to the VMware Aria Suite Lifecycle locker
-    #>
+        This example adds a license with an alias of 'VMware Aria Automation' to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the license to add to the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER license
+        The license key to add to the VMware Aria Suite Lifecycle locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16694,7 +20298,7 @@ Export-ModuleMember -Function New-vRSLCMLockerLicense
 Function Undo-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Remove a license to the VMware Aria Suite Lifecycle locker
+        Remove a license to the VMware Aria Suite Lifecycle locker.
 
         .DESCRIPTION
         The Undo-vRSLCMLockerLicense cmdlet removes a license from the VMware Aria Suite Lifecycle locker.
@@ -16706,8 +20310,20 @@ Function Undo-vRSLCMLockerLicense {
 
         .EXAMPLE
         Undo-vRSLCMLockerLicense -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias "VMware Aria Automation"
-        This example removes a license with an alias of 'VMware Aria Automation' from the VMware Aria Suite Lifecycle locker
-    #>
+        This example removes a license with an alias of 'VMware Aria Automation' from the VMware Aria Suite Lifecycle locker.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the license to remove from the VMware Aria Suite Lifecycle locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16746,7 +20362,7 @@ Export-ModuleMember -Function Undo-vRSLCMLockerLicense
 Function New-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Adds a datacenter to VMware Aria Suite Lifecycle
+        Adds a datacenter to VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRSLCMDatacenter cmdlet adds a datacenter to the VMware Aria Suite Lifecycle inventory. The
@@ -16758,8 +20374,23 @@ Function New-vRSLCMDatacenter {
 
         .EXAMPLE
         New-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -location "San Francisco, California, US"
-        This example adds a datacenter to the VMware Aria Suite Lifecycle inventory
-    #>
+        This example adds a datacenter to the VMware Aria Suite Lifecycle inventory.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER datacenterName
+        The name of the datacenter to add to the inventory.
+
+        .PARAMETER location
+        The location of the datacenter to add to the inventory.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16782,7 +20413,7 @@ Function New-vRSLCMDatacenter {
                                 } else {
                                     Write-Error "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
                                 }
-                            }   else {
+                            } else {
                                 Write-Warning "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
                             }
                         }
@@ -16799,7 +20430,7 @@ Export-ModuleMember -Function New-vRSLCMDatacenter
 Function New-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Adds a vCenter Server to a Datacenter to VMware Aria Suite Lifecycle
+        Adds a vCenter Server to a Datacenter to VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRSLCMDatacenterVcenter cmdlet adds a vCenter Server to a Datacenter to the VMware Aria Suite Lifecycle
@@ -16811,8 +20442,26 @@ Function New-vRSLCMDatacenterVcenter {
 
         .EXAMPLE
         New-vRSLCMDatacenterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -userLockerAlias sfo-m01-vc01-sfo-m01-dc01
-        This example adds a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle
-    #>
+        This example adds a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER datacenterName
+        The name of the datacenter to add the vCenter Server to.
+
+        .PARAMETER vcenterFqdn
+        The FQDN of the vCenter Server to add to the Datacenter.
+
+        .PARAMETER userLockerAlias
+        The user locker alias of the vCenter Server to add to the Datacenter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16862,7 +20511,7 @@ Export-ModuleMember -Function New-vRSLCMDatacenterVcenter
 Function Undo-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Deletes a datacenter from VMware Aria Suite Lifecycle
+        Deletes a datacenter from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Undo-vRSLCMDatacenter cmdlet deletes a datacenter from the VMware Aria Suite Lifecycle inventory. The
@@ -16874,8 +20523,20 @@ Function Undo-vRSLCMDatacenter {
 
         .EXAMPLE
         Undo-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01
-        This example deletes a datacenter from the VMware Aria Suite Lifecycle inventory
-    #>
+        This example deletes a datacenter from the VMware Aria Suite Lifecycle inventory.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER datacenterName
+        The name of the datacenter to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16898,7 +20559,7 @@ Function Undo-vRSLCMDatacenter {
                                 } else {
                                     Write-Error "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
                                 }
-                            }   else {
+                            } else {
                                 Write-Warning "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
                             }
                         }
@@ -16915,7 +20576,7 @@ Export-ModuleMember -Function Undo-vRSLCMDatacenter
 Function Update-vRSLCMPSPack {
     <#
         .SYNOPSIS
-        Refresh Product Support Packs and Install
+        Refresh Product Support Packs and Install.
 
         .DESCRIPTION
         The Update-vRSLCMPSPack cmdlet refreshes the available Product Support Packs and installs the required version
@@ -16927,8 +20588,20 @@ Function Update-vRSLCMPSPack {
 
         .EXAMPLE
         Update-vRSLCMPSPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -psPack PSPACK6
-        This example refreshes the available Product Support Packs and installs the required version to VMware Aria Suite Lifecycle
-    #>
+        This example refreshes the available Product Support Packs and installs the required version to VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER psPack
+        The Product Support Pack to install.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16968,7 +20641,7 @@ Export-ModuleMember -Function Update-vRSLCMPSPack
 Function Add-VmGroup {
     <#
 		.SYNOPSIS
-        Add a VM Group
+        Add a VM Group.
 
         .DESCRIPTION
         The Add-VmGroup cmdlet adds a Virtual Machine to an existing VM Group. The cmdlet connects to SDDC Manager
@@ -16980,8 +20653,26 @@ Function Add-VmGroup {
 
         .EXAMPLE
         Add-VmGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -name "sfo-m01_primary-az-vmgroup" -vmList "xint-vra01a,xint-vra01b,xint-vra01c"
-        This example adds the VMware Aria Automation cluster VMs to the VM Group called primary_az_vmgroup
-    #>
+        This example adds the VMware Aria Automation cluster VMs to the VM Group called primary_az_vmgroup.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The Active Directory Domain name.
+
+        .PARAMETER name
+        The VM Group name.
+
+        .PARAMETER vmList
+        The Virtual Machines to add to the VM Group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17021,7 +20712,7 @@ Export-ModuleMember -Function Add-VmGroup
 Function Add-WorkspaceOneDirectoryGroup {
     <#
 		.SYNOPSIS
-        Adds Active Directory Group to sync in Workspace ONE Access Appliance
+        Adds Active Directory Group to sync in Workspace ONE Access Appliance.
 
         .DESCRIPTION
         The Add-WorkspaceOneDirectoryGroup cmdlet adds an Active Directory Group to sync in Workspace ONE Access Appliance
@@ -17030,8 +20721,32 @@ Function Add-WorkspaceOneDirectoryGroup {
 
         .EXAMPLE
         Add-WorkspaceOneDirectoryGroup -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -bindUser svc-vsphere-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-vrli-admins","gg-vrli-users","gg-vrli-viewers"
-        This example adds Active Directory groups to Workspace ONE Access directory
-    #>
+        This example adds Active Directory groups to Workspace ONE Access directory.
+
+        .PARAMETER server
+        The Workspace ONE Access Appliance FQDN or IP Address.
+
+        .PARAMETER user
+        The Workspace ONE Access Appliance admin user.
+
+        .PARAMETER pass
+        The Workspace ONE Access Appliance admin password.
+
+        .PARAMETER domain
+        The Active Directory Domain name.
+
+        .PARAMETER bindUser
+        The Active Directory Domain user with read access to the domain.
+
+        .PARAMETER bindPass
+        The Active Directory Domain user password.
+
+        .PARAMETER baseDnGroup
+        The Active Directory Domain base DN for groups.
+
+        .PARAMETER adGroups
+        The Active Directory Domain groups to sync.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17122,7 +20837,7 @@ Export-ModuleMember -Function Add-WorkspaceOneDirectoryGroup
 Function Undo-WorkspaceOneDirectoryGroup {
     <#
 		.SYNOPSIS
-        Removes Active Directory Group from Workspace ONE Access
+        Removes Active Directory Group from Workspace ONE Access.
 
         .DESCRIPTION
         The Undo-WorkspaceOneDirectoryGroup cmdlet removes an Active Directory Group from  Workspace ONE Access.
@@ -17131,8 +20846,32 @@ Function Undo-WorkspaceOneDirectoryGroup {
 
         .EXAMPLE
         Undo-WorkspaceOneDirectoryGroup -server sfo-wsa01.sfo.rainpole.io -user admin -pass VMw@re1! -domain sfo.rainpole.io -bindUser svc-vsphere-ad -bindPass VMw@re1! -baseDnGroup "ou=Security Groups,dc=sfo,dc=rainpole,dc=io" -adGroups "gg-vrli-admins","gg-vrli-users","gg-vrli-viewers"
-        This example removes Active Directory groups from Workspace ONE Access directory
-    #>
+        This example removes Active Directory groups from Workspace ONE Access directory.
+
+        .PARAMETER server
+        The Workspace ONE Access Appliance FQDN or IP Address.
+
+        .PARAMETER user
+        The Workspace ONE Access Appliance administrator username.
+
+        .PARAMETER pass
+        The Workspace ONE Access Appliance administrator password.
+
+        .PARAMETER domain
+        The Active Directory Domain name.
+
+        .PARAMETER bindUser
+        The Active Directory Domain user account to bind to.
+
+        .PARAMETER bindPass
+        The Active Directory Domain user account password.
+
+        .PARAMETER baseDnGroup
+        The Active Directory Domain base DN for groups.
+
+        .PARAMETER adGroups
+        The Active Directory Domain groups to remove from Workspace ONE Access.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17219,15 +20958,39 @@ Export-ModuleMember -Function Undo-WorkspaceOneDirectoryGroup
 Function Add-WorkspaceOneDirectoryConnector {
     <#
 		.SYNOPSIS
-        Adds a connector to the directory in Workspace ONE Access Appliance
+        Adds a connector to the directory in Workspace ONE Access Appliance.
 
         .DESCRIPTION
         The Add-WorkspaceOneDirectoryConnector cmdlet adds a connector to the directory in Workspace ONE Access Appliance
 
         .EXAMPLE
         Add-WorkspaceOneDirectoryConnector -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -wsaNode xint-wsa01b.rainpole.io -wsaUser admin -wsaPass VMw@re1! -bindUserPass VMw@re1!
-        This example adds Active Directory groups to Workspace ONE Access directory
-    #>
+        This example adds Active Directory groups to Workspace ONE Access directory.
+
+        .PARAMETER server
+        The Workspace ONE Access FQDN.
+
+        .PARAMETER user
+        The Workspace ONE Access Administrator username.
+
+        .PARAMETER pass
+        The Workspace ONE Access Administrator password.
+
+        .PARAMETER domain
+        The Active Directory domain name.
+
+        .PARAMETER wsaNode
+        The Workspace ONE Access Connector node name.
+
+        .PARAMETER wsaUser
+        The Workspace ONE Access Connector Administrator username.
+
+        .PARAMETER wsaPass
+        The Workspace ONE Access Connector Administrator password.
+
+        .PARAMETER bindUserPass
+        The Active Directory Bind User password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17278,7 +21041,7 @@ Export-ModuleMember -Function Add-WorkspaceOneDirectoryConnector
 Function Update-SddcDeployedFlavor {
     <#
         .SYNOPSIS
-        Add a Validated Solution tag
+        Add a Validated Solution tag.
 
         .DESCRIPTION
         The Update-SddcDeployedFlavor cmdlet adds a Validated Solution tag to the vCenter Server Advanced Setting
@@ -17290,8 +21053,20 @@ Function Update-SddcDeployedFlavor {
 
         .EXAMPLE
         Update-SddcDeployedFlavor -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vvsTag IAM
-        This example adds the IAM tag to the `config.SDDC.Deployed.Flavor` vCenter Server Advanced Setting
-    #>
+        This example adds the IAM tag to the `config.SDDC.Deployed.Flavor` vCenter Server Advanced Setting.
+
+        .PARAMETER server
+        The vCenter Server FQDN.
+
+        .PARAMETER user
+        The vCenter Server SSO Administrator username.
+
+        .PARAMETER pass
+        The vCenter Server SSO Administrator password.
+
+        .PARAMETER vvsTag
+        The Validated Solution tag to be added to the vCenter Server Advanced Setting `config.SDDC.Deployed.Flavor`.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17333,7 +21108,7 @@ Export-ModuleMember -Function Update-SddcDeployedFlavor
 Function Invoke-VcenterCommand {
     <#
 		.SYNOPSIS
-        Invoke a command line operation on vCenter Server
+        Invoke a command line operation on vCenter Server.
 
         .DESCRIPTION
         The Invoke-VcenterCommand cmdlet allows you to invoke any command line operation on a vCenter Server managed
@@ -17341,8 +21116,23 @@ Function Invoke-VcenterCommand {
 
         .EXAMPLE
         Invoke-VcenterCommand -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -command "ip -s -s neigh flush all"
-        This example invokes the command to flush the ARP table for the vCenter Server of a given workload domain
-    #>
+        This example invokes the command to flush the ARP table for the vCenter Server of a given workload domain.
+
+        .PARAMETER server
+        The vCenter Server FQDN.
+
+        .PARAMETER user
+        The vCenter Server SSO Administrator username.
+
+        .PARAMETER pass
+        The vCenter Server SSO Administrator password.
+
+        .PARAMETER domain
+        The vCenter Server SSO Administrator domain.
+
+        .PARAMETER command
+        The command to be executed on the vCenter Server.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17361,7 +21151,7 @@ Function Invoke-VcenterCommand {
                             $workloadDomainVcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain
                             $output = Invoke-VMScript -VM $workloadDomainVcenter.vmName -ScriptText $command -GuestUser $workloadDomainVcenter.root -GuestPassword $workloadDomainVcenter.rootPass -Server $vcfVcenterDetails.fqdn
                             Write-Output ""; Write-Output "Executing command ($command) on vCenter Server ($($workloadDomainVcenter.fqdn))"
-                            Write-Output "";Write-Output "$output"
+                            Write-Output ""; Write-Output "$output"
                             Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
@@ -17386,15 +21176,27 @@ Export-ModuleMember -Function Invoke-VcenterCommand
 Function Test-ADAuthentication {
     <#
         .SYNOPSIS
-        Test authetication against Active Directory
+        Test authetication against Active Directory.
 
         .DESCRIPTION
         The Test-ADAuthentication cmdlet tests the credentials provided against Active Directory domain
 
         .EXAMPLE
         Test-ADAuthentication -user svc-vsphere-ad -pass VMw@re1! -server sfo.rainpole.io -domain sfo.rainpole.io
-        This example check that the svc-vsphere-ad user can authenticate to the sfo.rainpole.io domain
-    #>
+        This example check that the svc-vsphere-ad user can authenticate to the sfo.rainpole.io domain.
+
+        .PARAMETER user
+        The Active Directory Domain user account to bind to.
+
+        .PARAMETER pass
+        The Active Directory Domain user account password.
+
+        .PARAMETER server
+        The Active Directory Domain FQDN.
+
+        .PARAMETER domain
+        The Active Directory Domain name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -17430,15 +21232,27 @@ Export-ModuleMember -Function Test-ADAuthentication
 Function Get-ADPrincipalGuid {
     <#
         .SYNOPSIS
-        Get principal GUID details
+        Get principal GUID details.
 
         .DESCRIPTION
         The Get-ADPrincipalGuid cmdlet retrieves the GUID details for an active directory user or group Active Directory domain
 
         .EXAMPLE
         Get-ADPrincipalGuid -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
-        This example retrieves the details for th gg-sso-admin domain
-    #>
+        This example retrieves the details for th gg-sso-admin domain.
+
+        .PARAMETER domain
+        The Active Directory Domain name.
+
+        .PARAMETER user
+        The Active Directory Domain user account to bind to.
+
+        .PARAMETER pass
+        The Active Directory Domain user account password.
+
+        .PARAMETER principal
+        The Active Directory Domain user or group name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
@@ -17472,7 +21286,7 @@ Export-ModuleMember -Function Get-ADPrincipalGuid
 Function Get-vCenterServerDetail {
     <#
         .SYNOPSIS
-        Get vCenter Server details from SDDC Manager
+        Get vCenter Server details from SDDC Manager.
 
         .DESCRIPTION
         The Get-vCenterServerDetail cmdlet retrieves the VM hostname, FQDN, root and vCenter Single Sign-On credentials
@@ -17484,8 +21298,23 @@ Function Get-vCenterServerDetail {
 
         .EXAMPLE
         Get-vCenterServerDetail -server sfo-vcf01.sfo.rainpole.io -user admin@local -pass VMw@re1!VMw@re1! -domain sfo-w01
-        This example retrieves the vCenter Server details for the Workload Domain sfo-w01
-    #>
+        This example retrieves the vCenter Server details for the Workload Domain sfo-w01.
+
+        .PARAMETER server
+        The SDDC Manager FQDN.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER domainType
+        The Workload Domain type.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$server,
@@ -17522,7 +21351,7 @@ Function Get-vCenterServerDetail {
                     $vcenterServerDetails = Get-VCFvCenter | Where-Object { $_.id -eq $($vcfWorkloadDomainDetails.vcenters.id) }
                     $vcenterCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceId -eq $($vcenterServerDetails.id) }
                     if ( ($vcfDetail.version).Split("-")[0] -ge "4.5.0.0") {
-                        $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" -and ($_.username).Split('@')[-1] -eq $vcfWorkloadDomainDetails.ssoName}
+                        $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" -and ($_.username).Split('@')[-1] -eq $vcfWorkloadDomainDetails.ssoName }
                         $ssoDomainName = $vcfWorkloadDomainDetails.ssoName
                     } else {
                         $pscCredentialDetails = Get-VCFCredential | Where-Object { $_.resource.resourceType -eq "PSC" }
@@ -17557,7 +21386,7 @@ Export-ModuleMember -Function Get-vCenterServerDetail
 Function Get-NsxtServerDetail {
     <#
         .SYNOPSIS
-        Get NSX details from SDDC Manager
+        Get NSX details from SDDC Manager.
 
         .DESCRIPTION
         The Get-NsxtServerDetail cmdlet retrieves the FQDN, root and admin credentials of NSX for a given
@@ -17569,8 +21398,26 @@ Function Get-NsxtServerDetail {
 
         .EXAMPLE
         Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domain sfo-w01
-        This example retrieves the vCenter Server details for the Workload Domain sfo-w01
-    #>
+        This example retrieves the vCenter Server details for the Workload Domain sfo-w01.
+
+        .PARAMETER fqdn
+        The SDDC Manager FQDN.
+
+        .PARAMETER username
+        The SDDC Manager administrator username.
+
+        .PARAMETER password
+        The SDDC Manager administrator password.
+
+        .PARAMETER domainType
+        The Workload Domain type.
+
+        .PARAMETER domain
+        The name of the workload domain to run against.
+
+        .PARAMETER listNodes
+        List NSX nodes.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -17578,7 +21425,7 @@ Function Get-NsxtServerDetail {
         [Parameter (Mandatory = $false)] [String]$password,
         [Parameter (Mandatory = $false)] [String]$domain,
         [Parameter( Mandatory = $false)] [ValidateSet("MANAGEMENT", "VI")] [String]$domainType,
-		[Parameter (Mandatory = $false)] [switch]$listNodes = $false
+        [Parameter (Mandatory = $false)] [switch]$listNodes = $false
     )
 
     Try {
@@ -17630,7 +21477,7 @@ Export-ModuleMember -Function Get-NsxtServerDetail
 Function Get-vRSLCMServerDetail {
     <#
         .SYNOPSIS
-        Get VMware Aria Suite Lifecycle details from SDDC Manager
+        Get VMware Aria Suite Lifecycle details from SDDC Manager.
 
         .DESCRIPTION
         The Get-WSAServerDetail cmdlet retrieves the FQDN, root and admin credentials of VMware Aria Suite Lifecycle
@@ -17638,8 +21485,17 @@ Function Get-vRSLCMServerDetail {
 
         .EXAMPLE
         Get-vRSLCMServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrieves the VMware Aria Suite Lifecycle details from SDDC Manager
-    #>
+        This example retrieves the VMware Aria Suite Lifecycle details from SDDC Manager.
+
+        .PARAMETER fqdn
+        The SDDC Manager FQDN.
+
+        .PARAMETER username
+        The SDDC Manager administrator username.
+
+        .PARAMETER password
+        The SDDC Manager administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -17685,7 +21541,7 @@ Export-ModuleMember -Function Get-vRSLCMServerDetail
 Function Get-WSAServerDetail {
     <#
         .SYNOPSIS
-        Get Workspace ONE Access details from SDDC Manager
+        Get Workspace ONE Access details from SDDC Manager.
 
         .DESCRIPTION
         The Get-WSAServerDetail cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of Workspace ONE Access
@@ -17693,8 +21549,17 @@ Function Get-WSAServerDetail {
 
         .EXAMPLE
         Get-WSAServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrieves the Workspace ONE Access details from SDDC Manager
-    #>
+        This example retrieves the Workspace ONE Access details from SDDC Manager.
+
+        .PARAMETER fqdn
+        The SDDC Manager FQDN.
+
+        .PARAMETER username
+        The SDDC Manager administrator username.
+
+        .PARAMETER password
+        The SDDC Manager administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -17743,7 +21608,7 @@ Export-ModuleMember -Function Get-WSAServerDetail
 Function Get-vRAServerDetail {
     <#
         .SYNOPSIS
-        Get VMware Aria Automation details from SDDC Manager
+        Get VMware Aria Automation details from SDDC Manager.
 
         .DESCRIPTION
         The Get-vRAServerDetail cmdlet retrieves the FQDN, Virtual IP and Node IP Addresses of VMware Aria Automation
@@ -17751,8 +21616,17 @@ Function Get-vRAServerDetail {
 
         .EXAMPLE
         Get-vRAServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrieves the VMware Aria Automation details from SDDC Manager
-    #>
+        This example retrieves the VMware Aria Automation details from SDDC Manager.
+
+        .PARAMETER fqdn
+        The SDDC Manager FQDN.
+
+        .PARAMETER username
+        The SDDC Manager administrator username.
+
+        .PARAMETER password
+        The SDDC Manager administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -17798,7 +21672,7 @@ Export-ModuleMember -Function Get-vRAServerDetail
 Function Get-vROPsServerDetail {
     <#
         .SYNOPSIS
-        Get VMware Aria Operations details from SDDC Manager
+        Get VMware Aria Operations details from SDDC Manager.
 
         .DESCRIPTION
         The Get-vROPsServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of 
@@ -17806,8 +21680,17 @@ Function Get-vROPsServerDetail {
 
         .EXAMPLE
         Get-vROPsServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrieves the VMware Aria Operations details from SDDC Manager
-    #>
+        This example retrieves the VMware Aria Operations details from SDDC Manager.
+
+        .PARAMETER fqdn
+        The SDDC Manager FQDN.
+
+        .PARAMETER username
+        The SDDC Manager administrator username.
+
+        .PARAMETER password
+        The SDDC Manager administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -17861,7 +21744,7 @@ Export-ModuleMember -Function Get-vROPsServerDetail
 Function Get-vRLIServerDetail {
     <#
         .SYNOPSIS
-        Get VMware Aria Operations for Logs details from SDDC Manager
+        Get VMware Aria Operations for Logs details from SDDC Manager.
 
         .DESCRIPTION
         The Get-vRLIServerDetail cmdlet retrieves the admin user, FQDN, Virtual IP and Node IP Addresses of VMware
@@ -17869,8 +21752,17 @@ Function Get-vRLIServerDetail {
 
         .EXAMPLE
         Get-vRLIServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrieves the VMWare Aria Operations for Logs details from SDDC Manager
-    #>
+        This example retrieves the VMWare Aria Operations for Logs details from SDDC Manager.
+
+        .PARAMETER fqdn
+        The vCenter Server FQDN.
+
+        .PARAMETER username
+        The SDDC Manager administrator username.
+
+        .PARAMETER password
+        The SDDC Manager administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -17920,15 +21812,21 @@ Export-ModuleMember -Function Get-vRLIServerDetail
 Function Get-VCFDnsSearchDomain {
     <#
         .SYNOPSIS
-        Get the search domains configured in an SDDC Manager appliance
+        Get the search domains configured in an SDDC Manager appliance.
 
         .DESCRIPTION
         The Get-VCFDnsSearchDomain cmdlet gets the search domains configured in an SDDC Manager appliance
 
         .EXAMPLE
         Get-VCFDnsSearchDomain -sddcManagerVmName sfo-vcf01 -sddcManagerRootPass VMw@re1!
-        This example gets all search domains configured in an SDDC Manager appliance
-    #>
+        This example gets all search domains configured in an SDDC Manager appliance.
+
+        .PARAMETER sddcManagerVmName
+        The SDDC Manager appliance name.
+
+        .PARAMETER sddcManagerRootPass
+        The SDDC Manager root password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sddcManagerVmName,
@@ -17989,7 +21887,7 @@ Export-ModuleMember -Function Get-VCFDnsSearchDomain
 Function Request-vSphereApiToken {
     <#
         .SYNOPSIS
-        Request an authentication token for the vSphere REST API
+        Request an authentication token for the vSphere REST API.
 
         .DESCRIPTION
         The Request-vSphereApiToken cmdlet requests an authentication token for the vSphere REST API
@@ -18001,8 +21899,23 @@ Function Request-vSphereApiToken {
 
         .EXAMPLE
         Get-vCenterServerDetail -Server sfo-vcf01.sfo.rainpole.io -User administrator@vsphere.local -Pass VMw@re1! -Domain sfo-w01 | Request-vSphereApiToken
-        This example requests a vSphere REST API authentication token for user administrator@vsphere.local from the vCenter Server that manages VI workload domain sfo-w01
-    #>
+        This example requests a vSphere REST API authentication token for user administrator@vsphere.local from the vCenter Server that manages VI workload domain sfo-w01.
+
+        .PARAMETER Fqdn
+        The vCenter Server FQDN.
+
+        .PARAMETER Username
+        The vCenter Server administrator username.
+
+        .PARAMETER Password
+        The vCenter Server administrator password.
+
+        .PARAMETER Admin
+        Use the Admin token for vCenter Server Management Interface.
+
+        .PARAMETER InputObject
+        The vCenter Server object.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -18035,14 +21948,14 @@ Function Request-vSphereApiToken {
         $Global:vcApiAdminServer = $fqdn + ":5480"
 
         # Perform the vCenter REST API call to authenticate and retrieve the session token
-		if ($PsBoundParameters.ContainsKey("admin")) {
+        if ($PsBoundParameters.ContainsKey("admin")) {
             $uri = "https://$vcApiAdminServer/rest/com/vmware/cis/session"
             if ($PSEdition -eq 'Core') {
                 $vcApiAdminSession = (Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcAuthHeaders -UseBasicParsing -SkipCertificateCheck | ConvertFrom-Json).Value
             } else {
                 $vcApiAdminSession = (Invoke-WebRequest -Method 'POST' -Uri $uri -Headers $vcAuthHeaders -UseBasicParsing | ConvertFrom-Json).Value
             }
-		} else {
+        } else {
             $uri = "https://$vcApiServer/rest/com/vmware/cis/session"
             if ($PSEdition -eq 'Core') {
                 $vcApiSession = (Invoke-WebRequest -Method 'POST' -URI $uri -Headers $vcAuthHeaders -UseBasicParsing -SkipCertificateCheck | ConvertFrom-Json).Value
@@ -18056,7 +21969,7 @@ Function Request-vSphereApiToken {
         $vcApiHeaders.Add("Content-Type", "application/json")
 
         # Use the session token to build the header for admin interface used from here on
-        if ($admin){
+        if ($admin) {
             $Global:vcApiAdminHeaders = @{"vmware-api-session-id" = $vcApiAdminSession }
             $vcApiAdminHeaders.Add("Content-Type", "application/json")
         }
@@ -18115,15 +22028,27 @@ Export-ModuleMember -Function Request-vSphereApiToken
 Function Request-VcenterApiToken {
     <#
         .SYNOPSIS
-        Request an authentication token for the vCenter Server REST API
+        Request an authentication token for the vCenter Server REST API.
 
         .DESCRIPTION
         The Request-VcenterApiToken cmdlet requests an authentication token for the vCenter Server REST API
 
         .EXAMPLE
         Request-VcenterApiToken -fqdn sfo-m01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
-        This example requests a vCenter Server REST API authentication token for user administrator@vsphere.local from vCenter Server sfo-w01-vc01.sfo.rainpole.io
-    #>
+        This example requests a vCenter Server REST API authentication token for user administrator@vsphere.local from vCenter Server sfo-w01-vc01.sfo.rainpole.io.
+
+        .PARAMETER fqdn
+        The vCenter Server FQDN.
+
+        .PARAMETER username
+        The vCenter Server administrator username.
+
+        .PARAMETER password
+        The vCenter Server administrator password.
+
+        .PARAMETER skipCertificateCheck
+        Skip SSL certificate check.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -18132,7 +22057,8 @@ Function Request-VcenterApiToken {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$skipCertificateCheck
     )
 
-    if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) { # Request Credentials
+    if (!$PsBoundParameters.ContainsKey("username") -or (!$PsBoundParameters.ContainsKey("password"))) {
+        # Request Credentials
         $creds = Get-Credential
         $username = $creds.UserName.ToString()
         $password = $creds.GetNetworkCredential().password
@@ -18159,7 +22085,7 @@ public static class Placeholder {
     }
 }
 "@
-} 
+        } 
         [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [placeholder]::GetDelegate()
     }
 
@@ -18209,8 +22135,17 @@ Function Connect-vSphereMobServer {
         The Connect-vSphereMobServer cmdlet is used to connect to the vSphere Managed Object Browser (MOB)
         
         .EXAMPLE
-        Connect-vSphereMobServer -server sfo-m01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
-    #>
+        Connect-vSphereMobServer -server sfo-m01-vc01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!.
+
+        .PARAMETER server
+        The vCenter Server FQDN.
+
+        .PARAMETER username
+        The vCenter Server administrator username.
+
+        .PARAMETER password
+        The vCenter Server administrator password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String] $server,
@@ -18222,16 +22157,16 @@ Function Connect-vSphereMobServer {
         $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential($username, $securePassword)
         $Global:DefaultMobServer = @{
-            Server = $server
-            Credential = $credential
+            Server               = $server
+            Credential           = $credential
             skipCertificateCheck = $true
         }
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/?moid=authorizationService&" + "method=AuthorizationService.GetRoles"
         $params = @{
-            Uri = $uri
+            Uri             = $uri
             SessionVariable = "mobSession"
-            Credential = $Global:DefaultMobServer.Credential
-            Method = "GET"
+            Credential      = $Global:DefaultMobServer.Credential
+            Method          = "GET"
         }
         $response = Invoke-WebRequest @params -UseBasicParsing
         if ($response.StatusCode -eq 200) {
@@ -18257,8 +22192,8 @@ Function Disconnect-vSphereMobServer {
         The Disconnect-vSphereMobServer cmdlet is used to disconnect from the vSphere Managed Object Browser (MOB)
         
         .EXAMPLE
-        Disconnect-vSphereMobServer
-    #>
+        Disconnect-vSphereMobServer.
+   #>
 
     Try {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/logout"
@@ -18278,15 +22213,15 @@ Export-ModuleMember -Function Disconnect-vSphereMobServer
 Function Get-VCVersion {
     <#
         .SYNOPSIS
-        Get the version
+        Get the version.
 
         .DESCRIPTION
         The Get-VCVersion cmdlet gets the version of the vCenter Server
 
         .EXAMPLE
         Get-VCVersion
-        This example gets the version of the vCenter Server
-    #>
+        This example gets the version of the vCenter Server.
+   #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/system/version"
@@ -18300,15 +22235,15 @@ Export-ModuleMember -Function Get-VCVersion
 Function Get-VCConfigurationNTP {
     <#
         .SYNOPSIS
-        Get NTP configuration
+        Get NTP configuration.
 
         .DESCRIPTION
         The Get-VCConfigurationNTP cmdlet gets the NTP configuration of vCenter Server
 
         .EXAMPLE
         Get-VCConfigurationNTP
-        This example gets the NTP configuration of the vCenter Server
-    #>
+        This example gets the NTP configuration of the vCenter Server.
+   #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/ntp"
@@ -18322,15 +22257,15 @@ Export-ModuleMember -Function Get-VCConfigurationNTP
 Function Get-VCConfigurationDNS {
     <#
         .SYNOPSIS
-        Get DNS configuration
+        Get DNS configuration.
 
         .DESCRIPTION
         The Get-VCConfigurationDNS cmdlet gets the DNS configuration of vCenter Server
 
         .EXAMPLE
         Get-VCConfigurationDNS
-        This example gets the DNS configuration of the vCenter Server
-    #>
+        This example gets the DNS configuration of the vCenter Server.
+   #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/networking/dns/servers"
@@ -18344,15 +22279,15 @@ Export-ModuleMember -Function Get-VCConfigurationDNS
 Function Get-VcenterPasswordExpiration {
     <#
     .SYNOPSIS
-        Retrieve the global password expiration policy
+        Retrieve the global password expiration policy.
 
         .DESCRIPTION
         The Get-VcenterPasswordExpiration cmdlet retrieves the global password expiration policy for local users of vCenter Server
 
         .EXAMPLE
         Get-VcenterPasswordExpiration
-        This example retrieves the global password expiration policy of the vCenter Server
-    #>
+        This example retrieves the global password expiration policy of the vCenter Server.
+   #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
@@ -18366,15 +22301,24 @@ Export-ModuleMember -Function Get-VcenterPasswordExpiration
 Function Set-VcenterPasswordExpiration {
     <#
         .SYNOPSIS
-        Configure the global password expiration policy
+        Configure the global password expiration policy.
 
         .DESCRIPTION
         The Set-VCPasswordPolicy cmdlet configures the global password expiration policy for the vCenter Server
 
         .EXAMPLE
         Set-VcenterPasswordExpiration -maxDays 999 -minDays 0 -warnDays 14
-        This example configures the global password policy of the vCenter Server
-    #>
+        This example configures the global password policy of the vCenter Server.
+
+        .PARAMETER maxDays
+        The maximum number of days before a password expires.
+
+        .PARAMETER minDays
+        The minimum number of days before a password expires.
+
+        .PARAMETER warnDays
+        The number of days before a password expires that a warning is issued.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$maxDays,
@@ -18385,7 +22329,7 @@ Function Set-VcenterPasswordExpiration {
     Try {
         if ($vcApiHeaders) {
             $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
-            $body = '{ "max_days": '+$maxDays+', "min_days": '+$minDays+', "warn_days": '+$warnDays+' }'
+            $body = '{ "max_days": ' + $maxDays + ', "min_days": ' + $minDays + ', "warn_days": ' + $warnDays + ' }'
             Invoke-RestMethod -Method PUT -Uri $uri -Headers $vcApiHeaders -Body $body
         }
     } Catch {
@@ -18397,15 +22341,15 @@ Export-ModuleMember -Function Set-VcenterPasswordExpiration
 Function Get-VcenterRootPasswordExpiration {
     <#
         .SYNOPSIS
-		Retrieve the root user password expiration policy
+		Retrieve the root user password expiration policy.
 
         .DESCRIPTION
         The Get-VcenterRootPasswordExpiration cmdlet retrieves the root user password expiration policy from vCenter Server
 
         .EXAMPLE
         Get-VcenterRootPasswordExpiration
-        This example retrieves the root user password expiration policy from vCenter Server
-    #>
+        This example retrieves the root user password expiration policy from vCenter Server.
+   #>
 
     Try {
         if ($vcApiHeaders) {
@@ -18421,7 +22365,7 @@ Export-ModuleMember -Function Get-VcenterRootPasswordExpiration
 Function Set-VcenterRootPasswordExpiration {
     <#
         .SYNOPSIS
-        Set the vcenter password expiry date
+        Set the vcenter password expiry date.
 
         .DESCRIPTION
         The Set-VcenterRootPasswordExpiration cmdlet configures password expiration settings for the vCenter Server root account
@@ -18432,8 +22376,20 @@ Function Set-VcenterRootPasswordExpiration {
 
         .EXAMPLE
         Set-VcenterRootPasswordExpiration -neverexpire
-        This example configures the configures password expiration settings for the vCenter Server root account to never expire
-    #>
+        This example configures the configures password expiration settings for the vCenter Server root account to never expire.
+
+        .PARAMETER email
+        The email address to send password expiration notifications to.
+
+        .PARAMETER maxDays
+        The maximum number of days before a password expires.
+
+        .PARAMETER warnDays
+        The number of days before a password expires that a warning is issued.
+
+        .PARAMETER neverexpire
+        Set the password to never expire.
+   #>
 
     Param (
         [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
@@ -18447,7 +22403,7 @@ Function Set-VcenterRootPasswordExpiration {
             $body = '{"config":{"password_expires": false}}'
         } else {
             
-            $body = '{"config":{"password_expires": true, "email": "'+ $email+ '", "max_days_between_password_change": "' + $maxDays + '", "warn_days_before_password_expiration": "' + $warnDays + '"}}'
+            $body = '{"config":{"password_expires": true, "email": "' + $email + '", "max_days_between_password_change": "' + $maxDays + '", "warn_days_before_password_expiration": "' + $warnDays + '"}}'
         }
         $uri = "https://$vcApiServer/rest/appliance/local-accounts/root"
         Invoke-RestMethod -Method PATCH -Uri $uri -Headers $vcApiHeaders -Body $body
@@ -18484,15 +22440,30 @@ Function Get-LocalUserPasswordExpiration {
         .EXAMPLE
         Get-LocalUserPasswordExpiration -vmName xint-vrni01a -guestUser console -guestPassword VMw@re1! -localUser support -sudo
         This example retrieves the password expiration policy for the support user on VMware Aria Operations for Networks xint-vrni01a.
-    #>
+
+        .PARAMETER vmName
+        The virtual machine name.
+
+        .PARAMETER guestUser
+        The guest user name.
+
+        .PARAMETER guestPassword
+        The guest user password.
+
+        .PARAMETER localUser
+        The local user name.
+
+        .PARAMETER sudo
+        Use sudo to run the command.
+   #>
 
     Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sudo
-        )
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sudo
+    )
 
     Try {
         $passwordExpirationObject = New-Object System.Collections.ArrayList
@@ -18542,18 +22513,42 @@ Function Set-LocalUserPasswordExpiration {
         .EXAMPLE
         Set-LocalUserPasswordExpiration -vmName xint-vrni01a -guestUser console -guestPassword VMw@re1! -localUser support -minDays 0 -maxDays 999 -warnDays 14 -sudo
         This example configures the password expiration policy for the support user on VMware Aria Operations for Networks xint-vrni01a.
-    #>
+
+        .PARAMETER vmName
+        The virtual machine name.
+
+        .PARAMETER guestUser
+        The guest user name.
+
+        .PARAMETER guestPassword
+        The guest user password.
+
+        .PARAMETER localUser
+        The local user name.
+
+        .PARAMETER minDays
+        The minimum number of days before a password expires.
+
+        .PARAMETER maxDays
+        The maximum number of days before a password expires.
+
+        .PARAMETER warnDays
+        The number of days before a password expires that a warning is issued.
+
+        .PARAMETER sudo
+        Use sudo to run the command.
+   #>
 
     Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$minDays,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxDays,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$warnDays,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sudo
-        )
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localUser,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$minDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxDays,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$warnDays,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$sudo
+    )
 
     Try {
         $scriptCommand = "chage --maxdays $maxDays "
@@ -18577,7 +22572,7 @@ Export-ModuleMember -Function Set-LocalUserPasswordExpiration
 Function Get-LocalPasswordComplexity {
     <#
 		.SYNOPSIS
-        Get password complexity for local users
+        Get password complexity for local users.
 
         .DESCRIPTION
         The Get-LocalPasswordComplexity cmdlets retrieves the password complexity for local users
@@ -18604,29 +22599,56 @@ Function Get-LocalPasswordComplexity {
 
         .EXAMPLE
         Get-LocalPasswordComplexity -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -drift -product wsaLocal
-        This example retrieves the Workspace ONE Access sfo-wsa01 password complexity and compares the configuration against the product defaults
-    #>
+        This example retrieves the Workspace ONE Access sfo-wsa01 password complexity and compares the configuration against the product defaults.
+
+        .PARAMETER vmName
+        The virtual machine name.
+
+        .PARAMETER guestUser
+        The guest user name.
+
+        .PARAMETER guestPassword
+        The guest user password.
+
+        .PARAMETER nsx
+        The NSX Manager flag.
+
+        .PARAMETER drift
+        The configuration drift flag.
+
+        .PARAMETER product
+        The product name.
+
+        .PARAMETER version
+        The product version.
+
+        .PARAMETER reportPath
+        The report path.
+
+        .PARAMETER policyFile
+        The policy file.
+   #>
 
     Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx,
-            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
-            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
-            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$version,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
-        )
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$version,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+    )
 
-        if ($PsBoundParameters.ContainsKey('drift')) { 
-            if ($PsBoundParameters.ContainsKey('policyFile')) { 
-                $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.passwordComplexity"
-            } else {
-                $command = "(Get-PasswordPolicyConfig -version $version).$product.passwordComplexity"
-            }
-            $requiredConfig = Invoke-Expression $command
+    if ($PsBoundParameters.ContainsKey('drift')) { 
+        if ($PsBoundParameters.ContainsKey('policyFile')) { 
+            $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.passwordComplexity"
+        } else {
+            $command = "(Get-PasswordPolicyConfig -version $version).$product.passwordComplexity"
         }
+        $requiredConfig = Invoke-Expression $command
+    }
 
     Try {
         if ($PsBoundParameters.ContainsKey("nsx")) {
@@ -18648,16 +22670,16 @@ Function Get-LocalPasswordComplexity {
 
         $passwordComplexityObject = New-Object -TypeName psobject
         $passwordComplexityObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
-        if ($minLen) { $passwordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $(if ($drift) { if ($minLen -ne $requiredConfig.minLength) { "$($minLen) [ $($requiredConfig.minLength) ]" } else { "$($minLen)" }} else { "$($minLen)" })}
-        if ($minLowercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $(if ($drift) { if ($minLowercase -ne $requiredConfig.minLowercase) { "$($minLowercase) [ $($requiredConfig.minLowercase) ]" } else { "$($minLowercase)" }} else { "$($minLowercase)" })}
-        if ($minUppercase) {$passwordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $(if ($drift) { if ($minUppercase -ne $requiredConfig.minUppercase) { "$($minUppercase) [ $($requiredConfig.minUppercase) ]" } else { "$($minUppercase)" }} else { "$($minUppercase)" })}
-        if ($minNumerical) {$passwordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $(if ($drift) { if ($minNumerical -ne $requiredConfig.minNumerical) { "$($minNumerical) [ $($requiredConfig.minNumerical) ]" } else { "$($minNumerical)" }} else { "$($minNumerical)" })}
-        if ($minSpecial) {$passwordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $(if ($drift) { if ($minSpecial -ne $requiredConfig.minSpecial) { "$($minSpecial) [ $($requiredConfig.minSpecial) ]" } else { "$($minSpecial)" }} else { "$($minSpecial)" })}
-        if ($minUnique) {$passwordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $(if ($drift) { if ($minUnique -ne $requiredConfig.minUnique) { "$($minUnique) [ $($requiredConfig.minUnique) ]" } else { "$($minUnique)" }} else { "$($minUnique)" })}
-        if ($minClass) { $passwordComplexityObject | Add-Member -notepropertyname "Min Classes" -notepropertyvalue $(if ($drift) { if ($minClass -ne $requiredConfig.minClass) { "$($minClass) [ $($requiredConfig.minClass) ]" } else { "$($minClass)" }} else { "$($minClass)" })}
-        if ($maxSequence) { $passwordComplexityObject | Add-Member -notepropertyname "Max Sequence" -notepropertyvalue $(if ($drift) { if ($maxSequence -ne $requiredConfig.maxSequence) { "$($maxSequence) [ $($requiredConfig.maxSequence) ]" } else { "$($maxSequence)" }} else { "$($maxSequence)" })}
-        if ($history) { $passwordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $(if ($drift) { if ($history -ne $requiredConfig.history) { "$($history) [ $($requiredConfig.history) ]" } else { "$($history)" }} else { "$($history)" })}
-        if ($retry) { $passwordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $(if ($drift) { if ($retry -ne $requiredConfig.retries) { "$($retry) [ $($requiredConfig.retries) ]" } else { "$($retry)" }} else { "$($retry)" })}
+        if ($minLen) { $passwordComplexityObject | Add-Member -notepropertyname "Min Length" -notepropertyvalue $(if ($drift) { if ($minLen -ne $requiredConfig.minLength) { "$($minLen) [ $($requiredConfig.minLength) ]" } else { "$($minLen)" } } else { "$($minLen)" }) }
+        if ($minLowercase) { $passwordComplexityObject | Add-Member -notepropertyname "Min Lowercase" -notepropertyvalue $(if ($drift) { if ($minLowercase -ne $requiredConfig.minLowercase) { "$($minLowercase) [ $($requiredConfig.minLowercase) ]" } else { "$($minLowercase)" } } else { "$($minLowercase)" }) }
+        if ($minUppercase) { $passwordComplexityObject | Add-Member -notepropertyname "Min Uppercase" -notepropertyvalue $(if ($drift) { if ($minUppercase -ne $requiredConfig.minUppercase) { "$($minUppercase) [ $($requiredConfig.minUppercase) ]" } else { "$($minUppercase)" } } else { "$($minUppercase)" }) }
+        if ($minNumerical) { $passwordComplexityObject | Add-Member -notepropertyname "Min Numerical" -notepropertyvalue $(if ($drift) { if ($minNumerical -ne $requiredConfig.minNumerical) { "$($minNumerical) [ $($requiredConfig.minNumerical) ]" } else { "$($minNumerical)" } } else { "$($minNumerical)" }) }
+        if ($minSpecial) { $passwordComplexityObject | Add-Member -notepropertyname "Min Special" -notepropertyvalue $(if ($drift) { if ($minSpecial -ne $requiredConfig.minSpecial) { "$($minSpecial) [ $($requiredConfig.minSpecial) ]" } else { "$($minSpecial)" } } else { "$($minSpecial)" }) }
+        if ($minUnique) { $passwordComplexityObject | Add-Member -notepropertyname "Min Unique" -notepropertyvalue $(if ($drift) { if ($minUnique -ne $requiredConfig.minUnique) { "$($minUnique) [ $($requiredConfig.minUnique) ]" } else { "$($minUnique)" } } else { "$($minUnique)" }) }
+        if ($minClass) { $passwordComplexityObject | Add-Member -notepropertyname "Min Classes" -notepropertyvalue $(if ($drift) { if ($minClass -ne $requiredConfig.minClass) { "$($minClass) [ $($requiredConfig.minClass) ]" } else { "$($minClass)" } } else { "$($minClass)" }) }
+        if ($maxSequence) { $passwordComplexityObject | Add-Member -notepropertyname "Max Sequence" -notepropertyvalue $(if ($drift) { if ($maxSequence -ne $requiredConfig.maxSequence) { "$($maxSequence) [ $($requiredConfig.maxSequence) ]" } else { "$($maxSequence)" } } else { "$($maxSequence)" }) }
+        if ($history) { $passwordComplexityObject | Add-Member -notepropertyname "History" -notepropertyvalue $(if ($drift) { if ($history -ne $requiredConfig.history) { "$($history) [ $($requiredConfig.history) ]" } else { "$($history)" } } else { "$($history)" }) }
+        if ($retry) { $passwordComplexityObject | Add-Member -notepropertyname "Max Retries" -notepropertyvalue $(if ($drift) { if ($retry -ne $requiredConfig.retries) { "$($retry) [ $($requiredConfig.retries) ]" } else { "$($retry)" } } else { "$($retry)" }) }
         Return $passwordComplexityObject
     } Catch {
         Write-Error $_.Exception.Message
@@ -18668,7 +22690,7 @@ Export-ModuleMember -Function Get-LocalPasswordComplexity
 Function Set-LocalPasswordComplexity {
     <#
 		.SYNOPSIS
-        Configure password complexity for local users
+        Configure password complexity for local users.
 
         .DESCRIPTION
         The Set-LocalPasswordComplexity cmdlets configures the password complexity local users
@@ -18683,25 +22705,67 @@ Function Set-LocalPasswordComplexity {
 
         .EXAMPLE
         Set-LocalPasswordComplexity -vmName sfo-w01-nsx01a -guestUser root -guestPassword VMw@re1!VMw@re1! -nsx -minLength 15 -uppercase "-1" -lowercase "-1" -numerical "-1" -special "-1" -unique 0 -history 5 
-        This example updates the NSX Manager sfo-w01-nsx01a with the values
-    #>
+        This example updates the NSX Manager sfo-w01-nsx01a with the values.
+
+        .PARAMETER vmName
+        The virtual machine name.
+
+        .PARAMETER guestUser
+        The guest user name.
+
+        .PARAMETER guestPassword
+        The guest user password.
+
+        .PARAMETER minLength
+        The minimum number of characters in a password.
+
+        .PARAMETER uppercase
+        The maximum number of uppercase characters in a password.
+
+        .PARAMETER lowercase
+        The maximum number of lowercase characters in a password.
+
+        .PARAMETER numerical
+        The maximum number of numerical characters in a password.
+
+        .PARAMETER special
+        The maximum number of special characters in a password.
+
+        .PARAMETER unique
+        The minimum number of unique characters in a password.
+
+        .PARAMETER history
+        The number of passwords to remember.
+
+        .PARAMETER retry
+        The number of retries.
+
+        .PARAMETER class
+        The minimum number of character classes.
+
+        .PARAMETER sequence
+        The maximum number of repeated characters.
+
+        .PARAMETER nsx
+        The NSX Manager flag.
+   #>
 
     Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$uppercase,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$lowercase,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$numerical,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$special,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unique,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$history,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$retry,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$class,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$sequence,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx
-        )
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$minLength,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$uppercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$lowercase,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$numerical,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$special,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unique,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$history,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$retry,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$class,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$sequence,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nsx
+    )
 
     Try {
         $scriptCommand = "sed -E -i.bak '"
@@ -18770,7 +22834,7 @@ Export-ModuleMember -Function Set-LocalPasswordComplexity
 Function Get-LocalAccountLockout {
     <#
 		.SYNOPSIS
-        Get account lockout policy for local users
+        Get account lockout policy for local users.
 
         .DESCRIPTION
         The Get-LocalAccountLockout cmdlets retrieves the account lockout for local users
@@ -18792,28 +22856,52 @@ Function Get-LocalAccountLockout {
         This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy and checks the configuration drift using the provided configuration JSON
 
         Get-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -product wsaLocal -drift
-        This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy and compares the configuration against the product defaults
-    #>
+        This example retrieves the Workspace ONE Access sfo-wsa01 account lockout policy and compares the configuration against the product defaults.
+
+        .PARAMETER vmName
+        The virtual machine name.
+
+        .PARAMETER guestUser
+        The guest user name.
+
+        .PARAMETER guestPassword
+        The guest user password.
+
+        .PARAMETER product
+        The product name.
+
+        .PARAMETER drift
+        The configuration drift flag.
+
+        .PARAMETER version
+        The product version.
+
+        .PARAMETER reportPath
+        The report path.
+
+        .PARAMETER policyFile
+        The policy file.
+   #>
 
     Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $true)] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
-            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
-            [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$version,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
-        )
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateSet('sddcManager', 'vcenterServerLocal', 'nsxManager', 'nsxEdge', 'wsaLocal')] [String]$product,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [Switch]$drift,
+        [Parameter (Mandatory = $false, ParameterSetName = 'drift')] [ValidateNotNullOrEmpty()] [String]$version,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$reportPath,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
+    )
 
-        if ($PsBoundParameters.ContainsKey('drift')) { 
-            if ($PsBoundParameters.ContainsKey('policyFile')) { 
-                $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.accountLockout"
-            } else {
-                $command = "(Get-PasswordPolicyConfig -version $version).$product.accountLockout"
-            }
-            $requiredConfig = Invoke-Expression $command
+    if ($PsBoundParameters.ContainsKey('drift')) { 
+        if ($PsBoundParameters.ContainsKey('policyFile')) { 
+            $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.accountLockout"
+        } else {
+            $command = "(Get-PasswordPolicyConfig -version $version).$product.accountLockout"
         }
+        $requiredConfig = Invoke-Expression $command
+    }
 
     Try {
 
@@ -18824,7 +22912,7 @@ Function Get-LocalAccountLockout {
         if ([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+')) { $rootUnlockInterval = (([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
         $accountLockoutObject = New-Object -TypeName psobject
         $accountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
-        if ($failures) { $accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($failures -ne $requiredConfig.maxFailures) { "$($failures) [ $($requiredConfig.maxFailures) ]" } else { "$($failures)" }} else { "$($failures)" })}
+        if ($failures) {$accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($failures -ne $requiredConfig.maxFailures) { "$($failures) [ $($requiredConfig.maxFailures) ]" } else { "$($failures)" }} else { "$($failures)" })}
         if ($unlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($unlockInterval -ne $requiredConfig.unlockInterval) { "$($unlockInterval) [ $($requiredConfig.unlockInterval) ]" } else { "$($unlockInterval)" }} else { "$($unlockInterval)" })}
         if ($rootUnlockInterval) {$accountLockoutObject | Add-Member -notepropertyname "Root Unlock Interval (sec)" -notepropertyvalue $(if ($drift) { if ($rootUnlockInterval -ne $requiredConfig.rootUnlockInterval) { "$($rootUnlockInterval) [ $($requiredConfig.rootUnlockInterval) ]" } else { "$($rootUnlockInterval)" }} else { "$($rootUnlockInterval)" })}
         Return $accountLockoutObject
@@ -18837,7 +22925,7 @@ Export-ModuleMember -Function Get-LocalAccountLockout
 Function Set-LocalAccountLockout {
     <#
 		.SYNOPSIS
-        Configure account lockoput for local users
+        Configure account lockoput for local users.
 
         .DESCRIPTION
         The Set-LocalAccountLockout cmdlets configures the account lockout policy local users
@@ -18852,17 +22940,35 @@ Function Set-LocalAccountLockout {
 
         .EXAMPLE
         Set-LocalAccountLockout -vmName sfo-wsa01 -guestUser root -guestPassword VMw@re1! -failures 3 -unlockInterval 900 -rootUnlockInterval 900
-        This example updates the account lockout policy for Workspace ONE Access
-    #>
+        This example updates the account lockout policy for Workspace ONE Access.
+
+        .PARAMETER vmName
+        The virtual machine name.
+
+        .PARAMETER guestUser
+        The guest user name.
+
+        .PARAMETER guestPassword
+        The guest user password.
+
+        .PARAMETER failures
+        The maximum number of login failures.
+
+        .PARAMETER unlockInterval
+        The unlock interval in seconds.
+
+        .PARAMETER rootUnlockInterval
+        The root unlock interval in seconds.
+   #>
 
     Param (
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
-            [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval,
-            [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$rootUnlockInterval
-        )
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$guestPassword,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$failures,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$unlockInterval,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$rootUnlockInterval
+    )
 
     Try {
         $scriptCommand = "sed -E -i.bak '"
@@ -18890,37 +22996,37 @@ Export-ModuleMember -Function Set-LocalAccountLockout
 Function Get-GlobalPermission {
     <#
         .SYNOPSIS
-        Get vSphere Global Permission
+        Get vSphere Global Permission.
 
         .DESCRIPTION
         The Get-GlobalPermission cmdlet gets a list of vSphere Global Permission
 
         .EXAMPLE
         Get-GlobalPermission
-        This example shows how to gets a list of vSphere Global Permission
-    #>
+        This example shows how to gets a list of vSphere Global Permission.
+   #>
 
     Try {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/?moid=authorizationService&" + "method=AuthorizationService.GetGlobalAccessControlList"
         $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)"
         $params = @{
-            Uri = $uri
-            WebSession = $Global:DefaultMobServer.WebSession
-            Credential = $Global:DefaultMobServer.Credential
-            Method = "POST"
-            Body = $body
+            Uri             = $uri
+            WebSession      = $Global:DefaultMobServer.WebSession
+            Credential      = $Global:DefaultMobServer.Credential
+            Method          = "POST"
+            Body            = $body
             UseBasicParsing = $true
         }
         $response = Invoke-WebRequest @params
-        $vsphereRoles = Get-VIRole | Select-Object Name, @{N="Id";E={@($_.Id)}} # Gather vSphere Roles and their Id
+        $vsphereRoles = Get-VIRole | Select-Object Name, @{N = "Id"; E = { @($_.Id) } } # Gather vSphere Roles and their Id
         $roleLookup = @{}
-            foreach ($role in $vsphereRoles) {
-                $roleLookup."$($role.Id)" = $role.Name
-            }
+        foreach ($role in $vsphereRoles) {
+            $roleLookup."$($role.Id)" = $role.Name
+        }
         # Extract the data from the parsed HTML
         $html = New-Object -Com "HTMLFile"
-		[string]$htmlBody = $response.Content
-		$html.write([ref]$htmlBody)
+        [string]$htmlBody = $response.Content
+        $html.write([ref]$htmlBody)
         $table = $html.getElementsByTagName("table")[3]
         $td = $table.getElementsByTagName("tr")[4].getElementsByTagName("td")[2]
         $li = $td.getElementsByTagName("ul")[0].getElementsByTagName("li")
@@ -18939,8 +23045,8 @@ Function Get-GlobalPermission {
     
                 [PSCustomObject] @{
                     Principal = $principal
-                    Type = $type
-                    Role = $RoleLookup.$($Role)
+                    Type      = $type
+                    Role      = $RoleLookup.$($Role)
                     Propagate = $propagate
                 }
             }
@@ -18954,21 +23060,33 @@ Export-ModuleMember -Function Get-GlobalPermission
 Function Add-GlobalPermission {
     <#
         .SYNOPSIS
-        Add a vSphere Global Permission
+        Add a vSphere Global Permission.
 
         .DESCRIPTION
         The Add-GlobalPermission cmdlet adds a new user or group a vSphere Global Permission
 
         .EXAMPLE
         Add-GlobalPermission -principal gg-vc-admins -roleId -1 -propagate true -type group
-        This example shows how to add the Administrator global permission to a group called svc-vc-admins
-    #>
+        This example shows how to add the Administrator global permission to a group called svc-vc-admins.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER roleId
+        The vSphere Role Id.
+
+        .PARAMETER propagate
+        The propagate flag.
+
+        .PARAMETER type
+        The user or group type.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId,
-        [Parameter (Mandatory = $true)] [ValidateSet("true","false")] [String]$propagate,
-        [Parameter (Mandatory = $true)] [ValidateSet("group","user")] [String]$type
+        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [String]$propagate,
+        [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type
     )
 
     Try {
@@ -18981,11 +23099,11 @@ Function Add-GlobalPermission {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&permissions=%3Cpermissions%3E%0D%0A+++%3Cprincipal%3E%0D%0A++++++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A++++++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A+++%3C%2Fprincipal%3E%0D%0A+++%3Croles%3E$roleId%3C%2Froles%3E%0D%0A+++%3Cpropagate%3E$propagate%3C%2Fpropagate%3E%0D%0A%3C%2Fpermissions%3E"
         }
         $params = @{
-            Uri = $uri
-            WebSession = $Global:DefaultMobServer.WebSession
-            Credential = $Global:DefaultMobServer.Credential
-            Method = "POST"
-            Body = $body
+            Uri             = $uri
+            WebSession      = $Global:DefaultMobServer.WebSession
+            Credential      = $Global:DefaultMobServer.Credential
+            Method          = "POST"
+            Body            = $body
             UseBasicParsing = $true
         }
         $response = Invoke-WebRequest @params
@@ -19001,19 +23119,25 @@ Export-ModuleMember -Function Add-GlobalPermission
 Function Remove-GlobalPermission {
     <#
         .SYNOPSIS
-        Remove a vSphere Global Permission
+        Remove a vSphere Global Permission.
 
         .DESCRIPTION
         The Remove-GlobalPermission cmdlet removes a user or group from a vSphere Global Permission
 
         .EXAMPLE
         Remove-GlobalPermission -principal gg-vc-admins -type group
-        This example shows how to remove the Administrator global permission from the group called svc-vc-admins
-    #>
+        This example shows how to remove the Administrator global permission from the group called svc-vc-admins.
+
+        .PARAMETER principal
+        The user or group name.
+
+        .PARAMETER type
+        The user or group type.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
-        [Parameter (Mandatory = $true)] [ValidateSet("group","user")] [String]$type
+        [Parameter (Mandatory = $true)] [ValidateSet("group", "user")] [String]$type
     )
 
     Try {
@@ -19025,11 +23149,11 @@ Function Remove-GlobalPermission {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&principals=%3Cprincipals%3E%0D%0A+++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A+++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A%3C%2Fprincipals%3E"
         }     
         $params = @{
-            Uri = $uri
-            WebSession = $Global:DefaultMobServer.WebSession
-            Credential = $Global:DefaultMobServer.Credential
-            Method = "POST"
-            Body = $body
+            Uri             = $uri
+            WebSession      = $Global:DefaultMobServer.WebSession
+            Credential      = $Global:DefaultMobServer.Credential
+            Method          = "POST"
+            Body            = $body
             UseBasicParsing = $true
         }
         $response = Invoke-WebRequest @params
@@ -19045,15 +23169,30 @@ Export-ModuleMember -Function Remove-GlobalPermission
 Function Add-DrsVmToVmGroup {
     <#
         .SYNOPSIS
-        Creates a vSphere VM to VM Group
+        Creates a vSphere VM to VM Group.
 
         .DESCRIPTION
         The Add-DrsVmToVmGroup cmdlet creates a vSphere VM to VM Group
 
         .EXAMPLE
         Add-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -vmGroup sfo-m01-vm-group-wsa -dependOnVmGroup sfo-m01-vm-group-vra -Enabled -cluster sfo-m01-cl01
-        This example shows how to create a vSphere VM to VM group in the vCenter Server
-    #>
+        This example shows how to create a vSphere VM to VM group in the vCenter Server.
+
+        .PARAMETER name
+        The name of the VM to VM group.
+
+        .PARAMETER vmGroup
+        The name of the VM group.
+
+        .PARAMETER dependOnVmGroup
+        The name of the VM group to depend on.
+
+        .PARAMETER cluster
+        The name of the cluster.
+
+        .PARAMETER enabled
+        The enabled flag.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -19087,15 +23226,21 @@ Export-ModuleMember -Function Add-DrsVmToVmGroup
 Function Remove-DrsVmToVmGroup {
     <#
         .SYNOPSIS
-        Remove a vSphere VM to VM Group
+        Remove a vSphere VM to VM Group.
 
         .DESCRIPTION
         The Remove-DrsVmToVmGroup cmdlet removes a vSphere VM to VM Group
 
         .EXAMPLE
         Remove-DrsVmToVmGroup -name vm-vm-rule-wsa-vrli -cluster sfo-m01-cl01
-        This example shows how to remove a vSphere VM to VM group from vCenter Server
-    #>
+        This example shows how to remove a vSphere VM to VM group from vCenter Server.
+
+        .PARAMETER name
+        The name of the VM to VM group.
+
+        .PARAMETER cluster
+        The name of the cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -19120,7 +23265,7 @@ Export-ModuleMember -Function Remove-DrsVmToVmGroup
 Function Get-DrsVmToVmGroup {
     <#
         .SYNOPSIS
-        Gets all vSphere VM to VM Group
+        Gets all vSphere VM to VM Group.
 
         .DESCRIPTION
         The Get-DrsVmToVmGroup cmdlet retrieves the vSphere VM to VM Group
@@ -19131,8 +23276,14 @@ Function Get-DrsVmToVmGroup {
 
         .EXAMPLE
         Get-DrsVmToVmGroup -name vm-vm-rule-wsa-vra -cluster sfo-m01-cl01
-        This example shows how to retrieve a vSphere VM to VM group in the vCenter Server
-    #>
+        This example shows how to retrieve a vSphere VM to VM group in the vCenter Server.
+
+        .PARAMETER name
+        The name of the VM to VM group.
+
+        .PARAMETER cluster
+        The name of the cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -19155,15 +23306,15 @@ Export-ModuleMember -Function Get-DrsVmToVmGroup
 Function Get-VcLicense {
     <#
         .SYNOPSIS
-        Get list of licenses in vCenter Server
+        Get list of licenses in vCenter Server.
 
         .DESCRIPTION
         The Get-VcLicense cmdlet gets a list of licenses in vCenter Server
 
         .EXAMPLE
         Get-VcLicense 
-        This example shows how to get a list of licenses in vCenter Server
-    #>
+        This example shows how to get a list of licenses in vCenter Server.
+   #>
 
     Try {
         $licenseManager = Get-View LicenseManager
@@ -19177,15 +23328,18 @@ Export-ModuleMember -Function Get-VcLicense
 Function New-VcLicense {
     <#
         .SYNOPSIS
-        Add a license to vCenter Server
+        Add a license to vCenter Server.
 
         .DESCRIPTION
         The New-VcLicense cmdlet adds a license to vCenter Server
 
         .EXAMPLE
         New-VcLicense -licenseKey <license_key>
-        This example shows how to add a license to vCenter Server
-    #>
+        This example shows how to add a license to vCenter Server.
+
+        .PARAMETER licenseKey
+        The license key.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey
@@ -19203,15 +23357,18 @@ Export-ModuleMember -Function New-VcLicense
 Function Remove-VcLicense {
     <#
         .SYNOPSIS
-        Remove a license from vCenter Server
+        Remove a license from vCenter Server.
 
         .DESCRIPTION
         The Remove-VcLicense cmdlet removes a license from vCenter Server
 
         .EXAMPLE
         Remove-VcLicense -licenseKey <license_key>
-        This example shows how to remove a license from vCenter Server
-    #>
+        This example shows how to remove a license from vCenter Server.
+
+        .PARAMETER licenseKey
+        The license key.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey
@@ -19229,15 +23386,18 @@ Export-ModuleMember -Function Remove-VcLicense
 Function Get-SubscribedLibrary {
     <#
         .SYNOPSIS
-        Retrieves the specified Subscribed Content Library
+        Retrieves the specified Subscribed Content Library.
 
         .DESCRIPTION
         The Get-SubscribedLibrary cmdlet retrieves the specified Subscribed Content Library
 
         .EXAMPLE
         Get-SubscribedLibrary -name Kubernetes
-        This example retrieves the Subscribed Content Library named Kubernetes
-    #>
+        This example retrieves the Subscribed Content Library named Kubernetes.
+
+        .PARAMETER name
+        The name of the Subscribed Content Library.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
@@ -19265,7 +23425,7 @@ Function Get-VcenterBackupStatus {
         .EXAMPLE
         Get-VcenterBackupStatus | Select-Object -Last 1
         This example demonstrates piping the results of this function into Select-Object to return the status of the last backup.
-    #>
+   #>
 
     Try {
         if ($vcenterApiHeaders) {
@@ -19289,7 +23449,10 @@ Function Get-SnapshotStatus {
         .EXAMPLE
         Get-SnapshotStatus -vm "foo"
         This example returns the status of the snapshots for the virtual machine named "foo".
-    #>
+
+        .PARAMETER vm
+        The virtual machine name.
+   #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vm
@@ -19315,7 +23478,10 @@ Function Get-SnapshotConsolidation {
         .EXAMPLE
         Get-SnapshotConsolidation -vm "foo"
         This example returns the status of the snapshot consolidation for the virtual machine named "foo".
-    #>
+
+        .PARAMETER vm
+        The virtual machine name.
+   #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vm
@@ -19341,7 +23507,10 @@ Function Get-EsxiAlert {
         .EXAMPLE
         Get-EsxiAlert -host sfo-w01-esx01.sfo.rainpole.io
         This example returns all triggered alarms for and ESXi host named sfo-w01-esx01.sfo.rainpole.io.
-    #>
+
+        .PARAMETER host
+        The ESXi host name.
+   #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$host
@@ -19378,7 +23547,10 @@ Function Get-VsanHealthTest {
         .EXAMPLE
         Get-VsanHealthTest -cluster sfo-m01-c01
         This example returns all vSAN healthcheck tests from vSAN cluster sfo-m01-c01 in connected vCenter Server.
-    #>
+
+        .PARAMETER cluster
+        The vSAN cluster name.
+   #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
@@ -19418,7 +23590,10 @@ Function Get-VcenterTriggeredAlarm {
         .EXAMPLE
         Get-VcenterTriggeredAlarm -server sfo-w01-vc01.sfo.rainpole.io
         This example returns all triggered alarms for a vCenter Server instance named sfo-w01-vc01.sfo.rainpole.io.
-    #>
+
+        .PARAMETER server
+        The vCenter Server name.
+   #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
@@ -19446,17 +23621,20 @@ Export-ModuleMember -Function Get-VcenterTriggeredAlarm
 Function Get-ESXiAdminGroup {
     <#
         .SYNOPSIS
-        Retrieves Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host
+        Retrieves Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host.
 
         .DESCRIPTION
         Connects to specified ESXi Host and retrieves the setting for Config.HostAgent.plugins.hostsvc.esxAdminsGroup
 
         .EXAMPLE
-        Get-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io
-    #>
+        Get-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io.
+
+        .PARAMETER esxiHost
+        The ESXi host name.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$esxiHost
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$esxiHost
     )
     
     Try {
@@ -19479,18 +23657,24 @@ Export-ModuleMember -Function Get-ESXiAdminGroup
 Function Set-ESXiAdminGroup {
     <#
         .SYNOPSIS
-        Configure Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host
+        Configure Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host.
 
         .DESCRIPTION
         Connects to specified ESXi Host and sets a new value for Config.HostAgent.plugins.hostsvc.esxAdminsGroup
 
         .EXAMPLE
-        Set-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io -groupName ug-esxi-admins
-    #>
+        Set-ESXiAdminGroup -esxiHost sfo01-m01-esx01.sfo.rainpole.io -groupName ug-esxi-admins.
+
+        .PARAMETER esxiHost
+        The ESXi host name.
+
+        .PARAMETER groupName
+        The new group name.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$esxiHost,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$groupName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$esxiHost,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupName
     )
     
     Try {
@@ -19508,14 +23692,14 @@ Export-ModuleMember -Function Set-ESXiAdminGroup
 Function Get-VCenterCEIP {
     <#
         .SYNOPSIS
-        Retrieves the the Customer Experience Improvement Program (CEIP) setting for vCenter Server
+        Retrieves the the Customer Experience Improvement Program (CEIP) setting for vCenter Server.
 
         .DESCRIPTION
         The Get-VCenterCEIP cmdlet retrieves the the CEIP setting for vCenter Server
 
         .EXAMPLE
-        Get-VCenterCEIP
-    #>
+        Get-VCenterCEIP.
+   #>
 
     Try {
         if (-Not $Global:DefaultVIServer.IsConnected) {
@@ -19538,7 +23722,7 @@ Export-ModuleMember -Function Get-VCenterCEIP
 Function Set-VCenterCEIP {
     <#
         .SYNOPSIS
-        Enables or Disables the Customer Experience Improvement Program (CEIP) setting for vCenter Server
+        Enables or Disables the Customer Experience Improvement Program (CEIP) setting for vCenter Server.
 
         .DESCRIPTION
         The Set-VCenterCEIP cmdlet enables or disables the CEIP setting for vCenter Server
@@ -19547,12 +23731,18 @@ Function Set-VCenterCEIP {
         Set-VCenterCEIP -Enabled
 
         .EXAMPLE
-        Set-VCenterCEIP -Disabled
-    #>
+        Set-VCenterCEIP -Disabled.
+
+        .PARAMETER Enabled
+        Enables the CEIP setting for vCenter Server.
+
+        .PARAMETER Disabled
+        Disables the CEIP setting for vCenter Server.
+   #>
 
     Param (
-        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()][Switch]$Enabled,
-        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [Switch]$Disabled
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()][Switch]$Enabled,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$Disabled
     )
 
     Try {
@@ -19593,15 +23783,24 @@ Export-ModuleMember -Function Set-VCenterCEIP
 Function Request-WSAToken {
     <#
 		.SYNOPSIS
-        Connects to the specified Workspace ONE Access instance to obtain a session token
+        Connects to the specified Workspace ONE Access instance to obtain a session token.
 
         .DESCRIPTION
         The Request-WSAToken cmdlet connects to the specified Workspace ONE Access instance and requests a session token
 
         .EXAMPLE
         Request-WSAToken -fqdn sfo-wsa01.sfo.rainpole.io -user admin -pass VMware1!
-        This example shows how to connect to a Workspace ONE Access instance and request a session token
-    #>
+        This example shows how to connect to a Workspace ONE Access instance and request a session token.
+
+        .PARAMETER fqdn
+        The Workspace ONE Access FQDN.
+
+        .PARAMETER user
+        The Workspace ONE Access user name.
+
+        .PARAMETER pass
+        The Workspace ONE Access user password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -19646,15 +23845,15 @@ Export-ModuleMember -Function Request-WSAToken
 Function Get-WSAIdentityProvider {
     <#
 		.SYNOPSIS
-        Get identity providers
+        Get identity providers.
 
         .DESCRIPTION
         The Get-WSAIdentityProvider cmdlets retrieves a list of identity providers in Workspace ONE Access
 
         .EXAMPLE
         Get-WSAIdentityProvider
-        This example retrieves a list of identity providers in Workspace ONE Access
-    #>
+        This example retrieves a list of identity providers in Workspace ONE Access.
+   #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.identityprovider.summary.list+json" }
@@ -19671,15 +23870,15 @@ Export-ModuleMember -Function Get-WSAIdentityProvider
 Function Get-WSAConnector {
     <#
 		.SYNOPSIS
-        Get connectors
+        Get connectors.
 
         .DESCRIPTION
         The Get-WSAConnector cmdlets retrieves a list of connectors in Workspace ONE Access
 
         .EXAMPLE
         Get-WSAConnector
-        This example retrieves a list of connectors in Workspace ONE Access
-    #>
+        This example retrieves a list of connectors in Workspace ONE Access.
+   #>
 
     Try {
         $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.horizon.manager.connector.management.connector+json" }
@@ -19696,15 +23895,24 @@ Export-ModuleMember -Function Get-WSAConnector
 Function Add-WSAConnector {
     <#
 		.SYNOPSIS
-        Add connector to identity providor
+        Add connector to identity providor.
 
         .DESCRIPTION
         The Add-WSAConnector cmdlets adds a connector to an identity providoer in Workspace ONE Access
 
         .EXAMPLE
         Add-WSAConnector -wsaFqdn xint-wsa01b.rainpole.io -domain sfo.rainpole.io -bindUserPass VMw@re1!
-        This example adds a connector to an identity providoer in Workspace ONE Access
-    #>
+        This example adds a connector to an identity providoer in Workspace ONE Access.
+
+        .PARAMETER wsaNode
+        The Workspace ONE Access node FQDN.
+
+        .PARAMETER domain
+        The domain name.
+
+        .PARAMETER bindUserPass
+        The bind user password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaNode,
@@ -19733,7 +23941,7 @@ Export-ModuleMember -Function Add-WSAConnector
 Function Get-WSADirectory {
     <#
 		.SYNOPSIS
-        Get diretories
+        Get diretories.
 
         .DESCRIPTION
         The Get-WSADirectory cmdlets retrieves all directories in Workspace ONE Access
@@ -19744,17 +23952,23 @@ Function Get-WSADirectory {
 
         .EXAMPLE
         Get-WSADirectory -connector
-        This example retrieves a list of connectors for a directory in Workspace ONE Access
-    #>
+        This example retrieves a list of connectors for a directory in Workspace ONE Access.
+
+        .PARAMETER connector
+        The connector switch.
+
+        .PARAMETER directoryId
+        The directory ID.
+   #>
 
     Param (
         [Parameter (ParameterSetName = "connector", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$directoryId,
-        [Parameter (ParameterSetName = "connector",Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$connector
+        [Parameter (ParameterSetName = "connector", Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$connector
     )
 
     Try {
-        if ($PsBoundParameters.ContainsKey("connector")){
-            $wsaHeaders = @{"Accept" = ""}
+        if ($PsBoundParameters.ContainsKey("connector")) {
+            $wsaHeaders = @{"Accept" = "" }
             $wsaHeaders.Add("Authorization", "$sessionToken")
             $uri = "https://xint-wsa01.rainpole.io/SAAS/jersey/manager/api/connectormanagement/directoryconfigs/$directoryId/connectors"
             $response = Invoke-RestMethod -Uri $uri -Method 'GET' -Headers $wsaHeaders
@@ -19775,15 +23989,18 @@ Export-ModuleMember -Function Get-WSADirectory
 Function Get-WSADirectoryDomain {
     <#
 		.SYNOPSIS
-        Get directory domains
+        Get directory domains.
 
         .DESCRIPTION
         The Get-WSADirectoryDomain cmdlets retrieves a list of directory domains in Workspace ONE Access
 
         .EXAMPLE
         Get-WSADirectoryDomain -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
-        This example retrieves a list of directory domains in Workspace ONE Access
-    #>
+        This example retrieves a list of directory domains in Workspace ONE Access.
+
+        .PARAMETER directoryId
+        The directory ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [string]$directoryId
@@ -19804,15 +24021,27 @@ Export-ModuleMember -Function Get-WSADirectoryDomain
 Function Add-WSALdapDirectory {
     <#
 		.SYNOPSIS
-        Create an LDAP directory
+        Create an LDAP directory.
 
         .DESCRIPTION
         The Add-WSALdapDirectory cmdlets creates a new LDAP Active Directory connection in Workspace ONE Access
 
         .EXAMPLE
         Add-WSALdapDirectory -domainName sfo.rainpole.io -baseDn "ou=VVD,dc=sfo,dc=rainpole,dc=io" -bindDn "cn=svc-wsa-ad,ou=VVD,dc=sfo,dc=rainpole,dc=io"
-        This example creates a new LDAP Active Directory connection in Workspace ONE Access
-    #>
+        This example creates a new LDAP Active Directory connection in Workspace ONE Access.
+
+        .PARAMETER domainName
+        The domain name.
+
+        .PARAMETER baseDn
+        The base DN.
+
+        .PARAMETER bindDn
+        The bind DN.
+
+        .PARAMETER certificate
+        The certificate file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainName,
@@ -19869,15 +24098,24 @@ Export-ModuleMember -Function Add-WSALdapDirectory
 Function Set-WSABindPassword {
     <#
 		.SYNOPSIS
-        Create an LDAP directory
+        Create an LDAP directory.
 
         .DESCRIPTION
         The Set-WSABindPassword cmdlets creates a new LDAP Active Directory connection in Workspace ONE Access
 
         .EXAMPLE
     Set-WSABindPassword -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -connectorId 59ee9717-a09e-45b6-9e5f-8d92a55a1825 -password VMw@re1!
-        This example creates a new LDAP Active Directory connection in Workspace ONE Access
-    #>
+        This example creates a new LDAP Active Directory connection in Workspace ONE Access.
+
+        .PARAMETER directoryId
+        The directory ID.
+
+        .PARAMETER connectorId
+        The connector ID.
+
+        .PARAMETER pass
+        The bind password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -19902,15 +24140,18 @@ Export-ModuleMember -Function Set-WSABindPassword
 Function Set-WSASyncSetting {
     <#
 		.SYNOPSIS
-        Set directory sync schedule
+        Set directory sync schedule.
 
         .DESCRIPTION
         The Set-WSASyncSetting cmdlets configures the directory sync schedule in Workspace ONE Access
 
         .EXAMPLE
         Set-WSASyncSetting -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
-        This example configures the directory sync schedule in Workspace ONE Access
-    #>
+        This example configures the directory sync schedule in Workspace ONE Access.
+
+        .PARAMETER directoryId
+        The directory ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId
@@ -19932,15 +24173,18 @@ Export-ModuleMember -Function Set-WSASyncSetting
 Function Start-WSADirectorySync {
     <#
 		.SYNOPSIS
-        Start an directory sync
+        Start an directory sync.
 
         .DESCRIPTION
     	The Start-WSADirectorySync cmdlets triggers a directory sync in Workspace ONE Access
 
         .EXAMPLE
         Start-WSADirectorySync -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
-        This example starts a directory sync in Workspace ONE Access
-    #>
+        This example starts a directory sync in Workspace ONE Access.
+
+        .PARAMETER directoryId
+        The directory ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId
@@ -19962,15 +24206,21 @@ Export-ModuleMember -Function Start-WSADirectorySync
 Function Set-WSADirectoryUser {
     <#
 		.SYNOPSIS
-        Add users to directory
+        Add users to directory.
 
         .DESCRIPTION
         The Set-WSADirectoryUser cmdlets configures the user/ou that should be sycncronised for Workspace ONE Access
 
         .EXAMPLE
         Set-WSADirectoryUser -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -json (Get-Content -Raw .\adUsers.json)
-        This example configures the user/ou that should be sycncronised for Workspace ONE Access
-    #>
+        This example configures the user/ou that should be sycncronised for Workspace ONE Access.
+
+        .PARAMETER directoryId
+        The directory ID.
+
+        .PARAMETER json
+        The JSON file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -19992,15 +24242,21 @@ Export-ModuleMember -Function Set-WSADirectoryUser
 Function Set-WSADirectoryGroup {
     <#
 		.SYNOPSIS
-        Add groups to directory
+        Add groups to directory.
 
         .DESCRIPTION
         The Set-WSADirectoryGroup cmdlets configures the groups/ou that should be sycncronised for Workspace ONE Access
 
         .EXAMPLE
         Set-WSADirectoryUser -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac -json (Get-Content -Raw .\adGroups.json)
-        This example configures the groups/ou that should be sycncronised for Workspace ONE Access
-    #>
+        This example configures the groups/ou that should be sycncronised for Workspace ONE Access.
+
+        .PARAMETER directoryId
+        The directory ID.
+
+        .PARAMETER json
+        The JSON file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -20023,15 +24279,15 @@ Export-ModuleMember -Function Set-WSADirectoryGroup
 Function Get-WSASmtpConfiguration {
     <#
 		.SYNOPSIS
-        Get SMTP configuration
+        Get SMTP configuration.
 
         .DESCRIPTION
         The Get-WSASmtpConfiguration cmdlets retrieves the SMTP configurtion of Workspace ONE Access
 
         .EXAMPLE
         Get-WSASmtpConfiguration
-        This example gets the current SMTP configuration of Workspace ONE Access
-    #>
+        This example gets the current SMTP configuration of Workspace ONE Access.
+   #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/json, text/plain, */*" }
@@ -20048,15 +24304,27 @@ Export-ModuleMember -Function Get-WSASmtpConfiguration
 Function Set-WSASmtpConfiguration {
     <#
 		.SYNOPSIS
-        Set SMTP configuration
+        Set SMTP configuration.
 
         .DESCRIPTION
         The Set-WSASmtpConfiguration cmdlets configures the SMTP configurtion of Workspace ONE Access
 
         .EXAMPLE
         Set-WSASmtpConfiguration
-        This example sets the SMTP configuration of Workspace ONE Access
-    #>
+        This example sets the SMTP configuration of Workspace ONE Access.
+
+        .PARAMETER fqdn
+        The FQDN of the SMTP server.
+
+        .PARAMETER port
+        The port of the SMTP server.
+
+        .PARAMETER user
+        The user name of the SMTP server.
+
+        .PARAMETER pass
+        The password of the SMTP server.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -20086,15 +24354,21 @@ Export-ModuleMember -Function Set-WSASmtpConfiguration
 Function Set-WSARoleMember {
     <#
 		.SYNOPSIS
-        Set Workspace ONE Access Role Member
+        Set Workspace ONE Access Role Member.
 
         .DESCRIPTION
         The Set-WSARoleMember cmdlets updates a Workspace ONE Access role with the given group
 
         EXAMPLE
         Set-WSARoleMember -id 55048dee-fe1b-404a-936d-3e0b86a7209e -groupId fe515568-fdcd-43c7-9971-e834d7246203
-        This example updates a Workspace ONE Access role with the given GroupId
-    #>
+        This example updates a Workspace ONE Access role with the given GroupId.
+
+        .PARAMETER id
+        The Role ID.
+
+        .PARAMETER groupId
+        The Group ID.
+   #>
 
 	Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -20124,15 +24398,18 @@ Export-ModuleMember -Function Set-WSARoleMember
 Function Get-WSARole {
     <#
 		.SYNOPSIS
-        Get roles
+        Get roles.
 
         .DESCRIPTION
         The Get-WSARole cmdlets retrieves the roles in Workspace ONE Access
 
         .EXAMPLE
         Get-WSARole
-        This example retrieves the roles in Workspace ONE Access
-    #>
+        This example retrieves the roles in Workspace ONE Access.
+
+        .PARAMETER id
+        The Role ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20159,15 +24436,18 @@ Export-ModuleMember -Function Get-WSARole
 Function Get-WSAGroup {
     <#
 		.SYNOPSIS
-        Get groups
+        Get groups.
 
         .DESCRIPTION
         The Get-WSAGroup cmdlets retrieves the groups in Workspace ONE Access
 
         .EXAMPLE
         Get-WSAGroup
-        This example retrieves the groups in Workspace ONE Access
-    #>
+        This example retrieves the groups in Workspace ONE Access.
+
+        .PARAMETER id
+        The Group ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20194,15 +24474,18 @@ Export-ModuleMember -Function Get-WSAGroup
 Function Get-WSAUser {
     <#
 		.SYNOPSIS
-        Get users
+        Get users.
 
         .DESCRIPTION
         The Get-WSAUser cmdlets retrieves the users in Workspace ONE Access
 
         .EXAMPLE
         Get-WSAUser
-        This example retrieves the users in Workspace ONE Access
-    #>
+        This example retrieves the users in Workspace ONE Access.
+
+        .PARAMETER id
+        The User ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20229,15 +24512,15 @@ Export-ModuleMember -Function Get-WSAUser
 Function Get-WSARuleSet {
     <#
 		.SYNOPSIS
-        Get rulesets
+        Get rulesets.
 
         .DESCRIPTION
         The Get-WSARuleSet cmdlets retrieves the rulesets in Workspace ONE Access
 
         .EXAMPLE
         Get-WSARuleSet
-        This example retrieves the rulesets in Workspace ONE Access
-    #>
+        This example retrieves the rulesets in Workspace ONE Access.
+   #>
 
     Try {
         $wsaHeaders = @{"Accept-Type" = "application/json, text/plain, */*" }
@@ -20255,15 +24538,15 @@ Export-ModuleMember -Function Get-WSARuleSet
 Function Get-WSAOAuthToken {
     <#
 		.SYNOPSIS
-        Get AOuth Token
+        Get AOuth Token.
 
         .DESCRIPTION
         The Get-WSAOAuthToken cmdlets gets an OAuth token from Workspace ONE Access
 
         .EXAMPLE
         Get-WSAOAuthToken
-        This example retrieves the am OAuth oken from Workspace ONE Access
-    #>
+        This example retrieves the am OAuth oken from Workspace ONE Access.
+   #>
 
     Try {
         $wsaHeaders = @{"Content-Type" = "application/x-www-form-urlencoded; charset=UTF-8" }
@@ -20281,15 +24564,18 @@ Export-ModuleMember -Function Get-WSAOAuthToken
 Function Get-WSAClient {
     <#
 		.SYNOPSIS
-        Get clients
+        Get clients.
 
         .DESCRIPTION
         The Get-WSAClient cmdlets gets a list of clients in Workspace ONE Access
 
         .EXAMPLE
         Get-WSAClient
-        This example retrieves all clients in Workspace ONE Access
-    #>
+        This example retrieves all clients in Workspace ONE Access.
+
+        .PARAMETER clientId
+        The client ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clientId
@@ -20316,15 +24602,21 @@ Export-ModuleMember -Function Get-WSAClient
 Function Add-WSAClient {
     <#
 		.SYNOPSIS
-        Add a client
+        Add a client.
 
         .DESCRIPTION
         The Add-WSAClient cmdlets add a client in Workspace ONE Access
 
         .EXAMPLE
         Add-WSAClient -json .\SampleJson\nsxClient.json
-        This example retrieves all clients in Workspace ONE Access
-    #>
+        This example retrieves all clients in Workspace ONE Access.
+
+        .PARAMETER clientId
+        The client ID.
+
+        .PARAMETER sharedSecret
+        The shared secret.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clientId,
@@ -20361,14 +24653,20 @@ Export-ModuleMember -Function Add-WSAClient
 Function Add-WSARoleAssociation {
     <#
         .SYNOPSIS
-        Add the AD group to the WSA role
+        Add the AD group to the WSA role.
 
         .DESCRIPTION
         Add the AD group to the given WSA role.
 
         .EXAMPLE
         Add-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010" -groupId "1e942dc6-94ba-43ef-97ce-9ba34fee1609"
-    #>
+
+       .PARAMETER roleId
+        The role id
+       
+       .PARAMETER groupId
+        The group id.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId,
@@ -20405,9 +24703,9 @@ Function Add-WSARoleAssociation {
 Export-ModuleMember -Function Add-WSARoleAssociation
 
 Function Get-WSARoleId {
-    <#
+     <#
         .SYNOPSIS
-        Get role id for role name from Workspace ONE Access
+        Get role id for role name from Workspace ONE Access.
 
         .DESCRIPTION
         The Get-WSARoleId cmdlets gets the role id corresponding to a given role name from Workspace One Access
@@ -20415,7 +24713,10 @@ Function Get-WSARoleId {
         .EXAMPLE
         Get-WSARoleId -role "Super Admin"
         This example retrieves the rile id for the Super Admin role
-    #>
+
+       .PARAMETER role
+        The role name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role
@@ -20438,15 +24739,18 @@ Export-ModuleMember -Function Get-WSARoleId
 Function Get-WSAActiveDirectoryGroupDetail {
     <#
         .SYNOPSIS
-        Get details for an Active Directory group in Workspace ONE Access
+        Get details for an Active Directory group in Workspace ONE Access.
 
         .DESCRIPTION
         The Get-WSAActiveDirectoryGroupDetail cmdlets gets details from Workspace ONE Access for the given Active Directory group
 
         .EXAMPLE
-        Get-WSAActiveDirectoryGroupDetail -group "gg-wsa-admins"
-        This example gets the details for the Active Directory group 'gg-wsa-admins'
-    #>
+        Get-WSAActiveDirectoryGroupDetail -group "gg-wsa-admins".
+
+        .PARAMETER group
+        The group name
+        This example gets the details for the Active Directory group 'gg-wsa-admins'.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group
@@ -20471,16 +24775,19 @@ Export-ModuleMember -Function Get-WSAActiveDirectoryGroupDetail
 Function Get-WSARoleAssociation {
     <#
         .SYNOPSIS
-        Get associations for the given Role Id
+        Get associations for the given Role Id.
 
         .DESCRIPTION
         The Get-WSARoleAssociation retrieves the associations for the given Role Id from Workspace ONE Access.
         This includes details of the groups associated with the ole.
 
         .EXAMPLE
-        Get-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010"
-        This example retrieves the associations based on the role Id provided
-    #>
+        Get-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010".
+
+        .PARAMETER roleId
+        The role id
+        This example retrieves the associations based on the role Id provided.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId
@@ -20501,14 +24808,14 @@ Export-ModuleMember -Function Get-WSARoleAssociation
 Function Get-WsaAccountLockout {
     <#
         .SYNOPSIS
-        Get account lockout policy
+        Get account lockout policy.
 
         .DESCRIPTION
         Get details of the account lockout policy for Workspace ONE Access
 
         .EXAMPLE
-        Get-WsaAccountLockout
-    #>
+        Get-WsaAccountLockout.
+   #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.password.lockout+json" }
@@ -20524,14 +24831,23 @@ Export-ModuleMember -Function Get-WsaAccountLockout
 Function Set-WsaAccountLockout {
     <#
         .SYNOPSIS
-        Set account lockout policy
+        Set account lockout policy.
 
         .DESCRIPTION
         Set configuration of the account lockout policy for Workspace ONE Access
 
         .EXAMPLE
-        Set-WsaAccountLockout -numAttempts 5 -attemptInterval 15 -unlockInterval 15 
-    #>
+        Set-WsaAccountLockout -numAttempts 5 -attemptInterval 15 -unlockInterval 15.
+
+        .PARAMETER numAttempts
+        The number of attempts.
+
+        .PARAMETER attemptInterval
+        The attempt interval.
+
+        .PARAMETER unlockInterval
+        The unlock interval.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$numAttempts,
@@ -20544,7 +24860,7 @@ Function Set-WsaAccountLockout {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         $wsaHeaders.Add("Content-Type", "application/vnd.vmware.horizon.manager.password.lockout+json")
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/passwordlockoutconfig"
-        $body = '{"numAttempts":'+$numAttempts+',"attemptInterval":'+$attemptInterval+',"unlockInterval":'+$unlockInterval+'}'
+        $body = '{"numAttempts":' + $numAttempts + ',"attemptInterval":' + $attemptInterval + ',"unlockInterval":' + $unlockInterval + '}'
         Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body
     } Catch {
         Write-Error $_.Exception.Message
@@ -20555,14 +24871,14 @@ Export-ModuleMember -Function Set-WsaAccountLockout
 Function Get-WsaPasswordPolicy {
     <#
         .SYNOPSIS
-        Get password policy
+        Get password policy.
 
         .DESCRIPTION
         Get details of the password policy for Workspace ONE Access
 
         .EXAMPLE
-        Get-WsaPasswordPolicy
-    #>
+        Get-WsaPasswordPolicy.
+   #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.tenants.tenant.passwordpolicy+json" }
@@ -20578,14 +24894,50 @@ Export-ModuleMember -Function Get-WsaPasswordPolicy
 Function Set-WsaPasswordPolicy {
     <#
         .SYNOPSIS
-        Set password complexity and expiration policies
+        Set password complexity and expiration policies.
 
         .DESCRIPTION
         Set configuration of the password complexity and expiration policies for Workspace ONE Access
 
         .EXAMPLE
-        Set-WsaPasswordPolicy -minLen 15 -minLower 1 -minUpper 1 -minDigit 1 -minSpecial 1 -history 5 -maxConsecutiveIdenticalCharacters 1 -maxPreviousPasswordCharactersReused 0 -tempPasswordTtlInHrs 24 -passwordTtlInDays 999 -notificationThresholdInDays 14 -notificationIntervalInDays 7
-    #>
+        Set-WsaPasswordPolicy -minLen 15 -minLower 1 -minUpper 1 -minDigit 1 -minSpecial 1 -history 5 -maxConsecutiveIdenticalCharacters 1 -maxPreviousPasswordCharactersReused 0 -tempPasswordTtlInHrs 24 -passwordTtlInDays 999 -notificationThresholdInDays 14 -notificationIntervalInDays 7.
+
+        .PARAMETER minLen
+        The minimum length of the password.
+
+        .PARAMETER minLower
+        The minimum number of lowercase characters.
+
+        .PARAMETER minUpper
+        The minimum number of uppercase characters.
+
+        .PARAMETER minDigit
+        The minimum number of digits.
+
+        .PARAMETER minSpecial
+        The minimum number of special characters.
+
+        .PARAMETER history
+        The number of previous passwords to be remembered.
+
+        .PARAMETER maxConsecutiveIdenticalCharacters
+        The maximum number of consecutive identical characters.
+
+        .PARAMETER maxPreviousPasswordCharactersReused
+        The maximum number of previous password characters reused.
+
+        .PARAMETER tempPasswordTtlInHrs
+        The temporary password time to live in hours.
+
+        .PARAMETER passwordTtlInDays
+        The password time to live in days.
+
+        .PARAMETER notificationThresholdInDays
+        The notification threshold in days.
+
+        .PARAMETER notificationIntervalInDays
+        The notification interval in days.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$minLen,
@@ -20595,11 +24947,11 @@ Function Set-WsaPasswordPolicy {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$minSpecial,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$history,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxConsecutiveIdenticalCharacters,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxPreviousPasswordCharactersReused,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$maxPreviousPasswordCharactersReused,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tempPasswordTtlInHrs,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$passwordTtlInDays,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationThresholdInDays,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationIntervalInDays
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$passwordTtlInDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationThresholdInDays,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$notificationIntervalInDays
 
     )
 
@@ -20608,22 +24960,22 @@ Function Set-WsaPasswordPolicy {
         $wsaHeaders.Add("Authorization", "$sessionToken")
         $wsaHeaders.Add("Content-Type", "application/vnd.vmware.horizon.manager.tenants.tenant.passwordpolicy+json")
         $uri = "https://$workSpaceOne/SAAS/jersey/manager/api/tenants/tenant/passwordpolicy"
-		$passwordTtlInHours = [int]$passwordTtlInDays * 24
-		$notificationThresholdInMilliSec = [int]$notificationThresholdInDays * 24 * 3600 * 1000
-		$notificationIntervalInMilliSec = [int]$notificationIntervalInDays * 24 * 3600 * 1000
-		$body = '{
-            "minLen":'+$minLen+',
-            "minLower":'+$minLower+',
-            "minUpper":'+$minUpper+',
-            "minDigit":'+$minDigit+',
-            "minSpecial":'+$minSpecial+',
-            "history":'+$history+',
-            "maxConsecutiveIdenticalCharacters":'+$maxConsecutiveIdenticalCharacters+',
-            "maxPreviousPasswordCharactersReused":'+$maxPreviousPasswordCharactersReused+',
-            "tempPasswordTtl":'+$tempPasswordTtlInHrs+',
-            "passwordTtlInHours":'+$passwordTtlInHours+',
-            "notificationThreshold":'+$notificationThresholdInMilliSec+',
-            "notificationInterval":'+$notificationIntervalInMilliSec+'
+        $passwordTtlInHours = [int]$passwordTtlInDays * 24
+        $notificationThresholdInMilliSec = [int]$notificationThresholdInDays * 24 * 3600 * 1000
+        $notificationIntervalInMilliSec = [int]$notificationIntervalInDays * 24 * 3600 * 1000
+        $body = '{
+            "minLen":'+ $minLen + ',
+            "minLower":'+ $minLower + ',
+            "minUpper":'+ $minUpper + ',
+            "minDigit":'+ $minDigit + ',
+            "minSpecial":'+ $minSpecial + ',
+            "history":'+ $history + ',
+            "maxConsecutiveIdenticalCharacters":'+ $maxConsecutiveIdenticalCharacters + ',
+            "maxPreviousPasswordCharactersReused":'+ $maxPreviousPasswordCharactersReused + ',
+            "tempPasswordTtl":'+ $tempPasswordTtlInHrs + ',
+            "passwordTtlInHours":'+ $passwordTtlInHours + ',
+            "notificationThreshold":'+ $notificationThresholdInMilliSec + ',
+            "notificationInterval":'+ $notificationIntervalInMilliSec + '
         }'
         Invoke-RestMethod $uri -Method 'PUT' -Headers $wsaHeaders -Body $body | Out-Null
         Get-WsaPasswordPolicy
@@ -20642,7 +24994,7 @@ Export-ModuleMember -Function Set-WsaPasswordPolicy
 Function Request-NsxtToken {
     <#
         .SYNOPSIS
-        Connects to the specified NSX Manager
+        Connects to the specified NSX Manager.
 
         .DESCRIPTION
         The Request-NsxtToken cmdlet connects to the specified NSX Manager with the supplied credentials
@@ -20653,8 +25005,23 @@ Function Request-NsxtToken {
 
         .EXAMPLE
         Get-NsxtServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1! -domain sfo-w01 | Request-NsxtToken
-        This example shows how to connect to NSX Manager using pipeline input from Get-NsxtServerDetail
-    #>
+        This example shows how to connect to NSX Manager using pipeline input from Get-NsxtServerDetail.
+
+        .PARAMETER fqdn
+        The FQDN of the NSX Manager.
+
+        .PARAMETER username
+        The username of the NSX Manager.
+
+        .PARAMETER password
+        The password of the NSX Manager.
+
+        .PARAMETER inputObject
+        The input object from Get-NsxtServerDetail.
+
+        .PARAMETER skipCertificateCheck
+        Skip the certificate check.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()][String]$fqdn,
@@ -20700,7 +25067,7 @@ public static class Placeholder {
     }
 }
 "@
-} 
+        } 
         [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [placeholder]::GetDelegate()
     }
 
@@ -20734,7 +25101,7 @@ Export-ModuleMember -Alias Request-NsxToken -Function Request-NsxtToken
 Function Get-NsxtComputeManager {
     <#
         .SYNOPSIS
-        Retrieves a list of compute managers from NSX Manager
+        Retrieves a list of compute managers from NSX Manager.
 
         .DESCRIPTION
         The Get-NsxtComputeManager cmdlet gets compute managers from NSX Manager
@@ -20745,8 +25112,11 @@ Function Get-NsxtComputeManager {
 
         .EXAMPLE
         Get-NsxtComputeManager -vCenterServer "sfo-m01-vc01.sfo.rainpole.io"
-        This example gets the compute manager named "sfo-m01-vc01.sfo.rainpole.io"
-    #>
+        This example gets the compute manager named "sfo-m01-vc01.sfo.rainpole.io".
+
+        .PARAMETER vCenterServer
+        The vCenter Server FQDN.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vCenterServer
@@ -20777,7 +25147,7 @@ Export-ModuleMember -Function Get-NsxtComputeManager
 Function Set-NsxtComputeManager {
     <#
         .SYNOPSIS
-        Configure a set of parameters on a compute manager
+        Configure a set of parameters on a compute manager.
 
         .DESCRIPTION
         The Set-NsxtComputeManager cmdlet configures a set of parameters on a compute manager
@@ -20786,7 +25156,13 @@ Function Set-NsxtComputeManager {
         Get-NsxtComputeManager -vCenterServer sfo-w01-vc01.sfo.rainpole.io | Set-NsxtComputeManager -EnableTrust:$true
         This example enables trust (sets OIDC provider to true) for Compute Manager sfo-w01-vc01.sfo.rainpole.io
         In this release, it is required to use pipeline input from Get-NsxtComputeManager.
-    #>
+
+        .PARAMETER EnableTrust
+        Enable trust (sets OIDC provider to true) for Compute Manager.
+
+        .PARAMETER inputObject
+        The input object from Get-NsxtComputeManager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$EnableTrust,
@@ -20841,15 +25217,15 @@ Export-ModuleMember -Function Set-NsxtComputeManager
 Function Get-NsxtVidm {
     <#
         .SYNOPSIS
-        Get Identity Manager configuration
+        Get Identity Manager configuration.
 
         .DESCRIPTION
         The Get-NsxtVidm cmdlet gets the Identity Manager configuration
 
         .EXAMPLE
         Get-NsxtVidm
-        This example gets the Identity Manager configuration
-    #>
+        This example gets the Identity Manager configuration.
+   #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm"
@@ -20863,15 +25239,33 @@ Export-ModuleMember -Function Get-NsxtVidm
 Function Set-NsxtVidm {
     <#
         .SYNOPSIS
-        Set Identity Manager configuration
+        Set Identity Manager configuration.
 
         .DESCRIPTION
         The Set-NsxtVidm cmdlet configures Identity Manager in NSX Manager
 
         .EXAMPLE
         Set-NsxtVidm
-        This example configures the Identity Manager in NSX Manager
-    #>
+        This example configures the Identity Manager in NSX Manager.
+
+        .PARAMETER wsaHostname
+        The Workspace ONE Access hostname.
+
+        .PARAMETER thumbprint
+        The Workspace ONE Access thumbprint.
+
+        .PARAMETER clientId
+        The Workspace ONE Access client ID.
+
+        .PARAMETER sharedSecret
+        The Workspace ONE Access shared secret.
+
+        .PARAMETER nsxHostname
+        The NSX Manager hostname.
+
+        .PARAMETER disable
+        Disable the Identity Manager configuration.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaHostname,
@@ -20909,7 +25303,7 @@ Export-ModuleMember -Function Set-NsxtVidm
 Function Get-NsxtLdap {
     <#
         .SYNOPSIS
-        Get LDAP configuration
+        Get LDAP configuration.
 
         .DESCRIPTION
         The Get-NsxtLdap cmdlet gets the LDAP configuration
@@ -20920,8 +25314,11 @@ Function Get-NsxtLdap {
 
         .EXAMPLE
         Get-NsxtLdap -id sfo
-        This example retrives the details of a one LDAP identity source 
-    #>
+        This example retrives the details of a one LDAP identity source.
+
+        .PARAMETER id
+        The LDAP identity source ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -20944,7 +25341,7 @@ Export-ModuleMember -Function Get-NsxtLdap
 Function New-NsxtLdap {
     <#
         .SYNOPSIS
-        Add an LDAP identity source
+        Add an LDAP identity source.
 
         .DESCRIPTION
         The New-NsxtLdap cmdlet adds an LDAP identity source
@@ -20955,13 +25352,37 @@ Function New-NsxtLdap {
 
         .EXAMPLE
         New-NsxtLdap -dcMachineName dc-sfo01 -protocol LDAP -startTtls false -domain sfo.rainpole.io -baseDn "ou=Security Users,dc=sfo,dc=rainpole,dc=io" -bindUser svc-nsx-ad@sfo.rainpole.io -bindPassword VMw@re1!
-        This example create an Active Directory Identity Source over LDAP
-    #>
+        This example create an Active Directory Identity Source over LDAP.
+
+        .PARAMETER dcMachineName
+        The domain controller machine name.
+
+        .PARAMETER protocol
+        The protocol to use (LDAP or LDAPS).
+
+        .PARAMETER startTtls
+        Start TLS.
+
+        .PARAMETER domain
+        The domain name.
+
+        .PARAMETER baseDn
+        The base DN.
+
+        .PARAMETER bindUser
+        The bind user.
+
+        .PARAMETER bindPassword
+        The bind password.
+
+        .PARAMETER certificate
+        The certificate file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dcMachineName,
         [Parameter (Mandatory = $true)] [ValidateSet("LDAP", "LDAPS")] [String]$protocol,
-        [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$startTtls,
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$startTtls,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$baseDn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$bindUser,
@@ -20990,7 +25411,7 @@ Function New-NsxtLdap {
             "resource_type": "ActiveDirectoryIdentitySource",
             "ldap_servers": [
                 {
-                    "url": "' + $primaryUrl +'",
+                    "url": "' + $primaryUrl + '",
                     "use_starttls": false,
                     "certificates": [
                         "' + $certdata + '"
@@ -21015,15 +25436,18 @@ Export-ModuleMember -Function New-NsxtLdap
 Function Remove-NsxtLdap {
     <#
         .SYNOPSIS
-        Delete LDAP identity source
+        Delete LDAP identity source.
 
         .DESCRIPTION
         The Remove-NsxtLdap cmdlet removes an LDAP identity source
 
         .EXAMPLE
         Remove-NsxtLdap -id sfo.rainpole.io
-        This example deletes an LDAP identity source 
-    #>
+        This example deletes an LDAP identity source.
+
+        .PARAMETER id
+        The LDAP identity source ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -21057,7 +25481,13 @@ Function Get-NsxtPrincipalIdentity {
         .EXAMPLE
         Get-NsxtPrincipalIdentity -name svc-iom-sfo-m01-nsx
         This example get an NSX Principal Identity by its name.
-    #>
+
+        .PARAMETER principalId
+        The NSX Principal Identity ID.
+
+        .PARAMETER name
+        The NSX Principal Identity name.
+   #>
 
     Param (
         [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$principalId,
@@ -21085,15 +25515,27 @@ Export-ModuleMember -Function Get-NsxtPrincipalIdentity
 Function New-NsxtPrincipalIdentity {
     <#
         .SYNOPSIS
-        Add an NSX Principal Identity
+        Add an NSX Principal Identity.
 
         .DESCRIPTION
         The New-NsxtPrincipalIdentity cmdlet adds an NSX Princial Identity
 
         .EXAMPLE
         New-NsxtPrincipalIdentity -name svc-iom-sfo-m01-nsx -nodeId sfo-m01-nsx01 -role enterprise_admin -certificateData ./sfo-m01-nsx01.cer
-        This example adds an NSX Princial Identity
-    #>
+        This example adds an NSX Princial Identity.
+
+        .PARAMETER name
+        The NSX Principal Identity name.
+
+        .PARAMETER nodeId
+        The NSX Manager node ID.
+
+        .PARAMETER role
+        The NSX Principal Identity role.
+
+        .PARAMETER certificateData
+        The NSX Principal Identity certificate.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -21117,10 +25559,10 @@ Function New-NsxtPrincipalIdentity {
 
     Try {
         $Global:body = '{
-            "name": "'+ $name +'",
-            "node_id": "'+ $nodeId +'",
-            "role": "'+ $role +'",
-            "certificate_pem": "'+ $dataFile +'"
+            "name": "'+ $name + '",
+            "node_id": "'+ $nodeId + '",
+            "role": "'+ $role + '",
+            "certificate_pem": "'+ $dataFile + '"
         }'
         $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities/with-certificate"
         Invoke-RestMethod -Method POST -URI $uri -ContentType application/json -headers $nsxtHeaders -Body $body
@@ -21140,8 +25582,14 @@ Function Set-NsxtPrincipalIdentityCertificate {
     
         .EXAMPLE
         Set-NsxtPrincipalIdentityCertificate -principalId <principal_id> -certificateId <certificate_id>
-        This example updates the certificate of the NSX Principal Identity
-    #>
+        This example updates the certificate of the NSX Principal Identity.
+
+        .PARAMETER principalId
+        The NSX Principal Identity ID.
+
+        .PARAMETER certificateId
+        The NSX Principal Identity certificate ID.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId,
@@ -21151,8 +25599,8 @@ Function Set-NsxtPrincipalIdentityCertificate {
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/trust-management/principal-identities?action=update_certificate"
         $body = '{
-            "principal_identity_id": "'+ $principalId +'",
-            "certificate_id": "'+ $certificateId +'"
+            "principal_identity_id": "'+ $principalId + '",
+            "certificate_id": "'+ $certificateId + '"
         }'
         Invoke-RestMethod -Method POST -URI $uri -ContentType application/json -headers $nsxtHeaders -Body $body
     } Catch {
@@ -21171,8 +25619,11 @@ Function Remove-NsxtPrincipalIdentity {
     
         .EXAMPLE
         Remove-NsxtPrincipalIdentity -principalId <principal_id>
-        This example deletes an NSX Principal Identity
-    #>
+        This example deletes an NSX Principal Identity.
+
+        .PARAMETER principalId
+        The NSX Principal Identity ID.
+   #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId
@@ -21190,15 +25641,15 @@ Export-ModuleMember -Function Remove-NsxtPrincipalIdentity
 Function Get-NsxtRole {
     <#
         .SYNOPSIS
-        Gets NSX Manager roles
+        Gets NSX Manager roles.
 
         .DESCRIPTION
         The Get-NsxtRole cmdlet gets the roles in NSX Manager
 
         .EXAMPLE
         Get-NsxtRole
-        This example gets all roles in NSX Manager
-    #>
+        This example gets all roles in NSX Manager.
+   #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/roles"
@@ -21212,7 +25663,7 @@ Export-ModuleMember -Function Get-NsxtRole
 Function Set-NsxtRole {
     <#
         .SYNOPSIS
-        Adds a role to a user/group
+        Adds a role to a user/group.
 
         .DESCRIPTION
         The Set-NsxtRole cmdlet assigns users/groups to roles
@@ -21223,8 +25674,23 @@ Function Set-NsxtRole {
 
         .EXAMPLE
         Set-NsxtRole -principal "gg-nsx-enterprise-admins@sfo.rainpole.io" -type remote_group -role enterprise_admin -identitySource VIDM
-        This example assigned the Enterprise Admin role to usee from Workspace ONE Access Identity Provider
-    #>
+        This example assigned the Enterprise Admin role to usee from Workspace ONE Access Identity Provider.
+
+        .PARAMETER principal
+        The user/group principal.
+
+        .PARAMETER type
+        The type of principal (remote_group or remote_user).
+
+        .PARAMETER role
+        The role to assign.
+
+        .PARAMETER identitySource
+        The identity source (LDAP, VIDM, OIDC).
+
+        .PARAMETER domain
+        The domain name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
@@ -21271,15 +25737,18 @@ Export-ModuleMember -Function Set-NsxtRole
 Function Remove-NsxtRole {
     <#
         .SYNOPSIS
-        Delete a user/group role assignment
+        Delete a user/group role assignment.
 
         .DESCRIPTION
         The Remove-NsxtRole cmdlet removes a user/group role in NSX Manager
 
         .EXAMPLE
         Remove-NsxtRole -id
-        This example removes the role for the user/group based on the id
-    #>
+        This example removes the role for the user/group based on the id.
+
+        .PARAMETER id
+        The role ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -21298,15 +25767,15 @@ Export-ModuleMember -Function Remove-NsxtRole
 Function Get-NsxtUser {
     <#
         .SYNOPSIS
-        Gets all users and groups
+        Gets all users and groups.
 
         .DESCRIPTION
         The Get-NsxtUser cmdlet gets all users and groups in NSX Manager
 
         .EXAMPLE
         Get-NsxtUser
-        This example gets all users and grops in NSX Manager
-    #>
+        This example gets all users and grops in NSX Manager.
+   #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/role-bindings"
@@ -21320,15 +25789,18 @@ Export-ModuleMember -Function Get-NsxtUser
 Function Get-NsxtVidmUser {
     <#
         .SYNOPSIS
-        Gets Identity Manager users
+        Gets Identity Manager users.
 
         .DESCRIPTION
         The Get-NsxtVidmUser cmdlet gets all Identity Manager users from NSX Manager
 
         .EXAMPLE
         Get-NsxtVidmUser -searchString svc
-        This example gets all Identity Manager users starting with 'svc' from NSX Manager
-    #>
+        This example gets all Identity Manager users starting with 'svc' from NSX Manager.
+
+        .PARAMETER searchString
+        The search string.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateLength(3, 255)] [String]$searchString
@@ -21346,15 +25818,18 @@ Export-ModuleMember -Function Get-NsxtVidmUser
 Function Get-NsxtVidmGroup {
     <#
         .SYNOPSIS
-        Gets Identity Manager groups
+        Gets Identity Manager groups.
 
         .DESCRIPTION
         The Get-NsxtVidmGroup cmdlet gets all Identity Manager groups from NSX Manager
 
         .EXAMPLE
         Get-NsxtVidmGroup -searchString gg-
-        This example gets all Identity Manager groups starting with gg- from NSX Manager
-    #>
+        This example gets all Identity Manager groups starting with gg- from NSX Manager.
+
+        .PARAMETER searchString
+        The search string.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateLength(3, 255)] [String]$searchString
@@ -21372,7 +25847,7 @@ Export-ModuleMember -Function Get-NsxtVidmGroup
 Function Get-NsxEdgeCluster {
     <#
         .SYNOPSIS
-        Retrieves NSX Edge Cluster(s)
+        Retrieves NSX Edge Cluster(s).
 
         .DESCRIPTION
         The Get-NsxtEdgeCluster cmdlet retrieves NSX Edge Cluster(s)
@@ -21383,8 +25858,11 @@ Function Get-NsxEdgeCluster {
 
         .EXAMPLE
         Get-NsxtEdgeCluster -Name "sfo-w01-ec01"
-        This example returns any NSX Edge Clusters
-    #>
+        This example returns any NSX Edge Clusters.
+
+        .PARAMETER Name
+        The NSX Edge Cluster name.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$Name
@@ -21415,7 +25893,7 @@ Export-ModuleMember -Function Get-NsxEdgeCluster
 Function Get-NsxtTransportZone {
     <#
         .SYNOPSIS
-        Get a list of Transport Zones
+        Get a list of Transport Zones.
 
         .DESCRIPTION
         The Get-NsxtTransportZone cmdlet retrieves a list of Transport Zones
@@ -21426,8 +25904,11 @@ Function Get-NsxtTransportZone {
 
         .EXAMPLE
         Get-NsxtTransportZone -name overlay-tz-sfo-w01-nsx01.sfo.rainpole.io
-        This example gets the Transport Zone with the name "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io"
-    #>
+        This example gets the Transport Zone with the name "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io".
+
+        .PARAMETER name
+        The Transport Zone name.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
@@ -21458,15 +25939,36 @@ Export-ModuleMember -Function Get-NsxtTransportZone
 Function New-NsxtSegment {
     <#
         .SYNOPSIS
-        Create a new NSX Segment
+        Create a new NSX Segment.
 
         .DESCRIPTION
         The New-NsxtSegment cmdlet creates NSX Segments
 
         .EXAMPLE
         New-NsxtSegment -Name "sfo-w01-xreg-seg01" -GatewayType "Tier1" -ConnectedGateway "sfo-w01-ec01-t1-gw01" -Cidr "192.168.31.1/24" -TransportZone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io"
-        This example creates an NSX Overlay Segment with the name "sfo-w01-xreg-seg01", connected to Tier-1 gateway "sfo-w01-ec01-t1-gw01", Transport Zone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io", and CIDR address of "192.168.31.1/24"
-    #>
+        This example creates an NSX Overlay Segment with the name "sfo-w01-xreg-seg01", connected to Tier-1 gateway "sfo-w01-ec01-t1-gw01", Transport Zone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io", and CIDR address of "192.168.31.1/24".
+
+        .PARAMETER Name
+        The NSX Segment name.
+
+        .PARAMETER ConnectedGateway
+        The NSX Gateway name.
+
+        .PARAMETER Cidr
+        The CIDR address.
+
+        .PARAMETER TransportZone
+        The NSX Transport Zone name.
+
+        .PARAMETER GatewayType
+        The NSX Gateway type (Tier0 or Tier1).
+
+        .PARAMETER SegmentType
+        The NSX Segment type (Overlay or VLAN).
+
+        .PARAMETER VlanId
+        The NSX VLAN ID.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$Name,
@@ -21524,7 +26026,7 @@ Export-ModuleMember -Function New-NsxtSegment
 Function Get-NsxtSegment {
     <#
         .SYNOPSIS
-        Get a list of Segments
+        Get a list of Segments.
 
         .DESCRIPTION
         The Get-NsxtSegment cmdlet retrieves a list of Segments
@@ -21535,8 +26037,11 @@ Function Get-NsxtSegment {
 
         .EXAMPLE
         Get-NsxtSegment -name sfo-w01-kub-seg01
-        This example gets the segment with the name sfo-w01-kub-seg01
-    #>
+        This example gets the segment with the name sfo-w01-kub-seg01.
+
+        .PARAMETER name
+        The Segment name.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
@@ -21561,15 +26066,18 @@ Export-ModuleMember -Function Get-NsxtSegment
 Function Remove-NsxtSegment {
     <#
         .SYNOPSIS
-        Removes a named Segment
+        Removes a named Segment.
 
         .DESCRIPTION
         The Remove-NsxtSegment cmdlet removes a named segment.
 
         .EXAMPLE
         Remove-NsxtSegment -name sfo-w01-kub-seg01
-        This example removes the segment with the name sfo-w01-kub-seg01
-    #>
+        This example removes the segment with the name sfo-w01-kub-seg01.
+
+        .PARAMETER name
+        The Segment name.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
@@ -21588,7 +26096,7 @@ Export-ModuleMember -Function Remove-NsxtSegment
 Function Get-NsxtTier0Gateway {
     <#
         .SYNOPSIS
-        Get a list of Tier 0 Gateways
+        Get a list of Tier 0 Gateways.
 
         .DESCRIPTION
         The Get-NsxtTier0 cmdlet retrieves a list of Tier 0 Gateways
@@ -21603,8 +26111,14 @@ Function Get-NsxtTier0Gateway {
 
         .EXAMPLE
         Get-NsxtTier0Gateway -id 84a6c7a5-9fe8-4446-8684-814663399584
-        This example returns the Tier 0 Gateway based on its id
-    #>
+        This example returns the Tier 0 Gateway based on its id.
+
+        .PARAMETER name
+        The Tier 0 Gateway name.
+
+        .PARAMETER id
+        The Tier 0 Gateway id.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -21634,7 +26148,7 @@ Export-ModuleMember -Function Get-NsxtTier0Gateway
 Function Get-NsxtTier1Gateway {
     <#
         .SYNOPSIS
-        Get a list of Tier 1 Gateways
+        Get a list of Tier 1 Gateways.
 
         .DESCRIPTION
         The Get-NsxtTier1Gateway cmdlet retrieves a list of Tier 1 Gateways
@@ -21649,8 +26163,14 @@ Function Get-NsxtTier1Gateway {
 
         .EXAMPLE
         Get-NsxtTier1Gateway -id 84a6c7a5-9fe8-4446-8684-814663399584
-        This example returns the Tier 1 Gateway based on its id
-    #>
+        This example returns the Tier 1 Gateway based on its id.
+
+        .PARAMETER name
+        The Tier 1 Gateway name.
+
+        .PARAMETER id
+        The Tier 1 Gateway id.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -21680,7 +26200,7 @@ Export-ModuleMember -Function Get-NsxtTier1Gateway
 Function Get-NsxtPrefixList {
     <#
         .SYNOPSIS
-        Get Tier-0 Gateway IP Prefix Lists
+        Get Tier-0 Gateway IP Prefix Lists.
 
         .DESCRIPTION
         The Get-NsxtTier0PrefixList cmdlet retrieves the IP Prefix Lists assigned to a Tier-0 Gateway
@@ -21695,8 +26215,17 @@ Function Get-NsxtPrefixList {
 
         .EXAMPLE
         Get-NsxtTier0Gateway -name sfo-w01-ec01-t0-gw01 | Get-NsxtPrefixList -name sfo-w01-cl01-prefix-list
-        This example returns the IP Prefix List based on the prefix name provided
-    #>
+        This example returns the IP Prefix List based on the prefix name provided.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER name
+        The IP Prefix List name.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
@@ -21721,11 +26250,11 @@ Function Get-NsxtPrefixList {
 
     Try {
         if (!$name) {
-            $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists"
+            $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/prefix-lists"
             $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders -ErrorAction SilentlyContinue
             $response.results
         } elseif ($name) {
-            $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists"
+            $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/prefix-lists"
             $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders -ErrorAction SilentlyContinue
             $response.results | Where-Object { $_.display_name -eq $name }
         }
@@ -21741,15 +26270,39 @@ Export-ModuleMember -Function Get-NsxtPrefixList
 Function New-NsxtPrefixList {
     <#
         .SYNOPSIS
-        Creates a Tier-0 Gateway IP Prefix List
+        Creates a Tier-0 Gateway IP Prefix List.
 
         .DESCRIPTION
         The New-NsxtPrefixList cmdlet creates a Prefix List on a specified Tier-0 Gateway
 
         .EXAMPLE
         New-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01 -subnetCIDR 192.168.20.0/24 -action PERMIT 
-        This example creates a new IP Prefix List on a Tier 0 Gateway
-    #>
+        This example creates a new IP Prefix List on a Tier 0 Gateway.
+
+        .PARAMETER name
+        The IP Prefix List name.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER subnetCIDR
+        The subnet CIDR.
+
+        .PARAMETER GE
+        The greater than or equal to value.
+
+        .PARAMETER LE
+        The less than or equal to value.
+
+        .PARAMETER action
+        The action (PERMIT or DENY).
+
+        .PARAMETER json
+        The JSON body.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$name,
@@ -21810,7 +26363,7 @@ Function New-NsxtPrefixList {
     }
 
     Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists/$name"
+        $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/prefix-lists/$name"
         $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
     } Catch {
@@ -21822,15 +26375,21 @@ Export-ModuleMember -Function New-NsxtPrefixList
 Function Remove-NsxtPrefixList {
     <#
         .SYNOPSIS
-        Remove an IP Prefix List from a Tier-0 Gateway
+        Remove an IP Prefix List from a Tier-0 Gateway.
 
         .DESCRIPTION
         The Remove-NsxtPrefixList cmdlet removes a IP Prefix List from a specified Tier-0 Gateway
 
         .EXAMPLE
         Remove-NsxtPrefixList -name sfo-w01-cl01-prefix-list -tier0Gateway sfo-w01-ec01-t0-gw01
-        This example removes a Prefix List on a Tier 0 Gateway
-    #>
+        This example removes a Prefix List on a Tier 0 Gateway.
+
+        .PARAMETER name
+        The IP Prefix List name.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -21851,15 +26410,36 @@ Export-ModuleMember -Function Remove-NsxtPrefixList
 Function Add-NsxtPrefix {
     <#
         .SYNOPSIS
-        Add a single entry to an existing NSX IP Prefix List
+        Add a single entry to an existing NSX IP Prefix List.
 
         .DESCRIPTION
         The Add-NsxtPrefix cmdlet adds a single entry to an existing NSX IP Prefix List
 
         .EXAMPLE
         Get-NsxtPrefixList -name sfo-w01-cl01-prefix-list | Add-NsxtPrefix -subnetCIDR 192.168.21.0/24 -LE 32 -GE 28 -action PERMIT
-        This example adds an IP Prefix entry on an existing IP Prefix List
-    #>
+        This example adds an IP Prefix entry on an existing IP Prefix List.
+
+        .PARAMETER prefixListName
+        The IP Prefix List name.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER subnetCIDR
+        The subnet CIDR.
+
+        .PARAMETER GE
+        The greater than or equal to value.
+
+        .PARAMETER LE
+        The less than or equal to value.
+
+        .PARAMETER action
+        The action (PERMIT or DENY).
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$prefixListName,
@@ -21922,7 +26502,7 @@ Function Add-NsxtPrefix {
 "@
 
     Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/prefix-lists/$PrefixListName"
+        $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/prefix-lists/$PrefixListName"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
 
@@ -21939,7 +26519,7 @@ Export-ModuleMember -Function Add-NsxtPrefix
 Function Get-NsxtRouteMap {
     <#
         .SYNOPSIS
-        Get Tier-0 Gateway Route Maps
+        Get Tier-0 Gateway Route Maps.
 
         .DESCRIPTION
         The Get-NsxtRouteMap cmdlet retrieves the Route Maps assigned to a specified Tier-0 Gateway
@@ -21950,8 +26530,17 @@ Function Get-NsxtRouteMap {
 
         .EXAMPLE
         Get-NsxtRouteMap -tier0Gateway sfo-w01-ec01-t0-gw01 -name sfo-w01-ec01-t0-gw01-routemap
-        This example gets a specific route map by name from the Tier-0 Gateway
-    #>
+        This example gets a specific route map by name from the Tier-0 Gateway.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER name
+        The Route Map name.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$tier0Gateway,
@@ -21976,11 +26565,11 @@ Function Get-NsxtRouteMap {
 
     Try {
         if (!$PsBoundParameters.ContainsKey("Name")) {
-            $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps"
+            $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/route-maps"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results
         } elseif ($PsBoundParameters.ContainsKey("Name")) {
-            $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps"
+            $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/route-maps"
             $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
             $response.results | Where-Object { $_.display_name -eq $Name }
         }
@@ -21995,7 +26584,7 @@ Export-ModuleMember -Function Get-NsxtRouteMap
 Function New-NsxtRouteMap {
     <#
         .SYNOPSIS
-        Creates a Route Map on a specified Tier-0 Gateway
+        Creates a Route Map on a specified Tier-0 Gateway.
 
         .DESCRIPTION
         The New-NsxtRouteMap cmdlet creates a Route Map on a specified Tier-0 Gateway
@@ -22006,8 +26595,26 @@ Function New-NsxtRouteMap {
 
         .EXAMPLE
         Net-NsxtTier0Gateway sfo-w01-ec01-t0-gw01 | Get-NsxtPrefixList -Name sfo-w01-ec01-prefix-list | New-NsxtRouteMap -Name sfo-w01-cl01-route-map
-        This example creates a new Route Map on a Tier-0 Gateway
-    #>
+        This example creates a new Route Map on a Tier-0 Gateway.
+
+        .PARAMETER name
+        The Route Map name.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER prefixList
+        The IP Prefix List name.
+
+        .PARAMETER action
+        The action (PERMIT or DENY).
+
+        .PARAMETER json
+        The JSON body.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$Name,
@@ -22032,12 +26639,12 @@ Function New-NsxtRouteMap {
             Write-Error "Invalid pipeline passthrough. Exiting."
             Break
         }
-    } elseif (!$inputObject){
+    } elseif (!$inputObject) {
         $uriPath = (Get-NsxtTier0Gateway -Name $Tier0Gateway).path
     }
 
     if (!$PrefixListPath) {
-        $PrefixListPath = $uriPath+"/prefix-lists/"+$PrefixList
+        $PrefixListPath = $uriPath + "/prefix-lists/" + $PrefixList
     }
     $json = @"
 {
@@ -22053,7 +26660,7 @@ Function New-NsxtRouteMap {
 "@
 
     Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps/$Name"
+        $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/route-maps/$Name"
         $response = Invoke-RestMethod -Method PUT -URI $uri -ContentType application/json -body $json -headers $nsxtHeaders
         $response
     } Catch {
@@ -22065,15 +26672,24 @@ Export-ModuleMember -Function New-NsxtRouteMap
 Function Remove-NsxtRouteMap {
     <#
         .SYNOPSIS
-        Remove a Route Map from a specified Tier-0 Gateway
+        Remove a Route Map from a specified Tier-0 Gateway.
 
         .DESCRIPTION
         The Remove-NsxtRouteMap cmdlet removes a Route Map attached to a specified Tier-0 Gateway
 
         .EXAMPLE
         Remove-NsxtRouteMap -name sfo-w01-ec01-t0-gw01-routemap -tier0Gateway sfo-w01-ec01-t0-gw01
-        This example removes the Route Map sfo-w01-ec01-t0-gw01-routemap from Tier-0 Gateway sfo-w01-ec01-t0-gw01
-    #>
+        This example removes the Route Map sfo-w01-ec01-t0-gw01-routemap from Tier-0 Gateway sfo-w01-ec01-t0-gw01.
+
+        .PARAMETER name
+        The Route Map name.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$name,
@@ -22113,7 +26729,7 @@ Function Remove-NsxtRouteMap {
     }
 
     Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/route-maps/$name"
+        $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/route-maps/$name"
         $response = Invoke-RestMethod -Method DELETE -URI $uri -headers $nsxtHeaders -ContentType application/json
         $response
     } Catch {
@@ -22126,15 +26742,21 @@ Export-ModuleMember -Function Remove-NsxtRouteMap
 Function Get-NsxtRouteRedistributionPolicy {
     <#
         .SYNOPSIS
-        Get the route redistribution policy from a Tier-0 Gateway
+        Get the route redistribution policy from a Tier-0 Gateway.
 
         .DESCRIPTION
         The Get-NsxtRouteRedistributionPolicy cmdlet get the route redistribution policy from a Tier-0 Gateway
 
         .EXAMPLE
         Get-NsxtRouteRedistributionPolicy -tier0Gateway sfo-w01-ec01-t0-gw01
-        This example returns the route redistribution policy for Tier-0 Gateway sfo-w01-ec01-t0-gw01
-    #>
+        This example returns the route redistribution policy for Tier-0 Gateway sfo-w01-ec01-t0-gw01.
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$tier0Gateway,
@@ -22155,7 +26777,7 @@ Function Get-NsxtRouteRedistributionPolicy {
     }
 
     Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/locale-services/default"
+        $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/locale-services/default"
         $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders -ContentType application/json
         $response
     } Catch {
@@ -22168,15 +26790,27 @@ Export-ModuleMember Get-NsxtRouteRedistributionPolicy
 Function Set-NsxtRouteRedistributionPolicy {
     <#
         .SYNOPSIS
-        Set the route redistriution policy for a Tier 0 Gateway
+        Set the route redistriution policy for a Tier 0 Gateway.
 
         .DESCRIPTION
         The Set-NsxtRouteRedistributionPolicy cmdlet sets the route redistriution policy for a Tier 0 Gateway
 
         .EXAMPLE
         Get-NsxtRouteRedistributionPolicy -tier0Gateway "sfo-w01-ec01-t0-gw01" | Set-NsxtRouteRedistributionPolicy -RouteMap "sfo-w01-ec01-t0-gw01-routemap"
-        This example sets the RouteMap "sfo-w01-ec01-t0-gw01-routemap" on the route redistribution policy for Tier-0 Gateway "sfo-w01-t0-ec01-t0-gw01"
-    #>
+        This example sets the RouteMap "sfo-w01-ec01-t0-gw01-routemap" on the route redistribution policy for Tier-0 Gateway "sfo-w01-t0-ec01-t0-gw01".
+
+        .PARAMETER tier0Gateway
+        The Tier-0 Gateway name.
+
+        .PARAMETER routeMap
+        The Route Map name.
+
+        .PARAMETER removeRouteMap
+        Remove the Route Map from the route redistribution policy.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$tier0Gateway,
@@ -22258,7 +26892,7 @@ Function Set-NsxtRouteRedistributionPolicy {
     }
 
     Try {
-        $uri = "https://$nsxtmanager/policy/api/v1"+$uriPath+"/locale-services/default"
+        $uri = "https://$nsxtmanager/policy/api/v1" + $uriPath + "/locale-services/default"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -headers $nsxtHeaders -ContentType application/json -body $json
         $response
 
@@ -22276,34 +26910,37 @@ Export-ModuleMember Set-NsxtRouteRedistributionPolicy
 Function Get-NsxtManagerAuthPolicy {
     <#
         .SYNOPSIS
-        Get the Authentication Policy for NSX Manager Nodes
+        Get the Authentication Policy for NSX Manager Nodes.
 
         .DESCRIPTION
         The Get-NsxtManagerAuthPolicy cmdlet getss the current authentication policy for NSX Manager Node
 
         .EXAMPLE
         Get-NsxtManagerAuthPolicy -nsxtManagerNode "sfo-m01-nsx01a.sfo.rainpole.io"
-		This example returns the current Authentication policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io
-    #>
+		This example returns the current Authentication policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io.
 
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManagerNode
-	)
+        .PARAMETER nsxtManagerNode
+        The NSX Manager Node name.
+   #>
 
-	Try {
-		$requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
-		$response = Invoke-RestMethod -Method GET -URI $requestingURL -ContentType application/json -headers $nsxtHeaders
-		$response
-	} Catch {
-		Write-Error $_.Exception.Message
-	}
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManagerNode
+    )
+
+    Try {
+        $requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
+        $response = Invoke-RestMethod -Method GET -URI $requestingURL -ContentType application/json -headers $nsxtHeaders
+        $response
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 Export-ModuleMember Get-NsxtManagerAuthPolicy
 
 Function Set-NsxtManagerAuthPolicy {
     <#
         .SYNOPSIS
-        Set the Authentication Policy for NSX Manager Node
+        Set the Authentication Policy for NSX Manager Node.
 
         .DESCRIPTION
         The Set-NsxtManagerAuthPolicy cmdlet configures the authentication policy for NSX Manager Node
@@ -22311,16 +26948,69 @@ Function Set-NsxtManagerAuthPolicy {
         .EXAMPLE
         Set-NsxtManagerAuthPolicy -nsxtManagerNode "sfo-m01-nsx01a.sfo.rainpole.io" -api_lockout_period 900 -api_reset_period 120 -api_max_attempt 5 -cli_lockout_period 900 -cli_max_attempt 5 -min_passwd_length 15 -maximum_password_length 30 -digits 10 -lower_chars -1 -upper_chars -1 -special_chars -1 -max_repeats 2 -max_sequence 3 -minimum_unique_chars 0 -password_remembrance 5 -hash_algorithm "sha512"
 		This example customized the Authentication policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io.
-    #>
 
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManagerNode,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_lockout_period,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_reset_period,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_max_attempt,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_lockout_period,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_max_attempt,
-		[Parameter (Mandatory = $false)] [ValidateRange(8, 128)] [int]$min_passwd_length,
+        .PARAMETER nsxtManagerNode
+        The NSX Manager Node name.
+
+        .PARAMETER api_lockout_period
+        The API lockout period in seconds.
+
+        .PARAMETER api_reset_period
+        The API reset period in seconds.
+
+        .PARAMETER api_max_attempt
+        The API max attempts.
+
+        .PARAMETER cli_lockout_period
+        The CLI lockout period in seconds.
+
+        .PARAMETER cli_max_attempt
+        The CLI max attempts.
+
+        .PARAMETER min_passwd_length
+        The minimum password length.
+
+        .PARAMETER maximum_password_length
+        The maximum password length.
+
+        .PARAMETER digits
+        The number of digits.
+
+        .PARAMETER lower_chars
+        The number of lower case characters.
+
+        .PARAMETER upper_chars
+        The number of upper case characters.
+
+        .PARAMETER special_chars
+        The number of special characters.
+
+        .PARAMETER max_repeats
+        The maximum number of repeated characters.
+
+        .PARAMETER max_sequence
+        The maximum number of sequential characters.
+
+        .PARAMETER minimum_unique_chars.
+
+        .PARAMETER password_remembrance
+        The password remembrance.
+
+        .PARAMETER hash_algorithm
+        The hash algorithm.
+
+        .PARAMETER inputObject
+        The Tier-0 Gateway object.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManagerNode,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_lockout_period,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_reset_period,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$api_max_attempt,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_lockout_period,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_max_attempt,
+        [Parameter (Mandatory = $false)] [ValidateRange(8, 128)] [int]$min_passwd_length,
         [Parameter (Mandatory = $false)] [ValidateRange(8, 128)] [int]$maximum_password_length,
         [Parameter (Mandatory = $false)] [ValidateRange(-128, 128)] [int]$digits,
         [Parameter (Mandatory = $false)] [ValidateRange(-128, 128)] [int]$lower_chars,
@@ -22331,100 +27021,106 @@ Function Set-NsxtManagerAuthPolicy {
         [Parameter (Mandatory = $false)] [ValidateRange(0, 128)] [int]$minimum_unique_chars,
         [Parameter (Mandatory = $false)] [ValidateSet("sha512", "sha256")] [string]$hash_algorithm,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [int]$password_remembrance 
-	)
+    )
 
-	$authPolicyBody = @{}
-	if ($PsBoundParameters.ContainsKey("api_lockout_period")) {
-		$authPolicyBody += @{api_failed_auth_lockout_period = $api_lockout_period}
-	}
-	if ($PsBoundParameters.ContainsKey("api_reset_period")) {
-		$authPolicyBody += @{api_failed_auth_reset_period = $api_reset_period}
-	}
-	if ($PsBoundParameters.ContainsKey("api_max_attempt")) {
-		$authPolicyBody += @{api_max_auth_failures = $api_max_attempt}
-	}
-	if ($PsBoundParameters.ContainsKey("cli_lockout_period")) {
-		$authPolicyBody += @{cli_failed_auth_lockout_period = $cli_lockout_period}
-	}
-	if ($PsBoundParameters.ContainsKey("cli_max_attempt")) {
-		$authPolicyBody += @{cli_max_auth_failures = $cli_max_attempt}
-	}
-	if ($PsBoundParameters.ContainsKey("min_passwd_length")) {
-		$authPolicyBody += @{minimum_password_length = $min_passwd_length}
-	}
+    $authPolicyBody = @{}
+    if ($PsBoundParameters.ContainsKey("api_lockout_period")) {
+        $authPolicyBody += @{api_failed_auth_lockout_period = $api_lockout_period }
+    }
+    if ($PsBoundParameters.ContainsKey("api_reset_period")) {
+        $authPolicyBody += @{api_failed_auth_reset_period = $api_reset_period }
+    }
+    if ($PsBoundParameters.ContainsKey("api_max_attempt")) {
+        $authPolicyBody += @{api_max_auth_failures = $api_max_attempt }
+    }
+    if ($PsBoundParameters.ContainsKey("cli_lockout_period")) {
+        $authPolicyBody += @{cli_failed_auth_lockout_period = $cli_lockout_period }
+    }
+    if ($PsBoundParameters.ContainsKey("cli_max_attempt")) {
+        $authPolicyBody += @{cli_max_auth_failures = $cli_max_attempt }
+    }
+    if ($PsBoundParameters.ContainsKey("min_passwd_length")) {
+        $authPolicyBody += @{minimum_password_length = $min_passwd_length }
+    }
     if ($PsBoundParameters.ContainsKey("maximum_password_length")) {
-		$authPolicyBody += @{maximum_password_length = $maximum_password_length}
-	}
-	if ($PsBoundParameters.ContainsKey("lower_chars")) {
-		$authPolicyBody += @{lower_chars = $lower_chars}
-	}
-	if ($PsBoundParameters.ContainsKey("upper_chars")) {
-		$authPolicyBody += @{upper_chars = $upper_chars}
-	}
-	if ($PsBoundParameters.ContainsKey("special_chars")) {
-		$authPolicyBody += @{special_chars = $special_chars}
-	}
-	if ($PsBoundParameters.ContainsKey("password_remembrance")) {
-		$authPolicyBody += @{password_remembrance = $password_remembrance}
-	}
-	if ($PsBoundParameters.ContainsKey("minimum_unique_chars")) {
-		$authPolicyBody += @{minimum_unique_chars = $minimum_unique_chars}
-	} 
+        $authPolicyBody += @{maximum_password_length = $maximum_password_length }
+    }
+    if ($PsBoundParameters.ContainsKey("lower_chars")) {
+        $authPolicyBody += @{lower_chars = $lower_chars }
+    }
+    if ($PsBoundParameters.ContainsKey("upper_chars")) {
+        $authPolicyBody += @{upper_chars = $upper_chars }
+    }
+    if ($PsBoundParameters.ContainsKey("special_chars")) {
+        $authPolicyBody += @{special_chars = $special_chars }
+    }
+    if ($PsBoundParameters.ContainsKey("password_remembrance")) {
+        $authPolicyBody += @{password_remembrance = $password_remembrance }
+    }
+    if ($PsBoundParameters.ContainsKey("minimum_unique_chars")) {
+        $authPolicyBody += @{minimum_unique_chars = $minimum_unique_chars }
+    } 
     if ($PsBoundParameters.ContainsKey("max_repeats")) {
-		$authPolicyBody += @{max_repeats = $max_repeats}
-	}
+        $authPolicyBody += @{max_repeats = $max_repeats }
+    }
     if ($PsBoundParameters.ContainsKey("max_sequence")) {
-        $authPolicyBody += @{max_sequence = $max_sequence}
+        $authPolicyBody += @{max_sequence = $max_sequence }
     }
     if ($PsBoundParameters.ContainsKey("digits")) {
-        $authPolicyBody += @{digits = $digits}
+        $authPolicyBody += @{digits = $digits }
     }
     if ($PsBoundParameters.ContainsKey("hash_algorithm")) {
-        $authPolicyBody += @{hash_algorithm = $hash_algorithm}
+        $authPolicyBody += @{hash_algorithm = $hash_algorithm }
     }
 
-	Try {
-		$requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
-		$response = Invoke-RestMethod -Method PUT -URI $requestingURL -ContentType application/json -headers $nsxtHeaders -Body ($authPolicyBody | ConvertTo-Json)
-		$response
-	} Catch {
-		Write-Error $_.Exception.Message
-	}
+    Try {
+        $requestingURL = "https://" + $nsxtManagerNode + "/api/v1/node/aaa/auth-policy"
+        $response = Invoke-RestMethod -Method PUT -URI $requestingURL -ContentType application/json -headers $nsxtHeaders -Body ($authPolicyBody | ConvertTo-Json)
+        $response
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 Export-ModuleMember Set-NsxtManagerAuthPolicy
 
 Function Get-NsxtEdgeNodeAuthPolicy {
     <#
         .SYNOPSIS
-        Get the Authentication Policy for NSX Edge Nodes
+        Get the Authentication Policy for NSX Edge Nodes.
 
         .DESCRIPTION
         The Get-NsxtEdgeNodeAuthPolicy cmdlet getss the authentication policy for NSX Edge Nodes
 
         .EXAMPLE
         Get-NsxtEdgeNodeAuthPolicy -nsxtManagerNode "sfo-m01-nsx01a.sfo.rainpole.io"
-		This example returns the password policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io
-    #>
+		This example returns the password policy in NSX manager node sfo-m01-nsx01a.sfo.rainpole.io.
 
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManager,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtEdgeNodeID
-	)
+        .PARAMETER nsxtManagerNode
+        The NSX Manager Node name.
 
-	Try {
-		$requestingURL = "https://" + $nsxtManager + "/api/v1/transport-nodes/" + $nsxtEdgeNodeID + "/node/aaa/auth-policy"
-		$response = Invoke-RestMethod -Method GET -URI $requestingURL -ContentType application/json -headers $nsxtHeaders
-		$response
-	} Catch {
-		Write-Error $_.Exception.Message
-	}
+        .PARAMETER nsxtEdgeNodeID
+        The NSX Edge Node ID.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManager,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtEdgeNodeID
+    )
+
+    Try {
+        $requestingURL = "https://" + $nsxtManager + "/api/v1/transport-nodes/" + $nsxtEdgeNodeID + "/node/aaa/auth-policy"
+        $response = Invoke-RestMethod -Method GET -URI $requestingURL -ContentType application/json -headers $nsxtHeaders
+        $response
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 Export-ModuleMember Get-NsxtEdgeNodeAuthPolicy
 
 Function Set-NsxtEdgeNodeAuthPolicy {
     <#
         .SYNOPSIS
-        Set the Authentication Policy for NSX Edge Nodes
+        Set the Authentication Policy for NSX Edge Nodes.
 
         .DESCRIPTION
         The Set-NsxtEdgeNodeAuthPolicy cmdlet sets the authentication policy for NSX Edge Nodes
@@ -22432,41 +27128,56 @@ Function Set-NsxtEdgeNodeAuthPolicy {
         .EXAMPLE
         Set-NsxtEdgeNodeAuthPolicy -nsxtManager sfo-m01-nsx01.sfo.rainpole.io -nsxtEdgeNodeID <node_id> -cli_lockout_period 900 -cli_max_attempt 5 -min_passwd_length 15
 		This example configures the password policy in NSX Edge node sfo-m01-nsx01a.sfo.rainpole.io.
-    #>
 
-	Param (
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManager,
-		[Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtEdgeNodeID,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_lockout_period,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_max_attempt,
-		[Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$min_passwd_length
-	)
+        .PARAMETER nsxtManager
+        The NSX Manager Node name.
 
-	$authPolicyBody = @{}
-	if ($PsBoundParameters.ContainsKey("cli_lockout_period")) {
-		$authPolicyBody += @{cli_failed_auth_lockout_period = $cli_lockout_period}
-	}
-	if ($PsBoundParameters.ContainsKey("cli_max_attempt")) {
-		$authPolicyBody += @{cli_max_auth_failures = $cli_max_attempt}
-	}
-	if ($PsBoundParameters.ContainsKey("min_passwd_length")) {
-		$authPolicyBody += @{minimum_password_length = $min_passwd_length}
-	}
+        .PARAMETER nsxtEdgeNodeID
+        The NSX Edge Node ID.
 
-	Try {
-		$requestingURL = "https://" + $nsxtManager + "/api/v1/transport-nodes/" + $nsxtEdgeNodeID + "/node/aaa/auth-policy"
-		$response = Invoke-RestMethod -Method PUT -URI $requestingURL -ContentType application/json -headers $nsxtHeaders -Body ($authPolicyBody | ConvertTo-Json)
-		$response
-	} Catch {
-		Write-Error $_.Exception.Message
-	}
+        .PARAMETER cli_lockout_period
+        The CLI lockout period in seconds.
+
+        .PARAMETER cli_max_attempt
+        The CLI max attempts.
+
+        .PARAMETER min_passwd_length
+        The minimum password length.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManager,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtEdgeNodeID,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_lockout_period,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$cli_max_attempt,
+        [Parameter (Mandatory = $false)] [ValidateRange(1, [int]::MaxValue)] [int]$min_passwd_length
+    )
+
+    $authPolicyBody = @{}
+    if ($PsBoundParameters.ContainsKey("cli_lockout_period")) {
+        $authPolicyBody += @{cli_failed_auth_lockout_period = $cli_lockout_period }
+    }
+    if ($PsBoundParameters.ContainsKey("cli_max_attempt")) {
+        $authPolicyBody += @{cli_max_auth_failures = $cli_max_attempt }
+    }
+    if ($PsBoundParameters.ContainsKey("min_passwd_length")) {
+        $authPolicyBody += @{minimum_password_length = $min_passwd_length }
+    }
+
+    Try {
+        $requestingURL = "https://" + $nsxtManager + "/api/v1/transport-nodes/" + $nsxtEdgeNodeID + "/node/aaa/auth-policy"
+        $response = Invoke-RestMethod -Method PUT -URI $requestingURL -ContentType application/json -headers $nsxtHeaders -Body ($authPolicyBody | ConvertTo-Json)
+        $response
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
 }
 Export-ModuleMember Set-NsxtEdgeNodeAuthPolicy
 
 Function Get-NsxtSyslogStatus {
     <#
         .SYNOPSIS
-        Gets the status of the Syslog Service
+        Gets the status of the Syslog Service.
 
         .DESCRIPTION
         The Get-NsxtSyslogStatus cmdlet gets the status of the Syslog Service for NSX components
@@ -22477,8 +27188,17 @@ Function Get-NsxtSyslogStatus {
 
         .EXAMPLE
         Get-NsxtSyslogStatus -type transport -id f3bd5bf0-23cd-4c6f-8de5-ab065f74d7fe
-        This example gets the status of the syslog service for NSX Edge node
-    #>
+        This example gets the status of the syslog service for NSX Edge node.
+
+        .PARAMETER Node
+        The NSX Manager node.
+
+        .PARAMETER Transport
+        The NSX Edge node.
+
+        .PARAMETER id
+        The NSX Edge node ID.
+   #>
 
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -22506,7 +27226,7 @@ Export-ModuleMember -Function Get-NsxtSyslogStatus
 Function Get-NsxtSyslogExporter {
     <#
         .SYNOPSIS
-        Gets Syslog exporters
+        Gets Syslog exporters.
 
         .DESCRIPTION
         The Get-NsxtSyslogExporter cmdlet gets the Syslog exporters configures for NSX components
@@ -22517,8 +27237,17 @@ Function Get-NsxtSyslogExporter {
 
         .EXAMPLE
         Get-NsxtSyslogExporter -transport -id f3bd5bf0-23cd-4c6f-8de5-ab065f74d7fe
-        This example gets the configuration of the syslog exporters for NSX Edge node
-    #>
+        This example gets the configuration of the syslog exporters for NSX Edge node.
+
+        .PARAMETER Node
+        The NSX Manager node.
+
+        .PARAMETER Transport
+        The NSX Edge node.
+
+        .PARAMETER id
+        The NSX Edge node ID.
+   #>
 
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -22546,7 +27275,7 @@ Export-ModuleMember -Function Get-NsxtSyslogExporter
 Function Set-NsxtSyslogExporter {
     <#
         .SYNOPSIS
-        Sets Syslog exporters
+        Sets Syslog exporters.
 
         .DESCRIPTION
         The Set-NsxtSyslogExporter cmdlet Sets the Syslog exporters configures for NSX components
@@ -22557,8 +27286,32 @@ Function Set-NsxtSyslogExporter {
 
         .EXAMPLE
         Set-NsxtSyslogExporter -transport -id f3bd5bf0-23cd-4c6f-8de5-ab065f74d7fe -exporterName Syslog1 -logLevel INFO -port 514 -protocol TCP -server sfo-vrli01.sfo.rainpole.io
-        This example gets the status of the syslog service for NSX Edge node
-    #>
+        This example gets the status of the syslog service for NSX Edge node.
+
+        .PARAMETER Node
+        The NSX Manager node.
+
+        .PARAMETER Transport
+        The NSX Edge node.
+
+        .PARAMETER id
+        The NSX Edge node ID.
+
+        .PARAMETER exporterName
+        The Syslog exporter name.
+
+        .PARAMETER logLevel
+        The Syslog log level.
+
+        .PARAMETER port
+        The Syslog port.
+
+        .PARAMETER protocol
+        The Syslog protocol.
+
+        .PARAMETER server
+        The Syslog server.
+   #>
 
     Param (
         [Parameter ( ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -22599,7 +27352,7 @@ Export-ModuleMember -Function Set-NsxtSyslogExporter
 Function Remove-NsxtSyslogExporter {
     <#
         .SYNOPSIS
-        Delete Syslog exporters
+        Delete Syslog exporters.
 
         .DESCRIPTION
         The Remove-NsxtSyslogExporter cmdlet deletes the Syslog exporters for NSX components
@@ -22610,8 +27363,20 @@ Function Remove-NsxtSyslogExporter {
 
         .EXAMPLE
         Remove-NsxtSyslogExporter -transport -id f3bd5bf0-23cd-4c6f-8de5-ab065f74d7fe -exporterName Syslog1
-        This example deletes the syslog exporters for for NSX Edge node
-    #>
+        This example deletes the syslog exporters for for NSX Edge node.
+
+        .PARAMETER Node
+        The NSX Manager node.
+
+        .PARAMETER Transport
+        The NSX Edge node.
+
+        .PARAMETER id
+        The NSX Edge node ID.
+
+        .PARAMETER exporterName
+        The Syslog exporter name.
+   #>
 
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -22640,7 +27405,7 @@ Export-ModuleMember -Function Remove-NsxtSyslogExporter
 Function Copy-vRealizeLoadBalancer {
     <#
         .SYNOPSIS
-        Creates a Load Balancer for VMware Aria component failover
+        Creates a Load Balancer for VMware Aria component failover.
 
         .DESCRIPTION
         Creates a new loadbalancer in a secondary VMware Cloud Foundation instance by duplicating the settings of the
@@ -22648,8 +27413,32 @@ Function Copy-vRealizeLoadBalancer {
 
         .EXAMPLE
         Copy-vRealizeLoadBalancer -sddcManagerAFQDN sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPassword VMw@re1! -sddcManagerBFQDN lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPassword VMw@re1! -serviceInterfaceIP 192.168.11.3 -wsaCertName xint-wsa01
-        This example copies settings from Load Balancer in the Primary SDDC to a new Load Balancer in Recovery SDDC
-    #>
+        This example copies settings from Load Balancer in the Primary SDDC to a new Load Balancer in Recovery SDDC.
+
+        .PARAMETER sddcManagerAFQDN
+        The fully qualified domain name of the SDDC Manager instance where the VMware Aria components are currently running.
+
+        .PARAMETER sddcManagerAUser
+        The username of the SDDC Manager instance where the VMware Aria components are currently running.
+
+        .PARAMETER sddcManagerAPassword
+        The password of the SDDC Manager instance where the VMware Aria components are currently running.
+
+        .PARAMETER sddcManagerBFQDN
+        The fully qualified domain name of the SDDC Manager instance where the VMware Aria components will be running after failover.
+
+        .PARAMETER sddcManagerBUser
+        The username of the SDDC Manager instance where the VMware Aria components will be running after failover.
+
+        .PARAMETER sddcManagerBPassword
+        The password of the SDDC Manager instance where the VMware Aria components will be running after failover.
+
+        .PARAMETER serviceInterfaceIP
+        The IP address of the Service Interface on the new Load Balancer.
+
+        .PARAMETER wsaCertName
+        The name of the certificate to be used by the new Load Balancer.
+   #>
     
     Param (
         [Parameter (Mandatory = $true)] [String]$sddcManagerAFqdn,
@@ -22670,12 +27459,12 @@ Function Copy-vRealizeLoadBalancer {
 
         #Retrieve Edge Cluster Details from SDDC Manager B
         Request-VCFToken -fqdn $sddcManagerBFqdn -Username $sddcManagerBUser -Password $sddcManagerBPassword | Out-Null
-        $mgmtNsxtClusterID = (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "Management"}).nsxtCluster.id
-        $edgeClusterName = (Get-VCFEdgeCluster | Where-Object {$_.nsxtCluster.id -eq $mgmtNsxtClusterID}).Name
+        $mgmtNsxtClusterID = (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "Management" }).nsxtCluster.id
+        $edgeClusterName = (Get-VCFEdgeCluster | Where-Object { $_.nsxtCluster.id -eq $mgmtNsxtClusterID }).Name
         
         #Retrieve Segment, WSA, VRA and vROPS  Details from SDDC Manager A
         Request-VCFToken -fqdn $sddcManagerAFqdn -Username $sddcManagerAUser -Password $sddcManagerAPassword | Out-Null
-        $xintSegmentDetails = Get-VCFApplicationVirtualNetwork | Where-Object {$_.regionType -eq "X_REGION"}
+        $xintSegmentDetails = Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "X_REGION" }
         $wsaDetailsObject = Get-WSAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
         $vraDetailsObject = Get-vRAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
         $vropsDetailsObject = Get-vROPsServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
@@ -22693,10 +27482,10 @@ Function Copy-vRealizeLoadBalancer {
     Try {
         if ((!$edgeClusterName) -OR (!$xintSegmentDetails) -OR (!$wsaDetailsObject) -OR ((!$vraDetailsObject) -AND (!$vropsDetailsObject))) {
             Write-Output "Requirements for Copying Load Balancer not Met".
-            if (!$wsaDetailsObject) {Write-Output "Clustered Workspace ONE Access was not discovered in the source SDDC Manager instance"}
-            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) {Write-Output "Neither VMware Aria Automation nor VMware Aria Operations was discovered in the source SDDC Manager instance"}
-            if (!$xintSegmentDetails) {Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance"}
-            if (!$edgeClusterName) {Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance"}
+            if (!$wsaDetailsObject) { Write-Output "Clustered Workspace ONE Access was not discovered in the source SDDC Manager instance" }
+            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) { Write-Output "Neither VMware Aria Automation nor VMware Aria Operations was discovered in the source SDDC Manager instance" }
+            if (!$xintSegmentDetails) { Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance" }
+            if (!$edgeClusterName) { Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance" }
         } else {    
             #Create a Load Balancer Spec
             if (!$vraDetailsObject) {
@@ -22732,7 +27521,7 @@ Function Copy-vRealizeLoadBalancer {
                             "ip_address": "'+ $lbCustomObject.t1_spec.static_routes.next_hops.ip_address + '",
                             "admin_distance": '+ $lbCustomObject.t1_spec.static_routes.next_hops.admin_distance + ',
                             "scope": [
-                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope +'"                    
+                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope + '"                    
                             ]
                         }
                     ],
@@ -22839,458 +27628,458 @@ Function New-vRealizeLoadBalancerSpec {
 
     $lbJson += '{'
     $lbJson += '"t1_spec":{'
-        $lbJson += '"gw":{'
-            $lbJson += '"resource_type": "Tier1",'
-            $lbJson += '"id": "<!--REPLACE WITH T1NAME-->",'
-            $lbJson += '"force_whitelisting": false,'
-            $lbJson += '"tier0_path": ""'
-        $lbJson += '},'
-        $lbJson += '"service_interface":{'
-            $lbJson += '"segment_path": "/global-infra/segments/<!--REPLACE WITH SEGMENTID-->",'
-            $lbJson += '"id": "<!--REPLACE WITH siName-->",'
-            $lbJson += '"overridden": false,'
-            $lbJson += '"subnets": ['
-            $lbJson += '{'
-            $lbJson += '"ip_addresses": ['
-            $lbJson += '"<!--REPLACE WITH SI IP-->"'
-            $lbJson += '],'
-            $lbJson += '"prefix_len": <!--REPLACE WITH SI PREFIX-->'
-            $lbJson += '}'
-            $lbJson += ']'
-        $lbJson += '},'
-        $lbJson += '"static_routes":{'
-            $lbJson += '"network": "0.0.0.0/0",'
-            $lbJson += '"next_hops": ['
-                $lbJson += '{'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH NEXT HOP IP-->",'
-                    $lbJson += '"admin_distance": 1,'
-                    $lbJson += '"scope": ['
-                        $lbJson += '"/infra/tier-1s/<!--REPLACE WITH T1NAME-->/locale-services/default/interfaces/<!--REPLACE WITH siName-->"'
-                    $lbJson += ']           '
-                $lbJson += '}'
-            $lbJson += '],'
-            $lbJson += '"display_name": "default"'
-        $lbJson += '}'
+    $lbJson += '"gw":{'
+    $lbJson += '"resource_type": "Tier1",'
+    $lbJson += '"id": "<!--REPLACE WITH T1NAME-->",'
+    $lbJson += '"force_whitelisting": false,'
+    $lbJson += '"tier0_path": ""'
     $lbJson += '},'
-        $lbJson += '"lb_spec": {'
-            $lbJson += '"lb_service": ['
-                $lbJson += '{'
-                    $lbJson += '"display_name": "<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"resource_type": "LBService",'
-                    $lbJson += '"enabled": true,'
-                    $lbJson += '"size": "SMALL",'
-                    $lbJson += '"connectivity_path":""'
-                $lbJson += '}'
-            $lbJson += '],'
-            $lbJson += '"service_monitors": ['
-            If ($vropsDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-https-monitor",'
-                    $lbJson += '"description": "VMware Aria Operations HTTPS Monitor",'
-                    $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
-                    $lbJson += '"monitor_port": "443",'
-                    $lbJson += '"interval": "5",'
-                    $lbJson += '"fall_count": "3",'
-                    $lbJson += '"rise_count": "3",'
-                    $lbJson += '"timeout": "16",'
-                    $lbJson += '"request_method": "GET",'
-                    $lbJson += '"request_url": "/suite-api/api/deployment/node/status?services=api&services=adminui&services=ui",'
-                    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
-                    $lbJson += '"response_status_codes": ['
-                        $lbJson += '"200","204","301"'
-                    $lbJson += '],'
-                    $lbJson += '"response_body": "ONLINE",'
-                    $lbJson += '"server_ssl_profile_binding": {'
-                        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
-                    $lbJson += '}'
-                $lbJson += '},'
-            }
-            If ($vraDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vra-http-monitor",'
-                    $lbJson += '"description": "VMware Aria Automation HTTP Monitor",'
-                    $lbJson += '"resource_type": "LBHttpMonitorProfile",'
-                    $lbJson += '"monitor_port": "8008",'
-                    $lbJson += '"interval": "3",'
-                    $lbJson += '"fall_count": "3",'
-                    $lbJson += '"rise_count": "3",'
-                    $lbJson += '"timeout": "10",'
-                    $lbJson += '"request_method": "GET",'
-                    $lbJson += '"request_url": "/health",'
-                    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
-                    $lbJson += '"response_status_codes": ['
-                        $lbJson += '"200"'
-                    $lbJson += '],'
-                    $lbJson += '"response_body": ""'
-                $lbJson += '},'
-            }
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-https-monitor",'
-                    $lbJson += '"description": "Clustered Workspace ONE Access HTTPS Monitor",'
-                    $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
-                    $lbJson += '"monitor_port": "443",'
-                    $lbJson += '"interval": "3",'
-                    $lbJson += '"fall_count": "3",'
-                    $lbJson += '"rise_count": "3",'
-                    $lbJson += '"timeout": "10",'
-                    $lbJson += '"request_method": "GET",'
-                    $lbJson += '"request_url": "/SAAS/API/1.0/REST/system/health/heartbeat",'
-                    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
-                    $lbJson += '"response_status_codes": ['
-                        $lbJson += '"200","201"'
-                    $lbJson += '],'
-                    $lbJson += '"response_body": "ok",'
-                    $lbJson += '"server_ssl_profile_binding": {'
-                        $lbJson += '"client_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
-                        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
-                    $lbJson += '}'
-                $lbJson += '}'
-            $lbJson += '],'
-            $lbJson += '"app_profiles": ['
-            If ($vropsDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-http-app-profile-redirect",'
-                    $lbJson += '"description": "Cross-Instance VMware Aria Operations redirect HTTP to HTTPs",'
-                    $lbJson += '"resource_type": "LBHttpProfile",'
-                    $lbJson += '"idle_timeout": "1800",'
-                    $lbJson += '"request_header_size": "1024",'
-                    $lbJson += '"response_header_size": "4096",'
-                    $lbJson += '"http_redirect_to_https": "True",'
-                    $lbJson += '"response_timeout": "60",'
-                    $lbJson += '"ntlm": "False"'
-                $lbJson += '},'
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-tcp-app-profile",'
-                    $lbJson += '"description": "VMware Aria Operations TCP App Profile",'
-                    $lbJson += '"resource_type": "LBFastTcpProfile",'
-                    $lbJson += '"idle_timeout": "1800",'
-                    $lbJson += '"ha_flow_mirroring_enabled": "False",'
-                    $lbJson += '"close_timeout": "8"'
-                $lbJson += '},'
-            }
-            If ($vraDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vra-tcp-app-profile",'
-                    $lbJson += '"description": "VMware Aria Automation TCP App Profile",'
-                    $lbJson += '"resource_type": "LBFastTcpProfile",'
-                    $lbJson += '"idle_timeout": "1800",'
-                    $lbJson += '"ha_flow_mirroring_enabled": "False",'
-                    $lbJson += '"close_timeout": "8"'
-                $lbJson += '},'
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vra-http-app-profile-redirect",'
-                    $lbJson += '"description": "VMware Aria Automation Profile to redirect HTTP to HTTPs",'
-                    $lbJson += '"resource_type": "LBHttpProfile",'
-                    $lbJson += '"idle_timeout": "1800",'
-                    $lbJson += '"request_header_size": "1024",'
-                    $lbJson += '"response_header_size": "4096",'
-                    $lbJson += '"http_redirect_to_https": "True",'
-                    $lbJson += '"response_timeout": "60",'
-                    $lbJson += '"ntlm": "False"'
-                $lbJson += '},'
-            }
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-http-app-profile",'
-                    $lbJson += '"description": "Clustered Workspace ONE Access HTTP Redirect",'
-                    $lbJson += '"resource_type": "LBHttpProfile",'
-                    $lbJson += '"idle_timeout": "3600",'
-                    $lbJson += '"x_forwarded_for": "INSERT",'
-                    $lbJson += '"request_header_size": "1024",'
-                    $lbJson += '"response_header_size": "4096",'
-                    $lbJson += '"http_redirect_to_https": "False",'
-                    $lbJson += '"response_timeout": "60",'
-                    $lbJson += '"ntlm": "False"'
-                $lbJson += '},'
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-http-app-profile-redirect",'
-                    $lbJson += '"description": "Clustered Workspace ONE Access redirect HTTP to HTTPs",'
-                    $lbJson += '"resource_type": "LBHttpProfile",'
-                    $lbJson += '"idle_timeout": "3600",'
-                    $lbJson += '"request_header_size": "1024",'
-                    $lbJson += '"response_header_size": "4096",'
-                    $lbJson += '"http_redirect_to_https": "True",'
-                    $lbJson += '"response_timeout": "60",'
-                    $lbJson += '"ntlm": "False"'
-                $lbJson += '}'
-            $lbJson += '],'
-            $lbJson += '"persistence_profiles": ['
-            If ($vropsDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-source-ip-persistence-profile",'
-                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster Source IP Persistence Profile",'
-                    $lbJson += '"resource_type": "LBSourceIpPersistenceProfile",'
-                    $lbJson += '"persistence_shared": "False",'
-                    $lbJson += '"purge": "FULL",'
-                    $lbJson += '"ha_persistence_mirroring_enabled": "False"'
-                $lbJson += '},'
-            }
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-cookie-persistence-profile",'
-                    $lbJson += '"description": "Cookie Persistence Profile",'
-                    $lbJson += '"resource_type": "LBCookiePersistenceProfile",'
-                    $lbJson += '"persistence_shared": "False",'
-                    $lbJson += '"cookie_mode": "REWRITE",'
-                    $lbJson += '"cookie_name": "JSESSIONID",'
-                    $lbJson += '"cookie_fallback": "True",'
-                    $lbJson += '"cookie_garble": "True"'
-                $lbJson += '}'
-            $lbJson += '],'
-            $lbJson += '"pools": ['
-            If ($vropsDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-server-pool",'
-                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster Server Pool",'
-                    $lbJson += '"algorithm": "LEAST_CONNECTION",'
-                    $lbJson += '"active_monitor_paths": ['
-                        $lbJson += '"/infra/lb-monitor-profiles/vrops-https-monitor"'
-                    $lbJson += '],'
-                    $lbJson += '"snat_translation": {'
-                        $lbJson += '"type": "LBSnatAutoMap"'
-                    $lbJson += '},'
-                    $lbJson += '"members": ['
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 1 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 1 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '},'
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 2 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 2 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '},'
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 3 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 3 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '}'
-                    $lbJson += ']'
-                $lbJson += '},'
-            }
-            If ($vraDetailsObject) {    
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vra-server-pool",'
-                    $lbJson += '"description": "VMware Aria Automation Cluster Pool",'
-                    $lbJson += '"algorithm": "LEAST_CONNECTION",'
-                    $lbJson += '"active_monitor_paths": ['
-                        $lbJson += '"/infra/lb-monitor-profiles/vra-http-monitor"'
-                        $lbJson += '],'
-                    $lbJson += '"snat_translation": {'
-                        $lbJson += '"type": "LBSnatAutoMap"'
-                    $lbJson += '},'
-                    $lbJson += '"members": ['
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 1 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 1 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '},'
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 2 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 2 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '},'
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 3 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 3 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '}'
-                    $lbJson += ']'
-                $lbJson += '},'
-            }
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-server-pool",'
-                    $lbJson += '"description": "Clustered Workspace ONE Access Server Pool",'
-                    $lbJson += '"algorithm": "LEAST_CONNECTION",'
-                    $lbJson += '"active_monitor_paths": ['
-                        $lbJson += '"/infra/lb-monitor-profiles/wsa-https-monitor"'
-                    $lbJson += '],'
-                    $lbJson += '"snat_translation": {'
-                        $lbJson += '"type": "LBSnatAutoMap"'
-                    $lbJson += '},'
-                    $lbJson += '"members": ['
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 1 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 1 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '},'
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 2 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 2 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '},'
-                        $lbJson += '{'
-                            $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 3 NAME-->",'
-                            $lbJson += '"backup_member": "false",'
-                            $lbJson += '"weight": 1,'
-                            $lbJson += '"admin_state": "ENABLED",'
-                            $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 3 IP-->",'
-                            $lbJson += '"port": "443"'
-                        $lbJson += '}'
-                    $lbJson += ']'
-                $lbJson += '}'
-            $lbJson += '],'
-            $lbJson += '"virtual_servers": ['
-            If ($vropsDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-https",'
-                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster UI",'
-                    $lbJson += '"resource_type": "LBVirtualServer",'
-                    $lbJson += '"enabled": "true",'
-                    $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/vrops-source-ip-persistence-profile",'
-                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-tcp-app-profile",'
-                    $lbJson += '"pool_path": "/infra/lb-pools/vrops-server-pool",'
-                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH VROPS VIP-->",'
-                    $lbJson += '"ports": ['
-                        $lbJson += '"443"'
-                    $lbJson += ']'
-                $lbJson += '},'
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vrops-http-redirect",'
-                    $lbJson += '"description": "VMware Aria Operations Analytics Cluster HTTP to HTTPS Redirect",'
-                    $lbJson += '"resource_type": "LBVirtualServer",'
-                    $lbJson += '"enabled": "true",'
-                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-http-app-profile-redirect",'
-                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH VROPS VIP-->",'
-                    $lbJson += '"ports": ['
-                        $lbJson += '"80"'
-                    $lbJson += ']'
-                $lbJson += '},'
-            }
-            If ($vraDetailsObject) {
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vra-https",'
-                    $lbJson += '"description": "VMware Aria Automation Cluster UI",'
-                    $lbJson += '"resource_type": "LBVirtualServer",'
-                    $lbJson += '"enabled": "true",'
-                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-tcp-app-profile",'
-                    $lbJson += '"pool_path": "/infra/lb-pools/vra-server-pool",'
-                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH VRA VIP-->",'
-                    $lbJson += '"ports": ['
-                        $lbJson += '"443"'
-                    $lbJson += ']'
-                $lbJson += '},'
-                $lbJson += '{'
-                    $lbJson += '"display_name": "vra-http-redirect",'
-                    $lbJson += '"description": "VMware Aria Automation HTTP to HTTPS Redirect",'
-                    $lbJson += '"resource_type": "LBVirtualServer",'
-                    $lbJson += '"enabled": "true",'
-                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-http-app-profile-redirect",'
-                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH VRA VIP-->",'
-                    $lbJson += '"ports": ['
-                        $lbJson += '"80"'
-                    $lbJson += ']'
-                $lbJson += '},'
-            }
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-https",'
-                    $lbJson += '"description": "Clustered Workspace ONE Access Cluster UI",'
-                    $lbJson += '"resource_type": "LBVirtualServer",'
-                    $lbJson += '"enabled": "true",'
-                    $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/wsa-cookie-persistence-profile",'
-                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/wsa-http-app-profile",'
-                    $lbJson += '"pool_path": "/infra/lb-pools/wsa-server-pool",'
-                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH WSA VIP-->",'
-                    $lbJson += '"ports": ['
-                        $lbJson += '"443"'
-                    $lbJson += '],'
-                    $lbJson += '"client_ssl_profile_binding": {'
-                        $lbJson += '"default_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
-                        $lbJson += '"ssl_profile_path": "/infra/lb-client-ssl-profiles/default-balanced-client-ssl-profile"'
-                    $lbJson += '},'
-                    $lbJson += '"server_ssl_profile_binding": {'
-                        $lbJson += '"client_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
-                        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
-                    $lbJson += '},'
-                    $lbJson += '"rules": ['
-                        $lbJson += '{'
-                            $lbJson += '"match_strategy": "ALL",'
-                            $lbJson += '"phase": "HTTP_REQUEST_REWRITE",'
-                            $lbJson += '"actions": ['
-                                $lbJson += '{'
-                                    $lbJson += '"type": "LBHttpRequestHeaderRewriteAction",'
-                                    $lbJson += '"header_name": "Remoteport",'
-                                    $lbJson += '"header_value": "$_remote_port"'
-                                $lbJson += '}'
-                            $lbJson += ']'
-                        $lbJson += '}'
-                    $lbJson += ']'
-                $lbJson += '},'
-                $lbJson += '{'
-                    $lbJson += '"display_name": "wsa-http-redirect",'
-                    $lbJson += '"description": "Clustered Workspace ONE Access Cluster HTTP to HTTPS Redirect",'
-                    $lbJson += '"resource_type": "LBVirtualServer",'
-                    $lbJson += '"enabled": "true",'
-                    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/wsa-http-app-profile-redirect",'
-                    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
-                    $lbJson += '"ip_address": "<!--REPLACE WITH WSA VIP-->",'
-                    $lbJson += '"ports": ['
-                        $lbJson += '"80"'
-                    $lbJson += ']'
-                $lbJson += '}'
-            $lbJson += ']'
+    $lbJson += '"service_interface":{'
+    $lbJson += '"segment_path": "/global-infra/segments/<!--REPLACE WITH SEGMENTID-->",'
+    $lbJson += '"id": "<!--REPLACE WITH siName-->",'
+    $lbJson += '"overridden": false,'
+    $lbJson += '"subnets": ['
+    $lbJson += '{'
+    $lbJson += '"ip_addresses": ['
+    $lbJson += '"<!--REPLACE WITH SI IP-->"'
+    $lbJson += '],'
+    $lbJson += '"prefix_len": <!--REPLACE WITH SI PREFIX-->'
+    $lbJson += '}'
+    $lbJson += ']'
+    $lbJson += '},'
+    $lbJson += '"static_routes":{'
+    $lbJson += '"network": "0.0.0.0/0",'
+    $lbJson += '"next_hops": ['
+    $lbJson += '{'
+    $lbJson += '"ip_address": "<!--REPLACE WITH NEXT HOP IP-->",'
+    $lbJson += '"admin_distance": 1,'
+    $lbJson += '"scope": ['
+    $lbJson += '"/infra/tier-1s/<!--REPLACE WITH T1NAME-->/locale-services/default/interfaces/<!--REPLACE WITH siName-->"'
+    $lbJson += ']           '
+    $lbJson += '}'
+    $lbJson += '],'
+    $lbJson += '"display_name": "default"'
+    $lbJson += '}'
+    $lbJson += '},'
+    $lbJson += '"lb_spec": {'
+    $lbJson += '"lb_service": ['
+    $lbJson += '{'
+    $lbJson += '"display_name": "<!--REPLACE WITH LB NAME-->",'
+    $lbJson += '"resource_type": "LBService",'
+    $lbJson += '"enabled": true,'
+    $lbJson += '"size": "SMALL",'
+    $lbJson += '"connectivity_path":""'
+    $lbJson += '}'
+    $lbJson += '],'
+    $lbJson += '"service_monitors": ['
+    If ($vropsDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-https-monitor",'
+        $lbJson += '"description": "VMware Aria Operations HTTPS Monitor",'
+        $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
+        $lbJson += '"monitor_port": "443",'
+        $lbJson += '"interval": "5",'
+        $lbJson += '"fall_count": "3",'
+        $lbJson += '"rise_count": "3",'
+        $lbJson += '"timeout": "16",'
+        $lbJson += '"request_method": "GET",'
+        $lbJson += '"request_url": "/suite-api/api/deployment/node/status?services=api&services=adminui&services=ui",'
+        $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+        $lbJson += '"response_status_codes": ['
+        $lbJson += '"200","204","301"'
+        $lbJson += '],'
+        $lbJson += '"response_body": "ONLINE",'
+        $lbJson += '"server_ssl_profile_binding": {'
+        $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
         $lbJson += '}'
+        $lbJson += '},'
+    }
+    If ($vraDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vra-http-monitor",'
+        $lbJson += '"description": "VMware Aria Automation HTTP Monitor",'
+        $lbJson += '"resource_type": "LBHttpMonitorProfile",'
+        $lbJson += '"monitor_port": "8008",'
+        $lbJson += '"interval": "3",'
+        $lbJson += '"fall_count": "3",'
+        $lbJson += '"rise_count": "3",'
+        $lbJson += '"timeout": "10",'
+        $lbJson += '"request_method": "GET",'
+        $lbJson += '"request_url": "/health",'
+        $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+        $lbJson += '"response_status_codes": ['
+        $lbJson += '"200"'
+        $lbJson += '],'
+        $lbJson += '"response_body": ""'
+        $lbJson += '},'
+    }
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-https-monitor",'
+    $lbJson += '"description": "Clustered Workspace ONE Access HTTPS Monitor",'
+    $lbJson += '"resource_type": "LBHttpsMonitorProfile",'
+    $lbJson += '"monitor_port": "443",'
+    $lbJson += '"interval": "3",'
+    $lbJson += '"fall_count": "3",'
+    $lbJson += '"rise_count": "3",'
+    $lbJson += '"timeout": "10",'
+    $lbJson += '"request_method": "GET",'
+    $lbJson += '"request_url": "/SAAS/API/1.0/REST/system/health/heartbeat",'
+    $lbJson += '"request_version": "HTTP_VERSION_1_1",'
+    $lbJson += '"response_status_codes": ['
+    $lbJson += '"200","201"'
+    $lbJson += '],'
+    $lbJson += '"response_body": "ok",'
+    $lbJson += '"server_ssl_profile_binding": {'
+    $lbJson += '"client_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
+    $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
+    $lbJson += '}'
+    $lbJson += '}'
+    $lbJson += '],'
+    $lbJson += '"app_profiles": ['
+    If ($vropsDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-http-app-profile-redirect",'
+        $lbJson += '"description": "Cross-Instance VMware Aria Operations redirect HTTP to HTTPs",'
+        $lbJson += '"resource_type": "LBHttpProfile",'
+        $lbJson += '"idle_timeout": "1800",'
+        $lbJson += '"request_header_size": "1024",'
+        $lbJson += '"response_header_size": "4096",'
+        $lbJson += '"http_redirect_to_https": "True",'
+        $lbJson += '"response_timeout": "60",'
+        $lbJson += '"ntlm": "False"'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-tcp-app-profile",'
+        $lbJson += '"description": "VMware Aria Operations TCP App Profile",'
+        $lbJson += '"resource_type": "LBFastTcpProfile",'
+        $lbJson += '"idle_timeout": "1800",'
+        $lbJson += '"ha_flow_mirroring_enabled": "False",'
+        $lbJson += '"close_timeout": "8"'
+        $lbJson += '},'
+    }
+    If ($vraDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vra-tcp-app-profile",'
+        $lbJson += '"description": "VMware Aria Automation TCP App Profile",'
+        $lbJson += '"resource_type": "LBFastTcpProfile",'
+        $lbJson += '"idle_timeout": "1800",'
+        $lbJson += '"ha_flow_mirroring_enabled": "False",'
+        $lbJson += '"close_timeout": "8"'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "vra-http-app-profile-redirect",'
+        $lbJson += '"description": "VMware Aria Automation Profile to redirect HTTP to HTTPs",'
+        $lbJson += '"resource_type": "LBHttpProfile",'
+        $lbJson += '"idle_timeout": "1800",'
+        $lbJson += '"request_header_size": "1024",'
+        $lbJson += '"response_header_size": "4096",'
+        $lbJson += '"http_redirect_to_https": "True",'
+        $lbJson += '"response_timeout": "60",'
+        $lbJson += '"ntlm": "False"'
+        $lbJson += '},'
+    }
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-http-app-profile",'
+    $lbJson += '"description": "Clustered Workspace ONE Access HTTP Redirect",'
+    $lbJson += '"resource_type": "LBHttpProfile",'
+    $lbJson += '"idle_timeout": "3600",'
+    $lbJson += '"x_forwarded_for": "INSERT",'
+    $lbJson += '"request_header_size": "1024",'
+    $lbJson += '"response_header_size": "4096",'
+    $lbJson += '"http_redirect_to_https": "False",'
+    $lbJson += '"response_timeout": "60",'
+    $lbJson += '"ntlm": "False"'
+    $lbJson += '},'
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-http-app-profile-redirect",'
+    $lbJson += '"description": "Clustered Workspace ONE Access redirect HTTP to HTTPs",'
+    $lbJson += '"resource_type": "LBHttpProfile",'
+    $lbJson += '"idle_timeout": "3600",'
+    $lbJson += '"request_header_size": "1024",'
+    $lbJson += '"response_header_size": "4096",'
+    $lbJson += '"http_redirect_to_https": "True",'
+    $lbJson += '"response_timeout": "60",'
+    $lbJson += '"ntlm": "False"'
+    $lbJson += '}'
+    $lbJson += '],'
+    $lbJson += '"persistence_profiles": ['
+    If ($vropsDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-source-ip-persistence-profile",'
+        $lbJson += '"description": "VMware Aria Operations Analytics Cluster Source IP Persistence Profile",'
+        $lbJson += '"resource_type": "LBSourceIpPersistenceProfile",'
+        $lbJson += '"persistence_shared": "False",'
+        $lbJson += '"purge": "FULL",'
+        $lbJson += '"ha_persistence_mirroring_enabled": "False"'
+        $lbJson += '},'
+    }
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-cookie-persistence-profile",'
+    $lbJson += '"description": "Cookie Persistence Profile",'
+    $lbJson += '"resource_type": "LBCookiePersistenceProfile",'
+    $lbJson += '"persistence_shared": "False",'
+    $lbJson += '"cookie_mode": "REWRITE",'
+    $lbJson += '"cookie_name": "JSESSIONID",'
+    $lbJson += '"cookie_fallback": "True",'
+    $lbJson += '"cookie_garble": "True"'
+    $lbJson += '}'
+    $lbJson += '],'
+    $lbJson += '"pools": ['
+    If ($vropsDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-server-pool",'
+        $lbJson += '"description": "VMware Aria Operations Analytics Cluster Server Pool",'
+        $lbJson += '"algorithm": "LEAST_CONNECTION",'
+        $lbJson += '"active_monitor_paths": ['
+        $lbJson += '"/infra/lb-monitor-profiles/vrops-https-monitor"'
+        $lbJson += '],'
+        $lbJson += '"snat_translation": {'
+        $lbJson += '"type": "LBSnatAutoMap"'
+        $lbJson += '},'
+        $lbJson += '"members": ['
+        $lbJson += '{'
+        $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 1 NAME-->",'
+        $lbJson += '"backup_member": "false",'
+        $lbJson += '"weight": 1,'
+        $lbJson += '"admin_state": "ENABLED",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 1 IP-->",'
+        $lbJson += '"port": "443"'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 2 NAME-->",'
+        $lbJson += '"backup_member": "false",'
+        $lbJson += '"weight": 1,'
+        $lbJson += '"admin_state": "ENABLED",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 2 IP-->",'
+        $lbJson += '"port": "443"'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "<!--REPLACE WITH VROPS NODE 3 NAME-->",'
+        $lbJson += '"backup_member": "false",'
+        $lbJson += '"weight": 1,'
+        $lbJson += '"admin_state": "ENABLED",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VROPS NODE 3 IP-->",'
+        $lbJson += '"port": "443"'
+        $lbJson += '}'
+        $lbJson += ']'
+        $lbJson += '},'
+    }
+    If ($vraDetailsObject) {    
+        $lbJson += '{'
+        $lbJson += '"display_name": "vra-server-pool",'
+        $lbJson += '"description": "VMware Aria Automation Cluster Pool",'
+        $lbJson += '"algorithm": "LEAST_CONNECTION",'
+        $lbJson += '"active_monitor_paths": ['
+        $lbJson += '"/infra/lb-monitor-profiles/vra-http-monitor"'
+        $lbJson += '],'
+        $lbJson += '"snat_translation": {'
+        $lbJson += '"type": "LBSnatAutoMap"'
+        $lbJson += '},'
+        $lbJson += '"members": ['
+        $lbJson += '{'
+        $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 1 NAME-->",'
+        $lbJson += '"backup_member": "false",'
+        $lbJson += '"weight": 1,'
+        $lbJson += '"admin_state": "ENABLED",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 1 IP-->",'
+        $lbJson += '"port": "443"'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 2 NAME-->",'
+        $lbJson += '"backup_member": "false",'
+        $lbJson += '"weight": 1,'
+        $lbJson += '"admin_state": "ENABLED",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 2 IP-->",'
+        $lbJson += '"port": "443"'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "<!--REPLACE WITH VRA NODE 3 NAME-->",'
+        $lbJson += '"backup_member": "false",'
+        $lbJson += '"weight": 1,'
+        $lbJson += '"admin_state": "ENABLED",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VRA NODE 3 IP-->",'
+        $lbJson += '"port": "443"'
+        $lbJson += '}'
+        $lbJson += ']'
+        $lbJson += '},'
+    }
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-server-pool",'
+    $lbJson += '"description": "Clustered Workspace ONE Access Server Pool",'
+    $lbJson += '"algorithm": "LEAST_CONNECTION",'
+    $lbJson += '"active_monitor_paths": ['
+    $lbJson += '"/infra/lb-monitor-profiles/wsa-https-monitor"'
+    $lbJson += '],'
+    $lbJson += '"snat_translation": {'
+    $lbJson += '"type": "LBSnatAutoMap"'
+    $lbJson += '},'
+    $lbJson += '"members": ['
+    $lbJson += '{'
+    $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 1 NAME-->",'
+    $lbJson += '"backup_member": "false",'
+    $lbJson += '"weight": 1,'
+    $lbJson += '"admin_state": "ENABLED",'
+    $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 1 IP-->",'
+    $lbJson += '"port": "443"'
+    $lbJson += '},'
+    $lbJson += '{'
+    $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 2 NAME-->",'
+    $lbJson += '"backup_member": "false",'
+    $lbJson += '"weight": 1,'
+    $lbJson += '"admin_state": "ENABLED",'
+    $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 2 IP-->",'
+    $lbJson += '"port": "443"'
+    $lbJson += '},'
+    $lbJson += '{'
+    $lbJson += '"display_name": "<!--REPLACE WITH WSA NODE 3 NAME-->",'
+    $lbJson += '"backup_member": "false",'
+    $lbJson += '"weight": 1,'
+    $lbJson += '"admin_state": "ENABLED",'
+    $lbJson += '"ip_address": "<!--REPLACE WITH WSA NODE 3 IP-->",'
+    $lbJson += '"port": "443"'
+    $lbJson += '}'
+    $lbJson += ']'
+    $lbJson += '}'
+    $lbJson += '],'
+    $lbJson += '"virtual_servers": ['
+    If ($vropsDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-https",'
+        $lbJson += '"description": "VMware Aria Operations Analytics Cluster UI",'
+        $lbJson += '"resource_type": "LBVirtualServer",'
+        $lbJson += '"enabled": "true",'
+        $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/vrops-source-ip-persistence-profile",'
+        $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-tcp-app-profile",'
+        $lbJson += '"pool_path": "/infra/lb-pools/vrops-server-pool",'
+        $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VROPS VIP-->",'
+        $lbJson += '"ports": ['
+        $lbJson += '"443"'
+        $lbJson += ']'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "vrops-http-redirect",'
+        $lbJson += '"description": "VMware Aria Operations Analytics Cluster HTTP to HTTPS Redirect",'
+        $lbJson += '"resource_type": "LBVirtualServer",'
+        $lbJson += '"enabled": "true",'
+        $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vrops-http-app-profile-redirect",'
+        $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VROPS VIP-->",'
+        $lbJson += '"ports": ['
+        $lbJson += '"80"'
+        $lbJson += ']'
+        $lbJson += '},'
+    }
+    If ($vraDetailsObject) {
+        $lbJson += '{'
+        $lbJson += '"display_name": "vra-https",'
+        $lbJson += '"description": "VMware Aria Automation Cluster UI",'
+        $lbJson += '"resource_type": "LBVirtualServer",'
+        $lbJson += '"enabled": "true",'
+        $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-tcp-app-profile",'
+        $lbJson += '"pool_path": "/infra/lb-pools/vra-server-pool",'
+        $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VRA VIP-->",'
+        $lbJson += '"ports": ['
+        $lbJson += '"443"'
+        $lbJson += ']'
+        $lbJson += '},'
+        $lbJson += '{'
+        $lbJson += '"display_name": "vra-http-redirect",'
+        $lbJson += '"description": "VMware Aria Automation HTTP to HTTPS Redirect",'
+        $lbJson += '"resource_type": "LBVirtualServer",'
+        $lbJson += '"enabled": "true",'
+        $lbJson += '"application_profile_path": "/infra/lb-app-profiles/vra-http-app-profile-redirect",'
+        $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+        $lbJson += '"ip_address": "<!--REPLACE WITH VRA VIP-->",'
+        $lbJson += '"ports": ['
+        $lbJson += '"80"'
+        $lbJson += ']'
+        $lbJson += '},'
+    }
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-https",'
+    $lbJson += '"description": "Clustered Workspace ONE Access Cluster UI",'
+    $lbJson += '"resource_type": "LBVirtualServer",'
+    $lbJson += '"enabled": "true",'
+    $lbJson += '"lb_persistence_profile_path": "/infra/lb-persistence-profiles/wsa-cookie-persistence-profile",'
+    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/wsa-http-app-profile",'
+    $lbJson += '"pool_path": "/infra/lb-pools/wsa-server-pool",'
+    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+    $lbJson += '"ip_address": "<!--REPLACE WITH WSA VIP-->",'
+    $lbJson += '"ports": ['
+    $lbJson += '"443"'
+    $lbJson += '],'
+    $lbJson += '"client_ssl_profile_binding": {'
+    $lbJson += '"default_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
+    $lbJson += '"ssl_profile_path": "/infra/lb-client-ssl-profiles/default-balanced-client-ssl-profile"'
+    $lbJson += '},'
+    $lbJson += '"server_ssl_profile_binding": {'
+    $lbJson += '"client_certificate_path": "/infra/certificates/<!--REPLACE WITH XREG WSA CERT-->",'
+    $lbJson += '"ssl_profile_path": "/infra/lb-server-ssl-profiles/default-balanced-server-ssl-profile"'
+    $lbJson += '},'
+    $lbJson += '"rules": ['
+    $lbJson += '{'
+    $lbJson += '"match_strategy": "ALL",'
+    $lbJson += '"phase": "HTTP_REQUEST_REWRITE",'
+    $lbJson += '"actions": ['
+    $lbJson += '{'
+    $lbJson += '"type": "LBHttpRequestHeaderRewriteAction",'
+    $lbJson += '"header_name": "Remoteport",'
+    $lbJson += '"header_value": "$_remote_port"'
+    $lbJson += '}'
+    $lbJson += ']'
+    $lbJson += '}'
+    $lbJson += ']'
+    $lbJson += '},'
+    $lbJson += '{'
+    $lbJson += '"display_name": "wsa-http-redirect",'
+    $lbJson += '"description": "Clustered Workspace ONE Access Cluster HTTP to HTTPS Redirect",'
+    $lbJson += '"resource_type": "LBVirtualServer",'
+    $lbJson += '"enabled": "true",'
+    $lbJson += '"application_profile_path": "/infra/lb-app-profiles/wsa-http-app-profile-redirect",'
+    $lbJson += '"lb_service_path": "/infra/lb-services/<!--REPLACE WITH LB NAME-->",'
+    $lbJson += '"ip_address": "<!--REPLACE WITH WSA VIP-->",'
+    $lbJson += '"ports": ['
+    $lbJson += '"80"'
+    $lbJson += ']'
+    $lbJson += '}'
+    $lbJson += ']'
+    $lbJson += '}'
     $lbJson += '}'
 
     $lbJson = $lbJson | ForEach-Object { $_ `
-        -replace '<!--REPLACE WITH T1NAME-->', $t1Name `
-        -replace '<!--REPLACE WITH xintSegmentName-->', $xintSegmentName `
-        -replace '<!--REPLACE WITH SEGMENTID-->', $segmentID `
-        -replace '<!--REPLACE WITH siName-->', $siName `
-        -replace '<!--REPLACE WITH SI IP-->', $serviceInterfaceIp `
-        -replace '<!--REPLACE WITH XREGION CIDR-->', $xintionVXLAN `
-        -replace '<!--REPLACE WITH NEXT HOP IP-->', $xintSegmentNextHopIP `
-        -replace '<!--REPLACE WITH SI PREFIX-->', $xintSegmentServiceInterfacePrefixLength `
-        -replace '<!--REPLACE WITH LB NAME-->', $lbName `
-        -replace '<!--REPLACE WITH XREG WSA CERT-->', $wsaCertName `
-        -replace '<!--REPLACE WITH WSA NODE 1 NAME-->', $xintWsaNode1Name `
-        -replace '<!--REPLACE WITH WSA NODE 2 NAME-->', $xintWsaNode2Name `
-        -replace '<!--REPLACE WITH WSA NODE 3 NAME-->', $xintWsaNode3Name `
-        -replace '<!--REPLACE WITH WSA NODE 1 IP-->', $xintWsaNode1IP `
-        -replace '<!--REPLACE WITH WSA NODE 2 IP-->', $xintWsaNode2IP `
-        -replace '<!--REPLACE WITH WSA NODE 3 IP-->', $xintWsaNode3IP `
-        -replace '<!--REPLACE WITH VROPS NODE 1 NAME-->', $xintVropsNode1Name `
-        -replace '<!--REPLACE WITH VROPS NODE 2 NAME-->', $xintVropsNode2Name `
-        -replace '<!--REPLACE WITH VROPS NODE 3 NAME-->', $xintVropsNode3Name `
-        -replace '<!--REPLACE WITH VROPS NODE 1 IP-->', $xintVropsNode1Ip `
-        -replace '<!--REPLACE WITH VROPS NODE 2 IP-->', $xintVropsNode2Ip `
-        -replace '<!--REPLACE WITH VROPS NODE 3 IP-->', $xintVropsNode3Ip `
-        -replace '<!--REPLACE WITH VRA NODE 1 NAME-->', $xintVraNode1Name `
-        -replace '<!--REPLACE WITH VRA NODE 2 NAME-->', $xintVraNode2Name `
-        -replace '<!--REPLACE WITH VRA NODE 3 NAME-->', $xintVraNode3Name `
-        -replace '<!--REPLACE WITH VRA NODE 1 IP-->', $xintVraNode1Ip `
-        -replace '<!--REPLACE WITH VRA NODE 2 IP-->', $xintVraNode2Ip `
-        -replace '<!--REPLACE WITH VRA NODE 3 IP-->', $xintVraNode3Ip `
-        -replace '<!--REPLACE WITH WSA VIP-->', $xintWsaVip `
-        -replace '<!--REPLACE WITH VROPS VIP-->', $xintVropsVip `
-        -replace '<!--REPLACE WITH VRA VIP-->', $xintVraVip `
+            -replace '<!--REPLACE WITH T1NAME-->', $t1Name `
+            -replace '<!--REPLACE WITH xintSegmentName-->', $xintSegmentName `
+            -replace '<!--REPLACE WITH SEGMENTID-->', $segmentID `
+            -replace '<!--REPLACE WITH siName-->', $siName `
+            -replace '<!--REPLACE WITH SI IP-->', $serviceInterfaceIp `
+            -replace '<!--REPLACE WITH XREGION CIDR-->', $xintionVXLAN `
+            -replace '<!--REPLACE WITH NEXT HOP IP-->', $xintSegmentNextHopIP `
+            -replace '<!--REPLACE WITH SI PREFIX-->', $xintSegmentServiceInterfacePrefixLength `
+            -replace '<!--REPLACE WITH LB NAME-->', $lbName `
+            -replace '<!--REPLACE WITH XREG WSA CERT-->', $wsaCertName `
+            -replace '<!--REPLACE WITH WSA NODE 1 NAME-->', $xintWsaNode1Name `
+            -replace '<!--REPLACE WITH WSA NODE 2 NAME-->', $xintWsaNode2Name `
+            -replace '<!--REPLACE WITH WSA NODE 3 NAME-->', $xintWsaNode3Name `
+            -replace '<!--REPLACE WITH WSA NODE 1 IP-->', $xintWsaNode1IP `
+            -replace '<!--REPLACE WITH WSA NODE 2 IP-->', $xintWsaNode2IP `
+            -replace '<!--REPLACE WITH WSA NODE 3 IP-->', $xintWsaNode3IP `
+            -replace '<!--REPLACE WITH VROPS NODE 1 NAME-->', $xintVropsNode1Name `
+            -replace '<!--REPLACE WITH VROPS NODE 2 NAME-->', $xintVropsNode2Name `
+            -replace '<!--REPLACE WITH VROPS NODE 3 NAME-->', $xintVropsNode3Name `
+            -replace '<!--REPLACE WITH VROPS NODE 1 IP-->', $xintVropsNode1Ip `
+            -replace '<!--REPLACE WITH VROPS NODE 2 IP-->', $xintVropsNode2Ip `
+            -replace '<!--REPLACE WITH VROPS NODE 3 IP-->', $xintVropsNode3Ip `
+            -replace '<!--REPLACE WITH VRA NODE 1 NAME-->', $xintVraNode1Name `
+            -replace '<!--REPLACE WITH VRA NODE 2 NAME-->', $xintVraNode2Name `
+            -replace '<!--REPLACE WITH VRA NODE 3 NAME-->', $xintVraNode3Name `
+            -replace '<!--REPLACE WITH VRA NODE 1 IP-->', $xintVraNode1Ip `
+            -replace '<!--REPLACE WITH VRA NODE 2 IP-->', $xintVraNode2Ip `
+            -replace '<!--REPLACE WITH VRA NODE 3 IP-->', $xintVraNode3Ip `
+            -replace '<!--REPLACE WITH WSA VIP-->', $xintWsaVip `
+            -replace '<!--REPLACE WITH VROPS VIP-->', $xintVropsVip `
+            -replace '<!--REPLACE WITH VRA VIP-->', $xintVraVip `
     }
     $lbCustomObject = $lbJson | ConvertFrom-Json
     Return $lbCustomObject
@@ -23300,6 +28089,20 @@ Export-ModuleMember -Function New-vRealizeLoadBalancerSpec
 Function Get-NsxtGlobalSegmentID {
     <#
         .SYNOPSIS
+        Gets NSX Global Segment Id
+    
+        .DESCRIPTION
+        The Get-NsxtGlobalSegmentID cmdlet gets the NSX Global Segment Id
+    
+        .EXAMPLE
+        Get-NsxtGlobalSegmentID -segmentName sfo-w01-ec01-xintion
+        This example returns the NSX Global Segment Id.
+
+        .PARAMETER segmentName
+        The name of the NSX Global Segment.
+   #>
+    <#
+        .SYNOPSIS
         Gets the segment ID
     
         .DESCRIPTION
@@ -23307,17 +28110,17 @@ Function Get-NsxtGlobalSegmentID {
     
         .EXAMPLE
         Get-NsxtGlobalSegmentID -segmentName xint-m01-seg01
-        This example returns the Id for a global segment
-    #>
+        This example returns the Id for a global segment.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$segmentName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segmentName
     )
 
     Try {
         $uri = "https://$nsxtmanager/policy/api/v1/global-infra/segments/"
         $response = Invoke-RestMethod -Method GET -URI $uri -ContentType application/json -headers $nsxtHeaders
-        $segmentObjectId = ($response.results | where-object {$_.display_name -eq $segmentName}).id
+        $segmentObjectId = ($response.results | where-object { $_.display_name -eq $segmentName }).id
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -23328,6 +28131,20 @@ Export-ModuleMember -Function Get-NsxtGlobalSegmentID
 Function Add-CertToNsxCertificateStore {
     <#
         .SYNOPSIS
+        Adds a Certificate to the NSX Certificate Store
+    
+        .DESCRIPTION
+        The Add-CertToNsxCertificateStore cmdlet adds a Certificate to the NSX Certificate Store
+    
+        .EXAMPLE
+        Add-CertToNsxCertificateStore -certName sfo-w01-ec01-xreg-wsa
+        This example adds a Certificate to the NSX Certificate Store.
+
+        .PARAMETER certName
+        The name of the Certificate.
+   #>
+    <#
+        .SYNOPSIS
         Adds a certificate to the certificate store
     
         .DESCRIPTION
@@ -23335,8 +28152,8 @@ Function Add-CertToNsxCertificateStore {
     
         .EXAMPLE
         Add-CertToNsxCertificateStore -certName <name>
-        This example returns the Id for a global segment
-    #>
+        This example returns the Id for a global segment.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certName 
@@ -23366,24 +28183,24 @@ Function Add-CertToNsxCertificateStore {
     if ($certAlreadyImported) {
         $wsaCertPresent = $true
     } else {
-            $pemContent = (Get-Content $pemFile) -join "\n"
-            $keyContent = (Get-Content $keyFile) -join "\n"
-            $body = 
-            '{
+        $pemContent = (Get-Content $pemFile) -join "\n"
+        $keyContent = (Get-Content $keyFile) -join "\n"
+        $body = 
+        '{
                 "pem_encoded": "<!--REPLACE WITH PEM DATA-->",
                 "private_key": "<!--REPLACE WITH KEY DATA-->" 
             }
             '
-            $body = $body | ForEach-Object { $_ `
-                    -replace '<!--REPLACE WITH PEM DATA-->', $pemContent `
-                    -replace '<!--REPLACE WITH KEY DATA-->', $keyContent `
-            }
-            Try {
-                Set-NsxtCertificate -certificateName $certName -json $body
-                $wsaCertPresent = $true
-            } Catch {
-                Debug-ExceptionWriter -object $_
-            }   
+        $body = $body | ForEach-Object { $_ `
+                -replace '<!--REPLACE WITH PEM DATA-->', $pemContent `
+                -replace '<!--REPLACE WITH KEY DATA-->', $keyContent `
+        }
+        Try {
+            Set-NsxtCertificate -certificateName $certName -json $body
+            $wsaCertPresent = $true
+        } Catch {
+            Debug-ExceptionWriter -object $_
+        }   
     }
     Return $wsaCertPresent
 }
@@ -23392,15 +28209,15 @@ Export-ModuleMember -Function Add-CertToNsxCertificateStore
 Function Get-NsxtEdgeCluster {
     <#
         .SYNOPSIS
-        Gets NSX-T Edge Cluster Id
+        Gets NSX Edge Cluster Id
     
         .DESCRIPTION
         The Get-NsxtEdgeCluster cmdlet gets the NSX Edge Cluster Id
     
         .EXAMPLE
         Get-NsxtEdgeCluster
-        This example returns the NSX Edge Cluster Id
-    #>
+        This example returns the NSX Edge Cluster Id.
+   #>
 
     Try {
         $uri = "https://$nsxtmanager/api/v1/edge-clusters"
@@ -23422,12 +28239,18 @@ Function New-NsxtTier1 {
     
         .EXAMPLE
         New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
-        This example creates a new Tier 1 Gateway
-    #>
+        This example creates a new Tier 1 Gateway.
+
+        .PARAMETER tier1Gateway
+        The name of the Tier 1 Gateway.
+
+        .PARAMETER json
+        The JSON configuration for the Tier 1 Gateway.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23450,12 +28273,18 @@ Function Set-NsxtTier1 {
     
         .EXAMPLE
         Set-NsxtTier1 -tier1Gateway -json
-        This example sets the configuration on a Tier 1 Gateway
-    #>
+        This example sets the configuration on a Tier 1 Gateway.
+
+        .PARAMETER tier1Gateway
+        The name of the Tier 1 Gateway.
+
+        .PARAMETER json
+        The JSON configuration for the Tier 1 Gateway.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23478,13 +28307,22 @@ Function New-NsxtTier1ServiceInterface {
     
         .EXAMPLE
         New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
-        This example configures a Service Interface on a Tier 1 Gateway
-    #>
+        This example configures a Service Interface on a Tier 1 Gateway.
+
+        .PARAMETER tier1Gateway
+        The name of the Tier 1 Gateway.
+
+        .PARAMETER interfaceId
+        The name of the Interface.
+
+        .PARAMETER json
+        The JSON configuration for the Tier 1 Gateway.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$interfaceId,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interfaceId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23507,13 +28345,22 @@ Function New-NsxtTier1StaticRoute {
     
         .EXAMPLE
         New-NsxtTier1StaticRoute -tier1Gateway -segment -json
-        This example configures a Service Interface on a Tier 1 Gateway
-    #>
+        This example configures a Service Interface on a Tier 1 Gateway.
+
+        .PARAMETER tier1Gateway
+        The name of the Tier 1 Gateway.
+
+        .PARAMETER segment
+        The name of the Segment.
+
+        .PARAMETER json
+        The JSON configuration for the Tier 1 Gateway.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$segment,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segment,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23536,12 +28383,18 @@ Function New-NsxtLoadBalancer {
     
         .EXAMPLE
         New-NsxtLoadBalancer -lbName -json
-        This example creates a load balancer
-    #>
+        This example creates a load balancer.
+
+        .PARAMETER lbName
+        The name of the Load Balancer.
+
+        .PARAMETER json
+        The JSON configuration for the Load Balancer.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$lbName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$lbName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23564,12 +28417,18 @@ Function New-NsxtLBServiceMonitor {
     
         .EXAMPLE
         New-NsxtLBServiceMonitor -monitorName -json
-        This example creates a Load Balancer Serviec Monitor
-    #>
+        This example creates a Load Balancer Serviec Monitor.
+
+        .PARAMETER monitorName
+        The name of the Load Balancer Service Monitor.
+
+        .PARAMETER json
+        The JSON configuration for the Load Balancer Service Monitor.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$monitorName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$monitorName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23592,12 +28451,18 @@ Function New-NsxtLBAppProfile {
     
         .EXAMPLE
         New-NsxtLBAppProfile -appProfileName -json
-        This example creates a Load Balancer Application Profile
-    #>
+        This example creates a Load Balancer Application Profile.
+
+        .PARAMETER appProfileName
+        The name of the Load Balancer Application Profile.
+
+        .PARAMETER json
+        The JSON configuration for the Load Balancer Application Profile.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
     
     Try {
@@ -23620,12 +28485,18 @@ Function New-NsxtLBPersistenceAppProfile {
     
         .EXAMPLE
         New-NsxtLBPersistenceAppProfile -appProfileName -json
-        This example creates a Load Balancer Persistence Application Profile
-    #>
+        This example creates a Load Balancer Persistence Application Profile.
+
+        .PARAMETER appProfileName
+        The name of the Load Balancer Persistence Application Profile.
+
+        .PARAMETER json
+        The JSON configuration for the Load Balancer Persistence Application Profile.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
     
     Try {
@@ -23648,12 +28519,18 @@ Function New-NsxtLBPool {
     
         .EXAMPLE
         New-NsxtLBPool -poolName -json
-        This example creates a Load Balancer Pool
-    #>
+        This example creates a Load Balancer Pool.
+
+        .PARAMETER poolName
+        The name of the Load Balancer Pool.
+
+        .PARAMETER json
+        The JSON configuration for the Load Balancer Pool.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$poolName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$poolName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23676,12 +28553,18 @@ Function New-NsxtLBVirtualServer {
     
         .EXAMPLE
         New-NsxtLBVirtualServer -virtualServerName -json
-        This example creates a Load Balancer Virtual Server
-    #>
+        This example creates a Load Balancer Virtual Server.
+
+        .PARAMETER virtualServerName
+        The name of the Load Balancer Virtual Server.
+
+        .PARAMETER json
+        The JSON configuration for the Load Balancer Virtual Server.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$virtualServerName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$virtualServerName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     ) 
 
     Try {
@@ -23704,11 +28587,14 @@ Function Get-NsxtCertificate {
     
         .EXAMPLE
         Get-NsxtCertificates
-        This example gets the certificates installed in NSX
-    #>
+        This example gets the certificates installed in NSX.
+
+        .PARAMETER certificateName
+        The name of the certificate.
+   #>
 
     Param (
-        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$certificateName
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificateName
     )
 
     Try {
@@ -23737,12 +28623,18 @@ Function Set-NsxtCertificate {
     
         .EXAMPLE
         Set-NsxtCertificates
-        This example installs the certificates in NSX
-    #>
+        This example installs the certificates in NSX.
+
+        .PARAMETER certificateName
+        The name of the certificate.
+
+        .PARAMETER json
+        The JSON configuration for the certificate.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$certificateName,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
@@ -23770,7 +28662,10 @@ Function Get-NsxtNodeProfile {
         .EXAMPLE
         Get-NsxtNodeProfile -id $id
         This example returns the node profiles from the NSX Manager using the id.
-    #>
+
+        .PARAMETER id
+        The id of the node profile.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -23807,7 +28702,22 @@ Function Set-NsxtNodeProfileSyslogExporter {
         This example add a single syslog exporter to the NSX node profile the id of the profile.
 
         Note: This function only supports a single syslog exporter.
-    #>
+
+        .PARAMETER id
+        The id of the node profile.
+
+        .PARAMETER server
+        The syslog server.
+
+        .PARAMETER port
+        The syslog server port.
+
+        .PARAMETER protocol
+        The syslog protocol.
+
+        .PARAMETER logLevel
+        The syslog log level.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -23852,7 +28762,12 @@ Function Remove-NsxtNodeProfileSyslogExporter {
         .EXAMPLE
         Remove-NsxtNodeProfileSyslogExporter -id "00000000-0000-0000-0000-000000000001"
         This example add a single syslog exporter to the NSX node profile the id of the profile.
-    #>
+
+        Note: This function only supports a single syslog exporter.
+
+        .PARAMETER id
+        The id of the node profile.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -23886,7 +28801,10 @@ Function Get-NsxtBackupConfiguration {
         .EXAMPLE
         Get-NsxtBackupConfiguration -fqdn sfo-w01-nsx01.sfo.rainpole.io
         This example returns the backup configuration for the NSX Manager cluster named 'sfo-w01-nsx01.sfo.rainpole.io'.
-    #>
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the NSX Manager cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -23914,7 +28832,10 @@ Function Get-NsxtBackupHistory {
         .EXAMPLE
         Get-NsxtBackupHistory -fqdn sfo-w01-nsx01.sfo.rainpole.io
         This example returns the backup history for the NSX Manager cluster named 'sfo-w01-nsx01.sfo.rainpole.io'.
-    #>
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the NSX Manager cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -23941,7 +28862,10 @@ Function Get-NsxtAlarm {
         .EXAMPLE
         Get-NsxtAlarm -fqdn sfo-w01-nsx01.sfo.rainpole.io
         This example returns all triggered alarms for an NSX Manager cluster named sfo-w01-nsx01.sfo.rainpole.io.
-    #>
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the NSX Manager cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -23968,7 +28892,10 @@ Function Get-NsxtEvent {
         .EXAMPLE
         Get-NsxtEvent -fqdn sfo-w01-nsx01.sfo.rainpole.io
         This example returns events for an NSX Manager cluster named sfo-w01-nsx01.sfo.rainpole.io.
-    #>
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the NSX Manager cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -23995,7 +28922,10 @@ Function Get-NsxtTier0BgpStatus {
         .EXAMPLE
         Get-NsxtTier0BgpStatus -id <guid>
         This example returns the status of the BGP routing for NSX Tier-0 gateway.
-    #>
+
+        .PARAMETER id
+        The id of the NSX Tier-0 gateway.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24021,20 +28951,32 @@ Function New-NsxtTier0BgpNeighborConfig {
     
         .EXAMPLE
         New-NsxtTier0BgpNeighborConfig -id <guid> -localeservices $localeservices -neighborID $neighborID -json $bgpneighborJson
-        This example configures or updates the BGP neighbor config for NSX Tier-0 gateways
-    #>
+        This example configures or updates the BGP neighbor config for NSX Tier-0 gateways.
+
+        .PARAMETER id
+        The id of the NSX Tier-0 gateway.
+
+        .PARAMETER localeservices
+        The name of the locale services.
+
+        .PARAMETER neighborID
+        The id of the BGP neighbor.
+
+        .PARAMETER json
+        The JSON configuration for the BGP neighbor.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$id,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$localeservices,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$neighborID,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$localeservices,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$neighborID,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
     
     Try {		
-		$uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/$localeservices/bgp/neighbors/$neighborID"
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/$localeservices/bgp/neighbors/$neighborID"
         $response = Invoke-RestMethod -Method PATCH -URI $uri -headers $nsxtHeaders -ContentType application/json -body $json
-		$response
+        $response
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -24051,10 +28993,13 @@ Function Get-NsxtEdgeNode {
 
         .EXAMPLE
         Get-NsxtEdgeNode -transportNodeId 7740f2da-83b5-40de-bc4c-665ea779bbd0
-        This example returns the details of an NSX Edge node
-    #>
+        This example returns the details of an NSX Edge node.
 
-	Param (
+        .PARAMETER transportNodeId
+        The id of the NSX Edge node.
+   #>
+
+    Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportNodeId
     )
 
@@ -24078,7 +29023,10 @@ Function Get-NsxtTier0LocaleServiceBgp {
         .EXAMPLE
         Get-NsxtTier0LocaleServiceBgp -id <guid>
         This example returns the details for BGP in the locale services.
-    #>
+
+        .PARAMETER id
+        The id of the NSX Tier-0 gateway.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24104,15 +29052,18 @@ Function Get-NsxtLocaleService {
     
         .EXAMPLE
         Get-NsxtLocaleservice -id <guid>
-        This example will list all Tier-0 locale-services 
-    #>
+        This example will list all Tier-0 locale-services .
+
+        .PARAMETER id
+        The id of the NSX Tier-0 gateway.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$id
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
     )
 
     Try {
-		$uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/"
+        $uri = "https://$nsxtmanager/policy/api/v1/infra/tier-0s/$id/locale-services/"
         $response = Invoke-RestMethod -Method GET -URI $uri -headers $nsxtHeaders
         $response.results
     } Catch {
@@ -24132,7 +29083,7 @@ Function Get-NsxtVidmStatus {
         .EXAMPLE
         Get-NsxtVidmStatus
         This example returns the status of the Identity Manager integration.
-    #>
+   #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm/status"
@@ -24163,7 +29114,10 @@ Function Get-NsxtTransportNode {
         .EXAMPLE
         Get-NsxtTransportNode -type host
         This example returns information about all host transport nodes with details.
-    #>
+
+        .PARAMETER type
+        The type of transport node.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
@@ -24205,8 +29159,11 @@ Function Get-NsxtTransportNodeStatus {
 
         .EXAMPLE
         Get-NsxtTransportNodeStatus -type host
-        This example returns the status of the host transport nodes.   
-    #>
+        This example returns the status of the host transport nodes.   .
+
+        .PARAMETER type
+        The type of transport node.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
@@ -24237,7 +29194,10 @@ Function Get-NsxtTransportNodeTunnel {
         .EXAMPLE
         Get-NsxtTransportNodeTunnel -id <guid>
         This example returns a list of tunnel connections to transport node.
-    #>
+
+        .PARAMETER id
+        The id of the transport node.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24264,7 +29224,10 @@ Function Get-NsxtTransportNodeTunnelStatus {
         .EXAMPLE
         Get-NsxtTransportNodeTunnelStatus -id <guid>
         This example returns the status of all transport nodes with tunnel connections to transport node.
-    #>
+
+        .PARAMETER id
+        The id of the transport node.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24291,7 +29254,10 @@ Function Get-NsxtComputeManagerStatus {
         .EXAMPLE
         Get-NsxtComputeManagerStatus -id <guid>
         This example returns the status of a compute manager registered to the NSX Manager cluster.
-    #>
+
+        .PARAMETER id
+        The id of the compute manager.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24318,7 +29284,19 @@ Function Get-NsxtApplianceUser {
         .EXAMPLE
         Get-NsxtApplianceUser
         This example returns a all users configued to log in to the NSX appliance.
-    #>
+
+        .EXAMPLE
+        Get-NsxtApplianceUser -transportNodeId <guid>
+
+        .EXAMPLE
+        Get-NsxtApplianceUser -clusterNodeId <guid>.
+
+        .PARAMETER transportNodeId
+        The id of the transport node.
+
+        .PARAMETER clusterNodeId
+        The id of the cluster node.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
@@ -24351,11 +29329,23 @@ Function Set-NsxtApplianceUserExpirationPolicy {
         .EXAMPLE
         Set-NsxtApplianceUserExpirationPolicy -userId 0 -days 9999
         This example updates the password expiration policy for the userId 0 (root) to 9999 days.
-    #>
+
+        .PARAMETER userId
+        The id of the user.
+
+        .PARAMETER maxDays
+        The maximum number of days before the password expires.
+
+        .PARAMETER transportNodeId
+        The id of the transport node.
+
+        .PARAMETER clusterNodeId
+        The id of the cluster node.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
-        [Parameter (Mandatory = $true)] [ValidateRange(0,9999)] [Int]$maxDays,
+        [Parameter (Mandatory = $true)] [ValidateRange(0, 9999)] [Int]$maxDays,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clusterNodeId
     )
@@ -24387,7 +29377,19 @@ Function Set-NsxtApplianceUserPassword {
         .EXAMPLE
         Set-NsxtApplianceUserPassword -userId 0 -password VMw@re1!VMw@re1!
         This example updates the password for the userId 0 (root).
-    #>
+
+        .PARAMETER userId
+        The id of the user.
+
+        .PARAMETER password
+        The password for the user.
+
+        .PARAMETER transportNodeId
+        The id of the transport node.
+
+        .PARAMETER clusterNodeId
+        The id of the cluster node.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -24422,8 +29424,8 @@ Function Get-NsxtLogicalRouter {
     
         .EXAMPLE
         Get-NsxtLogicalRouter
-        This example gets all logical routers
-    #>
+        This example gets all logical routers.
+   #>
 
     Try {
         $uri = "https://$nsxtmanager/api/v1/logical-routers"
@@ -24445,11 +29447,14 @@ Function Get-NsxtRoutingConfigRedistribution {
     
         .EXAMPLE
         Get-NsxtRoutingConfigRedistribution -logicalRouterId <router-id>
-        This example gets the configured route redistribution details for the supplied logical router
-    #>
+        This example gets the configured route redistribution details for the supplied logical router.
+
+        .PARAMETER logicalRouterId
+        The id of the logical router.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
     )
     
     Try {
@@ -24472,11 +29477,14 @@ Function Get-NsxtRoutingConfigRedistributionRule {
     
         .EXAMPLE
         Get-NsxtRoutingConfigRedistributionRule -logicalRouterId 
-        This example gets the route redistribution rule details for the supplied logical router
-    #>
+        This example gets the route redistribution rule details for the supplied logical router.
+
+        .PARAMETER logicalRouterId
+        The id of the logical router.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
     )
     
     Try {
@@ -24499,12 +29507,18 @@ Function Set-NsxtRoutingConfigRedistributionRule {
     
         .EXAMPLE
         Get-NsxtRoutingConfigRedistributionRule -logicalRouterId <router-id> -json <file>
-        This example gets the route redistribution rule details for the supplied logical router
-    #>
+        This example gets the route redistribution rule details for the supplied logical router.
+
+        .PARAMETER logicalRouterId
+        The id of the logical router.
+
+        .PARAMETER json
+        The JSON configuration for the route redistribution rule.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId,
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$json
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
     
     Try {
@@ -24527,11 +29541,14 @@ Function Get-NsxtRoutingConfigRouteMap {
     
         .EXAMPLE
         Get-NsxtRoutingConfigRouteMap -logicalRouterId <router-id>
-        This example gets the route map details for the supplied logical router
-    #>
+        This example gets the route map details for the supplied logical router.
+
+        .PARAMETER logicalRouterId
+        The id of the logical router.
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
     )
     
     Try {
@@ -24557,8 +29574,11 @@ Function Get-NsxtSecurityPolicy {
 
         .EXAMPLE
         Get-NsxtSecurityPolicy -id <id_name>
-        This example retrieves the specified security policy
-    #>
+        This example retrieves the specified security policy.
+
+        .PARAMETER id
+        The id of the security policy.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24588,8 +29608,11 @@ Function Remove-NsxtSecurityPolicy {
     
         .EXAMPLE
         Remove-NsxtSecurityPolicy -id <id_name>
-        This example removes the specified security policy
-    #>
+        This example removes the specified security policy.
+
+        .PARAMETER id
+        The id of the security policy.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24618,8 +29641,11 @@ Function Get-NsxtGroup {
 
         .EXAMPLE
         Get-NsxtGroup -id <id>
-        This example retrieves the specified group
-    #>
+        This example retrieves the specified group.
+
+        .PARAMETER id
+        The id of the group.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24650,8 +29676,11 @@ Function Remove-NsxtGroup {
     
         .EXAMPLE
         Remove-NsxtGroup -id <id_name>
-        This example removes the specified security policy
-    #>
+        This example removes the specified security policy.
+
+        .PARAMETER id
+        The id of the group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24675,7 +29704,7 @@ Export-ModuleMember -Function Remove-NsxtGroup
 Function Enable-WMRegistry {
     <#
         .SYNOPSIS
-        Enable the embedded Harbor Registry on a Supervisor Cluster
+        Enable the embedded Harbor Registry on a Supervisor Cluster.
 
         .DESCRIPTION
         The Enable-WMRegistry cmdlet enables the embedded Harbor Registry on a Supervisor Cluster
@@ -24687,7 +29716,22 @@ Function Enable-WMRegistry {
         .EXAMPLE
         Get-WMCluster -cluster sfo-w01-cl01 | Enable-WMRegistry
         This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster with the default image storage policy for the Supervisor Cluster
-    #>
+
+        .EXAMPLE
+        Get-WMCluster -cluster sfo-w01-cl01 | Enable-WMRegistry -storagePolicy vsphere-with-tanzu-policy
+        
+        .PARAMETER domain
+        The name of the domain.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER storagePolicy
+        The name of the image storage policy for the Supervisor Cluster.
+
+        .PARAMETER inputObject
+        The input object from the pipeline.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$domain,
@@ -24708,8 +29752,7 @@ Function Enable-WMRegistry {
     Try {
         if ($vCenterApi -le 701) {
             $getHarborInstalled = (Invoke-RestMethod -Method GET -URI https://$vcApiServer/rest/vcenter/content/registries/harbor -Headers $vcApiHeaders).value
-        }
-        elseif ($vCenterApi -ge 702) {
+        } elseif ($vCenterApi -ge 702) {
             $getHarborInstalled = Invoke-RestMethod -Method GET -URI https://$vcApiServer/api/vcenter/content/registries/harbor -Headers $vcApiHeaders
         }
     } Catch {
@@ -24785,17 +29828,17 @@ Function Enable-WMRegistry {
                 Write-Error $_.Exception.Message
             }
 
-            if ($installHarbor) {
-                Write-Output "Embedded registry $installHarbor deployment successfully started on Supervisor Cluster $cluster"
-            }
+        if ($installHarbor) {
+            Write-Output "Embedded registry $installHarbor deployment successfully started on Supervisor Cluster $cluster"
         }
+    }
 }
 Export-ModuleMember -Function Enable-WMRegistry
 
 Function Get-WMRegistry {
     <#
         .SYNOPSIS
-        Retrieves the embedded Harbor Registry on a Supervisor Cluster
+        Retrieves the embedded Harbor Registry on a Supervisor Cluster.
 
         .DESCRIPTION
         The Get-WMRegistry cmdlet retrieves the embedded Harbor Registry on a Supervisor Cluster
@@ -24810,8 +29853,14 @@ Function Get-WMRegistry {
 
         .EXAMPLE
         Get-WMCluster -Cluster sfo-w01-cl01 | Get-WMRegistry
-        This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01" via pipeline from Get-WMCluster
-    #>
+        This example enables the embedded Harbor Registry on Supervisor Cluster "sfo-w01-cl01" via pipeline from Get-WMCluster.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER inputObject
+        The input object from the pipeline.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -24862,7 +29911,7 @@ Export-ModuleMember -Function Get-WMRegistry
 Function Remove-WMRegistry {
     <#
         .SYNOPSIS
-        Disable the embedded Harbor Registry on a Supervisor Cluster
+        Disable the embedded Harbor Registry on a Supervisor Cluster.
 
         .DESCRIPTION
         The Remove-WMRegistry cmdlet disables the embedded Harbor Registry on a Supervisor Cluster
@@ -24873,8 +29922,14 @@ Function Remove-WMRegistry {
 
         .EXAMPLE
         Remove-WMRegistry -cluster sfo-w01-cl01
-        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01
-    #>
+        This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER inputObject
+        The input object from the pipeline.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -24911,7 +29966,7 @@ Export-ModuleMember -Function Remove-WMRegistry
 Function Get-WMRegistryHealth {
     <#
         .SYNOPSIS
-        Retrieves the embedded Harbor Registry Health
+        Retrieves the embedded Harbor Registry Health.
 
         .DESCRIPTION
         The Get-WMRegistry cmdlet retrieves the embedded Harbor Registry Health
@@ -24922,8 +29977,14 @@ Function Get-WMRegistryHealth {
 
         .EXAMPLE
         Get-WMRegistry -cluster sfo-w01-cl01 | Get-WMRegistryHealth
-        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster
-    #>
+        This example enables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 via pipeline from Get-WMCluster.
+
+        .PARAMETER registry
+        The id of the registry.
+
+        .PARAMETER inputObject
+        The input object from the pipeline.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$registry,
@@ -24951,15 +30012,24 @@ Export-ModuleMember -Function Get-WMRegistryHealth
 Function Connect-WMCluster {
     <#
         .SYNOPSIS
-        Connect to the Supervisor Cluster
+        Connect to the Supervisor Cluster.
 
         .DESCRIPTION
         The Connect-WMCluster cmdlet connect to the Supervisor Cluster
 
         .EXAMPLE
         Connect-WMCluster -cluster sfo-w01-cl01 -user administrator@vsphere.local -pass VMw@re1!
-        This example connects with the vSphere SSO user administrator@vsphere.local to the Supervisor Cluster sfo-w01-cl01
-    #>
+        This example connects with the vSphere SSO user administrator@vsphere.local to the Supervisor Cluster sfo-w01-cl01.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER user
+        The vSphere SSO user.
+
+        .PARAMETER pass
+        The vSphere SSO user password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -24983,15 +30053,15 @@ Export-ModuleMember -Function Connect-WMCluster
 Function Disconnect-WMCluster {
     <#
         .SYNOPSIS
-        Disconnect from o the Supervisor Cluster
+        Disconnect from o the Supervisor Cluster.
 
         .DESCRIPTION
         The Disconnect-WMCluster cmdlet disconnects from the Supervisor Cluster
 
         .EXAMPLE
         Disconnect-WMCluster
-        This example disconnects from the Supervisor Cluster
-    #>
+        This example disconnects from the Supervisor Cluster.
+   #>
 
     Try {
         Invoke-Expression "kubectl vsphere logout" | Out-Null
@@ -25013,8 +30083,11 @@ Function New-TanzuKubernetesCluster {
 
         .EXAMPLE
         New-TanzuKubernetesCluster -YAML .\SampleYaml\sfo-w01-tkc01-cluster.yaml
-        This example creates a Tanzu Kubernetes Cluster based on the yaml file
-    #>
+        This example creates a Tanzu Kubernetes Cluster based on the yaml file.
+
+        .PARAMETER YAML
+        The path to the YAML file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$YAML
@@ -25031,7 +30104,7 @@ Export-ModuleMember -Function New-TanzuKubernetesCluster
 Function Get-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Retrieves a Tanzu Kubernetes Cluster
+        Retrieves a Tanzu Kubernetes Cluster.
 
         .DESCRIPTION
         The Get-TanzuKuberntesCluster cmdlet retrieves a Tanzu Kubernetes Cluster
@@ -25042,8 +30115,17 @@ Function Get-TanzuKubernetesCluster {
 
         .EXAMPLE
         Get-TanzuKubernetesCluster -namespace sfo-w01-tkc01 -tkc sfo-w01-tkc01 
-        This example retrieves a Tanzu Kubernetes Cluster named "sfo-w01-tkc01" from the Namespace specified "sfo-w01-tkc01"
-    #>
+        This example retrieves a Tanzu Kubernetes Cluster named "sfo-w01-tkc01" from the Namespace specified "sfo-w01-tkc01".
+
+        .PARAMETER namespace
+        The name of the Namespace.
+
+        .PARAMETER tkc
+        The name of the Tanzu Kubernetes Cluster.
+
+        .PARAMETER detail
+        The detailed information of the Tanzu Kubernetes Cluster.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace,
@@ -25082,15 +30164,21 @@ Export-ModuleMember -Function Get-TanzuKubernetesCluster
 Function Remove-TanzuKubernetesCluster {
     <#
         .SYNOPSIS
-        Remove a Tanzu Kubernetes cluster
+        Remove a Tanzu Kubernetes cluster.
 
         .DESCRIPTION
         The Remove-TanzuKubernetesCluster cmdlet removes a Tanzu Kubernetes cluster
 
         .EXAMPLE
         Remove-TanzuKubernetesCluster -cluster sfo-w01-tkc01 -namespace sfo-w01-tkc01
-        This example removes the Tanzu Kubernetes cluster
-    #>
+        This example removes the Tanzu Kubernetes cluster.
+
+        .PARAMETER cluster
+        The name of the Tanzu Kubernetes cluster.
+
+        .PARAMETER namespace
+        The name of the Namespace.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -25108,7 +30196,7 @@ Export-ModuleMember -Function Remove-TanzuKubernetesCluster
 Function Get-VMClass {
     <#
         .SYNOPSIS
-        Retrieves information on a Virtual Machine class
+        Retrieves information on a Virtual Machine class.
 
         .DESCRIPTION
         The Get-VMClass cmdlet retrieves information on a Virtual Machine class
@@ -25123,11 +30211,17 @@ Function Get-VMClass {
 
         .EXAMPLE
         Get-VMClass -namespace sfo-w01-tkc01 
-        This example retrieves Virtual Machine Classes assigned to the namespace sfo-w01-tkc01
-    #>
+        This example retrieves Virtual Machine Classes assigned to the namespace sfo-w01-tkc01.
+
+        .PARAMETER vmClass
+        The name of the Virtual Machine class.
+
+        .PARAMETER namespace
+        The name of the Namespace.
+   #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium","guaranteed-large","guaranteed-xlarge","best-effort-4xlarge","guaranteed-small","best-effort-medium","best-effort-2xlarge","guaranteed-2xlarge","best-effort-large","guaranteed-4xlarge","best-effort-8xlarge","best-effort-xsmall","guaranteed-xsmall","best-effort-xlarge","guaranteed-8xlarge","best-effort-small")] [String]$vmClass,
+        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium", "guaranteed-large", "guaranteed-xlarge", "best-effort-4xlarge", "guaranteed-small", "best-effort-medium", "best-effort-2xlarge", "guaranteed-2xlarge", "best-effort-large", "guaranteed-4xlarge", "best-effort-8xlarge", "best-effort-xsmall", "guaranteed-xsmall", "best-effort-xlarge", "guaranteed-8xlarge", "best-effort-small")] [String]$vmClass,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace
     )
 
@@ -25154,19 +30248,25 @@ Export-ModuleMember -Function Get-VMClass
 Function Add-VMClass {
     <#
         .SYNOPSIS
-        Retrieves information on a Virtual Machine class
+        Retrieves information on a Virtual Machine class.
 
         .DESCRIPTION
         The Add-VMClass cmdlet retrieves information on a Virtual Machine class
 
         .EXAMPLE
         Add-VMClass -namespace sfo-w01-tkc01 -vmClass guaranteed-small
-        This example retrieves all Virtual Machine classes
-    #>
+        This example retrieves all Virtual Machine classes.
+
+        .PARAMETER vmClass
+        The name of the Virtual Machine class.
+
+        .PARAMETER namespace
+        The name of the Namespace.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace,
-        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium","guaranteed-large","guaranteed-xlarge","best-effort-4xlarge","guaranteed-small","best-effort-medium","best-effort-2xlarge","guaranteed-2xlarge","best-effort-large","guaranteed-4xlarge","best-effort-8xlarge","best-effort-xsmall","guaranteed-xsmall","best-effort-xlarge","guaranteed-8xlarge","best-effort-small")] [String]$vmClass
+        [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium", "guaranteed-large", "guaranteed-xlarge", "best-effort-4xlarge", "guaranteed-small", "best-effort-medium", "best-effort-2xlarge", "guaranteed-2xlarge", "best-effort-large", "guaranteed-4xlarge", "best-effort-8xlarge", "best-effort-xsmall", "guaranteed-xsmall", "best-effort-xlarge", "guaranteed-8xlarge", "best-effort-small")] [String]$vmClass
     )
 
     Try {
@@ -25198,15 +30298,15 @@ Export-ModuleMember -Function Add-VMClass
 Function Get-WMLicenseStatus {
     <#
         .SYNOPSIS
-        Get Workload Management license status
+        Get Workload Management license status.
 
         .DESCRIPTION
         The Get-WMLicenseStatus cmdlet gets the license status from vCenter Server for Workload Management
 
         .EXAMPLE
         Get-WMLicenseStatus
-        This example gets the vSphere with Tanzu licenses status from vCenter Server for Workload Management
-    #>
+        This example gets the vSphere with Tanzu licenses status from vCenter Server for Workload Management.
+   #>
 
     Try {
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/capability"
@@ -25222,14 +30322,45 @@ Export-ModuleMember -Function Get-WMLicenseStatus
 Function Request-WMClusterCSR {
     <#
         .SYNOPSIS
-        Request Certificate Signing Request filr
+        Request Certificate Signing Request filr.
 
         .DESCRIPTION
         The Request-WMClusterCSR cmdlet requests a Certificate Signing Request file for the Supervisor Cluster
+
         .EXAMPLE
         Request-WMClusterCSR -cluster sfo-w01-cl01 -commonName sfo-w01-cl01.sfo.rainpole.io -organization Rainpole -organizationalUnit Rainpole -country US -stateOrProvince California -locality "Palo Alto" -adminEmailAddress admin@rainpole.io -keySize 2048 -filePath ".\SupervisorCluster.csr"
-        This example requetes a Certificate Signing Request file for the Supervisor Cluster sfo-w01-cl01
-    #>
+        This example requetes a Certificate Signing Request file for the Supervisor Cluster sfo-w01-cl01.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER commonName
+        The common name of the Supervisor Cluster.
+
+        .PARAMETER organization
+        The organization name of the Supervisor Cluster.
+
+        .PARAMETER organizationalUnit
+        The organizational unit name of the Supervisor Cluster.
+
+        .PARAMETER country
+        The country of the Supervisor Cluster.
+
+        .PARAMETER stateOrProvince
+        The state or province of the Supervisor Cluster.
+
+        .PARAMETER locality
+        The locality of the Supervisor Cluster.
+
+        .PARAMETER adminEmailAddress
+        The email address of the Supervisor Cluster administrator.
+
+        .PARAMETER keySize
+        The key size of the Supervisor Cluster.
+
+        .PARAMETER filePath
+        The path to the Certificate Signing Request file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -25256,7 +30387,7 @@ Function Request-WMClusterCSR {
         $output | Add-Member -notepropertyname 'state_or_province' -notepropertyvalue $stateOrProvince
         $output | Add-Member -notepropertyname 'locality' -notepropertyvalue $locality
         $output | Add-Member -notepropertyname 'email_address' -notepropertyvalue $adminEmailAddress
-        if ($PsBoundParameters.ContainsKey("keySize")){
+        if ($PsBoundParameters.ContainsKey("keySize")) {
             $output | Add-Member -notepropertyname 'keySize' -notepropertyvalue $keySize
         }
         $body = $output | ConvertTo-Json
@@ -25273,15 +30404,21 @@ Export-ModuleMember -Function Request-WMClusterCSR
 Function Install-WMClusterCertificate {
     <#
         .SYNOPSIS
-        Installs a signed TLS certificate for the defined Supervisor Cluster
+        Installs a signed TLS certificate for the defined Supervisor Cluster.
 
         .DESCRIPTION
         The Install-WMClusterCertificate cmdlet installs a signed TLS certificate for the defined Supervisor Cluster
 
         .EXAMPLE
         Install-WMClusterCertificate -cluster sfo-w01-cl01 -filePath ".\SupervisorCluster.cer"
-        This example installs the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01
-    #>
+        This example installs the signed TLS certificate to  Supervisor Cluster sfo-w01-cl01 in Workload domain sfo-w01.
+
+        .PARAMETER cluster
+        The name of the Supervisor Cluster.
+
+        .PARAMETER filePath
+        The path to the signed TLS certificate file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -25309,7 +30446,7 @@ Function Install-WMClusterCertificate {
             Write-Error "Error parsing TLS certificate"
             Break
         }
-        $body = '{ "tls_endpoint_certificate": "'+ $certificateFormatted +'" }' 
+        $body = '{ "tls_endpoint_certificate": "' + $certificateFormatted + '" }' 
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters"
         $clusterId = (Invoke-RestMethod -Method GET -URI $uri -Headers $vcApiHeaders | Where-Object { $_.cluster_name -eq $cluster }).cluster
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/clusters/$clusterId/"
@@ -25334,15 +30471,24 @@ Export-ModuleMember -Function Install-WMClusterCertificate
 Function Watch-WmClusterConfigStatus {
     <#
         .SYNOPSIS
-        Poll request
+        Poll request.
 
         .DESCRIPTION
         The Watch-WmClusterConfigStatus cmdlet polls the status of wmCluster
 
         .EXAMPLE
         Watch-WmClusterConfigStatus -wmClusterName <wmCluster name>
-        This example polls the status of wmCluster
-    #>
+        This example polls the status of wmCluster.
+
+        .PARAMETER wmClusterName
+        The name of the wmCluster.
+
+        .PARAMETER retriesCount
+        The number of retries.
+
+        .PARAMETER sleepTime
+        The sleep time between retries.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wmClusterName,
@@ -25382,7 +30528,7 @@ Export-ModuleMember -Function Watch-WmClusterConfigStatus
 Function Request-vRSLCMToken {
     <#
         .SYNOPSIS
-        Connects to the specified VMware Aria Suite Lifecycle and obtains authorization token
+        Connects to the specified VMware Aria Suite Lifecycle and obtains authorization token.
 
         .DESCRIPTION
         The Request-vRSLCMToken cmdlet connects to the specified VMWare Aria Suite Lifecycle and obtains an
@@ -25390,8 +30536,17 @@ Function Request-vRSLCMToken {
 
         .EXAMPLE
         Request-vRSLCMToken -fqdn xreg-vrslcm.rainpole.io -username admin@local -password VMware1!
-        This example shows how to connect to the VMware Aria Suite Lifecycle appliance
-    #>
+        This example shows how to connect to the VMware Aria Suite Lifecycle appliance.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the VMware Aria Suite Lifecycle appliance.
+
+        .PARAMETER username
+        The username of the VMware Aria Suite Lifecycle appliance.
+
+        .PARAMETER password
+        The password of the VMware Aria Suite Lifecycle appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -25428,15 +30583,15 @@ Export-ModuleMember -Function Request-vRSLCMToken
 Function Get-vRSLCMHealth {
     <#
         .SYNOPSIS
-        Check VMware Aria Suite Lifecycle Health Status
+        Check VMware Aria Suite Lifecycle Health Status.
 
         .DESCRIPTION
         The Get-vRSLCMHealth cmdlet checks VMware Aria Suite Lifecycle Health Status
 
         .EXAMPLE
         Get-vRSLCMHealth
-        This example checks VMware Aria Suite Lifecycle Health Status
-    #>
+        This example checks VMware Aria Suite Lifecycle Health Status.
+   #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/health/api/v2/status"
@@ -25451,7 +30606,7 @@ Export-ModuleMember -Function Get-vRSLCMHealth
 Function Get-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Get paginated list of Passwords available in the Store
+        Get paginated list of Passwords available in the Store.
 
         .DESCRIPTION
         The Get-vRSLCMLockerPassword cmdlet gets a paginated list of passwords available in the locker
@@ -25466,8 +30621,14 @@ Function Get-vRSLCMLockerPassword {
 
         .EXAMPLE
         Get-vRSLCMLockerPassword -alias xint-env-admin
-        This example gets the details of a password based on the alias
-    #>
+        This example gets the details of a password based on the alias.
+
+        .PARAMETER vmid
+        The vmid of the password.
+
+        .PARAMETER alias
+        The alias of the password.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -25497,15 +30658,27 @@ Export-ModuleMember -Function Get-vRSLCMLockerPassword
 Function Add-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Creates a new Password in the locker
+        Creates a new Password in the locker.
 
         .DESCRIPTION
         The Add-vRSLCMLockerPassword cmdlet add as new passwords to the locker
 
         .EXAMPLE
         Add-vRSLCMLockerPassword -userName admin -alias xint-admin -password VMw@re1! -description "Password for Cross-Instance Admin"
-        This example adda a password to the locker
-    #>
+        This example adda a password to the locker.
+
+        .PARAMETER userName
+        The username of the password.
+
+        .PARAMETER alias
+        The alias of the password.
+
+        .PARAMETER password
+        The password of the password.
+
+        .PARAMETER description
+        The description of the password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userName,
@@ -25518,16 +30691,16 @@ Function Add-vRSLCMLockerPassword {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords"
         if ($PsBoundParameters.ContainsKey("description")) {
             $body = '{
-                "alias": "'+ $alias +'",
-                "password": "'+ $password +'",
-                "passwordDescription": "'+ $description +'",
-                "userName": "'+ $userName +'"
+                "alias": "'+ $alias + '",
+                "password": "'+ $password + '",
+                "passwordDescription": "'+ $description + '",
+                "userName": "'+ $userName + '"
             }'
         } else {
             $body = '{
-                "alias": "'+ $alias +'",
-                "password": "'+ $password +'",
-                "userName": "'+ $userName +'"
+                "alias": "'+ $alias + '",
+                "password": "'+ $password + '",
+                "userName": "'+ $userName + '"
             }'           
         }
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
@@ -25541,15 +30714,18 @@ Export-ModuleMember -Function Add-vRSLCMLockerPassword
 Function Remove-vRSLCMLockerPassword {
     <#
         .SYNOPSIS
-        Delete a password based on vmid
+        Delete a password based on vmid.
 
         .DESCRIPTION
         The Remove-vRSLCMLockerPassword cmdlet deletes a password from the locker
 
         .EXAMPLE
         Remove-vRSLCMLockerPassword -vmid
-        This example delets the password with the vmid
-    #>
+        This example delets the password with the vmid.
+
+        .PARAMETER vmid
+        The vmid of the password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -25568,7 +30744,7 @@ Export-ModuleMember -Function Remove-vRSLCMLockerPassword
 Function Get-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Get paginated list of certificates available in the locker
+        Get paginated list of certificates available in the locker.
 
         .DESCRIPTION
         The Get-vRSLCMLockerCertificate cmdlet gets a paginated list of certificates available in the locker
@@ -25583,8 +30759,14 @@ Function Get-vRSLCMLockerCertificate {
 
         .EXAMPLE
         Get-vRSLCMLockerCertificate -alias xint-vrops01
-        This example gets the details of a certificate based on the vmid
-    #>
+        This example gets the details of a certificate based on the vmid.
+
+        .PARAMETER vmid
+        The vmid of the certificate.
+
+        .PARAMETER alias
+        The alias of the certificate.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -25614,7 +30796,7 @@ Export-ModuleMember -Function Get-vRSLCMLockerCertificate
 Function Add-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Add a certificate to the VMware Aria Suite Lifecycle locker
+        Add a certificate to the VMware Aria Suite Lifecycle locker.
 
         .DESCRIPTION
         The Add-vRSLCMLockerCertificate cmdlet adds a certificate to the VMware Aria Suite Lifecycle locker
@@ -25624,9 +30806,20 @@ Function Add-vRSLCMLockerCertificate {
         This example gets all certificates in the locker
 
         .EXAMPLE
-        Add-vRSLCMLockerCertificate -vmid 83abd0fd-c92d-4d8f-a5e8-9a1fc4fa6009
-        This example gets the details of a certificate based on the vmid
-    #>
+        Add-vRSLCMLockerCertificate -vrslcmFQDN xreg-vrslcm.rainpole.io -certificateAlias xint-vrops01 -certificatePassphrase VMware1! -certChainPath ".\vrops01.rainpole.io.cer".
+
+        .PARAMETER vrslcmFQDN
+        The fully qualified domain name of the VMware Aria Suite Lifecycle appliance.
+
+        .PARAMETER certificateAlias
+        The alias of the certificate.
+
+        .PARAMETER certificatePassphrase
+        The passphrase of the certificate.
+
+        .PARAMETER certChainPath
+        The path to the certificate chain file.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrslcmFQDN,
@@ -25669,15 +30862,18 @@ Export-ModuleMember -Function Add-vRSLCMLockerCertificate
 Function Remove-vRSLCMLockerCertificate {
     <#
         .SYNOPSIS
-        Delete a certificate based on vmid
+        Delete a certificate based on vmid.
 
         .DESCRIPTION
         The Remove-vRSLCMLockerCertificate cmdlet deletes a certificate from the locker
 
         .EXAMPLE
         Remove-vRSLCMLockerCertificate -vmid
-        This example delets the certificate with the vmid
-    #>
+        This example delets the certificate with the vmid.
+
+        .PARAMETER vmid
+        The vmid of the certificate.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -25711,8 +30907,14 @@ Function Get-vRSLCMLockerLicense {
 
         .EXAMPLE
         Get-vRSLCMLockerLicense -alias "VMware Aria Operations"
-        This example gets the details of a license based on the alias name
-    #>
+        This example gets the details of a license based on the alias name.
+
+        .PARAMETER vmid
+        The vmid of the license.
+
+        .PARAMETER alias
+        The alias of the license.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -25742,15 +30944,21 @@ Export-ModuleMember -Function Get-vRSLCMLockerLicense
 Function Add-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Creates a new license in the locker
+        Creates a new license in the locker.
 
         .DESCRIPTION
         The Add-vRSLCMLockerLicense cmdlet adds as new license to the locker
 
         .EXAMPLE
         Add-vRSLCMLockerLicense -alias "VMware Aria Operations" -license "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
-        This example adds a license to the locker
-    #>
+        This example adds a license to the locker.
+
+        .PARAMETER alias
+        The alias of the license.
+
+        .PARAMETER license
+        The license of the license.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias,
@@ -25760,8 +30968,8 @@ Function Add-vRSLCMLockerLicense {
     Try {
         $uri = "https://$vrslcmAppliance/lcm/locker/api/v2/license/validate-and-add"
         $body = '{
-            "alias": "'+ $alias +'",
-            "serialKey": "'+ $license +'"
+            "alias": "'+ $alias + '",
+            "serialKey": "'+ $license + '"
         }'           
 
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
@@ -25775,15 +30983,18 @@ Export-ModuleMember -Function Add-vRSLCMLockerLicense
 Function Remove-vRSLCMLockerLicense {
     <#
         .SYNOPSIS
-        Delete a License based on vmid
+        Delete a License based on vmid.
 
         .DESCRIPTION
         The Remove-vRSLCMLockerLicense cmdlet deletes a license from the locker
 
         .EXAMPLE
         Remove-vRSLCMLockerLicense -vmid
-        This example delets the license with the vmid
-    #>
+        This example delets the license with the vmid.
+
+        .PARAMETER vmid
+        The vmid of the license.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -25802,7 +31013,7 @@ Export-ModuleMember -Function Remove-vRSLCMLockerLicense
 Function Get-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Get paginated list of datacenters in VMware Aria Suite Lifecycle
+        Get paginated list of datacenters in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMDatacenter cmdlet gets a paginated list of datacenters in VMware Aria Suite Lifecycle
@@ -25817,8 +31028,14 @@ Function Get-vRSLCMDatacenter {
 
         .EXAMPLE
         Get-vRSLCMDatacenter -name sfo-m01-dc01
-        This example gets the details of a datacenter based on the name
-    #>
+        This example gets the details of a datacenter based on the name.
+
+        .PARAMETER vmid
+        The vmid of the datacenter.
+
+        .PARAMETER datacenterName
+        The name of the datacenter.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -25848,15 +31065,21 @@ Export-ModuleMember -Function Get-vRSLCMDatacenter
 Function Add-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Add a datacenter in VMware Aria Suite Lifecycle
+        Add a datacenter in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Add-vRSLCMDatacenter cmdlet adds a datacenter in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMDatacenter -datacenterName xint-m01-dc01 -location "San Francisco;California;US;37.77493;-122.41942"
-        This example adds a datacenter in VMware Aria Suite Lifecycle
-    #>
+        This example adds a datacenter in VMware Aria Suite Lifecycle.
+
+        .PARAMETER datacenterName
+        The name of the datacenter.
+
+        .PARAMETER location
+        The location of the datacenter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
@@ -25866,8 +31089,8 @@ Function Add-vRSLCMDatacenter {
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/datacenters"
         $body = '{
-            "dataCenterName": "'+ $datacenterName +'",
-            "primaryLocation": "'+ $location +'"
+            "dataCenterName": "'+ $datacenterName + '",
+            "primaryLocation": "'+ $location + '"
         }'  
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
@@ -25880,15 +31103,18 @@ Export-ModuleMember -Function Add-vRSLCMDatacenter
 Function Remove-vRSLCMDatacenter {
     <#
         .SYNOPSIS
-        Remove a datacenter from VMware Aria Suite Lifecycle
+        Remove a datacenter from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Remove-vRSLCMDatacenter cmdlet removes a datacenter from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMDatacenter -datacenterVmid <datacenter_vmid>
-        This example removes a datacenter from VMware Aria Suite Lifecycle
-    #>
+        This example removes a datacenter from VMware Aria Suite Lifecycle.
+
+        .PARAMETER datacenterVmid
+        The vmid of the datacenter.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid
@@ -25907,7 +31133,7 @@ Export-ModuleMember -Function Remove-vRSLCMDatacenter
 Function Get-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Get paginated list of vCenter Servers in VMware Aria Suite Lifecycle
+        Get paginated list of vCenter Servers in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMDatacenterVcenter cmdlet gets a paginated list of vCenter Servers in VMware Aria Suite Lifecycle
@@ -25922,8 +31148,17 @@ Function Get-vRSLCMDatacenterVcenter {
 
         .EXAMPLE
         Get-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterName sfo-m01-vc01 -environments
-        This example gets all vCenter Servers for a Datacenter that is assigned to an Environemnt
-    #>
+        This example gets all vCenter Servers for a Datacenter that is assigned to an Environemnt.
+
+        .PARAMETER datacenterVmid
+        The vmid of the datacenter.
+
+        .PARAMETER vcenterName
+        The name of the vCenter Server.
+
+        .PARAMETER environments
+        Switch to get all vCenter Servers for a Datacenter that is assigned to an Environemnt.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
@@ -25954,15 +31189,24 @@ Export-ModuleMember -Function Get-vRSLCMDatacenterVcenter
 Function Add-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Add a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle
+        Add a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Add-vRSLCMDatacenterVcenter cmdlet adds a vCenter Servers to a Datacenter in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterFqdn <vcenter_fqdn> -userLockerAlias <user_alias>
-        This example adds a vCenter Server to a Datacenter
-    #>
+        This example adds a vCenter Server to a Datacenter.
+
+        .PARAMETER datacenterVmid
+        The vmid of the datacenter.
+
+        .PARAMETER vcenterFqdn
+        The fully qualified domain name of the vCenter Server.
+
+        .PARAMETER userLockerAlias
+        The alias of the user in the locker.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
@@ -25977,7 +31221,7 @@ Function Add-vRSLCMDatacenterVcenter {
             "vCenterName": "' + ($vcenterFqdn.Split("."))[0] + '",
             "vcPassword": "locker:password:' + (Get-vRSLCMLockerPassword -alias $userLockerAlias).vmid + ':' + $userLockerAlias + '",
             "vcUsedAs": "MANAGEMENT",
-            "vcUsername": "' + (Get-vRSLCMLockerPassword -alias $userLockerAlias).userName +'"
+            "vcUsername": "' + (Get-vRSLCMLockerPassword -alias $userLockerAlias).userName + '"
         }'
         $response = Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
         $response
@@ -25990,15 +31234,15 @@ Export-ModuleMember -Function Add-vRSLCMDatacenterVcenter
 Function Sync-vRSLCMDatacenterVcenter {
     <#
         .SYNOPSIS
-        Trigger a vCenter Server inventory sync in VMware Aria Suite Lifecycle
+        Trigger a vCenter Server inventory sync in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Sync-vRSLCMDatacenterVcenter cmdlet triggers a vCenter Server inventory sync VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Sync-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterName <vcenter_name>
-        This example triggers a vCenter Server inventory sync
-    #>
+        This example triggers a vCenter Server inventory sync.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
@@ -26017,15 +31261,18 @@ Export-ModuleMember -Function Sync-vRSLCMDatacenterVcenter
 Function Get-vRSLCMEnvironment {
     <#
         .SYNOPSIS
-        Get paginated list of environments in VMware Aria Suite Lifecycle
+        Get paginated list of environments in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMEnvironment cmdlet gets a paginated list of environments in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMEnvironment
-        This example gets all environments in VMware Aria Suite Lifecycle
-    #>
+        This example gets all environments in VMware Aria Suite Lifecycle.
+
+        .PARAMETER vmid
+        The vmid of the environment.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -26050,7 +31297,7 @@ Export-ModuleMember -Function Get-vRSLCMEnvironment
 Function Add-vRSLCMEnvironment {
     <#
         .SYNOPSIS
-        Create an environment in VMware Aria Suite Lifecycle
+        Create an environment in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Add-vRSLCMEnvironment cmdlet to create an environment in VMware Aria Suite Lifecycle
@@ -26061,8 +31308,17 @@ Function Add-vRSLCMEnvironment {
 
         .EXAMPLE
         Add-vRSLCMEnvironment -json (Get-Content -Raw .\vrli.json) -vmid c907c25b-1c61-465b-b7cb-4100ac1ce331 -addProduct
-        This example adds a new product to an existing environment in VMware Aria Suite Lifecycle
-    #>
+        This example adds a new product to an existing environment in VMware Aria Suite Lifecycle.
+
+        .PARAMETER json
+        The json file to create the environment.
+
+        .PARAMETER vmid
+        The vmid of the environment.
+
+        .PARAMETER addProduct
+        Switch to add a product to an existing environment.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -26089,15 +31345,18 @@ Export-ModuleMember -Function Add-vRSLCMEnvironment
 Function Remove-vRSLCMEnvironment {
     <#
         .SYNOPSIS
-        Remove an environment from VMware Aria Suite Lifecycle
+        Remove an environment from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Remove-vRSLCMEnvironment cmdlet removes an environment from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMEnvironment -environmentId <environmentId>
-        This example removes an environment from VMware Aria Suite Lifecycle
-    #>
+        This example removes an environment from VMware Aria Suite Lifecycle.
+
+        .PARAMETER environmentId
+        The vmid of the environment.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentId
@@ -26117,15 +31376,15 @@ Export-ModuleMember -Function Remove-vRSLCMEnvironment
 Function Get-vRSLCMLoadbalancer {
     <#
         .SYNOPSIS
-        Get paginated list of load balancers from VMware Aria Suite Lifecycle
+        Get paginated list of load balancers from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMLoadbalancer cmdlet gets a paginated list of load balancers from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMLoadbalancer -type NSX_T
-        This example gets all load balancers in VMware Aria Suite Lifecycle with a type of NSX_T
-    #>
+        This example gets all load balancers in VMware Aria Suite Lifecycle with a type of NSX_T.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('NSX_T','NSX_ALB','OTHERS')] [String]$type,
@@ -26144,15 +31403,15 @@ Export-ModuleMember -Function Get-vRSLCMLoadbalancer
 Function New-vRSLCMLoadbalancer {
     <#
         .SYNOPSIS
-        Add a load balancer to VMware Aria Suite Lifecycle
+        Add a load balancer to VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRSLCMLoadbalancer cmdlet adds a new loadbalancers to VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp 192.168.11.60 -loadBalancerFqdn xint-wsa01.rainpole.io
-        This example adds load balancers in VMware Aria Suite Lifecycle with a type of NSX_T
-    #>
+        This example adds load balancers in VMware Aria Suite Lifecycle with a type of NSX_T.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('NSX_T')] [String]$type,
@@ -26184,15 +31443,15 @@ Export-ModuleMember -Function New-vRSLCMLoadbalancer
 Function Remove-vRSLCMLoadbalancer {
     <#
         .SYNOPSIS
-        Delete a load balancer from VMware Aria Suite Lifecycle
+        Delete a load balancer from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Remove-vRSLCMLoadbalancer cmdlet removes a load balancer from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMLoadbalancer -type NSX_T -loadBalancerFqdn xint-wsa01.rainpole.io
-        This example deletes the load balancer from VMware Aria Suite Lifecycle
-    #>
+        This example deletes the load balancer from VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('NSX_T','NSX_ALB','OTHERS')] [String]$type,
@@ -26212,7 +31471,7 @@ Export-ModuleMember -Function Remove-vRSLCMLoadbalancer
 Function Get-vRSLCMRequest {
     <#
         .SYNOPSIS
-        Get all Requests
+        Get all Requests.
 
         .DESCRIPTION
         The Get-vRSLCMRequest cmdlet gets all requests in VMware Aria Suite Lifecycle
@@ -26227,8 +31486,14 @@ Function Get-vRSLCMRequest {
         
         .EXAMPLE
         Get-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398 -errorCauses
-        This example gets the errors for a request by id from VMware Aria Suite Lifecycle
-    #>
+        This example gets the errors for a request by id from VMware Aria Suite Lifecycle.
+
+        .PARAMETER requestId
+        The requestId of the request.
+
+        .PARAMETER errorCauses
+        Switch to get the errors for a request by id.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId,
@@ -26258,15 +31523,18 @@ Export-ModuleMember -Function Get-vRSLCMRequest
 Function Remove-vRSLCMRequest {
     <#
         .SYNOPSIS
-        Delete a request 
+        Delete a request .
 
         .DESCRIPTION
         The Remove-vRSLCMRequest cmdlet removes a request from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMRequest -requestId <id>
-        This example removes a request from VMware Aria Suite Lifecycle
-    #>
+        This example removes a request from VMware Aria Suite Lifecycle.
+
+        .PARAMETER requestId
+        The requestId of the request.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId    )
@@ -26284,15 +31552,18 @@ Export-ModuleMember -Function Remove-vRSLCMRequest
 Function Watch-vRSLCMRequest {
     <#
         .SYNOPSIS
-        Poll request
+        Poll request.
 
         .DESCRIPTION
         The Watch-vRSLCMRequest cmdlet polls a request in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Watch-vRSLCMRequest -vmid <vmid>
-        This example polls the request in VMware Aria Suite Lifecycle
-    #>
+        This example polls the request in VMware Aria Suite Lifecycle.
+
+        .PARAMETER vmid
+        The vmid of the request.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -26300,7 +31571,7 @@ Function Watch-vRSLCMRequest {
 
     Try {
         Do {
-            $requestStatus = (Get-vRSLCMRequest | Where-Object {$_.vmid -eq $vmid}).state
+            $requestStatus = (Get-vRSLCMRequest | Where-Object { $_.vmid -eq $vmid }).state
         } 
         Until ($requestStatus -ne "INPROGRESS")
         Write-Output "VMware Aria Suite Lifecycle request: $vmid completed with the following state: $requestStatus"
@@ -26313,15 +31584,18 @@ Export-ModuleMember -Function Watch-vRSLCMRequest
 Function Resume-vRSLCMRequest {
     <#
         .SYNOPSIS
-        Retry a request
+        Retry a request.
 
         .DESCRIPTION
         The Resume-vRSLCMRequest cmdlet reties a request
 
         .EXAMPLE
         Resume-vRSLCMRequest -requestId 0ee1a4a0-203a-4c87-a40e-65d9a450e398 
-        This example reties the request based on the request ID provided
-    #>
+        This example reties the request based on the request ID provided.
+
+        .PARAMETER requestId
+        The requestId of the request.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$requestId
@@ -26340,7 +31614,7 @@ Export-ModuleMember -Function Resume-vRSLCMRequest
 Function Export-WsaJsonSpec {
     <#
         .SYNOPSIS
-        Create Workspace ONE Access JSON specification
+        Create Workspace ONE Access JSON specification.
 
         .DESCRIPTION
         The Export-WsaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -26364,8 +31638,32 @@ Function Export-WsaJsonSpec {
 
         .EXAMPLE
         Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library
-    #>
+        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+
+        .PARAMETER server
+        The fully qualified domain name of the VMware Aria Suite Lifecycle instance.
+
+        .PARAMETER user
+        The username of the VMware Aria Suite Lifecycle instance.
+
+        .PARAMETER pass
+        The password of the VMware Aria Suite Lifecycle instance.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation Workbook (.xlsx).
+
+        .PARAMETER standard
+        Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
+
+        .PARAMETER customVersion
+        The version of Workspace ONE Access to deploy.
+
+        .PARAMETER useContentLibrary
+        Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -26396,62 +31694,62 @@ Function Export-WsaJsonSpec {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
                     $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
+                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "wsaDeploymentSpec.json")
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
-                            if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object {$_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value}) {
+                            if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value }) {
                                 if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
                                     if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
                                         if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
                                             if ($vcfVersion -ge "4.5.0") {
-                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object {$_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local")}
+                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local") }
                                             } else {
                                                 $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
                                             }
-                                            if ($datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value}) {
-                                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value}
+                                            if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value }) {
+                                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value }
                                                 
                                                 #### Generate the Workspace ONE Properties Section
                                                 if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                    if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5"}
-                                                    if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5"}
-                                                    if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6"}
-                                                    if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6"}
-                                                    if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6"}
-                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7"}
-                                                    if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7"}
-                                                    if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7"}
-                                                    if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7"}
+                                                    if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5" }
+                                                    if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5" }
+                                                    if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6" }
+                                                    if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6" }
+                                                    if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6" }
+                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7" }
+                                                    if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
+                                                    if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
+                                                    if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
                                                 } else {
                                                     $wsaVersion = $customVersion
                                                 }
 
                                                 $infrastructurePropertiesObject = @()
                                                 $infrastructurePropertiesObject += [pscustomobject]@{
-                                                    'acceptEULA'			= "true"
-                                                    'enableTelemetry'		= "true"
-                                                    'regionName'			= "default"
-                                                    'zoneName'				= "default"
-                                                    'dataCenterVmid'		= $datacenterName.dataCenterVmid
-                                                    'vCenterName'			= ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                                    'vCenterHost'			= $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                                    'vcUsername'			= $vcCredentials.userName
-                                                    'vcPassword'			= ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                    'defaultPassword'		= ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
-                                                    'certificate'			= ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    'cluster'				= ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                                    'storage'				= $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                                    'diskMode'				= "thin"
-                                                    'network'				= $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                                                    'masterVidmEnabled'		= "false"
-                                                    'dns'					= ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                                    'domain'				= $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                                                    'gateway'				= $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                                                    'netmask'				= $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                                                    'searchpath'			= $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                                                    'timeSyncMode'			= "ntp"
-                                                    'ntp'					= $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                                                    'vcfProperties'			= '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                                    'acceptEULA'        = "true"
+                                                    'enableTelemetry'   = "true"
+                                                    'regionName'        = "default"
+                                                    'zoneName'          = "default"
+                                                    'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                    'vCenterName'       = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                                    'vCenterHost'       = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                                    'vcUsername'        = $vcCredentials.userName
+                                                    'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                    'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                                    'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                    'cluster'           = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                                    'storage'           = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                                    'diskMode'          = "thin"
+                                                    'network'           = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                                    'masterVidmEnabled' = "false"
+                                                    'dns'               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                                    'domain'            = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                    'gateway'           = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                                    'netmask'           = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                                    'searchpath'        = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                                    'timeSyncMode'      = "ntp"
+                                                    'ntp'               = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                                    'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
                                                 }
 
                                                 $infrastructureObject = @()
@@ -26461,9 +31759,9 @@ Function Export-WsaJsonSpec {
 
                                                 ### Generate the Properties Details
                                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object {$_.contentLibraryName -eq $contentLibrary}).contentLibraryItems
+                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
                                                     if ($contentLibraryItems) {
-                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object {$_.contentLibraryItemName -match "identity-manager-$wsaVersion"}).contentLibraryItemId
+                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
                                                     } else {
                                                         Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
                                                         Break
@@ -26471,17 +31769,17 @@ Function Export-WsaJsonSpec {
                                                 }
                                                 $productPropertiesObject = @()
                                                 $productPropertiesObject += [pscustomobject]@{
-                                                    'vidmAdminPassword'             = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
-                                                    'syncGroupMembers'              = $true
-                                                    'nodeSize'                      = ($pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value).ToLower()
-                                                    'defaultConfigurationEmail'     = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
-                                                    'defaultConfigurationUsername'  = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
-                                                    'defaultConfigurationPassword'  = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
-                                                    'defaultTenantAlias'            = ""
-                                                    'vidmDomainName'                = ""
-                                                    'certificate'                   = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    'contentLibraryItemId'          = $contentLibraryItemId
-                                                    'fipsMode'                      = "false"
+                                                    'vidmAdminPassword'            = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
+                                                    'syncGroupMembers'             = $true
+                                                    'nodeSize'                     = ($pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value).ToLower()
+                                                    'defaultConfigurationEmail'    = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
+                                                    'defaultConfigurationUsername' = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
+                                                    'defaultConfigurationPassword' = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
+                                                    'defaultTenantAlias'           = ""
+                                                    'vidmDomainName'               = ""
+                                                    'certificate'                  = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                    'contentLibraryItemId'         = $contentLibraryItemId
+                                                    'fipsMode'                     = "false"
                                                 }
 
                                                 #### Generate Workspace ONE Access Details
@@ -26495,16 +31793,16 @@ Function Export-WsaJsonSpec {
                                                 
                                                     $clusterDelegateObject = @()
                                                     $clusterDelegateObject += [pscustomobject]@{
-                                                        'ip'			= $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
+                                                        'ip' = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
                                                     }
 
                                                     $clusterVipsObject = @()
                                                     $clusterVipsObject += [pscustomobject]@{
-                                                        'type'			= "vidm-lb"
+                                                        'type'       = "vidm-lb"
                                                         'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
                                                     }
                                                     $clusterVipsObject += [pscustomobject]@{
-                                                        'type'			= "vidm-delegate"
+                                                        'type'       = "vidm-delegate"
                                                         'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
                                                     }
 
@@ -26522,56 +31820,56 @@ Function Export-WsaJsonSpec {
                                                 #### Generate Worspace ONE Access Node Details
                                                 $wsaPrimaryProperties = @()
                                                 $wsaPrimaryProperties += [pscustomobject]@{
-                                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
-                                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
-                                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
                                                 }
 
                                                 $wsaSecondary1Properties = @()
                                                 $wsaSecondary1Properties += [pscustomobject]@{
-                                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
-                                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
-                                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
                                                 }
 
                                                 $wsaSecondary2Properties = @()
                                                 $wsaSecondary2Properties += [pscustomobject]@{
-                                                    'hostName'          = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
-                                                    'vmName'            = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                                                    'ip'                = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
                                                 }
 
                                                 $nodesObject = @()
                                                 $nodesobject += [pscustomobject]@{
-                                                    'type'			= "vidm-primary"
+                                                    'type'       = "vidm-primary"
                                                     'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
                                                 }
                                                 if (!$PsBoundParameters.ContainsKey("standard")) {
                                                     $nodesobject += [pscustomobject]@{
-                                                        'type'			= "vidm-secondary"
+                                                        'type'       = "vidm-secondary"
                                                         'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
                                                     }
                                                     $nodesobject += [pscustomobject]@{
-                                                        'type'			= "vidm-secondary"
+                                                        'type'       = "vidm-secondary"
                                                         'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
                                                     }
                                                 }
 
                                                 $productsObject = @()
                                                 $productsObject += [pscustomobject]@{
-                                                    'id' 			= "vidm"
-                                                    'version'		= $wsaVersion
+                                                    'id'         = "vidm"
+                                                    'version'    = $wsaVersion
                                                     'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
                                                     'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'			= $nodesObject	
+                                                    'nodes'      = $nodesObject	
                                                 }
                                                 
                                                 $wsaDeploymentObject = @()
                                                 $wsaDeploymentObject += [pscustomobject]@{
-                                                    'environmentId'         = "globalenvironment"
-                                                    'environmentName'       = "globalenvironment"
-                                                    'infrastructure'        = ($infrastructureObject  | Select-Object -Skip 0)
-                                                    'products'              = $productsObject
+                                                    'environmentId'   = "globalenvironment"
+                                                    'environmentName' = "globalenvironment"
+                                                    'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                                    'products'        = $productsObject
                                                 } 
 
                                                 $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
@@ -26606,7 +31904,7 @@ Export-ModuleMember -Function Export-WsaJsonSpec
 Function New-WSADeployment {
     <#
         .SYNOPSIS
-        Deploy Workspace ONE Access to VMware Aria Suite Lifecycle
+        Deploy Workspace ONE Access to VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-WSADeployment cmdlet deploys Workspace ONE Access via VMware Aria Suite Lifecycle. The cmdlet connects
@@ -26630,8 +31928,8 @@ Function New-WSADeployment {
 
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library
-    #>
+        This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -26654,7 +31952,7 @@ Function New-WSADeployment {
         }
     }
 
-    if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
+    if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered" }
 
     Try {
         if (Test-VCFConnection -server $server) {
@@ -26728,16 +32026,24 @@ Export-ModuleMember -Function New-WSADeployment
 Function Set-WorkspaceOneApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Configure Workspace ONE Access appliance NTP servers
+        Configure Workspace ONE Access appliance NTP servers.
 
         .DESCRIPTION
         The Set-WorkspaceOneApplianceNtpConfig cmdlet configures Workspace ONE Access appliance NTP servers
 
         .EXAMPLE
         Set-WorkspaceOneApplianceNtpConfig -vmName sfo-wsa01 -rootPass VMw@re1! -ntpServer "ntp.sfo.rainpole.io,ntp.lax.rainpole.io"
-        This example sets the NTP servers for Workspace ONE Access node sfo-wsa01 to ntp.sfo.rainpole.io and ntp.lax.rainpole.io
-    #>
+        This example sets the NTP servers for Workspace ONE Access node sfo-wsa01 to ntp.sfo.rainpole.io and ntp.lax.rainpole.io.
+        
+        .PARAMETER vmName
+        The name of the Workspace ONE Access node.
 
+        .PARAMETER rootPass
+        The root password of the Workspace ONE Access node.
+
+        .PARAMETER ntpServer
+        The NTP server to set on the Workspace ONE Access node.
+    #>
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
@@ -26769,15 +32075,21 @@ Export-ModuleMember -Function Set-WorkspaceOneApplianceNtpConfig
 Function New-vRSLCMAdapterOperation {
     <#
         .SYNOPSIS
-        Add a VMware Aria Operations adapter via VMware Aria Suite Lifecycle
+        Add a VMware Aria Operations adapter via VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRSLCMAdapterOperation cmdlet to create a VMware Aria Operations adapter in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         New-vRSLCMAdapterOperation -json .\addAdapter.json
-        This example creates an adapter in VMware Aria Operations via VMware Aria Suite Lifecycle
-    #>
+        This example creates an adapter in VMware Aria Operations via VMware Aria Suite Lifecycle.
+
+        .PARAMETER json
+        The JSON file to use to create the adapter in VMware Aria Operations via VMware Aria Suite Lifecycle.
+
+        .PARAMETER environmentId
+        The environment ID to use to create the adapter in VMware Aria Operations via VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -26804,15 +32116,18 @@ Export-ModuleMember -Function New-vRSLCMAdapterOperation
 Function Get-vRSLCMProductNtpServer {
     <#
         .SYNOPSIS
-        Get paginated list of product NTP servers in VMare Aria Suite Lifecycle
+        Get paginated list of product NTP servers in VMare Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMProductNtpServer cmdlet gets a paginated list of product NTP servers in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMProductNtpServer
-        This example gets all product NTP servers in VMware Aria Suite Lifecycle
-    #>
+        This example gets all product NTP servers in VMware Aria Suite Lifecycle.
+
+        .PARAMETER ntpServer
+        The NTP server to get from the product NTP configuration in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -26837,15 +32152,18 @@ Export-ModuleMember -Function Get-vRSLCMProductNtpServer
 Function Remove-vRSLCMProductNtpServer {
     <#
         .SYNOPSIS
-        Removes a specified NTP server from VMware Aria Suite Lifecycle
+        Removes a specified NTP server from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Remove-vRSLCMProductNtpServer cmdlet removes a specified NTP server from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Remove-vRSLCMProductNtpServer -ntpServer ntp.lax.rainpole.io
-        This example gets all product NTP servers in VMware Aria Suite Lifecycle
-    #>
+        This example gets all product NTP servers in VMware Aria Suite Lifecycle.
+
+        .PARAMETER ntpServer
+        The NTP server to remove from the product NTP configuration in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -26864,7 +32182,7 @@ Export-ModuleMember -Function Remove-vRSLCMProductNtpServer
 Function Get-vRSLCMApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Get appliance NTP configuration in VMware Aria Suite Lifecycle
+        Get appliance NTP configuration in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMApplianceNtpConfig cmdlet gets appliance NTP configuration in VMware Aria Suite Lifecycle
@@ -26872,8 +32190,8 @@ Function Get-vRSLCMApplianceNtpConfig {
 
         .EXAMPLE
         Get-vRSLCMApplianceNtpConfig
-        This example gets the appliance NTP configuration in VMware Aria Suite Lifecycle
-    #>
+        This example gets the appliance NTP configuration in VMware Aria Suite Lifecycle.
+   #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/system-details/time"
@@ -26888,15 +32206,21 @@ Export-ModuleMember -Function Get-vRSLCMApplianceNtpConfig
 Function Add-vRSLCMProductNtpServer {
     <#
         .SYNOPSIS
-        Add a server to product NTP configuration in VMware Aria Suite Lifecycle
+        Add a server to product NTP configuration in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Add-vRSLCMProductNtpServer cmdlet adds a server tp product NTP configuration in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMProductNtpServer -ntpServer "ntp.lax.rainpole.io" -ntpServerDesc "VCF NTP Server 2"
-        This adds the server ntp.lax.rainpole.io to the product NTP configuration in VMware Aria Suite Lifecycle
-    #>
+        This adds the server ntp.lax.rainpole.io to the product NTP configuration in VMware Aria Suite Lifecycle.
+
+        .PARAMETER ntpServer
+        The NTP server to add to the product NTP configuration in VMware Aria Suite Lifecycle.
+
+        .PARAMETER ntpServerDesc
+        The description of the NTP server to add to the product NTP configuration in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
@@ -26920,15 +32244,18 @@ Export-ModuleMember -Function Add-vRSLCMProductNtpServer
 Function Add-vRSLCMApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Add a server to appliance NTP configuration in VMware Aria Suite Lifecycle
+        Add a server to appliance NTP configuration in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Add-vRSLCMApplianceNtpConfig cmdlet adds a server to appliance NTP configuration in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMApplianceNtpConfig -ntpServer ntp.lax.rainpole.io
-        This adds the server ntp.lax.rainpole.io to the appliance NTP configuration in VMware Aria Suite Lifecycle
-    #>
+        This adds the server ntp.lax.rainpole.io to the appliance NTP configuration in VMware Aria Suite Lifecycle.
+
+        .PARAMETER ntpServer
+        The NTP server to add to the appliance NTP configuration in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -26956,7 +32283,7 @@ Export-ModuleMember -Function Add-vRSLCMApplianceNtpConfig
 Function Set-vRSLCMApplianceNtpConfig {
     <#
         .SYNOPSIS
-        Sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server
+        Sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server.
 
         .DESCRIPTION
         The Set-vRSLCMApplianceNtpConfig cmdlet sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server
@@ -26964,7 +32291,10 @@ Function Set-vRSLCMApplianceNtpConfig {
         .EXAMPLE
         Add-vRSLCMApplianceNtpConfig -ntpServer ntp.sfo.rainpole.io
         This sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only NTP server ntp.sfo.rainpole.io.
-    #>
+
+        .PARAMETER ntpServer
+        The NTP server to set the appliance NTP configuration in VMware Aria Suite Lifecycle to use.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -26988,22 +32318,28 @@ Export-ModuleMember -Function Set-vRSLCMApplianceNtpConfig
 Function Get-vRSLCMProductNode {
     <#
         .SYNOPSIS
-        Gets the nodes in the VMware Aria Suite Lifecycle inventory for a specified environment and product
+        Gets the nodes in the VMware Aria Suite Lifecycle inventory for a specified environment and product.
 
         .DESCRIPTION
         The Get-vRSLCMProductNode cmdlet gets the nodes in the VMware Aria Suite Lifecycle inventory for a specified environment and product
 
         .EXAMPLE
         Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
-        This returns a list of nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle
-    #>
+        This returns a list of nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle.
+
+        .PARAMETER environmentName
+        The name of the environment in VMware Aria Suite Lifecycle.
+
+        .PARAMETER product
+        The name of the product in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$product
     )
 
-    $environmentId = (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -match $environmentName}).environmentId
+    $environmentId = (Get-vRSLCMEnvironment | Where-Object { $_.environmentName -match $environmentName }).environmentId
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products/$product/deployed-vms"
@@ -27019,15 +32355,21 @@ Export-ModuleMember -Function Get-vRSLCMProductNode
 Function Stop-vRSLCMProductNode {
     <#
         .SYNOPSIS
-        Shuts down nodes in a VMware Aria Suite Lifecycle-managed product
+        Shuts down nodes in a VMware Aria Suite Lifecycle-managed product.
 
         .DESCRIPTION
         The Stop-vRSLCMProductNode cmdlet shuts down nodes in a VMware Aria Suite Lifecycle-managed product
 
         .EXAMPLE
         Stop-vRSLCMProductNode -environment globalenvironment -product vidm
-        This example shuts down all nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle
-    #>
+        This example shuts down all nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle.
+
+        .PARAMETER environment
+        The name of the environment in VMware Aria Suite Lifecycle.
+
+        .PARAMETER product
+        The name of the product in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -27047,15 +32389,21 @@ Export-ModuleMember -Function Stop-vRSLCMProductNode
 Function Start-vRSLCMProductNode {
     <#
         .SYNOPSIS
-        Starts nodes in a VMware Aria Suite Lifecycle-managed product
+        Starts nodes in a VMware Aria Suite Lifecycle-managed product.
 
         .DESCRIPTION
         The Start-vRSLCMProductNode cmdlet starts nodes in a VMware Aria Suite Lifecycle-managed product
 
         .EXAMPLE
         Start-vRSLCMProductNode -environment globalenvironment -product vidm
-        This example starts all nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle
-    #>
+        This example starts all nodes in the Workspace ONE Access instance managed by VMware Aria Suite Lifecycle.
+
+        .PARAMETER environment
+        The name of the environment in VMware Aria Suite Lifecycle.
+
+        .PARAMETER product
+        The name of the product in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -27075,7 +32423,7 @@ Export-ModuleMember -Function Start-vRSLCMProductNode
 Function Get-vRSLCMPSPack {
     <#
         .SYNOPSIS
-        Get list of Product Support Packs
+        Get list of Product Support Packs.
 
         .DESCRIPTION
         The Get-vRSLCMPSPack cmdlet retrieves a list of available Product Support Packs for VMware Aria Suite Lifecycle
@@ -27086,8 +32434,11 @@ Function Get-vRSLCMPSPack {
 
         .EXAMPLE
         Get-vRSLCMPSPack -checkOnline
-        This example update the manifest of available Product Support Packs online for VMware Aria Suite Lifecycle
-    #>
+        This example update the manifest of available Product Support Packs online for VMware Aria Suite Lifecycle.
+
+        .PARAMETER checkOnline
+        The switch to update the manifest of available Product Support Packs online for VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$checkOnline
@@ -27110,15 +32461,18 @@ Export-ModuleMember -Function Get-vRSLCMPSPack
 Function Install-vRSLCMPSPack {
     <#
         .SYNOPSIS
-        Install a Product Support Pack
+        Install a Product Support Pack.
 
         .DESCRIPTION
         The Install-vRSLCMPSPack cmdlet installs a Product Support Pack on VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Install-vRSLCMPSPack -pspackId 8b96b2fa-ec34-491c-a7aa-ef81103f089f
-        This example installs a Product Support Pack on VMware Aria Suite Lifecycle
-    #>
+        This example installs a Product Support Pack on VMware Aria Suite Lifecycle.
+
+        .PARAMETER pspackId
+        The Product Support Pack ID to install on VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pspackId
@@ -27136,15 +32490,15 @@ Export-ModuleMember -Function Install-vRSLCMPSPack
 Function Get-vRSLCMProductBinariesMapped {
     <#
         .SYNOPSIS
-        Get list of mapped product binaries
+        Get list of mapped product binaries.
 
         .DESCRIPTION
         The Get-vRSLCMProductBinariesMapped cmdlet retrieves a list of mapped product binaries in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMProductBinariesMapped
-        This example retrieves a list of mapped Product Binaries in VMware Aria Suite Lifecycle
-    #>
+        This example retrieves a list of mapped Product Binaries in VMware Aria Suite Lifecycle.
+   #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/product-binaries"
@@ -27158,19 +32512,25 @@ Export-ModuleMember -Function Get-vRSLCMProductBinariesMapped
 Function Get-vRSLCMProductBinaries {
     <#
         .SYNOPSIS
-        Get list of product binaries
+        Get list of product binaries.
 
         .DESCRIPTION
         The Get-vRSLCMProductBinaries cmdlet retrieves a list of product binaries in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMProductBinaries -sourceLocation /data -sourceType Local
-        This example retrieves a list of product binaries in VMware Aria Suite Lifecycle located in the absolute path /data
-    #>
+        This example retrieves a list of product binaries in VMware Aria Suite Lifecycle located in the absolute path /data.
+
+        .PARAMETER sourceLocation
+        The absolute path to the product binaries in VMware Aria Suite Lifecycle.
+
+        .PARAMETER sourceType
+        The type of source for the product binaries in VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceLocation,
-        [Parameter (Mandatory = $true)] [ValidateSet('Local','NFS')] [String]$sourceType
+        [Parameter (Mandatory = $true)] [ValidateSet('Local', 'NFS')] [String]$sourceType
     )
 
     Try {
@@ -27189,15 +32549,24 @@ Export-ModuleMember -Function Get-vRSLCMProductBinaries
 Function Register-vRSLCMProductBinary {
     <#
         .SYNOPSIS
-        Get list of product binaries
+        Get list of product binaries.
 
         .DESCRIPTION
         The Register-vRSLCMProductBinary cmdlet retrieves a list of mapped product binaries in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Register-vRSLCMProductBinary -ovaName vRealize-Operations-Manager-Appliance-8.10.2.21178503_OVF10.ova -ovaPath /data/vRealize-Operations-Manager-Appliance-8.10.2.21178503_OVF10.ova -ovaType install
-        This example adds the binary to VMware Aria Suite Lifecycle
-    #>
+        This example adds the binary to VMware Aria Suite Lifecycle.
+
+        .PARAMETER ovaName
+        The name of the OVA to add to VMware Aria Suite Lifecycle.
+
+        .PARAMETER ovaPath
+        The absolute path to the OVA to add to VMware Aria Suite Lifecycle.
+
+        .PARAMETER ovaType
+        The type of OVA to add to VMware Aria Suite Lifecycle.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ovaName,
@@ -27224,18 +32593,217 @@ Function Register-vRSLCMProductBinary {
 }
 Export-ModuleMember -Function Register-vRSLCMProductBinary
 
+Function Get-vRSLCMMyVmwareAccount {
+    <#
+        .SYNOPSIS
+        Get My VMware accounts from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Get-vRSLCMMyVmwareAccount cmdlet retrieves the My VMware accounts assigned in VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMMyVmwareAccount
+        This example retrieves all the My VMware Accounts assigned in VMware Aria Suite Lifecycle.
+   #>
+
+    Try {
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/my-vmware/accounts"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMMyVmwareAccount
+
+Function Get-vRSLCMProductVersion {
+    <#
+        .SYNOPSIS
+        Get supported version for a product.
+
+        .DESCRIPTION
+        The Get-vRSLCMProductVersion cmdlet retrieves supported versions of a product from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMProductVersion -productId vra
+        This example retrieves the supported versions for VMware Aria Automation.
+
+        .PARAMETER productId
+        The product to get the supported versions for.
+   #>
+    
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet("vidm", "vra", "vrli", "vrni", "vrops", "vro", "vssc")][ValidateNotNullOrEmpty()] [String]$productId
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/policy/products/$productId/versions"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMProductVersion
+
+Function New-vRSLCMMyVmwareAccount {
+    <#
+        .SYNOPSIS
+        Add a My VMware account to VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The New-vRSLCMMyVmwareAccount cmdlet adds a My VMware account to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        New-vRSLCMMyVmwareAccount -alias rainpole
+        This example adds a new My VMware account to VMware Aria Suite Lifecycle.
+
+        .PARAMETER alias
+        The alias of the My VMware account to add to VMware Aria Suite Lifecycle.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            if ($password = Get-vRSLCMLockerPassword -alias $alias) {
+                $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/my-vmware/accounts"
+                $body = '{
+                    "password": "locker:password:'+ $password.vmid + ':' + $alias + '",
+                    "userName": "'+ $password.userName + '"
+                    }'
+                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRSLCMMyVmwareAccount
+
+Function Remove-vRSLCMMyVmwareAccount {
+    <#
+        .SYNOPSIS
+        Remove a My VMware account from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Remove-vRSLCMMyVmwareAccount cmdlet removes a My VMware account from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Remove-vRSLCMMyVmwareAccount -alias rainpole
+        This example removes a My VMware account from VMware Aria Suite Lifecycle.
+
+        .PARAMETER alias
+        The alias of the My VMware account to remove from VMware Aria Suite Lifecycle.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            if ($password = Get-vRSLCMLockerPassword -alias $alias) {
+                $uri = "https://$vrslcmAppliance/lcm/lcops/api/settings/myvmwaresetting/delete"
+                $body = '{
+                    "password": "locker:password:'+ $password.vmid + ':' + $alias + '",
+                    "userName": "'+ $password.userName + '"
+                    }'
+                Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders -Body $body
+            }
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRSLCMMyVmwareAccount
+
+Function Request-vRSLCMProductBinary {
+    <#
+        .SYNOPSIS
+        Downloads a VMware Aria Suite binary.
+
+        .DESCRIPTION
+        The Request-vRSLCMProductBinary cmdlet downloads a VMware Aria suite product binary through the My VMware
+        account to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Request-vRSLCMProductBinary -version 8.14.0 -productId "vra" -productDownloadType "Install"
+        This example will download the VMware Aria Automation install binary for verison 8.14.0
+
+        .EXAMPLE
+        Request-vRSLCMProductBinary -version 8.14.0 -productId "vra" -productDownloadType "upgrade"
+        This example will download the VMware Aria Automation upgrade binary for verison 8.14.0.
+
+        .PARAMETER version
+        The version of the product binary to download.
+
+        .PARAMETER productId
+        The product ID of the product binary to download.
+
+        .PARAMETER productDownloadType
+        The type of product binary to download.
+   #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$version,
+        [Parameter (Mandatory = $false)] [ValidateSet("vidm", "vra", "vrli", "vrni", "vrops", "vro", "vssc")][ValidateNotNullOrEmpty()] [String]$productId,
+        [Parameter (Mandatory = $true)] [ValidateSet("Install", "upgrade")][ValidateNotNullOrEmpty()] [String]$productDownloadType
+
+    )
+
+    Switch ($productId) {
+        "vra" { $productName = "VMware Aria Automation" }
+        "vssc" { $productName = "VMware Aria Automation Config" }
+        "vrops" { $productName = "VMware Aria Operations" }
+        "vrli" { $productName = "VMware Aria Operations for Logs" }
+        "vidm" { $productName = "VMware Identity Manager" }
+        "vrni" { $productName = "VMware Aria Operations for Networks" }
+    }
+
+    Try {
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/my-vmware/product-binaries/download"
+            $Global:body = '{
+                "productId": "'+ $productId + '",
+                "productVersion": "'+ $version + '",
+                "productName": "'+ $productName + '",
+                "productBinaryType": "'+ $productDownloadType + '"
+            }'
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Request-vRSLCMProductBinary
+
 Function Get-vRSLCMSshStatus {
     <#
         .SYNOPSIS
-        Get the status of the SSH service in VMware Aria Suite Lifecycle
+        Get the status of the SSH service in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Get-vRSLCMSshStatus cmdlet gets the status of the SSH Server in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Get-vRSLCMSshStatus
-        This example gets the SSH services
-    #>
+        This example gets the SSH services.
+   #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
@@ -27249,15 +32817,15 @@ Export-ModuleMember -Function Get-vRSLCMSshStatus
 Function Set-vRSLCMSshStatus {
     <#
         .SYNOPSIS
-        Set the status of the SSH service in VMware Aria Suite Lifecycle
+        Set the status of the SSH service in VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Set-vRSLCMSshStatus cmdlet sets the status of the SSH Server in VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Set-vRSLCMSshStatus -enabled false
-        This example disables the SSH services
-    #>
+        This example disables the SSH services.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$enabled
@@ -27282,7 +32850,7 @@ Export-ModuleMember -Function Set-vRSLCMSshStatus
 Function Request-vRAToken {
     <#
         .SYNOPSIS
-        Connects to the specified VMware Aria Automation and obtains authorization token
+        Connects to the specified VMware Aria Automation and obtains authorization token.
 
         .DESCRIPTION
         The Request-vRAToken cmdlet connects to the specified VMware Aria Automation and obtains an authorization token.
@@ -27294,8 +32862,23 @@ Function Request-vRAToken {
 
         .EXAMPLE
         Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1! -displayToken
-        This example shows how to connect to the VMware Aria Automation appliance and display the token needed for Terraform
-    #>
+        This example shows how to connect to the VMware Aria Automation appliance and display the token needed for Terraform.
+
+        .PARAMETER fqdn 
+        The fully qualified domain name of the VMware Aria Automation appliance.
+
+        .PARAMETER username
+        The username to connect to the VMware Aria Automation appliance.
+
+        .PARAMETER password
+        The password to connect to the VMware Aria Automation appliance.
+
+        .PARAMETER tenant
+        The tenant to connect to the VMware Aria Automation appliance.
+
+        .PARAMETER displayToken
+        Displays the token needed for Terraform
+        #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -27350,15 +32933,15 @@ Export-ModuleMember -Function Request-vRAToken
 Function Get-vRAOrganizationId {
     <#
         .SYNOPSIS
-        Get the organization ID for the logged in user
+        Get the organization ID for the logged in user.
 
         .DESCRIPTION
         The Get-vRAOrganizationId cmdlet gets the organization Id for the logged in user
 
         .EXAMPLE
         Get-vRAOrganizationId
-        This example gets organization Id for the logged in user
-    #>
+        This example gets organization Id for the logged in user.
+   #>
 
     Try {
         $uri = "https://$vraAppliance/csp/gateway/am/api/loggedin/user/orgs"
@@ -27373,15 +32956,18 @@ Export-ModuleMember -Function Get-vRAOrganizationId
 Function Get-vRAOrganizationDisplayName {
     <#
         .SYNOPSIS
-        Get the organization display name
+        Get the organization display name.
 
         .DESCRIPTION
         The Get-vRAOrganizationDisplayName cmdlet gets the organization display name
 
         .EXAMPLE
         Get-vRAOrganizationDisplayName -orgId <orgid>
-        This example gets organization display name for the organization Id provided
-    #>
+        This example gets organization display name for the organization Id provided.
+
+        .PARAMETER orgId
+        The organization Id to get the display name for.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId
@@ -27400,15 +32986,21 @@ Export-ModuleMember -Function Get-vRAOrganizationDisplayName
 Function Set-vRAOrganizationDisplayName {
     <#
         .SYNOPSIS
-        Configures the organization display name
+        Configures the organization display name.
 
         .DESCRIPTION
         The Set-vRAOrganizationDisplayName cmdlet sets the organization display name
 
         .EXAMPLE
         Set-vRAOrganizationDisplayName -orgId <orgid> -displayName
-        This example configures the organization display name for the organization Id provided
-    #>
+        This example configures the organization display name for the organization Id provided.
+
+        .PARAMETER orgId
+        The organization Id to configure.
+
+        .PARAMETER displayName
+        The display name to configure.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
@@ -27417,7 +33009,7 @@ Function Set-vRAOrganizationDisplayName {
 
     Try {
         $uri = "https://$vraAppliance/csp/gateway/am/api/orgs/$orgId"
-        $json = '{ "displayName": "'+ $displayName +'" }'
+        $json = '{ "displayName": "' + $displayName + '" }'
         $response = Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vraHeaders -Body $json
         $response.refLink
     } Catch {
@@ -27429,7 +33021,7 @@ Export-ModuleMember -Function Set-vRAOrganizationDisplayName
 Function Get-vRACloudAccount {
     <#
         .SYNOPSIS
-        Get cloud accounts
+        Get cloud accounts.
 
         .DESCRIPTION
         The Get-vRACloudAccount cmdlet all cloud accounts within the current organization
@@ -27440,22 +33032,25 @@ Function Get-vRACloudAccount {
 
         .EXAMPLE
         Get-vRACloudAccount -type vsphere
-        This example gets all vsphere cloud accounts within the current organization, supports vsphere, vmw, gcp, nsx-v, nsx-t, aws and azure
-    #>
+        This example gets all vsphere cloud accounts within the current organization, supports vsphere, vmw, gcp, nsx-v, nsx-t, aws and azure.
+
+        .PARAMETER type
+        The type of cloud account to get.
+   #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateSet("vsphere","vmc","gcp","nsx-v","nsx-t","aws","azure")] [ValidateNotNullOrEmpty()] [String]$type
+        [Parameter (Mandatory = $false)] [ValidateSet("vsphere", "vmc", "gcp", "nsx-v", "nsx-t", "aws", "azure")] [ValidateNotNullOrEmpty()] [String]$type
     )
 
     Try {
         if ($PsBoundParameters.ContainsKey("type")) {
-            if ($type -eq "vsphere") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-vsphere"}
-            if ($type -eq "vmc") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-vmc"}
-            if ($type -eq "gcp") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-gcp"}
-            if ($type -eq "nsx-v") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-v"}
-            if ($type -eq "nsx-t") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-t"}
-            if ($type -eq "aws") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-aws"}
-            if ($type -eq "azure") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure"}
+            if ($type -eq "vsphere") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-vsphere" }
+            if ($type -eq "vmc") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-vmc" }
+            if ($type -eq "gcp") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-gcp" }
+            if ($type -eq "nsx-v") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-v" }
+            if ($type -eq "nsx-t") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-t" }
+            if ($type -eq "aws") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-aws" }
+            if ($type -eq "azure") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure" }
             $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
             $response.content
         } else {
@@ -27472,7 +33067,7 @@ Export-ModuleMember -Function Get-vRACloudAccount
 Function Add-vRACloudAccount {
     <#
         .SYNOPSIS
-        Add a cloud account
+        Add a cloud account.
 
         .DESCRIPTION
         The Add-vRACloudAccount cmdlet adds a cloud accounts within the current organization
@@ -27483,22 +33078,28 @@ Function Add-vRACloudAccount {
 
         .EXAMPLE
         Add-vRACloudAccount -type nsx-t -json (Get-Content -raw .\nsxCloudAccount.json)
-        This example adds a NSX cloud account within the current organization
-    #>
+        This example adds a NSX cloud account within the current organization.
+
+        .PARAMETER type
+        The type of cloud account to add.
+
+        .PARAMETER json
+        The json file to use to add the cloud account.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vsphere","vmc","gcp","nsx-v","nsx-t","aws","azure")] [ValidateNotNullOrEmpty()] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateSet("vsphere", "vmc", "gcp", "nsx-v", "nsx-t", "aws", "azure")] [ValidateNotNullOrEmpty()] [String]$type,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
     )
 
     Try {
-        if ($type -eq "vsphere") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-vsphere"}
-        if ($type -eq "vmc") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-vmc"}
-        if ($type -eq "gcp") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-gcp"}
-        if ($type -eq "nsx-v") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-v"}
-        if ($type -eq "nsx-t") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-t"}
-        if ($type -eq "aws") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-aws"}
-        if ($type -eq "azure") {$uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure"}
+        if ($type -eq "vsphere") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-vsphere" }
+        if ($type -eq "vmc") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-vmc" }
+        if ($type -eq "gcp") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-gcp" }
+        if ($type -eq "nsx-v") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-v" }
+        if ($type -eq "nsx-t") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-nsx-t" }
+        if ($type -eq "aws") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-aws" }
+        if ($type -eq "azure") { $uri = "https://$vraAppliance/iaas/api/cloud-accounts-azure" }
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $json
         $response
     } Catch {
@@ -27510,15 +33111,18 @@ Export-ModuleMember -Function Add-vRACloudAccount
 Function Remove-vRACloudAccount {
     <#
         .SYNOPSIS
-        Remove a cloud account
+        Remove a cloud account.
 
         .DESCRIPTION
         The Remove-vRACloudAccount cmdlet removes a cloud account within the current organization
 
         .EXAMPLE
         Remove-vRACloudAccount -id <id>
-        This example removes the cloud account with the ID within the current organization
-    #>
+        This example removes the cloud account with the ID within the current organization.
+
+        .PARAMETER id
+        The ID of the cloud account to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -27537,15 +33141,15 @@ Export-ModuleMember -Function Remove-vRACloudAccount
 Function Get-vRANotification {
     <#
         .SYNOPSIS
-        Get notification configuration
+        Get notification configuration.
 
         .DESCRIPTION
         The Get-vRANotification cmdlet gets the notification configuation from VMware Aria Automation
 
         .EXAMPLE
         Get-vRANotification
-        This example gets the current notification configuration from VMware Aria Automation
-    #>
+        This example gets the current notification configuration from VMware Aria Automation.
+   #>
 
     Try {
         $uri = "https://$vraAppliance/notification/api/email-config"
@@ -27560,7 +33164,7 @@ Export-ModuleMember -Function Get-vRANotification
 Function New-vRANotification {
     <#
         .SYNOPSIS
-        Add notification configuration
+        Add notification configuration.
 
         .DESCRIPTION
         The New-vRANotification cmdlet adds the notification configuation in VMware Aria Automation
@@ -27571,35 +33175,62 @@ Function New-vRANotification {
 
         .EXAMPLE
         New-vRANotification -name smtp.rainpole.io -serverName smtp.rainpole.io -emailAddress vra-no-reply@rainpole.io -sender administrator -trustCert true -connection NONE -authentication true -username administrator -password VMw@re1!
-        This example adds the notification configuration in VMware Aria Automation with authentication
-    #>
+        This example adds the notification configuration in VMware Aria Automation with authentication.
+
+        .PARAMETER name
+        The name of the notification configuration.
+
+        .PARAMETER serverName
+        The name of the SMTP server.
+
+        .PARAMETER emailAddress
+        The email address to send notifications from.
+
+        .PARAMETER sender
+        The name of the sender.
+
+        .PARAMETER trustCert
+        Trust the certificate of the SMTP server.
+
+        .PARAMETER connection
+        The connection type, NONE, SSL or STARTTLS.
+
+        .PARAMETER authentication
+        Enable authentication.
+
+        .PARAMETER userName
+        The username to authenticate with.
+
+        .PARAMETER password
+        The password to authenticate with.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serverName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sender,
-        [Parameter (Mandatory = $true)] [ValidateSet("true","false")] [ValidateNotNullOrEmpty()] [String]$trustCert,
-        [Parameter (Mandatory = $true)] [ValidateSet("SSL","STARTTLS","NONE")] [ValidateNotNullOrEmpty()] [String]$connection,
-        [Parameter (Mandatory = $true)] [ValidateSet("true","false")] [ValidateNotNullOrEmpty()] [String]$authentication,
+        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$trustCert,
+        [Parameter (Mandatory = $true)] [ValidateSet("SSL", "STARTTLS", "NONE")] [ValidateNotNullOrEmpty()] [String]$connection,
+        [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$authentication,
         [Parameter (ParameterSetName = "auth", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$userName,
         [Parameter (ParameterSetName = "auth", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
         
     )
 
     Try {
-        if ($connection -eq "SSL") {$port = "465"} elseif ($connection -eq "STARTTLS") {$port = "587"} else {$port = "25"}
+        if ($connection -eq "SSL") { $port = "465" } elseif ($connection -eq "STARTTLS") { $port = "587" } else { $port = "25" }
         $uri = "https://$vraAppliance/notification/api/email-config"
         $body = '{
             "name": "' + $name + '",
             "host": "' + $serverName + '",
-            "port": ' + $port +',
+            "port": ' + $port + ',
             "sender": "' + $emailAddress + '",
             "senderName": "' + $sender + '",
             "connectionSecurity": "' + $connection + '",
             "authenticationRequired": ' + $authentication + ',
-            "userName": "' + $userName +'",
-            "password": "' + $password +'",
+            "userName": "' + $userName + '",
+            "password": "' + $password + '",
             "trustHost": ' + $trustCert + '
         }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vraHeaders -Body $body
@@ -27613,15 +33244,15 @@ Export-ModuleMember -Function New-vRANotification
 Function Remove-vRANotification {
     <#
         .SYNOPSIS
-        Remove notification configuration
+        Remove notification configuration.
 
         .DESCRIPTION
         The Remove-vRANotification cmdlet removes the notification configuation from VMware Aria Automation
 
         .EXAMPLE
         Remove-vRANotification
-        This example removes the current notification configuration from VMware Aria Automation
-    #>
+        This example removes the current notification configuration from VMware Aria Automation.
+   #>
 
     Try {
         $uri = "https://$vraAppliance/notification/api/email-config"
@@ -27636,7 +33267,7 @@ Export-ModuleMember -Function Remove-vRANotification
 Function Get-vRAResourceCompute {
     <#
         .SYNOPSIS
-        Get compute resources
+        Get compute resources.
 
         .DESCRIPTION
         The Get-vRAResourceCompute cmdlet gets a list of known compute resources from VMware Aria Automation
@@ -27647,8 +33278,11 @@ Function Get-vRAResourceCompute {
 
         .EXAMPLE
         Get-vRAResourceCompute -id <compute_resource_id>
-        This example gets a compute resource from VMware Aria Automation by id
-    #>
+        This example gets a compute resource from VMware Aria Automation by id.
+
+        .PARAMETER id
+        The compute resource id to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -27673,15 +33307,24 @@ Export-ModuleMember -Function Get-vRAResourceCompute
 Function Add-vRAResourceComputeTag {
     <#
         .SYNOPSIS
-        Add a compute resource tag
+        Add a compute resource tag.
 
         .DESCRIPTION
         The Add-vRAResourceComputeTag cmdlet adds a tag to a compute resources in VMware Aria Automation
 
         .EXAMPLE
         Add-vRAResourceComputeTag -id <compute_resource_id> -tagKey enabled -tagValue true
-        This example adds a new tag to a compute resourcein VMware Aria Automation
-    #>
+        This example adds a new tag to a compute resourcein VMware Aria Automation.
+
+        .PARAMETER id
+        The compute resource id to add the tag to.
+
+        .PARAMETER tagKey
+        The tag key to add.
+
+        .PARAMETER tagValue
+        The tag value to add.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -27695,25 +33338,25 @@ Function Add-vRAResourceComputeTag {
         foreach ($tag in $existingTags) {
             if ($tag.key -ne $tagKey) {
                 $tagObject += [pscustomobject]@{
-                    'key'= $tag.key
+                    'key'   = $tag.key
                     'value' = $tag.value
                 }
             } elseif ($tag.key -eq $tagKey) {
                 $tagObject += [pscustomobject]@{
-                    'key'= $tagkey
+                    'key'   = $tagkey
                     'value' = $tagvalue
                 }
             }
         }
         if (!($tagObject.key -eq $tagKey)) {
             $tagObject += [pscustomobject]@{
-                    'key'= $tagkey
-                    'value' = $tagvalue
-                }
+                'key'   = $tagkey
+                'value' = $tagvalue
+            }
         }
         $allTagsObject = @()
         $allTagsObject += [pscustomobject]@{
-            'tags'         = $tagObject
+            'tags' = $tagObject
         }
         $json = $allTagsObject | ConvertTo-Json -Depth 3
         $uri = "https://$vraAppliance/iaas/api/fabric-computes/$id"
@@ -27728,7 +33371,7 @@ Export-ModuleMember -Function Add-vRAResourceComputeTag
 Function Get-vRACloudZone {
     <#
         .SYNOPSIS
-        Get Cloud Zones
+        Get Cloud Zones.
 
         .DESCRIPTION
         The Get-vRACloudZone cmdlet gets a list of known Cloud Zones from VMware Aria Automation
@@ -27743,8 +33386,14 @@ Function Get-vRACloudZone {
 
         .EXAMPLE
         Get-vRACloudZone -id <cloud_zone_id> -compute
-        This example gets a Cloud Zone Compute details from VMware Aria Automation
-    #>
+        This example gets a Cloud Zone Compute details from VMware Aria Automation.
+
+        .PARAMETER id
+        The Cloud Zone id to get.
+
+        .PARAMETER compute
+        Get the compute details for the Cloud Zone.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -27780,8 +33429,8 @@ Function Get-vRAAPIVersion {
         The Get-vRAAPIVersion cmdlet returns the latest version of the API
 
         .EXAMPLE
-        Get-vRAAPIVersion 
-    #>
+        Get-vRAAPIVersion .
+   #>
     Try {
         $uri = "https://$vraAppliance/iaas/api/about"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
@@ -27795,7 +33444,7 @@ Export-ModuleMember -Function Get-vRAAPIVersion
 Function Get-vRAIntegrationDetail {
     <#
         .SYNOPSIS
-        Get an integration detail of an item from VMware Aria Automation
+        Get an integration detail of an item from VMware Aria Automation.
 
         .DESCRIPTION
         The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from VMware Aria Automation
@@ -27804,9 +33453,22 @@ Function Get-vRAIntegrationDetail {
         Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
         This example returns the ids of the vCenter Server instances managed by the VMware Aria Operations
 
+        .EXAMPLE
         Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "VMware Aria Operations" -getIntegrationID
-        This example returns the integration id of "VMware Aria Operations" which is integrated with the VMwareAria Automation
-    #>
+        This example returns the integration id of "VMware Aria Operations" which is integrated with the VMwareAria Automation.
+
+        .PARAMETER integrationType
+        The integration type to get details for, supports vrops.
+
+        .PARAMETER integrationName
+        The integration name to get details for.
+
+        .PARAMETER getVCID
+        Get the vCenter Server instance ids managed by the VMware Aria Operations.
+
+        .PARAMETER getIntegrationID
+        Get the integration id of the integration name provided.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -27835,7 +33497,7 @@ Export-ModuleMember -Function Get-vRAIntegrationDetail
 Function Update-vRACloudZone {
     <#
         .SYNOPSIS
-        Update a Cloud Zones
+        Update a Cloud Zones.
 
         .DESCRIPTION
         The Update-vRACloudZone cmdlet updates a Cloud Zones in VMware Aria Automation
@@ -27850,8 +33512,23 @@ Function Update-vRACloudZone {
 
         .EXAMPLE
         Update-vRACloudZone -id <cloud_zone_id> placementPolicy ADVANCED
-        This example updates the placement policy for Cloud Zones to ADVANCED in VMware Aria Automation by id
-    #>
+        This example updates the placement policy for Cloud Zones to ADVANCED in VMware Aria Automation by id.
+
+        .PARAMETER id
+        The Cloud Zone id to update.
+
+        .PARAMETER folder
+        The folder to add to the Cloud Zone.
+
+        .PARAMETER tagKey
+        The tag key to add to the Cloud Zone.
+
+        .PARAMETER tagValue
+        The tag value to add to the Cloud Zone.
+
+        .PARAMETER placementPolicy
+        The placement policy to update the Cloud Zone to.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -27864,7 +33541,7 @@ Function Update-vRACloudZone {
     Try {
         $cloudZoneDetails = Get-VRACloudZone -id $id
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("folder")) {
-            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder +'" }'
+            $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "folder": "' + $folder + '" }'
         }
         if ($PsBoundParameters.ContainsKey("id") -and $PsBoundParameters.ContainsKey("tagKey") -and $PsBoundParameters.ContainsKey("tagValue")) {
             $json = '{ "name": "' + $($cloudZoneDetails.name) + '", "tagsToMatch": [ { "key": "' + $tagKey + '", "value": "' + $tagValue + '" } ] }'
@@ -27897,15 +33574,18 @@ Export-ModuleMember -Function Update-vRACloudZone
 Function Remove-vRACloudZone {
     <#
         .SYNOPSIS
-        Remove Cloud Zones
+        Remove Cloud Zones.
 
         .DESCRIPTION
         The Remove-vRACloudZone cmdlet deletes a Cloud Zones from VMware Aria Automation
 
         .EXAMPLE
         Remove-vRACloudZone -id <cloud_zone_id>
-        This example deletes a Cloud Zone from VMware Aria Automation by id
-    #>
+        This example deletes a Cloud Zone from VMware Aria Automation by id.
+
+        .PARAMETER id
+        The Cloud Zone id to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -27932,7 +33612,10 @@ Function Get-vRAServices {
         .EXAMPLE
         Get-vRAServices 
         This example returns the services information from VMware Aria Automation by orgId.
-    #>
+
+        .PARAMETER orgId
+        The organization Id to get the services for.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId
@@ -27960,7 +33643,13 @@ Function Get-vRAUser {
         .EXAMPLE
         Get-vRAUser -orgId $orgId -email jdoe@rainpole.io
         This example returns the user information for an organization in VMware Aria Automation by orgId and email.
-    #>
+
+        .PARAMETER orgId
+        The organization Id to get the user for.
+
+        .PARAMETER email
+        The email address of the user to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
@@ -27989,14 +33678,29 @@ Function New-vRAUser {
         .EXAMPLE
         New-vRAUser -userId $userId -orgId $serviceRole -serviceDefinitionId $serviceDefinitionId -orgRole $orgRole> -serviceRole $serviceRole>
         This example adds a user to VMware Aria Automation by userId and orgId and assisgnes the required orgRole and serviceRole.
-    #>
+
+        .PARAMETER userId
+        The userId to add.
+
+        .PARAMETER orgId
+        The organization Id to add the user to.
+
+        .PARAMETER serviceDefinitionId
+        The service definition Id to add the user to.
+
+        .PARAMETER orgRole
+        The organization role to assign to the user.
+
+        .PARAMETER serviceRole
+        The service role to assign to the user.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceDefinitionId,
-        [Parameter (Mandatory = $true)] [ValidateSet("org_owner","org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole,
-        [Parameter (Mandatory = $false)] [ValidateSet('automationservice:cloud_admin','automationservice:user','automationservice:viewer','catalog:admin','catalog:user','catalog:viewer','CodeStream:administrator','CodeStream:developer','CodeStream:executor','CodeStream:user','CodeStream:viewer','migration:admin','migration:viewer','orchestration:admin','orchestration:designer','orchestration:viewer','saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
+        [Parameter (Mandatory = $true)] [ValidateSet("org_owner", "org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole,
+        [Parameter (Mandatory = $false)] [ValidateSet('automationservice:cloud_admin', 'automationservice:user', 'automationservice:viewer', 'catalog:admin', 'catalog:user', 'catalog:viewer', 'CodeStream:administrator', 'CodeStream:developer', 'CodeStream:executor', 'CodeStream:user', 'CodeStream:viewer', 'migration:admin', 'migration:viewer', 'orchestration:admin', 'orchestration:designer', 'orchestration:viewer', 'saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
     )
 
     Try {
@@ -28037,7 +33741,13 @@ Function Get-vRAGroup {
         .EXAMPLE
         Get-vRAGroup -orgId $orgId -displayName gg-vra-cloud-assemhly-admins@rainpole.io
         This example returns the group information from VMware Aria Automation by orgId and displayName.
-    #>
+
+        .PARAMETER orgId
+        The organization Id to get the group for.
+
+        .PARAMETER displayName
+        The displayName of the group to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
@@ -28072,24 +33782,39 @@ Function New-vRAGroup {
         This example adds a group in VMware Aria Automation by groupId and orgId and assisgnes the required orgRole only.
 
         Note: This cmdlet currently only supports a single serviceRole.
-    #>
+
+        .PARAMETER groupId
+        The groupId to add.
+
+        .PARAMETER orgId
+        The organization Id to add the group to.
+
+        .PARAMETER serviceDefinitionId
+        The service definition Id to add the group to.
+
+        .PARAMETER orgRole
+        The organization role to assign to the group.
+
+        .PARAMETER serviceRole
+        The service role to assign to the group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
-        [Parameter (Mandatory = $true)] [ValidateSet("org_owner","org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole,
+        [Parameter (Mandatory = $true)] [ValidateSet("org_owner", "org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole,
         [Parameter (ParameterSetName = "serviceRole", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$serviceDefinitionId,
-        [Parameter (ParameterSetName = "serviceRole", Mandatory = $false)] [ValidateSet('automationservice:cloud_admin','automationservice:user','automationservice:viewer','catalog:admin','catalog:user','catalog:viewer','CodeStream:administrator','CodeStream:developer','CodeStream:executor','CodeStream:user','CodeStream:viewer','migration:admin','migration:viewer','orchestration:admin','orchestration:designer','orchestration:viewer','saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
+        [Parameter (ParameterSetName = "serviceRole", Mandatory = $false)] [ValidateSet('automationservice:cloud_admin', 'automationservice:user', 'automationservice:viewer', 'catalog:admin', 'catalog:user', 'catalog:viewer', 'CodeStream:administrator', 'CodeStream:developer', 'CodeStream:executor', 'CodeStream:user', 'CodeStream:viewer', 'migration:admin', 'migration:viewer', 'orchestration:admin', 'orchestration:designer', 'orchestration:viewer', 'saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
     )
 
     Try {
         if ($PsBoundParameters.ContainsKey("serviceRole") -and $PsBoundParameters.ContainsKey("serviceDefinitionId")) {
             $body = '{
                     "ids":[
-                        "' + $groupId +'" 
+                        "' + $groupId + '" 
                         ],
                     "organizationRoleNames":[
-                        "' + $orgRole +'" 
+                        "' + $orgRole + '" 
                         ],
                     "serviceRoles":[
                         {
@@ -28107,10 +33832,10 @@ Function New-vRAGroup {
         } else {
             $body = '{
                     "ids":[
-                        "' + $groupId +'" 
+                        "' + $groupId + '" 
                         ],
                     "organizationRoleNames":[
-                        "' + $orgRole +'" 
+                        "' + $orgRole + '" 
                         ]
                     }'
             $uri = "https://$vraAppliance/csp/gateway/portal/api/orgs/$orgId/groups"
@@ -28134,7 +33859,13 @@ Function Get-vRAUserRoles {
         .EXAMPLE
         Get-vRAUserRoles -userId $userId -orgId $orgId
         This example returns a user's roles from VMware Aria Automation by userId and orgId.
-    #>
+
+        .PARAMETER userId
+        The userId to get the roles for.
+
+        .PARAMETER orgId
+        The organization Id to get the roles for.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -28163,7 +33894,13 @@ Function Get-vRAGroupRoles {
         .EXAMPLE
         Get-vRAGroupRoles -groupId $groupId -orgId $orgId
         This example returns a group's roles from VMware Aria Automation by groupId and orgId.
-    #>
+
+        .PARAMETER groupId
+        The groupId to get the roles for.
+
+        .PARAMETER orgId
+        The organization Id to get the roles for.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -28192,7 +33929,13 @@ Function Remove-vRAGroupRoles {
         .EXAMPLE
         Remove-vRAGroupRoles -groupId <group_id> -orgId <org_id>
         This example removes a group's roles from VMware Aria Automation by groupId and orgId.
-    #>
+
+        .PARAMETER groupId
+        The groupId to remove the roles for.
+
+        .PARAMETER orgId
+        The organization Id to remove the roles for.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -28229,12 +33972,21 @@ Function Set-vRAGroupOrgRole {
         .EXAMPLE
         Set-vRAGroupOrgRole -groupId $groupId -orgId $orgId -orgRole org_member
         This example sets the group as an organization member in VMware Aria Automation by groupId and orgId.
-    #>
+
+        .PARAMETER groupId
+        The groupId to set the organization role for.
+
+        .PARAMETER orgId
+        The organization Id to set the organization role for.
+
+        .PARAMETER orgRole
+        The organization role to set.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
-        [Parameter (Mandatory = $true)] [ValidateSet("org_owner","org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
+        [Parameter (Mandatory = $true)] [ValidateSet("org_owner", "org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
     )
 
     Try {
@@ -28270,12 +34022,21 @@ Function Remove-vRAGroupOrgRole {
         .EXAMPLE
         Remove-vRAGroupOrgRole -groupId $groupId -orgId $orgId -orgRole org_member
         This example removes the group as an organization member in VMware Aria Automation by groupId and orgId.
-    #>
+
+        .PARAMETER groupId
+        The groupId to remove the organization role for.
+
+        .PARAMETER orgId
+        The organization Id to remove the organization role for.
+
+        .PARAMETER orgRole
+        The organization role to remove.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
-        [Parameter (Mandatory = $true)] [ValidateSet("org_owner","org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
+        [Parameter (Mandatory = $true)] [ValidateSet("org_owner", "org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
     )
 
     Try {
@@ -28306,13 +34067,27 @@ Function Set-vRAGroupServiceRole {
         .EXAMPLE
         Set-vRAGroupServiceRole -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
         This example adds the group to a service role in VMware Aria Automation by groupId and orgId.
-    #>
+
+        Note: This cmdlet currently only supports a single serviceRole.
+
+        .PARAMETER serviceRole
+        The service role to be added. Valid values are automationservice:cloud_admin, automationservice:user, automationservice:viewer, catalog:admin, catalog:user, catalog:viewer, CodeStream:administrator, CodeStream:developer, CodeStream:executor, CodeStream:user, CodeStream:viewer, migration:admin, migration:viewer, orchestration:admin, orchestration:designer, orchestration:viewer, saltstack:admin.
+
+        .PARAMETER serviceDefinitionId
+        The service definition id to be added.
+
+        .PARAMETER orgId
+        The organization id to be added.
+
+        .PARAMETER groupId
+        The group id to be added.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceDefinitionId,
-        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin','automationservice:user','automationservice:viewer','catalog:admin','catalog:user','catalog:viewer','CodeStream:administrator','CodeStream:developer','CodeStream:executor','CodeStream:user','CodeStream:viewer','migration:admin','migration:viewer','orchestration:admin','orchestration:designer','orchestration:viewer','saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
+        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin', 'automationservice:user', 'automationservice:viewer', 'catalog:admin', 'catalog:user', 'catalog:viewer', 'CodeStream:administrator', 'CodeStream:developer', 'CodeStream:executor', 'CodeStream:user', 'CodeStream:viewer', 'migration:admin', 'migration:viewer', 'orchestration:admin', 'orchestration:designer', 'orchestration:viewer', 'saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
     )
 
     Try {
@@ -28351,13 +34126,27 @@ Function Remove-vRAGroupServiceRole {
         .EXAMPLE
         Remove-vRAGroupServiceRole -groupId $groupId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
         This example removes the group from a service role in VMware Aria Automation by groupId and orgId.
-    #>
+
+        Note: This cmdlet currently only supports a single serviceRole.
+
+        .PARAMETER serviceRole
+        The service role to be removed. Valid values are automationservice:cloud_admin, automationservice:user, automationservice:viewer, catalog:admin, catalog:user, catalog:viewer, CodeStream:administrator, CodeStream:developer, CodeStream:executor, CodeStream:user, CodeStream:viewer, migration:admin, migration:viewer, orchestration:admin, orchestration:designer, orchestration:viewer, saltstack:admin.
+
+        .PARAMETER serviceDefinitionId
+        The service definition id to be removed.
+
+        .PARAMETER orgId
+        The organization id to be removed.
+
+        .PARAMETER groupId
+        The group id to be removed.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceDefinitionId,
-        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin','automationservice:user','automationservice:viewer','catalog:admin','catalog:user','catalog:viewer','CodeStream:administrator','CodeStream:developer','CodeStream:executor','CodeStream:user','CodeStream:viewer','migration:admin','migration:viewer','orchestration:admin','orchestration:designer','orchestration:viewer','saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
+        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin', 'automationservice:user', 'automationservice:viewer', 'catalog:admin', 'catalog:user', 'catalog:viewer', 'CodeStream:administrator', 'CodeStream:developer', 'CodeStream:executor', 'CodeStream:user', 'CodeStream:viewer', 'migration:admin', 'migration:viewer', 'orchestration:admin', 'orchestration:designer', 'orchestration:viewer', 'saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
     )
 
     Try {
@@ -28400,12 +34189,23 @@ Function Set-vRAUserOrgRole {
         .EXAMPLE
         Set-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole org_member
         This example sets the user as an organization member in VMware Aria Automation by userId and orgId.
-    #>
+
+        Note: This cmdlet currently only supports a single orgRole.
+
+        .PARAMETER orgRole
+        The organization role to be added. Valid values are org_owner, org_member.
+
+        .PARAMETER orgId
+        The organization id to be added.
+
+        .PARAMETER userId
+        The user id to be added.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
-        [Parameter (Mandatory = $true)] [ValidateSet("org_owner","org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
+        [Parameter (Mandatory = $true)] [ValidateSet("org_owner", "org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
     )
 
     Try {
@@ -28441,12 +34241,21 @@ Function Remove-vRAUserOrgRole {
         .EXAMPLE
         Remove-vRAUserOrgRole -userId $userId -orgId $orgId -orgRole org_member
         This example removes the user as an organization member in VMware Aria Automation by userId and orgId.
-    #>
+
+        .PARAMETER orgRole
+        The organization role to be removed. Valid values are org_owner, org_member.
+
+        .PARAMETER orgId
+        The organization id to be removed.
+
+        .PARAMETER userId
+        The user id to be removed.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
-        [Parameter (Mandatory = $true)] [ValidateSet("org_owner","org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
+        [Parameter (Mandatory = $true)] [ValidateSet("org_owner", "org_member")] [ValidateNotNullOrEmpty()] [String]$orgRole
     )
 
     Try {
@@ -28478,13 +34287,27 @@ Function Set-vRAUserServiceRole {
         .EXAMPLE
         Set-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
         This example adds the user to a service role in VMware Aria Automation by userId and orgId.
-    #>
+
+        Note: This cmdlet currently only supports a single serviceRole.
+
+        .PARAMETER serviceRole
+        The service role to be added. Valid values are automationservice:cloud_admin, automationservice:user, automationservice:viewer, catalog:admin, catalog:user, catalog:viewer, CodeStream:administrator, CodeStream:developer, CodeStream:executor, CodeStream:user, CodeStream:viewer, migration:admin, migration:viewer, orchestration:admin, orchestration:designer, orchestration:viewer, saltstack:admin.
+
+        .PARAMETER serviceDefinitionId
+        The service definition id to be added.
+
+        .PARAMETER orgId
+        The organization id to be added.
+
+        .PARAMETER userId
+        The user id to be added.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceDefinitionId,
-        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin','automationservice:user','automationservice:viewer','catalog:admin','catalog:user','catalog:viewer','CodeStream:administrator','CodeStream:developer','CodeStream:executor','CodeStream:user','CodeStream:viewer','migration:admin','migration:viewer','orchestration:admin','orchestration:designer','orchestration:viewer','saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
+        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin', 'automationservice:user', 'automationservice:viewer', 'catalog:admin', 'catalog:user', 'catalog:viewer', 'CodeStream:administrator', 'CodeStream:developer', 'CodeStream:executor', 'CodeStream:user', 'CodeStream:viewer', 'migration:admin', 'migration:viewer', 'orchestration:admin', 'orchestration:designer', 'orchestration:viewer', 'saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
     )
 
     Try {
@@ -28519,13 +34342,27 @@ Function Remove-vRAUserServiceRole {
         .EXAMPLE
         Remove-vRAUserServiceRole -userId $userId -orgId $orgId -serviceDefinitionId $serviceDefinitionId -serviceRole $serviceRole
         This example removes the user from a service role in VMware Aria Automation by userId and orgId.
-    #>
+
+        Note: This cmdlet currently only supports a single serviceRole.
+
+        .PARAMETER serviceRole
+        The service role to be removed. Valid values are automationservice:cloud_admin, automationservice:user, automationservice:viewer, catalog:admin, catalog:user, catalog:viewer, CodeStream:administrator, CodeStream:developer, CodeStream:executor, CodeStream:user, CodeStream:viewer, migration:admin, migration:viewer, orchestration:admin, orchestration:designer, orchestration:viewer, saltstack:admin.
+
+        .PARAMETER serviceDefinitionId
+        The service definition id to be removed.
+
+        .PARAMETER orgId
+        The organization id to be removed.
+
+        .PARAMETER userId
+        The user id to be removed.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceDefinitionId,
-        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin','automationservice:user','automationservice:viewer','catalog:admin','catalog:user','catalog:viewer','CodeStream:administrator','CodeStream:developer','CodeStream:executor','CodeStream:user','CodeStream:viewer','migration:admin','migration:viewer','orchestration:admin','orchestration:designer','orchestration:viewer','saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
+        [Parameter (Mandatory = $true)] [ValidateSet('automationservice:cloud_admin', 'automationservice:user', 'automationservice:viewer', 'catalog:admin', 'catalog:user', 'catalog:viewer', 'CodeStream:administrator', 'CodeStream:developer', 'CodeStream:executor', 'CodeStream:user', 'CodeStream:viewer', 'migration:admin', 'migration:viewer', 'orchestration:admin', 'orchestration:designer', 'orchestration:viewer', 'saltstack:admin')] [ValidateNotNullOrEmpty()] [String]$serviceRole
     )
 
     Try {
@@ -28552,15 +34389,27 @@ Export-ModuleMember -Function Remove-vRAUserServiceRole
 Function Add-vRAIntegrationItem {
     <#
         .SYNOPSIS
-        Add external systems to VMware Aria Automation
+        Add external systems to VMware Aria Automation.
 
         .DESCRIPTION
         The Add-vRAIntegrationItem cmdlet adds external systems to VMware Aria Automation
 
         .EXAMPLE
         Add-vRAIntegrationItem -integrationType "vrops" -integrationName "VMware Aria Operations" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"
-        This example creates VMware Aria Operations integration with name "VMware Aria Operations"
-    #>
+        This example creates VMware Aria Operations integration with name "VMware Aria Operations".
+
+        .PARAMETER integrationType
+        The type of integration to be added. Valid values are vrops.
+
+        .PARAMETER integrationName
+        The name of the integration to be added.
+
+        .PARAMETER integrationUser
+        The username of the integration to be added.
+
+        .PARAMETER integrationPassword
+        The password of the integration to be added.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -28588,15 +34437,27 @@ Export-ModuleMember -Function Add-vRAIntegrationItem
 Function Test-vRAIntegrationItem {
     <#
         .SYNOPSIS
-        Test an Integration Item in VMware Aria Automation
+        Test an Integration Item in VMware Aria Automation.
 
         .DESCRIPTION
         The Test-vRAIntegrationItem cmdlet validates the given credential and certificate of an intergarion item
 
         .EXAMPLE
         Test-vRAIntegrationItem -integrationType "vrops" -integrationName "VMware Aria Operations" -integrationUser "svc-vra-vrops@sfo.rainpole.io@vIDMAuthSource" -integrationPassword "VMw@re1!"   
-        This example validates VMware Aria Operations integration in VMware Aria Automation
-    #>
+        This example validates VMware Aria Operations integration in VMware Aria Automation.
+
+        .PARAMETER integrationType
+        The type of integration to be tested. Valid values are vrops.
+
+        .PARAMETER integrationName
+        The name of the integration to be tested.
+
+        .PARAMETER integrationUser
+        The username of the integration to be tested.
+
+        .PARAMETER integrationPassword
+        The password of the integration to be tested.
+   #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -28657,15 +34518,21 @@ Export-ModuleMember -Function Test-vRAIntegrationItem
 Function Remove-vRAIntegrationItem {
     <#
         .SYNOPSIS
-        Remove an Integration Item from VMware Aria Automation
+        Remove an Integration Item from VMware Aria Automation.
 
         .DESCRIPTION
         The Remove-vRAIntegrationItem cmdlet removes the given Integration Item from VMware Aria Automation
 
         .EXAMPLE
         Remove-vRAIntegrationItem -integrationType vrops -integrationId "instacenID" 
-        This example removes VMware Aria Operations integration from VMware Aria Automation
-    #>
+        This example removes VMware Aria Operations integration from VMware Aria Automation.
+
+        .PARAMETER integrationType
+        The type of integration to be removed. Valid values are vrops.
+
+        .PARAMETER integrationId
+        The ID of the integration to be removed.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -28702,7 +34569,7 @@ Export-ModuleMember -Function Remove-vRAIntegrationItem
 Function Invoke-vRORestMethod {
     <#
         .SYNOPSIS
-        A wrapper for Invoke-RestMethod for use with VMware Aria Automation Orchestrator
+        A wrapper for Invoke-RestMethod for use with VMware Aria Automation Orchestrator.
 
         .DESCRIPTION
         The Invoke-RestMethod cmdlet is a wrapper for Invoke-RestMethod use with VMware Aria Automation Orchestrator 
@@ -28735,8 +34602,23 @@ Function Invoke-vRORestMethod {
         Invoke-vRORestMethod -method $method -uri $uri -body $body -webRequest
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER method
+        The HTTP method to use. Valid values are GET, POST, PUT, and DELETE.
+
+        .PARAMETER uri
+        The URI to send the request to.
+
+        .PARAMETER body
+        The body of the request.
+
+        .PARAMETER outFile
+        The file to write the response to.
+
+        .PARAMETER webRequest
+        Use Invoke-WebRequest instead of Invoke-RestMethod.
+   #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
@@ -28795,8 +34677,8 @@ function Get-vROVersion {
         Get-vROVersion 
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+   #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
     
@@ -28809,10 +34691,10 @@ function Get-vROVersion {
         $response = Invoke-vRORestMethod -method 'GET' -uri $uri
         $version = $response.version
         [pscustomobject] @{
-            Version = $version
+            Version     = $version
             BuildNumber = $response."build-number"
-            BuildDate = $response."build-date"
-            APIVersion = $response."api-version"
+            BuildDate   = $response."build-date"
+            APIVersion  = $response."api-version"
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -28823,7 +34705,7 @@ Export-ModuleMember -Function Get-vROVersion
 Function Get-vROWorkflow {
     <#
         .SYNOPSIS
-        Get VMware Aria Automation Orchestrator workflows
+        Get VMware Aria Automation Orchestrator workflows.
 
         .DESCRIPTION
         The Get-vROWorkflow cmdlet returns details for VMware Aria Automation Orchestrator workflows
@@ -28850,8 +34732,26 @@ Function Get-vROWorkflow {
         Get-vROWorkflow -tag 'foo'
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER categoryName
+        The name of the category to filter by.
+
+        .PARAMETER categoryId
+        The ID of the category to filter by.
+
+        .PARAMETER id
+        The ID of the workflow to retrieve.
+
+        .PARAMETER name
+        The name of the workflow to retrieve.
+
+        .PARAMETER wildcard
+        Use wildcard matching for the name parameter.
+
+        .PARAMETER tag
+        The tag to filter by.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "All")][OutputType('System.Management.Automation.PSObject')]
 
@@ -28887,8 +34787,7 @@ Function Get-vROWorkflow {
             "name" {
                 if ($PSBoundParameters.ContainsKey('wildcard')) {
                     $uri = "/vco/api/workflows/?conditions=name~$($name)"
-                }
-                else {
+                } else {
                     $uri = "/vco/api/workflows/?conditions=name=$($name)"
                 }
                 break
@@ -28977,7 +34876,7 @@ Export-ModuleMember -Function Get-vROWorkflow
 Function Invoke-vROWorkflow {
     <#
         .SYNOPSIS
-        Invoke a VMware Aria Automation Orchestrator workflow
+        Invoke a VMware Aria Automation Orchestrator workflow.
 
         .DESCRIPTION
         The Invoke-vROWorkflow cmdlet starts a VMware Aria Automation Orchestrator workflow
@@ -29018,8 +34917,23 @@ Function Invoke-vROWorkflow {
         Get-vROWorkflow -name 'foo' | Invoke-vROWorkflow -parameterName 'foo' -parameterValue 'bar' -parameterType string
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER ID
+        The ID of the workflow to invoke.
+
+        .PARAMETER parameterName
+        The name of the parameter.
+
+        .PARAMETER parameterValue
+        The value of the parameter.
+
+        .PARAMETER parameterType
+        The type of the parameter.
+
+        .PARAMETER parameters
+        An array of parameters to pass to the workflow.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
@@ -29103,22 +35017,34 @@ Function New-vROParameterDefinition {
         Invoke-vROWorkflow -id 697c8755-15c0-44fc-b409-5c562cf2984e -parameters $param1
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER name
+        The name of the parameter.
+
+        .PARAMETER value
+        The value of the parameter.
+
+        .PARAMETER type
+        The type of the parameter.
+
+        .PARAMETER scope
+        The scope of the parameter.
+   #>
 
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "Low")][OutputType('System.Management.Automation.PSObject')]
 
     Param (
-    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
-    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$value,
-    [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$type,   
-    [Parameter (Mandatory = $false)] [ValidateSet("LOCAL", "TOKEN")] [String]$scope = "LOCAL"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$value,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$type,   
+        [Parameter (Mandatory = $false)] [ValidateSet("LOCAL", "TOKEN")] [String]$scope = "LOCAL"
     )  
 
     Begin {} 
     Process {
         Try {
-            if ($PSCmdlet.ShouldProcess("WorkflowParameterDefinition")){
+            if ($PSCmdlet.ShouldProcess("WorkflowParameterDefinition")) {
                 $parameterDefinition = @"
 {
     "name": "$($name)",
@@ -29143,7 +35069,7 @@ Export-ModuleMember -Function New-vROParameterDefinition
 Function Get-vROWorkflowExecution {
     <#
         .SYNOPSIS
-        Get VMware Aria Automation Orchestrator workflow executions
+        Get VMware Aria Automation Orchestrator workflow executions.
 
         .DESCRIPTION
         The Get-vROWorkflowExecution cmdlet returns the execution runs for a VMware Aria Automation Orchestrator workflow
@@ -29158,8 +35084,14 @@ Function Get-vROWorkflowExecution {
         Get-vROWorkflow -name 'foo' | Get-vROWorkflowExecution
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER id
+        The ID of the workflow.
+
+        .PARAMETER name
+        The name of the workflow.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "Name")][OutputType('System.Management.Automation.PSObject')]
 
@@ -29200,7 +35132,7 @@ Export-ModuleMember -Function Get-vROWorkflowExecution
 Function Get-vROWorkflowExecutionState {
     <#
         .SYNOPSIS
-        Get VMware Aria Automation Orchestrator workflow execution state
+        Get VMware Aria Automation Orchestrator workflow execution state.
 
         .DESCRIPTION
         The Get-vROWorkflowExecutionState cmdlet returns the status of VMware Aria Automation Orchestrator workflow execution runs
@@ -29212,8 +35144,11 @@ Function Get-vROWorkflowExecutionState {
         Get-vROWorkflowExecution -id 697c8755-15c0-44fc-b409-5c562cf2984e | Select-Object -last 1 | Get-vROWorkflowExecutionState
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER executionStateRef
+        The execution state reference of the workflow execution.
+   #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
@@ -29246,7 +35181,7 @@ Export-ModuleMember -Function Get-vROWorkflowExecutionState
 Function Get-vROWorkflowExecutionResult {
     <#
         .SYNOPSIS
-        Get VMware Aria Automation Orchestrator workflow execution result
+        Get VMware Aria Automation Orchestrator workflow execution result.
 
         .DESCRIPTION
         The Get-vROWorkflowExecutionResult cmdlet returns the results of VMware Aria Automation Orchestrator workflow execution runs
@@ -29258,8 +35193,11 @@ Function Get-vROWorkflowExecutionResult {
         Get-vROWorkflow -name 'foo' | Get-vROWorkflowExecution | Select-Object -last 1 | Get-vROWorkflowExecutionResult
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER executionRef
+        The execution reference of the workflow execution.
+   #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
@@ -29302,7 +35240,7 @@ Export-ModuleMember -Function Get-vROWorkflowExecutionResult
 Function Request-vROPSToken {
     <#
         .SYNOPSIS
-        Connects to the specified VMware Aria Operations and obtains authorization token
+        Connects to the specified VMware Aria Operations and obtains authorization token.
 
         .DESCRIPTION
         The Request-vROPSToken cmdlet connects to the specified VMware Aria Operations and obtains an authorization token.
@@ -29310,8 +35248,17 @@ Function Request-vROPSToken {
 
         .EXAMPLE
         Request-vROPSToken -fqdn xint-vrops01.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the VMware Aria Operations appliance
-    #>
+        This example shows how to connect to the VMware Aria Operations appliance.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to use for authentication.
+
+        .PARAMETER password
+        The password to use for authentication.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -29354,7 +35301,7 @@ Export-ModuleMember -Function Request-vROPSToken
 Function Get-vROPSVersion {
     <#
         .SYNOPSIS
-        Get version informartion
+        Get version informartion.
 
         .DESCRIPTION
         The Get-vROPSVersion cmdlet gets version information for VMware Aria Operations
@@ -29365,8 +35312,11 @@ Function Get-vROPSVersion {
 
         .EXAMPLE
         Get-vROPSVersion -all
-        This example gets a list of all versions supported by the service
-    #>
+        This example gets a list of all versions supported by the service.
+
+        .PARAMETER all
+        Get all versions supported by the service.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$all
@@ -29391,7 +35341,7 @@ Export-ModuleMember -Function Get-vROPSVersion
 Function Get-vROPSCollector {
     <#
         .SYNOPSIS
-        Get list of collectors
+        Get list of collectors.
 
         .DESCRIPTION
         The Get-vROPSCollector cmdlet gets a list of collectors in VMware Aria Operations
@@ -29402,8 +35352,11 @@ Function Get-vROPSCollector {
 
         .EXAMPLE
         Get-vROPSCollector -id <id>
-        This example gets details of a collector by its ID
-    #>
+        This example gets details of a collector by its ID.
+
+        .PARAMETER id
+        The ID of the collector to get details for.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29428,7 +35381,7 @@ Export-ModuleMember -Function Get-vROPSCollector
 Function Get-vROPSCollectorGroup {
     <#
         .SYNOPSIS
-        Get list of collector groups
+        Get list of collector groups.
 
         .DESCRIPTION
         The Get-vROPSCollectorGroup cmdlet gets a list of collector groups in VMware Aria Operations
@@ -29439,8 +35392,11 @@ Function Get-vROPSCollectorGroup {
 
         .EXAMPLE
         Get-vROPSCollectorGroup -id <id>
-        This example gets details of a collector by its ID
-    #>
+        This example gets details of a collector by its ID.
+
+        .PARAMETER id
+        The ID of the collector group to get details for.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29465,15 +35421,24 @@ Export-ModuleMember -Function Get-vROPSCollectorGroup
 Function Add-vROPSCollectorGroup {
     <#
         .SYNOPSIS
-        Add a collector group
+        Add a collector group.
 
         .DESCRIPTION
         The Add-vROPSCollectorGroup cmdlet adds a collector group in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSCollectorGroup -name sfo-remote-collectors -description "Collector Group for SFO" -collectorIds "1,2"
-        This example gets a list of collector groups
-    #>
+        This example gets a list of collector groups.
+
+        .PARAMETER name
+        The name of the collector group.
+
+        .PARAMETER description
+        The description of the collector group.
+
+        .PARAMETER collectorIds
+        The IDs of the collectors to add to the group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -29498,15 +35463,18 @@ Export-ModuleMember -Function Add-vROPSCollectorGroup
 Function Remove-vROPSCollectorGroup {
     <#
         .SYNOPSIS
-        Delete a collector group
+        Delete a collector group.
 
         .DESCRIPTION
         The Remove-vROPSCollectorGroup cmdlet deletes a collector group in VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSCollectorGroup -id 
-        This example deletes a gollector group
-    #>
+        This example deletes a gollector group.
+
+        .PARAMETER id
+        The ID of the collector group to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29524,7 +35492,7 @@ Export-ModuleMember -Function Remove-vROPSCollectorGroup
 Function Get-vROPSAdapter {
     <#
         .SYNOPSIS
-        Get list of adapters
+        Get list of adapters.
 
         .DESCRIPTION
         The Get-vROPSAdapter cmdlet gets a list of adapters in VMware Aria Operations
@@ -29535,8 +35503,11 @@ Function Get-vROPSAdapter {
 
         .EXAMPLE
         Get-vROPSAdapter -id <id>
-        This example gets details of an adapter by its ID
-    #>
+        This example gets details of an adapter by its ID.
+
+        .PARAMETER id
+        The ID of the adapter to get details for.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29561,15 +35532,21 @@ Export-ModuleMember -Function Get-vROPSAdapter
 Function Set-vROPSAdapter {
     <#
         .SYNOPSIS
-        Update an adapter
+        Update an adapter.
 
         .DESCRIPTION
         The Set-vROPSAdapter cmdlet updates the adapters configuration in VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSAdapter -json .\adapterJson
-        This example updates the details of an adapter
-    #>
+        This example updates the details of an adapter.
+
+        .PARAMETER json
+        The JSON file to use for the update.
+
+        .PARAMETER patch
+        Patch the adapter based on the response from the test.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -29601,15 +35578,18 @@ Export-ModuleMember -Function Set-vROPSAdapter
 Function Add-vROPSAdapter {
     <#
         .SYNOPSIS
-        Add an adapter
+        Add an adapter.
 
         .DESCRIPTION
         The Add-vROPSAdapter cmdlet adds an adapter to VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAdapter -json .\addAdapter.json
-        This example adds an adapter useing the json specification file
-    #>
+        This example adds an adapter useing the json specification file.
+
+        .PARAMETER json
+        The JSON file to use for the add.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -29635,15 +35615,18 @@ Export-ModuleMember -Function Add-vROPSAdapter
 Function Remove-vROPSAdapter {
     <#
         .SYNOPSIS
-        Delete an adapters
+        Delete an adapters.
 
         .DESCRIPTION
         The Remove-vROPSAdapter cmdlet deletes an adapters from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSAdapter -id <id>
-        This example deletes the adapter based on its ID
-    #>
+        This example deletes the adapter based on its ID.
+
+        .PARAMETER id
+        The ID of the adapter to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29662,7 +35645,7 @@ Export-ModuleMember -Function Remove-vROPSAdapter
 Function Test-vROPSAdapterConnection {
     <#
         .SYNOPSIS
-        Test adapter connection
+        Test adapter connection.
 
         .DESCRIPTION
         The Test-vROPSAdapterConnection cmdlet tests the connection in VMware Aria Operations
@@ -29673,8 +35656,14 @@ Function Test-vROPSAdapterConnection {
 
         .EXAMPLE
         Test-vROPSAdapterConnection -json <json> -patch 
-        This example patches the adapter based on the response from the test in JSON format
-    #>
+        This example patches the adapter based on the response from the test in JSON format.
+
+        .PARAMETER json
+        The JSON file to use for the test.
+
+        .PARAMETER patch
+        Patch the adapter based on the response from the test.
+   #>
 
 
     Param (
@@ -29707,15 +35696,18 @@ Export-ModuleMember -Function Test-vROPSAdapterConnection
 Function Start-vROPSAdapter {
     <#
         .SYNOPSIS
-        Starts collection of adapter
+        Starts collection of adapter.
 
         .DESCRIPTION
         The Start-vROPSAdapter cmdlet starts the collection of an adapter in VMware Aria Operations
 
         .EXAMPLE
         Start-vROPSAdapter -adpaterId <id>
-        This example starts the adpater by id
-    #>
+        This example starts the adpater by id.
+
+        .PARAMETER adapterId
+        The ID of the adapter to start.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterId
@@ -29733,15 +35725,18 @@ Export-ModuleMember -Function Start-vROPSAdapter
 Function Stop-vROPSAdapter {
     <#
         .SYNOPSIS
-        Stops collection of adapter
+        Stops collection of adapter.
 
         .DESCRIPTION
         The Stop-vROPSAdapter cmdlet starts the collection of an adapter in VMware Aria Operations
 
         .EXAMPLE
         Stop-vROPSAdapter -adpaterId <id>
-        This example starts the adpater by id
-    #>
+        This example starts the adpater by id.
+
+        .PARAMETER adapterId
+        The ID of the adapter to stop.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterId
@@ -29760,7 +35755,7 @@ Export-ModuleMember -Function Stop-vROPSAdapter
 Function Get-vROPSAdapterKind {
     <#
         .SYNOPSIS
-        Get list of adapter kinds
+        Get list of adapter kinds.
 
         .DESCRIPTION
         The Get-vROPSAdapterKind cmdlet gets a list of adapter kinds in VMware Aria Operations
@@ -29771,11 +35766,14 @@ Function Get-vROPSAdapterKind {
 
         .EXAMPLE
         Get-vROPSAdapterKind -kind VMWARE
-        This example gets details of an resource kinds for the VMWARE adapter kind
-    #>
+        This example gets details of an resource kinds for the VMWARE adapter kind.
+
+        .PARAMETER adapterKind
+        The adapter kind to get resource kinds for.
+   #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateSet("Container","EP Ops Adapter","Http Post","LogInsight","MicrosoftAzureAdapter","AmazonAWSAdapter","NSXTAdapter","PingAdapter","SDDCHealthAdapter","APPLICATIONDISCOVERY","VMWARE","VmcAdapter","IdentityManagerAdapter","APPOSUCP","VOAAdapter","CASAdapter","LogInsightAdapter","NETWORK_INSIGHT","vCenter Operations Adapter","vRealizeOpsMgrAPI","VirtualAndPhysicalSANAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
+        [Parameter (Mandatory = $false)] [ValidateSet("Container", "EP Ops Adapter", "Http Post", "LogInsight", "MicrosoftAzureAdapter", "AmazonAWSAdapter", "NSXTAdapter", "PingAdapter", "SDDCHealthAdapter", "APPLICATIONDISCOVERY", "VMWARE", "VmcAdapter", "IdentityManagerAdapter", "APPOSUCP", "VOAAdapter", "CASAdapter", "LogInsightAdapter", "NETWORK_INSIGHT", "vCenter Operations Adapter", "vRealizeOpsMgrAPI", "VirtualAndPhysicalSANAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
     )
 
     Try {
@@ -29797,15 +35795,24 @@ Export-ModuleMember -Function Get-vROPSAdapterKind
 Function Get-vROPSResourceDetail {
     <#
         .SYNOPSIS
-        Get resource detail
+        Get resource detail.
 
         .DESCRIPTION
         The Get-vROPSResourceDetail cmdlet gets the details for a resource from VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSResourceDetail -adapter VMWARE -resource Datacenter -objectName sfo-m01-dc01
-        This example gets the resource details
-    #>
+        This example gets the resource details.
+
+        .PARAMETER adapter
+        The adapter to get the resource from.
+
+        .PARAMETER resource
+        The resource to get the details for.
+
+        .PARAMETER objectName
+        The name of the object to get the details for.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapter,
@@ -29826,15 +35833,24 @@ Export-ModuleMember -Function Get-vROPSResourceDetail
 Function Get-vROPSCredential {
     <#
         .SYNOPSIS
-        Get credentials
+        Get credentials.
 
         .DESCRIPTION
         The Get-vROPSCredential cmdlet gets credentials from VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSCredential
-        This example gets all credentials from VMware Aria Operations
-    #>
+        This example gets all credentials from VMware Aria Operations.
+
+        .PARAMETER credentialId
+        The ID of the credential to get.
+
+        .PARAMETER adapter
+        The adapter to get credentials for.
+
+        .PARAMETER resource
+        The resource to get credentials for.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$credentialId,
@@ -29869,15 +35885,18 @@ Export-ModuleMember -Function Get-vROPSCredential
 Function Add-vROPSCredential {
     <#
         .SYNOPSIS
-        Add a credential
+        Add a credential.
 
         .DESCRIPTION
         The Add-vROPSCredential cmdlet adds a credential to VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSCredential -json .\credentialJson
-        This example adds a new credential
-    #>
+        This example adds a new credential.
+
+        .PARAMETER json
+        The JSON file containing the credential details.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -29903,15 +35922,18 @@ Export-ModuleMember -Function Add-vROPSCredential
 Function Remove-vROPSCredential {
     <#
         .SYNOPSIS
-        Delete a credential
+        Delete a credential.
 
         .DESCRIPTION
         The Remove-vROPSCredential cmdlet deletes a credential from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSCredential -credentialId <id>
-        This example deletes a credential
-    #>
+        This example deletes a credential.
+
+        .PARAMETER credentialId
+        The ID of the credential to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialId
@@ -29929,15 +35951,15 @@ Export-ModuleMember -Function Remove-vROPSCredential
 Function Get-vROPSCurrency {
     <#
         .SYNOPSIS
-        Get the currency configuration
+        Get the currency configuration.
 
         .DESCRIPTION
         The Get-vROPSCurrency cmdlet gets the currency configuration for VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSCurrency
-        This example gets the currency configuration for VMware Aria Operations
-    #>
+        This example gets the currency configuration for VMware Aria Operations.
+   #>
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/costconfig/currency"
@@ -29952,7 +35974,7 @@ Export-ModuleMember -Function Get-vROPSCurrency
 Function Set-vROPSCurrency {
     <#
         .SYNOPSIS
-        Applies the currency configuration
+        Applies the currency configuration.
 
         .DESCRIPTION
         The Set-vROPSCurrency cmdlet applies the currency configuration for VMware Aria Operations.
@@ -29960,8 +35982,11 @@ Function Set-vROPSCurrency {
 
         .EXAMPLE
         Set-vROPSCurrency
-        This example gets the currency configuration for VMware Aria Operations
-    #>
+        This example gets the currency configuration for VMware Aria Operations.
+
+        .PARAMETER currency
+        The currency code to apply.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$currency
@@ -29970,7 +35995,7 @@ Function Set-vROPSCurrency {
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/costconfig/currency"
         $body = '{
-            "code" : "'+ $currency +'"
+            "code" : "'+ $currency + '"
         }'
         $response = Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vropsHeaders -Body $body
         $response
@@ -29983,7 +36008,7 @@ Export-ModuleMember -Function Set-vROPSCurrency
 Function Get-vROPSSolution {
     <#
         .SYNOPSIS
-        Get list of solutions
+        Get list of solutions.
 
         .DESCRIPTION
         The Get-vROPSSolution cmdlet gets a list of solutions in VMware Aria Operations
@@ -29994,8 +36019,17 @@ Function Get-vROPSSolution {
 
         .EXAMPLE
         Get-vROPSSolution -solutionId "vSphere"
-        This example gets a list of all solutions
-    #>
+        This example gets a list of all solutions.
+
+        .PARAMETER solutionId
+        The ID of the solution to get details for.
+
+        .PARAMETER adapterKind
+        The ID of the solution to get details for.
+
+        .PARAMETER license
+        The ID of the solution to get details for.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$solutionId,
@@ -30030,15 +36064,27 @@ Export-ModuleMember -Function Get-vROPSSolution
 Function Import-vROPSManagementPack {
     <#
         .SYNOPSIS
-        Upload a management pack
+        Upload a management pack.
 
         .DESCRIPTION
         The Import-vROPSManagementPack cmdlet uploads a management pack into VMware Aria Operations
 
         .EXAMPLE
         Import-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pak .\managementPack.pak
-        This example uploads the management pack provided to VMware Aria Operations
-    #>
+        This example uploads the management pack provided to VMware Aria Operations.
+
+        .PARAMETER server
+        The FQDN or IP address of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER password
+        The password to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER pak
+        The path to the management pack file to upload.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -30087,15 +36133,27 @@ Export-ModuleMember -Function Import-vROPSManagementPack
 Function Install-vROPSManagementPack {
     <#
         .SYNOPSIS
-        Install a management pack
+        Install a management pack.
 
         .DESCRIPTION
         The Install-vROPSManagementPack cmdlet installs a management pack in VMware Aria Operations
 
         .EXAMPLE
         Install-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId SDDCHealth-8115995854
-        This example installs the management pack in VMware Aria Operations
-    #>
+        This example installs the management pack in VMware Aria Operations.
+
+        .PARAMETER server
+        The FQDN or IP address of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER password
+        The password to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER pakId
+        The ID of the management pack to install.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -30120,7 +36178,7 @@ Export-ModuleMember -Function Install-vROPSManagementPack
 Function Set-vROPSManagementPack {
     <#
         .SYNOPSIS
-        Activate / Deactivate a management pack
+        Activate / Deactivate a management pack.
 
         .DESCRIPTION
         The Set-vROPSManagementPack cmdlet activates or deactivates a management pack in VMware Aria Operations
@@ -30130,8 +36188,26 @@ Function Set-vROPSManagementPack {
         This example activates the Ping management pack in VMware Aria Operations
 
         Set-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId PingAdapter -version "8.4.0.17863953" -status disable
-        This example deactivates the Ping management pack in VMware Aria Operations
-    #>
+        This example deactivates the Ping management pack in VMware Aria Operations.
+
+        .PARAMETER server
+        The FQDN or IP address of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER password
+        The password to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER pakId
+        The ID of the management pack to activate or deactivate.
+
+        .PARAMETER version
+        The version of the management pack to activate or deactivate.
+
+        .PARAMETER status
+        The status to set the management pack to. Valid values are enable or disable.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -30139,7 +36215,7 @@ Function Set-vROPSManagementPack {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pakId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$version,
-        [Parameter (Mandatory = $true)] [ValidateSet("enable","disable")] [ValidateNotNullOrEmpty()] [String]$status
+        [Parameter (Mandatory = $true)] [ValidateSet("enable", "disable")] [ValidateNotNullOrEmpty()] [String]$status
     )
 
     Try {
@@ -30148,8 +36224,8 @@ Function Set-vROPSManagementPack {
         $vropsBasicHeaders.Add("Authorization", "Basic $base64AuthInfo")
         $vropsBasicHeaders.Add("Content-Type", "application/json")
         $body = '{
-            "pak_id" : "'+ $pakId +'",
-            "version" : "'+ $version +'",
+            "pak_id" : "'+ $pakId + '",
+            "version" : "'+ $version + '",
             "force_content_update": true
         }'
         $response = Invoke-RestMethod "https://$server/casa/upgrade/cluster/pak/operation/$status" -Method 'POST' -Headers $vropsBasicHeaders -Body $body
@@ -30163,15 +36239,24 @@ Export-ModuleMember -Function Set-vROPSManagementPack
 Function Get-vROPSManagementPack {
     <#
         .SYNOPSIS
-        Get installed management packs
+        Get installed management packs.
 
         .DESCRIPTION
         The Get-vROPSManagementPack cmdlet gets a list of installed management packs in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSManagementPack -server xint-vrops01.rainpole.io -username admin -password VMw@re1!
-        This example gets a list of all the management packs installed in VMware Aria Operations
-    #>
+        This example gets a list of all the management packs installed in VMware Aria Operations.
+
+        .PARAMETER server
+        The FQDN or IP address of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER password
+        The password to authenticate to the VMware Aria Operations appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -30195,15 +36280,27 @@ Export-ModuleMember -Function Get-vROPSManagementPack
 Function Get-vROPSManagementPackStatus {
     <#
         .SYNOPSIS
-        Get install status of management pack
+        Get install status of management pack.
 
         .DESCRIPTION
         The Get-vROPSManagementPackStatus cmdlet gets the status of the install of a management pack in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSManagementPackStatus -server xint-vrops01.rainpole.io -username admin -password VMw@re1! -pakId SDDCHealth-8115995854
-        This example uploads the management pack provided to VMware Aria Operations
-    #>
+        This example uploads the management pack provided to VMware Aria Operations.
+
+        .PARAMETER server
+        The FQDN or IP address of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER password
+        The password to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER pakId
+        The ID of the management pack to get the status of.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -30227,15 +36324,24 @@ Export-ModuleMember -Function Get-vROPSManagementPackStatus
 Function Get-vROPSManagementPackActivity {
     <#
         .SYNOPSIS
-        Get current activity
+        Get current activity.
 
         .DESCRIPTION
         The Get-vROPSManagementPackActivity cmdlet gets the current activity for management packs in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSManagementPackActivity -server xint-vrops01.rainpole.io -username admin -password VMw@re1!
-        This example gets the current management pack activity in VMware Aria Operations
-    #>
+        This example gets the current management pack activity in VMware Aria Operations.
+
+        .PARAMETER server
+        The FQDN or IP address of the VMware Aria Operations appliance.
+
+        .PARAMETER username
+        The username to authenticate to the VMware Aria Operations appliance.
+
+        .PARAMETER password
+        The password to authenticate to the VMware Aria Operations appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -30259,15 +36365,15 @@ Export-ModuleMember -Function Get-vROPSManagementPackActivity
 Function Get-vROPSAlertPlugin {
     <#
         .SYNOPSIS
-        Get the alert plugins
+        Get the alert plugins.
 
         .DESCRIPTION
         The Get-vROPSAlertPlugin cmdlet gets the configured alert plugins in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAlertPlugin
-        This example gets a list of the alert plugins configure in VMware Aria Operations
-    #>
+        This example gets a list of the alert plugins configure in VMware Aria Operations.
+   #>
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins"
@@ -30282,15 +36388,18 @@ Export-ModuleMember -Function Get-vROPSAlertPlugin
 Function Add-vROPSAlertPlugin {
     <#
         .SYNOPSIS
-        Create an alert plugin
+        Create an alert plugin.
 
         .DESCRIPTION
         The Add-vROPSAlertPlugin cmdlet creates a new alert plugin in VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSAlertPlugin -json .\alertPlugin.json
-        This example adds a new alert plugin based on the JSON provide to VMware Aria Operations
-    #>
+        This example adds a new alert plugin based on the JSON provide to VMware Aria Operations.
+
+        .PARAMETER json
+        The JSON file containing the alert plugin configuration.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -30316,15 +36425,18 @@ Export-ModuleMember -Function Add-vROPSAlertPlugin
 Function Set-vROPSAlertPlugin {
     <#
         .SYNOPSIS
-        Updates an alert plugin
+        Updates an alert plugin.
 
         .DESCRIPTION
         The Set-vROPSAlertPlugin cmdlet updates an existing alert plugin in VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSAlertPlugin -json .\alertPluginUpdate.json
-        This example updates the configuration of an existing alert plugin based on the JSON provide to VMware Aria Operations
-    #>
+        This example updates the configuration of an existing alert plugin based on the JSON provide to VMware Aria Operations.
+
+        .PARAMETER json
+        The JSON file containing the alert plugin configuration.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -30350,15 +36462,18 @@ Export-ModuleMember -Function Set-vROPSAlertPlugin
 Function Remove-vROPSAlertPlugin {
     <#
         .SYNOPSIS
-        Delete an alert plugin
+        Delete an alert plugin.
 
         .DESCRIPTION
         The Remove-vROPSAlertPlugin cmdlet deletes an existing alert plugin from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSAlertPlugin -plugId <plugin_id>
-        This example deletes the alert plugin with the plugin ID provide to VMware Aria Operations
-    #>
+        This example deletes the alert plugin with the plugin ID provide to VMware Aria Operations.
+
+        .PARAMETER pluginId
+        The ID of the alert plugin to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pluginId
@@ -30377,7 +36492,7 @@ Export-ModuleMember -Function Remove-vROPSAlertPlugin
 Function Get-vROPSAlertDefinition {
     <#
         .SYNOPSIS
-        Get collection of alert definitions matching the search criteria specified
+        Get collection of alert definitions matching the search criteria specified.
 
         .DESCRIPTION
         The Get-vROPSAlertDefinition cmdlet gets collection of alert definitions matching the search criteria specified
@@ -30397,8 +36512,17 @@ Function Get-vROPSAlertDefinition {
 
         .EXAMPLE
         Get-vROPSAlertDefinition -resourceKind "Protection Groups"
-        This example gets all alert definitions for the resource type SrmAdapter
-    #>
+        This example gets all alert definitions for the resource type SrmAdapter.
+
+        .PARAMETER id
+        The ID of the alert definition to get.
+
+        .PARAMETER adapterKind
+        The adapter kind of the alert definition to get.
+
+        .PARAMETER resourceKind
+        The resource kind of the alert definition to get.
+   #>
 
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
@@ -30436,19 +36560,25 @@ Export-ModuleMember -Function Get-vROPSAlertDefinition
 Function Set-vROPSAlertPluginStatus {
     <#
         .SYNOPSIS
-        Enable/Disable alert plugin
+        Enable/Disable alert plugin.
 
         .DESCRIPTION
         The Set-vROPSAlertPluginStatus cmdlet Enables/Disables an existing alert plugin from VMware Aria Operations
 
         .EXAMPLE
         Set-vROPSAlertPluginStatus -plugId <plugin_id> -status true
-        This example deletes the alert plugin with the plugin ID provide to VMware Aria Operations
-    #>
+        This example deletes the alert plugin with the plugin ID provide to VMware Aria Operations.
+
+        .PARAMETER pluginId
+        The ID of the alert plugin to enable/disable.
+
+        .PARAMETER status
+        The status of the alert plugin to enable/disable.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pluginId,
-        [Parameter (Mandatory = $true)] [ValidateSet("false","true")] [ValidateNotNullOrEmpty()] [String]$status
+        [Parameter (Mandatory = $true)] [ValidateSet("false", "true")] [ValidateNotNullOrEmpty()] [String]$status
     )
 
     Try {
@@ -30464,7 +36594,7 @@ Export-ModuleMember -Function Set-vROPSAlertPluginStatus
 Function Get-vROPSAuthSource {
     <#
         .SYNOPSIS
-        Get all the available authentication sources in the system
+        Get all the available authentication sources in the system.
 
         .DESCRIPTION
         The Get-vROPSAuthSource cmdlet gets all the available authentication sources in VMware Aria Operations
@@ -30475,8 +36605,11 @@ Function Get-vROPSAuthSource {
 
         .EXAMPLE
         Get-vROPSAuthSource -sourceId <source_id>
-        This example gets detailed information about the provided authentication source
-    #>
+        This example gets detailed information about the provided authentication source.
+
+        .PARAMETER sourceId
+        The ID of the authentication source to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId
@@ -30501,15 +36634,18 @@ Export-ModuleMember -Function Get-vROPSAuthSource
 Function Get-vROPSAuthRole {
     <#
         .SYNOPSIS
-        Get all the roles available in the system
+        Get all the roles available in the system.
 
         .DESCRIPTION
         The Get-vROPSAuthRole cmdlet gets all the roles available in VMware Aria Operations
 
         .EXAMPLE
         Get-vROPSAuthRole
-        This example gets all the roles available
-    #>
+        This example gets all the roles available.
+
+        .PARAMETER name
+        The name of the role to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
@@ -30554,7 +36690,16 @@ Function Get-vROPSUserAccount {
         .EXAMPLE
         Get-vROPSUserAccount -roleName <userAccount_roleName>
         This example gets detailed information about the user account using the role name.
-    #>
+
+        .PARAMETER id
+        The ID of the user account to get.
+
+        .PARAMETER username
+        The username of the user account to get.
+
+        .PARAMETER roleName
+        The role name of the user account to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -30589,7 +36734,7 @@ Export-ModuleMember -Function Get-vROPSUserAccount
 Function Get-vROPSUserGroup {
     <#
         .SYNOPSIS
-        Get list of local user groups using identifiers or/and names
+        Get list of local user groups using identifiers or/and names.
 
         .DESCRIPTION
         The Get-vROPSUserGroup cmdlet gets list of local user groups in VMware Aria Operations
@@ -30604,8 +36749,14 @@ Function Get-vROPSUserGroup {
 
         .EXAMPLE
         Get-vROPSUserGroup -id <userGroup_id>
-        This example gets detailed information about the provided user group using the name
-    #>
+        This example gets detailed information about the provided user group using the name.
+
+        .PARAMETER id
+        The ID of the user group to get.
+
+        .PARAMETER name
+        The name of the user group to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -30645,7 +36796,25 @@ Function Add-vROPSUserAccount {
         .EXAMPLE
         Add-vROPSUserAccount -sourceId <authentication_sourceId> -userName <user_account_name> -lastName <user_last_name> -firstName <user_first_name> -distinguishedName <user_distinguishedName> -role <role_name>
         This example imports a user account from the authentication source and assigns a role.
-    #>
+
+        .PARAMETER sourceId
+        The ID of the authentication source to import the user account from.
+
+        .PARAMETER userName
+        The name of the user account to import.
+
+        .PARAMETER lastName
+        The last name of the user account to import.
+
+        .PARAMETER firstName
+        The first name of the user account to import.
+
+        .PARAMETER distinguishedName
+        The distinguished name of the user account to import.
+
+        .PARAMETER role
+        The name of the role to assign to the user account.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -30682,15 +36851,24 @@ Export-ModuleMember -Function Add-vROPSUserAccount
 Function Add-vROPSUserGroup {
     <#
         .SYNOPSIS
-        Import user group from an authentication source
+        Import user group from an authentication source.
 
         .DESCRIPTION
         The Add-vROPSUserGroup cmdlet imports a user group from the authentication source into VMware Aria Operations
 
         .EXAMPLE
         Add-vROPSUserGroup -sourceId <authentication_sourceId> -userGroup <user_group_name> -role <role_name>
-        This example imports a user group from the authentication source and assigns the Administrator Role
-    #>
+        This example imports a user group from the authentication source and assigns the Administrator Role.
+
+        .PARAMETER sourceId
+        The ID of the authentication source to import the user group from.
+
+        .PARAMETER userGroup
+        The name of the user group to import.
+
+        .PARAMETER role
+        The name of the role to assign to the user group.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -30727,7 +36905,10 @@ Function Remove-vROPSUserAccount {
         .EXAMPLE
         Remove-vROPSUserAccount -id <userAccount_Id>
         This example deletes a user account from VMware Aria Operations.
-    #>
+
+        .PARAMETER id
+        The ID of the user account to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -30746,15 +36927,18 @@ Export-ModuleMember -Function Remove-vROPSUserAccount
 Function Remove-vROPSUserGroup {
     <#
         .SYNOPSIS
-        Deletes a user group
+        Deletes a user group.
 
         .DESCRIPTION
         The Remove-vROPSUserGroup cmdlet deletes a user group from VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSUserGroup -id <userGroup_Id>
-        This example deletes a user group from VMware Aria Operations
-    #>
+        This example deletes a user group from VMware Aria Operations.
+
+        .PARAMETER id
+        The ID of the user group to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -30781,7 +36965,16 @@ Function Search-vROPSUserAccount {
         .EXAMPLE
         Search-vROPSUserAccount -sourceId 6d971ad0-a979-4dc1-81af-e77f6c8c158c -domain sfo.rainpole.io -userName "nigel.mccloud"
         This example searches for a user account in the source defined by source ID.
-    #>
+
+        .PARAMETER sourceId
+        The ID of the source to search.
+
+        .PARAMETER domain
+        The domain of the user account to search.
+
+        .PARAMETER userName
+        The name of the user account to search.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -30807,15 +37000,24 @@ Export-ModuleMember -Function Search-vROPSUserAccount
 Function Search-vROPSUserGroup {
     <#
         .SYNOPSIS
-        Search for a user group in the source
+        Search for a user group in the source.
 
         .DESCRIPTION
         The Search-vROPSUserGroup cmdlet searches for a user group in the source in VMware Aria Operations
 
         .EXAMPLE
         Search-vROPSUserGroup -sourceId 6d971ad0-a979-4dc1-81af-e77f6c8c158c -domain sfo.rainpole.io -groupName "gg-vrops-read-only@sfo.rainpole.io"
-        This example searches for a user group in the source defined by source ID
-    #>
+        This example searches for a user group in the source defined by source ID.
+
+        .PARAMETER sourceId
+        The ID of the source to search.
+
+        .PARAMETER domain
+        The domain of the user group to search.
+
+        .PARAMETER groupName
+        The name of the user group to search.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -30849,7 +37051,10 @@ Function Update-vROPSUserAccount {
         .EXAMPLE
         Updates-vROPSUserAccount -id <userAccount_Id>
         This example updateds a user account in VMware Aria Operations.
-    #>
+
+        .PARAMETER id
+        The ID of the user account to update.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -30876,7 +37081,7 @@ Function Get-vROpsLogForwarding {
         .EXAMPLE
         Get-vROpsLogForwarding
         This example returns the logging forwarding configuration on VMware Aria Operations.
-    #>
+   #>
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/logs/forwarding"
@@ -30895,7 +37100,7 @@ Export-ModuleMember -Function Get-vROpsLogForwarding
 Function Get-vROPSNotification {
     <#
         .SYNOPSIS
-        Get list of all notifications
+        Get list of all notifications.
 
         .DESCRIPTION
         The Get-vROPSNotification cmdlet gets list of all notifications in VMware Aria Operations
@@ -30906,8 +37111,11 @@ Function Get-vROPSNotification {
 
         .EXAMPLE
         Get-vROPSNotification -id <id>
-        This example gets a list of all notifications
-    #>
+        This example gets a list of all notifications.
+
+        .PARAMETER id
+        The ID of the notification to get.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -30933,15 +37141,18 @@ Export-ModuleMember -Function Get-vROPSNotification
 Function New-vROPSNotification {
     <#
         .SYNOPSIS
-        Create notifications in VMware Aria Operations
+        Create notifications in VMware Aria Operations.
 
         .DESCRIPTION
         The New-vROPSNotification cmdlet creates notifications in VMware Aria Operations
 
         .EXAMPLE
         New-vROPSNotification -csvPath .\SampleNotifications\aria-operations-notifications-vcf.csv
-        This example adds all the notifications in the csv file to VMware Aria Operations
-    #>
+        This example adds all the notifications in the csv file to VMware Aria Operations.
+
+        .PARAMETER csvPath
+        The path to the csv file containing the notifications to add.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$csvPath
@@ -30956,41 +37167,41 @@ Function New-vROPSNotification {
             }
         }
         Foreach ($alert in $alerts) {
-            if ((Get-vROPSAlertPlugin | Where-Object {$_.name -eq $($alert.alertPluginName)})) {
+            if ((Get-vROPSAlertPlugin | Where-Object { $_.name -eq $($alert.alertPluginName) })) {
                 $body = '{
-                    "name":  "'+ $($alert.alertName) +'",
-                    "pluginId":  "'+ (Get-vROPSAlertPlugin | Where-Object {$_.name -eq $($alert.alertPluginName)}).pluginId +'",
+                    "name":  "'+ $($alert.alertName) + '",
+                    "pluginId":  "'+ (Get-vROPSAlertPlugin | Where-Object { $_.name -eq $($alert.alertPluginName) }).pluginId + '",
                     "resourceKindFilters":  [
                         {
-                            "resourceKind":  "'+ $($alert.resourceKindKey) +'",
-                            "adapterKind":  "'+ $($alert.adapterKindKey) +'"
+                            "resourceKind":  "'+ $($alert.resourceKindKey) + '",
+                            "adapterKind":  "'+ $($alert.adapterKindKey) + '"
                         }
                     ],
                     "resourceFilters":  [ ],
                     "alertDefinitionIdFilters":  {
-                        "values":  [ "'+ $($alert.alertDefinition) +'" ]
+                        "values":  [ "'+ $($alert.alertDefinition) + '" ]
                     },
                     "properties":  [
                         {
                             "name":  "maxNotify",
-                            "value":  "'+ $($alert.maxNotify) +'"
+                            "value":  "'+ $($alert.maxNotify) + '"
                         },
                         {
                             "name":  "delay",
-                            "value":  "'+ $($alert.delay) +'"
+                            "value":  "'+ $($alert.delay) + '"
                         },
                         {
                             "name":  "emailaddr",
-                            "value":  "'+ $($alert.emailAddress) +'"
+                            "value":  "'+ $($alert.emailAddress) + '"
                         },
                         {
                             "name":  "resend",
-                            "value":  "'+ $($alert.resend) +'"
+                            "value":  "'+ $($alert.resend) + '"
                         }
                     ]
                 }'
                 $uri = "https://$vropsAppliance/suite-api/api/notifications/rules"
-                if (!(Get-vROPSNotification | Where-Object {$_.name -eq $($alert.alertName)})) {
+                if (!(Get-vROPSNotification | Where-Object { $_.name -eq $($alert.alertName) })) {
                     Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vropsHeaders -Body $body
                 }
             } else {
@@ -31006,15 +37217,18 @@ Export-ModuleMember -Function New-vROPSNotification
 Function Remove-vROPSNotification {
     <#
         .SYNOPSIS
-        Delete a notification
+        Delete a notification.
 
         .DESCRIPTION
         The Remove-vROPSNotification cmdlet deletes a notifications in VMware Aria Operations
 
         .EXAMPLE
         Remove-vROPSNotification -id <id>
-        This example deletes a notifications
-    #>
+        This example deletes a notifications.
+
+        .PARAMETER id
+        The ID of the notification to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -31042,8 +37256,11 @@ Function Test-vROPsAdapterStatus {
     
         .EXAMPLE
         Test-vROPsAdapterStatus -resourceId "b214fd75-07cc-4dab-9fbb-95a6af739a04"
-        This example validates the integration status between VMware Aria Operations and configured adapter through its ID. 
-    #>
+        This example validates the integration status between VMware Aria Operations and configured adapter through its ID. .
+
+        .PARAMETER resourceId
+        The ID of the adapter to validate the integration status.
+   #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
@@ -31078,7 +37295,7 @@ Export-ModuleMember -Function Test-vROPsAdapterStatus
 Function Request-vRLIToken {
     <#
         .SYNOPSIS
-        Connects to the specified VMware Aria Operations for Logs instance and obtains authorization token
+        Connects to the specified VMware Aria Operations for Logs instance and obtains authorization token.
 
         .DESCRIPTION
         The Request-vRLIToken cmdlet connects to the specified VMware Aria Operations for Logs instance and obtains an
@@ -31086,8 +37303,17 @@ Function Request-vRLIToken {
 
         .EXAMPLE
         Request-vRLIToken -fqdn sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to the VMware Aria Operations for Logs instance
-    #>
+        This example shows how to connect to the VMware Aria Operations for Logs instance.
+
+        .PARAMETER fqdn
+        The fully qualified domain name of the VMware Aria Operations for Logs instance.
+
+        .PARAMETER username
+        The username of the VMware Aria Operations for Logs instance.
+
+        .PARAMETER password
+        The password of the VMware Aria Operations for Logs instance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -31107,8 +37333,8 @@ Function Request-vRLIToken {
         $vrliHeaders.Add("Content-Type", "application/json")
         $uri = "https://$vrliAppliance/api/v1/sessions"
         $body = '{
-            "username": "'+$username+'",
-            "password": "'+$password+'",
+            "username": "'+ $username + '",
+            "password": "'+ $password + '",
             "provider": "Local"
         }'
         if ($PSEdition -eq 'Core') {
@@ -31129,15 +37355,15 @@ Export-ModuleMember -Function Request-vRLIToken
 Function Get-vRLIVersion {
     <#
         .SYNOPSIS
-        Get VMware Aria Operations for Logs version information
+        Get VMware Aria Operations for Logs version information.
 
         .DESCRIPTION
         The Get-vRLIVersion cmdlet gets the VMware Aria Operations for Logs version information
 
         .EXAMPLE
         Get-vRLIVersion
-        This example gets the VMware Aria Operations for Logs version information
-    #>
+        This example gets the VMware Aria Operations for Logs version information.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/version"
@@ -31151,7 +37377,7 @@ Export-ModuleMember -Function Get-vRLIVersion
 Function Get-vRLIAuthenticationWSA {
     <#
         .SYNOPSIS
-        Get configuration of Workspace ONE Access
+        Get configuration of Workspace ONE Access.
 
         .DESCRIPTION
         The Get-vRLIAuthenticationWSA cmdlet gets the configuration for Workspace ONE Access Integration
@@ -31162,8 +37388,11 @@ Function Get-vRLIAuthenticationWSA {
 
         .EXAMPLE
         Get-vRLIAuthenticationWSA -statuss
-        This example gets the connection status for the Workspace ONE Access Integration
-    #>
+        This example gets the connection status for the Workspace ONE Access Integration.
+
+        .PARAMETER status
+        The status of the Workspace ONE Access Integration.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$status
@@ -31185,7 +37414,7 @@ Export-ModuleMember -Function Get-vRLIAuthenticationWSA
 Function Set-vRLIAuthenticationWSA {
     <#
         .SYNOPSIS
-        Configure Workspace ONE Access as an authentication provider
+        Configure Workspace ONE Access as an authentication provider.
 
         .DESCRIPTION
         The Set-vRLIAuthenticationWSA cmdlet configures the Workspace ONE Access as an authentication provider in
@@ -31193,8 +37422,23 @@ Function Set-vRLIAuthenticationWSA {
 
         .EXAMPLE
         Set-vRLIAuthenticationWSA -hostname sfo-wsa01.sfo.rainpole.io -port 443 -redirectUrl sfo-vrli01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example configures Workspace ONE Access as an authentication provider
-    #>
+        This example configures Workspace ONE Access as an authentication provider.
+
+        .PARAMETER hostname
+        The hostname of the Workspace ONE Access appliance.
+
+        .PARAMETER port
+        The port of the Workspace ONE Access appliance.
+
+        .PARAMETER redirectUrl
+        The redirect URL of the Workspace ONE Access appliance.
+
+        .PARAMETER username
+        The username of the Workspace ONE Access appliance.
+
+        .PARAMETER password
+        The password of the Workspace ONE Access appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostname,
@@ -31207,13 +37451,13 @@ Function Set-vRLIAuthenticationWSA {
     Try {
         $jsonSpec = @()
         $jsonSpec += [pscustomobject]@{
-            'acceptCert'    = $true
-            'enabled'       = $true
-            'hostname'      = $hostname
-            'port'          = $port
-            'redirectURL'   = $redirectUrl
-            'username'      = $username
-            'password'      = $password 
+            'acceptCert'  = $true
+            'enabled'     = $true
+            'hostname'    = $hostname
+            'port'        = $port
+            'redirectURL' = $redirectUrl
+            'username'    = $username
+            'password'    = $password 
         }
         
         $body = $jsonSpec | ConvertTo-Json -Depth 12
@@ -31228,20 +37472,20 @@ Export-ModuleMember -Function Set-vRLIAuthenticationWSA
 Function Remove-vRLIAuthenticationWSA {
     <#
         .SYNOPSIS
-        Disables Workspace ONE Access Intergration
+        Disables Workspace ONE Access Intergration.
 
         .DESCRIPTION
         The Remove-vRLIAuthenticationWSA cmdlet disables Workspace ONE Access Integration
 
         .EXAMPLE
         Remove-vRLIAuthenticationWSA
-        This example disables Workspace ONE Access Integration
-    #>
+        This example disables Workspace ONE Access Integration.
+   #>
 
     Try {
         $jsonSpec = @()
         $jsonSpec += [pscustomobject]@{
-            'enabled'       = $false
+            'enabled' = $false
         }
         $body = $jsonSpec | ConvertTo-Json -Depth 12
         $uri = "https://$vrliAppliance/api/v1/vidm"
@@ -31256,15 +37500,15 @@ Export-ModuleMember -Function Remove-vRLIAuthenticationWSA
 Function Get-vRLIAuthenticationAD {
     <#
         .SYNOPSIS
-        Get Active Directory configuration settings
+        Get Active Directory configuration settings.
 
         .DESCRIPTION
         The Get-vRLIAuthenticationAD cmdlet gets the Active Directory configuration settings
 
         .EXAMPLE
         Get-vRLIAuthenticationAD
-        This example gets the the Active Directory configuration settings
-    #>
+        This example gets the the Active Directory configuration settings.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/ad"
@@ -31278,7 +37522,7 @@ Export-ModuleMember -Function Get-vRLIAuthenticationAD
 Function Set-vRLIAuthenticationAD {
     <#
         .SYNOPSIS
-        Configure Active Directory as an authentication provider
+        Configure Active Directory as an authentication provider.
 
         .DESCRIPTION
         The Set-vRLIAuthenticationAD cmdlet configures Active Directory as an authentication provider in VMware
@@ -31290,8 +37534,29 @@ Function Set-vRLIAuthenticationAD {
 
         .EXAMPLE
         Set-vRLIAuthenticationAD -domain sfo.rainpole.io -domainServers sfo-ad01.sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -connectionType CUSTOM -port 636 -requireSsl:$true
-        This example configures Active Directory as an authentication provider using custom configuration
-    #>
+        This example configures Active Directory as an authentication provider using custom configuration.
+
+        .PARAMETER domain
+        The domain name of the Active Directory server.
+
+        .PARAMETER domainBindUser
+        The username of the Active Directory server.
+
+        .PARAMETER domainBindPass
+        The password of the Active Directory server.
+
+        .PARAMETER domainServers
+        The hostname of the Active Directory server.
+
+        .PARAMETER connectionType
+        The connection type of the Active Directory server. Valid values are STANDARD, GLOBAL_CAT, and CUSTOM.
+
+        .PARAMETER requireSsl
+        The SSL requirement of the Active Directory server.
+
+        .PARAMETER port
+        The port of the Active Directory server.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
@@ -31330,15 +37595,15 @@ Export-ModuleMember -Function Set-vRLIAuthenticationAD
 Function Remove-vRLIAuthenticationAD {
     <#
         .SYNOPSIS
-        Disable Active Directory as an authentication provider
+        Disable Active Directory as an authentication provider.
 
         .DESCRIPTION
         The Remove-vRLIAuthenticationAD cmdlet disbales Active Directory as an authentication provider in VMware
         Operations for Logs
 
         .EXAMPLE
-        Remove-vRLIAuthenticationAD
-    #>
+        Remove-vRLIAuthenticationAD.
+   #>
 
     Try {
         $jsonSpec = New-Object -TypeName psobject
@@ -31355,15 +37620,15 @@ Export-ModuleMember -Function Remove-vRLIAuthenticationAD
 Function Get-vRLIAgentGroup {
     <#
         .SYNOPSIS
-        Get list of agent groups
+        Get list of agent groups.
 
         .DESCRIPTION
         The Get-vRLIAgentGroup cmdlet gets a list of agent groups
 
         .EXAMPLE
         Get-vRLIAgentGroup
-        This example gets a list agent groups
-    #>
+        This example gets a list agent groups.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/agent/groups"
@@ -31378,7 +37643,7 @@ Export-ModuleMember -Function Get-vRLIAgentGroup
 Function New-vRLIAgentGroup {
     <#
         .SYNOPSIS
-        Create a new agent group
+        Create a new agent group.
 
         .DESCRIPTION
         The New-vRLIAgentGroup cmdlet creates a new agent group
@@ -31386,13 +37651,23 @@ Function New-vRLIAgentGroup {
         .EXAMPLE
         New-vRLIAgentGroup -agentGroupType wsa -criteria sfo-wsa01.sfo.rainpole.io
         This example creates a new agent group for Workspace ONE Access and assigns the sfo-wsa01.sfo.rainpole.io host
-
+        
+        .EXAMPLE
         New-vRLIAgentGroup -agentGroupType photon -criteria sfo-vcf01.sfo.rainpole.io,xint-vrslcm01.rainpole.io,sfo-wsa01.sfo.rainpole.io
-        This example creates a new agent group for Workspace ONE Access and assigns the hosts provided in the criteria host
-    #>
+        This example creates a new agent group for Workspace ONE Access and assigns the hosts provided in the criteria host.
+
+        .PARAMETER agentGroupType
+        The type of agent group to create. Valid values are wsa and photon.
+
+        .PARAMETER criteria
+        The criteria for the agent group. For Workspace ONE Access, this is the hostname of the Workspace ONE Access appliance. For VMware Aria Operations for Logs, this is a comma-separated list of hostnames of the VMware Aria Operations for Logs appliances.
+
+        .PARAMETER agentGroupName
+        The name of the agent group to create. If not specified, the name is automatically generated..
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("wsa","photon")] [ValidateNotNullOrEmpty()] [String]$agentGroupType,
+        [Parameter (Mandatory = $true)] [ValidateSet("wsa", "photon")] [ValidateNotNullOrEmpty()] [String]$agentGroupType,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$agentGroupName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$criteria
     )
@@ -31423,9 +37698,9 @@ Function New-vRLIAgentGroup {
     Try {
         $uri = "https://$vrliAppliance/api/v1/agent/groups"
         $body = '{
-            "name":"'+$agentGroupName+'",
-            "criteria":"'+$criteriaInput+'",
-            "agentConfig":"'+$agentGroupConfig+'"
+            "name":"'+ $agentGroupName + '",
+            "criteria":"'+ $criteriaInput + '",
+            "agentConfig":"'+ $agentGroupConfig + '"
         }'
         Invoke-RestMethod -Method 'POST' -Uri $Uri -Headers $vrliHeaders -Body $body
     } Catch {
@@ -31437,22 +37712,25 @@ Export-ModuleMember -Function New-vRLIAgentGroup
 Function Remove-vRLIAgentGroup {
     <#
         .SYNOPSIS
-        Remove an agent group
+        Remove an agent group.
 
         .DESCRIPTION
         The Remove-vRLIAgentGroup cmdlet deletes an agent group
 
         .EXAMPLE
         Remove-vRLIAgentGroup -groupName "Workspace ONE Access (IAM) - Appliance Agent Group"
-        This example deletes an agent group
-    #>
+        This example deletes an agent group.
+
+        .PARAMETER groupName
+        The name of the agent group to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupName
     )
 
     Try {
-        $groupName = $groupName.replace(' ','%20')
+        $groupName = $groupName.replace(' ', '%20')
         $uri = "https://$vrliAppliance/api/v1/agent/groups/$groupName"
         Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vrliHeaders
     } Catch {
@@ -31464,15 +37742,15 @@ Export-ModuleMember -Function Remove-vRLIAgentGroup
 Function Get-vRLISmtpConfiguration {
     <#
         .SYNOPSIS
-        Get SMTP server settings
+        Get SMTP server settings.
 
         .DESCRIPTION
         The Get-vRLISmtpConfiguration cmdlet gets the SMTP server configuration in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLISmtpConfiguration
-        This example gets the SMTP settings
-    #>
+        This example gets the SMTP settings.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/channels"
@@ -31487,15 +37765,30 @@ Export-ModuleMember -Function Get-vRLISmtpConfiguration
 Function Set-vRLISmtpConfiguration {
     <#
         .SYNOPSIS
-        Configure the SMTP server settings
+        Configure the SMTP server settings.
 
         .DESCRIPTION
         The Set-vRLISmtpConfiguration cmdlet configures the SMTP server settings in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLISmtpConfiguration -smtpServer smtp.rainpole.io -port 25 -sender administrator@rainpole.io -username administrator@rainpole.io -password VMw@re1!
-        This example sets the SMTP server settings
-    #>
+        This example sets the SMTP server settings.
+
+        .PARAMETER smtpServer
+        The SMTP server address.
+
+        .PARAMETER port
+        The SMTP server port.
+
+        .PARAMETER sender
+        The sender email address.
+
+        .PARAMETER username
+        The SMTP server username.
+
+        .PARAMETER password
+        The SMTP server password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$smtpServer,
@@ -31511,13 +37804,13 @@ Function Set-vRLISmtpConfiguration {
             "channels": [{
                 "type": "email",
                 "config": {
-                    "server": "'+ $smtpServer +'",
+                    "server": "'+ $smtpServer + '",
                     "port": '+ $port + ',
                     "sslAuth": false,
                     "tls": false,
-                    "defaultSender": "'+ $sender +'",
-                    "login": "'+ $username +'",
-                    "password": "'+ $password +'"
+                    "defaultSender": "'+ $sender + '",
+                    "login": "'+ $username + '",
+                    "password": "'+ $password + '"
                 }
             }]
         }'
@@ -31532,15 +37825,15 @@ Export-ModuleMember -Function Set-vRLISmtpConfiguration
 Function Get-vRLIRetentionThreshold {
     <#
         .SYNOPSIS
-        Get the retention threshold configuration
+        Get the retention threshold configuration.
 
         .DESCRIPTION
         The Get-vRLIRetentionThreshold cmdlet gets the retention configuration in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIRetentionThreshold
-        This example gets the retention configuration
-    #>
+        This example gets the retention configuration.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/config/retention-threshold"
@@ -31555,28 +37848,37 @@ Export-ModuleMember -Function Get-vRLIRetentionThreshold
 Function Set-vRLIRetentionThreshold {
     <#
         .SYNOPSIS
-        Configuer the retention threshold settings
+        Configuer the retention threshold settings.
 
         .DESCRIPTION
         The Set-vRLIRetentionThreshold cmdlet configures the retention settings in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLIRetentionThreshold -enable true -interval 1 -intervalUnit weeks
-        This example configures the retention configuration
-    #>
+        This example configures the retention configuration.
+
+        .PARAMETER enable
+        Enable or disable the retention configuration.
+
+        .PARAMETER interval
+        The interval for the retention configuration.
+
+        .PARAMETER intervalUnit
+        The interval unit for the retention configuration.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$enable,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$interval,
-        [Parameter (Mandatory = $true)] [ValidateSet("minutes","hours","days","weeks","months")] [ValidateNotNullOrEmpty()] [String]$intervalUnit
+        [Parameter (Mandatory = $true)] [ValidateSet("minutes", "hours", "days", "weeks", "months")] [ValidateNotNullOrEmpty()] [String]$intervalUnit
     )
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/config/retention-threshold"
         $body = '{
-            "sendNotification" : '+ $enable +',
-            "dataInterval" : '+ $interval +',
-            "intervalUnit" : "'+ $intervalUnit.ToUpper() +'"
+            "sendNotification" : '+ $enable + ',
+            "dataInterval" : '+ $interval + ',
+            "intervalUnit" : "'+ $intervalUnit.ToUpper() + '"
         }'
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -Body $body
     } Catch {
@@ -31588,15 +37890,15 @@ Export-ModuleMember -Function Set-vRLIRetentionThreshold
 Function Get-vRLIIndexPartition {
     <#
         .SYNOPSIS
-        Get the index partitions
+        Get the index partitions.
 
         .DESCRIPTION
         The Get-vRLIIndexPartition cmdlet gets a list of index partitions in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIIndexPartition
-        This example gets a list of index partitions
-    #>
+        This example gets a list of index partitions.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/partitioning"
@@ -31611,15 +37913,30 @@ Export-ModuleMember -Function Get-vRLIIndexPartition
 Function Set-vRLILogArchive {
     <#
         .SYNOPSIS
-        Configuer the index partitions
+        Configuer the index partitions.
 
         .DESCRIPTION
         The Set-vRLILogArchive cmdlet configures the log archive location for a partition in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLILogArchive -id d41d8cd9-8f00-3204-a980-0998ecf8427e -enable true -retentionPeriod 7 -archiveEnable true -archiveLocation nfs://172.27.11.4/sfo-m01-vrli01-400GB
-        This example configures the retention configuration
-    #>
+        This example configures the retention configuration.
+
+        .PARAMETER id
+        The id of the partition to configure.
+
+        .PARAMETER enable
+        Enable or disable the partition.
+
+        .PARAMETER retentionPeriodDays
+        The retention period in days.
+
+        .PARAMETER archiveEnable
+        Enable or disable the archive.
+
+        .PARAMETER archiveLocation
+        The archive location.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -31634,11 +37951,11 @@ Function Set-vRLILogArchive {
         $body = '{
             "id": "' + $id + '",
             "name": "",
-            "enabled": '+ $enable +',
+            "enabled": '+ $enable + ',
             "routingFilter": "",
-            "retentionPeriodSeconds": '+ $retentionPeriodDays * 86400 +',
-            "archiveEnabled": '+ $archiveEnable +',
-            "archiveLocation": "'+ $archiveLocation +'"
+            "retentionPeriodSeconds": '+ $retentionPeriodDays * 86400 + ',
+            "archiveEnabled": '+ $archiveEnable + ',
+            "archiveLocation": "'+ $archiveLocation + '"
         }'
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -Body $body
     } Catch {
@@ -31650,15 +37967,15 @@ Export-ModuleMember -Function Set-vRLILogArchive
 Function Get-vRLIEmailNotification {
     <#
         .SYNOPSIS
-        Get list of email address for notifications
+        Get list of email address for notifications.
 
         .DESCRIPTION
         The Get-vRLIEmailNotification cmdlet gets a list of the emails notifications will be sent to in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIEmailNotification
-        This example gets a list of email notifications
-    #>
+        This example gets a list of email notifications.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/email"
@@ -31673,15 +37990,18 @@ Export-ModuleMember -Function Get-vRLIEmailNotification
 Function Set-vRLIEmailNotification {
     <#
         .SYNOPSIS
-        Configure email address for notifications
+        Configure email address for notifications.
 
         .DESCRIPTION
         The Set-vRLIEmailNotification cmdlet configures the emails addresses for notifications in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLIEmailNotification -emailAddress "administrator@rainpole.io"
-        This example adds a new email address to the notifications
-    #>
+        This example adds a new email address to the notifications.
+
+        .PARAMETER emailAddress
+        The email address to add to the notifications.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
@@ -31690,7 +38010,7 @@ Function Set-vRLIEmailNotification {
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/email"
         $body = '{
-            "emails": ["'+ $emailAddress +'"
+            "emails": ["'+ $emailAddress + '"
                 ]
         }'
         $response = Invoke-RestMethod -Method 'PUT' -Uri $Uri -Headers $vrliHeaders -body $body
@@ -31704,15 +38024,15 @@ Export-ModuleMember -Function Set-vRLIEmailNotification
 Function Get-vRLIRole {
     <#
         .SYNOPSIS
-        Get list of roles
+        Get list of roles.
 
         .DESCRIPTION
         The Get-vRLIRole cmdlet gets a list of roles in VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIRole
-        This example gets a list of roles in VMware Aria Operations for Logs
-    #>
+        This example gets a list of roles in VMware Aria Operations for Logs.
+   #>
     Try {
         $uri = "https://$vrliAppliance/api/v1/roles"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
@@ -31726,7 +38046,7 @@ Export-ModuleMember -Function Get-vRLIRole
 Function Get-vRLIGroup {
     <#
         .SYNOPSIS
-        Get list of groups by authentication provider
+        Get list of groups by authentication provider.
 
         .DESCRIPTION
         The Get-vRLIGroup cmdlet gets a list of groups by authentication provider from VMware Aria Operations for Logs
@@ -31737,11 +38057,14 @@ Function Get-vRLIGroup {
 
         .EXAMPLE
         Get-vRLIGroup -authProvider ad
-        This example gets a list groups assigned using the Active Directory authenitcation provider
-    #>
+        This example gets a list groups assigned using the Active Directory authenitcation provider.
+
+        .PARAMETER authProvider
+        The authentication provider to use. Valid values are vidm or ad.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm", "ad")] [ValidateNotNullOrEmpty()] [String]$authProvider
     )
 
     Try {
@@ -31761,25 +38084,37 @@ Export-ModuleMember -Function Get-vRLIGroup
 Function Add-vRLIGroup {
     <#
         .SYNOPSIS
-        Add a group by authentication provider
+        Add a group by authentication provider.
 
         .DESCRIPTION
         The Add-vRLIGroup cmdlet adds a group by authentication provider to VMware Aria Operations for Logs
 
         .EXAMPLE
         Add-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
-        This example adds a group assigned using the the vIDM authenitcation provider and assigns the Super Admin role
+        This example adds a group assigned using the the vIDM authenitcation provider and assigns the Super Admin role.
+
+        .PARAMETER authProvider
+        The authentication provider to use. Valid values are vidm or ad.
+
+        .PARAMETER domain
+        The domain of the group to add.
+
+        .PARAMETER group
+        The group to add.
+
+        .PARAMETER role
+        The role to assign to the group. Valid values are Super Admin, User, Dashboard User, View Only Admin
 
         .EXAMPLE
         Add-vRLIGroup -authProvider ad -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
-        This example adds a group assigned using the the LDAP authenitcation provider and assigns the Super Admin role
-    #>
+        This example adds a group assigned using the the LDAP authenitcation provider and assigns the Super Admin role.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm", "ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group,
-        [Parameter (Mandatory = $true)] [ValidateSet("Super Admin","User","Dashboard User","View Only Admin")] [ValidateNotNullOrEmpty()] [String]$role
+        [Parameter (Mandatory = $true)] [ValidateSet("Super Admin", "User", "Dashboard User", "View Only Admin")] [ValidateNotNullOrEmpty()] [String]$role
     )
 
     Try {
@@ -31805,22 +38140,31 @@ Export-ModuleMember -Function Add-vRLIGroup
 Function Remove-vRLIGroup {
     <#
         .SYNOPSIS
-        Remove a group by authentication provider
+        Remove a group by authentication provider.
 
         .DESCRIPTION
         The Remove-vRLIGroup cmdlet removes a group by authentication provider from VMware Aria Operations for Logs
 
         .EXAMPLE
         Remove-vRLIGroup -authProvider vidm -domain sfo.rainpole.io -group gg-vrli-admins
-        This example removes a group assigned using the the vIDM authenitcation provider
+        This example removes a group assigned using the the vIDM authenitcation provider.
+
+        .PARAMETER authProvider
+        The authentication provider to use. Valid values are vidm or ad.
+
+        .PARAMETER domain
+        The domain of the group to remove.
+
+        .PARAMETER group
+        The group to remove.
 
         .EXAMPLE
         Remove-vRLIGroup -authProvider ad -domain sfo.rainpole.io -group gg-vrli-admins
-        This example removes a group assigned using the the vIDM authenitcation provider
-    #>
+        This example removes a group assigned using the the vIDM authenitcation provider.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vidm","ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm", "ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group
     )
@@ -31842,15 +38186,15 @@ Export-ModuleMember -Function Remove-vRLIGroup
 Function Get-vRLIAlert {
     <#
         .SYNOPSIS
-        Get list of alerts
+        Get list of alerts.
 
         .DESCRIPTION
         The Get-vRLIGroup cmdlet gets a list of alerts
 
         .EXAMPLE
         Get-vRLIGroup
-        This example gets a list alerts from VMware Aria Operations for Logs
-    #>
+        This example gets a list alerts from VMware Aria Operations for Logs.
+   #>
 
     Try {
         if ((Get-vRLIVersion).version -Split ("-")[0] -gt 8.6.2) {
@@ -31868,15 +38212,18 @@ Export-ModuleMember -Function Get-vRLIAlert
 Function New-vRLIAlert {
     <#
         .SYNOPSIS
-        Create an alert
+        Create an alert.
 
         .DESCRIPTION
         The New-vRLIAlert cmdlet creates an alert in VMware Aria Operations for Logs
 
         .EXAMPLE
         New-vRLIAlert -json (Get-Content -Raw .\vrliAlert.json)
-        This example creates an alert in VMware Aria Operations for Logs based on the contents of the JSON
-    #>
+        This example creates an alert in VMware Aria Operations for Logs based on the contents of the JSON.
+
+        .PARAMETER json
+        The JSON configuration of the alert to create.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -31895,15 +38242,18 @@ Export-ModuleMember -Function New-vRLIAlert
 Function Remove-vRLIAlert {
     <#
         .SYNOPSIS
-        Delete an alerts
+        Delete an alerts.
 
         .DESCRIPTION
         The Get-vRLIGroup cmdlet deletes an alerts
 
         .EXAMPLE
         Get-vRLIGroup -alertId <alert_id>
-        This example deletes an alert from VMware Aria Operations for Logs
-    #>
+        This example deletes an alert from VMware Aria Operations for Logs.
+
+        .PARAMETER alertId
+        The ID of the alert to delete.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alertId
@@ -31922,25 +38272,31 @@ Export-ModuleMember -Function Remove-vRLIAlert
 Function Set-vRLIAlert {
     <#
         .SYNOPSIS
-        Enable/Disable an alert
+        Enable/Disable an alert.
 
         .DESCRIPTION
         The Set-vRLIAlert cmdlet enables or disables an alert in VMware Aria Operations for Logs
 
         .EXAMPLE
         Set-vRLIAlert -id 0111952f-9aec-3872-b108-d70ec8a2981a -enabled true
-        This example enables the alert in VMware Aria Operations for Logs based on id provided
-    #>
+        This example enables the alert in VMware Aria Operations for Logs based on id provided.
+
+        .PARAMETER id
+        The ID of the alert to enable/disable.
+
+        .PARAMETER enabled
+        Enable or disable the alert. Valid values are true or false.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
-        [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$enabled
+        [Parameter (Mandatory = $true)] [ValidateSet('true', 'false')] [String]$enabled
     )
 
     Try {
         $json = '{
-            "ids":["'+ $id +'"],
-            "enabled":'+ $enabled +'
+            "ids":["'+ $id + '"],
+            "enabled":'+ $enabled + '
         }'
         $uri = "https://$vrliAppliance/api/v2/alerts/batch-subscribe"
         Invoke-RestMethod -Method 'PATCH' -Uri $uri -Headers $vrliHeaders -Body $json 
@@ -31953,15 +38309,21 @@ Export-ModuleMember -Function Set-vRLIAlert
 Function Update-vRLIAlert {
     <#
         .SYNOPSIS
-        Update the configuration of an alert
+        Update the configuration of an alert.
 
         .DESCRIPTION
         The Update-vRLIAlert cmdlet updates the configuration of an existing alert in VMware Aria Operations for Logs
 
         .EXAMPLE
         Update-vRLIAlert -id 0111952f-9aec-3872-b108-d70ec8a2981a -email administrator@rainpole.io
-        This example adds a single email address to an alert in VMware Aria Operations for Logs
-    #>
+        This example adds a single email address to an alert in VMware Aria Operations for Logs.
+
+        .PARAMETER id
+        The ID of the alert to update.
+
+        .PARAMETER email
+        The email address to add to the alert.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -31973,7 +38335,7 @@ Function Update-vRLIAlert {
             "recipients":
                 {
                     "emails": [
-                        "'+ $email +'"
+                        "'+ $email + '"
                     ],
                     "webhookIds":[
 
@@ -32009,7 +38371,10 @@ Function Get-vRLILogForwarder {
         .EXAMPLE
         Get-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022"
         This example gets a log forwarder from VMware Aria Operations for Logs by ID.
-    #>
+
+        .PARAMETER id
+        The ID of the log forwarder destination.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -32046,7 +38411,31 @@ Function Set-vRLILogForwarder {
         .EXAMPLE
         Set-vRLILogForwarder -name "lax01-vrli01" -server "lax01-vrli01.lax.rainpole.io" -protocol CFAPI -port 9543 acceptCert true -sslEnabled true -testConnection true
         This example adds a log forwarder to VMware Aria Operations for Logs using the Ingestion API and SSL enabled.
-    #>
+
+        .PARAMETER name
+        The name of the log forwarder destination.
+
+        .PARAMETER server
+        The server name or IP address of the log forwarder destination.
+
+        .PARAMETER protocol
+        The protocol of the log forwarder destination. Valid values are CFAPI, SYSLOG, or RAW.
+
+        .PARAMETER port
+        The port number of the log forwarder destination.
+
+        .PARAMETER transport
+        The transport protocol of the log forwarder destination. Valid values are TCP or UDP.
+
+        .PARAMETER acceptCert
+        Accept the certificate of the log forwarder destination. Valid values are true or false.
+
+        .PARAMETER sslEnabled
+        Enable SSL for the log forwarder destination. Valid values are true or false.
+
+        .PARAMETER testConnection
+        Test the connection to the log forwarder destination. Valid values are true or false.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -32067,24 +38456,24 @@ Function Set-vRLILogForwarder {
         } elseif ($protocol -eq 'SYSLOG' -and ($PsBoundParameters.ContainsKey('transport'))) {
             $body = '{
                 "name": "' + $name + '",
-                "host": "'+ $server +'",
-                "port": '+ $port +',
-                "protocol": "'+ $protocol.ToUpper() +'",
-                "transport": "'+ $transport.Tolower() +'",
-                "acceptCert": '+ $acceptCert.ToString().ToLower() +',
-                "sslEnabled": '+ $sslEnabled.ToString().ToLower() +',
-                "testConnection": '+ $testConnection.ToString().ToLower() +'
+                "host": "'+ $server + '",
+                "port": '+ $port + ',
+                "protocol": "'+ $protocol.ToUpper() + '",
+                "transport": "'+ $transport.Tolower() + '",
+                "acceptCert": '+ $acceptCert.ToString().ToLower() + ',
+                "sslEnabled": '+ $sslEnabled.ToString().ToLower() + ',
+                "testConnection": '+ $testConnection.ToString().ToLower() + '
             }'
         } else {
             $body = '{
                 "name": "' + $name + '",
-                "host": "'+ $server +'",
-                "port": '+ $port +',
-                "protocol": "'+ $protocol.ToUpper() +'",
-                "acceptCert": '+ $acceptCert.ToString().ToLower() +',
-                "sslEnabled": '+ $sslEnabled.ToString().ToLower() +',
+                "host": "'+ $server + '",
+                "port": '+ $port + ',
+                "protocol": "'+ $protocol.ToUpper() + '",
+                "acceptCert": '+ $acceptCert.ToString().ToLower() + ',
+                "sslEnabled": '+ $sslEnabled.ToString().ToLower() + ',
                 "forwardComplementaryFields": true,
-                "testConnection": '+ $testConnection.ToString().ToLower() +'
+                "testConnection": '+ $testConnection.ToString().ToLower() + '
             }'
         }
         Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $body
@@ -32109,7 +38498,10 @@ Function Remove-vRLILogForwarder {
         .EXAMPLE
         Remove-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022"
         This example removes a log forwarder destination from VMware Aria Operations for Logs by ID.
-    #>
+
+        .PARAMETER id
+        The ID of the log forwarder destination.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -32140,7 +38532,13 @@ Function Update-vRLILogForwarder {
         .EXAMPLE
         Updates-vRLILogForwarder -id "04f98100-995b-3f56-b321-0e10f21ee022" -json $json
         This example updates a log forwarder destination from VMware Aria Operations for Logs.
-    #>
+
+        .PARAMETER id
+        The ID of the log forwarder destination.
+
+        .PARAMETER json
+        The JSON payload for the log forwarder destination.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -32167,7 +38565,16 @@ Function Test-vRLILogForwarder {
         .EXAMPLE
         Test-vRLILogForwarder -server "lax01-vrli01.lax.rainpole.io" -port 9000 -protocol CFAPI
         This example tests a log forwarder destination from VMware Aria Operations for Logs.
-    #>
+
+        .PARAMETER server
+        The server name or IP address of the log forwarder destination.
+
+        .PARAMETER port
+        The port number of the log forwarder destination.
+
+        .PARAMETER protocol
+        The protocol of the log forwarder destination. Valid values are CFAPI, TCP, or UDP.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -32177,7 +38584,7 @@ Function Test-vRLILogForwarder {
 
     Try {
         $uri = "https://$vrliAppliance/api/v2/log-forwarder/testconnection"
-        $body = '{ "host": "' + $server + '", "port": ' + $port + ', "protocol": "'+ $protocol.ToLower() +'"}'
+        $body = '{ "host": "' + $server + '", "port": ' + $port + ', "protocol": "' + $protocol.ToLower() + '"}'
         Invoke-RestMethod -Method 'POST' -Uri $uri -Headers $vrliHeaders -Body $body
     } Catch {
         Write-Error $_.Exception.Message
@@ -32197,7 +38604,13 @@ Function Get-vRLIMarketplaceMetadata {
         .EXAMPLE
         Get-vRLIMarketplaceMetadata -token <your_base64_encoded_github_token>
         This example returns the metadata for VMware Aria Operations for Logs content packs in the Content Pack MarketPlace.
-    #>
+
+        .PARAMETER token
+        The base64 encoded GitHub token.
+
+        .PARAMETER index
+        Returns the index of available content packs in the Content Pack Marketplace.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$index,
@@ -32224,15 +38637,15 @@ Export-ModuleMember -Function Get-vRLIMarketplaceMetadata
 Function Get-vRLIContentPack {
     <#
         .SYNOPSIS
-        Get list of installed content packs
+        Get list of installed content packs.
 
         .DESCRIPTION
         The Get-vRLIContentPack cmdlet gets a list of all content packs installed on VMware Aria Operations for Logs
 
         .EXAMPLE
         Get-vRLIContentPack
-        This example gets a list of all content packs
-    #>
+        This example gets a list of all content packs.
+   #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/content/contentpack"
@@ -32259,7 +38672,13 @@ Function Install-vRLIContentPack {
         .EXAMPLE
         Insall-vRLIContentPack -update -json $json
         This example updates a content pack in VMware Aria Operations for Logs from a JSON payload.
-    #>
+
+        .PARAMETER update
+        Overwrite an existing content pack.
+
+        .PARAMETER json
+        The JSON payload for the content pack.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -32288,7 +38707,7 @@ Export-ModuleMember -Function Install-vRLIContentPack
 Function Request-CSPToken {
     <#
         .SYNOPSIS
-        Request authorization token from VMware Cloud Service
+        Request authorization token from VMware Cloud Service.
 
         .DESCRIPTION
         The Request-CSPToken cmdlet connects to the VMware Cloud Service and obtains an authorization token.
@@ -32306,10 +38725,19 @@ Function Request-CSPToken {
         Request-CSPToken -environment staging -apiToken <string> -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io
         This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token and set
         set the fqdn for the Cloud Extensibility Proxy for VMware Aria Automation Orchestrator configuration.
-    #>
+
+        .PARAMETER environment
+        Connect to the production or staging VMware Cloud Service.
+
+        .PARAMETER apiToken
+        The API Token for the VMware Cloud Service.
+
+        .PARAMETER extensibilityProxy
+        The fqdn of the Cloud Extensibility Proxy for VMware Aria Automation Orchestrator configuration.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy
     )
@@ -32353,7 +38781,7 @@ Export-ModuleMember -Function Request-CSPToken
 Function Get-CloudProxy {
     <#
         .SYNOPSIS
-        Request Cloud Proxies from VMware Cloud Service
+        Request Cloud Proxies from VMware Cloud Service.
 
         .DESCRIPTION
         The Get-CloudProxy cmdlet connects to the VMware Cloud Service and either downloads the OVA or
@@ -32374,12 +38802,30 @@ Function Get-CloudProxy {
         .EXAMPLE
         Get-CloudProxy -environment production -region uk -type 'Cloud Proxy' -ovaUrl
         This example shows how to obtain the URL to the Cloud Proxy OVA for the United Kingdom region.
-    #>
+
+        .PARAMETER environment
+        Connect to the production or staging VMware Cloud Service.
+
+        .PARAMETER type
+        The type of Cloud Proxy to request the One Time Key (OTK) for.
+
+        .PARAMETER region
+        The region to request the One Time Key (OTK) for. Only required for production environment.
+
+        .PARAMETER download
+        Download the OVA to the path provided.
+
+        .PARAMETER path
+        The path to download the OVA to.
+
+        .PARAMETER ovaUrl
+        Return the URL to the OVA.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
-        [Parameter (Mandatory = $false)] [ValidateSet("au","br","ca","de","jp","sg","uk","us")] [ValidateNotNullOrEmpty()] [String]$region,
-        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $false)] [ValidateSet("au", "br", "ca", "de", "jp", "sg", "uk", "us")] [ValidateNotNullOrEmpty()] [String]$region,
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy", "Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
         [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [Switch]$download,
         [Parameter (Mandatory = $false, ParameterSetName = 'download')] [ValidateNotNullOrEmpty()] [String]$path,
         [Parameter (Mandatory = $false, ParameterSetName = 'ovaUrl')] [ValidateNotNullOrEmpty()] [Switch]$ovaUrl
@@ -32430,7 +38876,8 @@ Function Get-CloudProxy {
                 } else {
                     Write-Error "Downloading the VMware Aria Automation Assembler Cloud Proxy OVA to '$downloadPath': POST_VALIDATION_FAILED"
                 }
-            } else {
+            }
+            else {
                 Write-Warning "Downloading the VMware Aria Automation Assembler Cloud Proxy OVA to '$downloadPath', already downloaded: SKIPPED"
             }
         } elseif ($PsBoundParameters.ContainsKey("ovaUrl")) {
@@ -32445,7 +38892,7 @@ Export-ModuleMember -Function Get-CloudProxy
 Function Get-CloudProxyOtk {
     <#
         .SYNOPSIS
-        Request One Time Key (OTK) for Cloud Proxies from VMware Cloud Service
+        Request One Time Key (OTK) for Cloud Proxies from VMware Cloud Service.
 
         .DESCRIPTION
         The Get-CloudProxyOtk cmdlet connects to the VMware Cloud Service and requests a One Time Key (OTK) which is
@@ -32458,12 +38905,21 @@ Function Get-CloudProxyOtk {
         .EXAMPLE
         Get-CloudProxyOtk -environment production -type 'Cloud Extensibility Proxy'
         This example shows how to get the One Time Key (OTK) for the Cloud Extensibility Proxy.
-    #>
+
+        .PARAMETER environment
+        Connect to the production or staging VMware Cloud Service.
+
+        .PARAMETER type
+        The type of Cloud Proxy to request the One Time Key (OTK) for.
+
+        .PARAMETER region
+        The region to request the One Time Key (OTK) for. Only required for production environment.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment,
-        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy","Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
-        [Parameter (Mandatory = $false)] [ValidateSet("au","br","ca","de","jp","sg","uk","us")] [ValidateNotNullOrEmpty()] [String]$region
+        [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment,
+        [Parameter (Mandatory = $true)] [ValidateSet("Cloud Proxy", "Cloud Extensibility Proxy")] [ValidateNotNullOrEmpty()] [String]$type,
+        [Parameter (Mandatory = $false)] [ValidateSet("au", "br", "ca", "de", "jp", "sg", "uk", "us")] [ValidateNotNullOrEmpty()] [String]$region
     )
 
     Try {
@@ -32518,7 +38974,16 @@ Function Get-vROVersion {
         .EXAMPLE
         Get-vROVersion -extensibility
         This examples retrieves the version details from a VMware Aria Automation Orchestrator instance running within the Cloud Extensibility Proxy appliance.
-    #>
+
+        .PARAMETER standalone
+        Connect to a standalone VMware Aria Automation Orchestrator appliance.
+
+        .PARAMETER embedded
+        Connect to an embedded VMware Aria Automation Orchestrator instance running within the VMware Aria Automation appliances.
+
+        .PARAMETER extensibility
+        Connect to a VMware Aria Automation Orchestrator instance running within the Cloud Extensibility Proxy appliance.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "embedded")][OutputType('System.Management.Automation.PSObject')]
 
@@ -32547,7 +39012,7 @@ Function Get-vROVersion {
         $path = "/vco/api/about"
         $uri = $baseUrl + $path
         Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $cspHeader
-    }  Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -32556,7 +39021,7 @@ Export-ModuleMember -Function Get-vROVersion
 Function Get-CEPWorkflow {
     <#
         .SYNOPSIS
-        Get VMware Aria Automation Orchestrator workflows
+        Get VMware Aria Automation Orchestrator workflows.
 
         .DESCRIPTION
         The Get-CEPWorkflow cmdlet returns details for VMware Aria Automation Orchestrator workflows
@@ -32580,8 +39045,26 @@ Function Get-CEPWorkflow {
         Get-CEPWorkflow -name 'Import a trusted certificate' -wildcard
 
         .NOTES
-        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/)
-    #>
+        Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
+
+        .PARAMETER categoryName
+        The name of the category to filter by.
+
+        .PARAMETER categoryId
+        The ID of the category to filter by.
+
+        .PARAMETER id
+        The ID of the workflow to filter by.
+
+        .PARAMETER name
+        The name of the workflow to filter by.
+
+        .PARAMETER wildcard
+        Use wildcard search for the name of the workflow.
+
+        .PARAMETER tag
+        The tag to filter by.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "All")][OutputType('System.Management.Automation.PSObject')]
 
@@ -32617,8 +39100,7 @@ Function Get-CEPWorkflow {
             "name" {
                 if ($PSBoundParameters.ContainsKey('wildcard')) {
                     $uri = "https://$cepAppliance/vco/api/workflows/?conditions=name~$($name)"
-                }
-                else {
+                } else {
                     $uri = "https://$cepAppliance/vco/api/workflows/?conditions=name=$($name)"
                 }
                 break
@@ -32707,7 +39189,7 @@ Export-ModuleMember -Function Get-CEPWorkflow
 Function Invoke-CEPWorkflow {
     <#
         .SYNOPSIS
-        Invoke a VMware Aria Automation Orchestrator workflow
+        Invoke a VMware Aria Automation Orchestrator workflow.
 
         .DESCRIPTION
         The Invoke-CEPWorkflow cmdlet starts a VMware Aria Automation Orchestrator workflow
@@ -32745,8 +39227,26 @@ Function Invoke-CEPWorkflow {
         Invoke-CEPWorkflow -id 3f23f186-158a-4869-b464-b7271fc216ba -parameters $param1
 
         .EXAMPLE
-        Invoke-CEPWorkflow -name 'Import a trusted certificate from a file' | Invoke-CEPWorkflow -parameterName 'foo' -parameterValue 'bar' -parameterType string
-    #>
+        Invoke-CEPWorkflow -name 'Import a trusted certificate from a file' | Invoke-CEPWorkflow -parameterName 'foo' -parameterValue 'bar' -parameterType string.
+
+        .PARAMETER id
+        The VMware Aria Automation Orchestrator workflow ID.
+
+        .PARAMETER name
+        The VMware Aria Automation Orchestrator workflow name.
+
+        .PARAMETER parameterName
+        The VMware Aria Automation Orchestrator workflow parameter name.
+
+        .PARAMETER parameterValue
+        The VMware Aria Automation Orchestrator workflow parameter value.
+
+        .PARAMETER parameterType
+        The VMware Aria Automation Orchestrator workflow parameter type.
+
+        .PARAMETER parameters
+        The VMware Aria Automation Orchestrator workflow parameters.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
@@ -32818,7 +39318,7 @@ Export-ModuleMember -Function Invoke-CEPWorkflow
 Function Get-CEPWorkflowExecution {
     <#
         .SYNOPSIS
-        Retrieve VMware Aria Automation Orchestrator Workflow Status
+        Retrieve VMware Aria Automation Orchestrator Workflow Status.
 
         .DESCRIPTION
         The Get-CEPWorkflowExecution cmdlet returns the execution status for a VMware Aria Automation Orchestrator workflow
@@ -32832,8 +39332,14 @@ Function Get-CEPWorkflowExecution {
         The example retrieves the status for all workflows based on workflow name
 
         .EXAMPLE
-        Get-CEPWorkflowExecution -name 'Import a trusted certificate from a file' -executionId 397a7b99-cdd0-427e-8fa1-2ff9cdd96fae
-    #>
+        Get-CEPWorkflowExecution -name 'Import a trusted certificate from a file' -executionId 397a7b99-cdd0-427e-8fa1-2ff9cdd96fae.
+
+        .PARAMETER id
+        The VMware Aria Automation Orchestrator workflow ID.
+
+        .PARAMETER name
+        The VMware Aria Automation Orchestrator workflow name.
+   #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
@@ -32869,7 +39375,7 @@ Export-ModuleMember -Function Get-CEPWorkflowExecution
 Function Get-CEPWorkflowExecutionState {
     <#
         .SYNOPSIS
-        Get a VMware Aria Automation Orchestrator Workflow execution state
+        Get a VMware Aria Automation Orchestrator Workflow execution state.
 
         .DESCRIPTION
         The Get-CEPWorkflowExecutionState cmdlet returns the status of VMware Aria Automation Orchestrator workflow
@@ -32877,8 +39383,14 @@ Function Get-CEPWorkflowExecutionState {
 
         .EXAMPLE
         Get-CEPWorkflowExecutionState -workflowId 93a7bb21-0255-4750-9293-2437abe9d2e5 -executionId 0f37aa69-b95c-4c80-8b63-b8e5085aa3fd
-        The examples returns the execution status of a workflow based on the Workflow ID and Execution ID
-    #>
+        The examples returns the execution status of a workflow based on the Workflow ID and Execution ID.
+
+        .PARAMETER workflowId
+        The VMware Aria Automation Orchestrator workflow ID.
+
+        .PARAMETER executionId
+        The VMware Aria Automation Orchestrator workflow execution ID.
+   #>
 
     Param (   
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workflowId,
@@ -32910,11 +39422,23 @@ Function Add-CEPTrustedCertificate {
         .EXAMPLE
         Add-CEPTrustedCertificate -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -environment staging -apiToken <string> -certFile "C:\Root64.pem"
         This example adds a trusted certificate in PEM-encoded format to the Cloud Extensibility Proxy VMware Aria Automation Orchestrator instance.
-    #>
+
+        .PARAMETER extensibilityProxy
+        The Cloud Extensibility Proxy FQDN or IP address.
+
+        .PARAMETER environment
+        The VMware Cloud Services environment.
+
+        .PARAMETER apiToken
+        The VMware Cloud Services API token.
+
+        .PARAMETER certFile
+        The trusted certificate file in PEM-encoded format.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy,
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment = "production",
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certFile
     )
@@ -32990,14 +39514,41 @@ Function Add-CEPvCenterServer {
         .EXAMPLE
         Add-CEPvCenterServer -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -apiToken <string> -environment staging -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io -serviceAccount svc-vro-vsphere@sfo.rainpole.io -servicePassword VMw@re1!
         This example adds the vCenter Server instance from the "sfo-w01" workload domain to the Cloud Extensibility Proxy VMware Aria Automation Orchestrator instance.
-    #>
+
+        .PARAMETER server
+        The vCenter Server FQDN or IP address.
+
+        .PARAMETER user
+        The vCenter Server user account.
+
+        .PARAMETER pass
+        The vCenter Server user account password.
+
+        .PARAMETER domain
+        The vCenter Server domain.
+
+        .PARAMETER apiToken
+        The VMware Cloud Services API token.
+
+        .PARAMETER environment
+        The VMware Cloud Services environment.
+
+        .PARAMETER extensibilityProxy
+        The Cloud Extensibility Proxy FQDN or IP address.
+
+        .PARAMETER serviceAccount
+        The vCenter Server service account.
+
+        .PARAMETER servicePassword
+        The vCenter Server service account password.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
-        [Parameter (Mandatory = $true)] [ValidateSet("production","staging")] [ValidateNotNullOrEmpty()] [String]$environment="production",
+        [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment = "production",
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$apiToken,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$serviceAccount,
@@ -33173,7 +39724,7 @@ Export-ModuleMember -Function Add-CEPvCenterServer
 Function Request-VrmsToken {
     <#
         .SYNOPSIS
-        Connects to the specified vSphere Replication Appliance and obtains an authorization token
+        Connects to the specified vSphere Replication Appliance and obtains an authorization token.
 
         .DESCRIPTION
         The Request-VrmsToken cmdlet connects to the specified vSphere Replication Appliance and obtains an
@@ -33181,8 +39732,17 @@ Function Request-VrmsToken {
 
         .EXAMPLE
         Request-VrmsToken -fqdn sfo-m01-vrms01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to a vSphere Replication Appliance appliance
-    #>
+        This example shows how to connect to a vSphere Replication Appliance appliance.
+
+        .PARAMETER fqdn
+        The fqdn parameter The fully qualified domain name of the vSphere Replication Appliance.
+
+        .PARAMETER username
+        The username parameter The username to be used to connect to the vSphere Replication Appliance.
+
+        .PARAMETER password
+        The password parameter The password to be used to connect to the vSphere Replication Appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -33210,7 +39770,7 @@ Function Request-VrmsToken {
             $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
         }
         if ($vrmsResponse.StatusCode -eq 200) {
-            $Global:vrmsHeader = @{"Accept" = "application/json"}
+            $Global:vrmsHeader = @{"Accept" = "application/json" }
             $vrmsHeader.Add("Content-Type", "application/json")
             $vrmsHeader.Add("x-dr-session", "$(($vrmsResponse.Content | ConvertFrom-Json).session_id)")
             Write-Output "Successfully connected to the vSphere Replication Appliance: $vrmsAppliance"
@@ -33224,15 +39784,15 @@ Export-ModuleMember -Function Request-VrmsToken
 Function Get-VrmsApplianceDetail {
     <#
         .SYNOPSIS
-        Get information about the vSphere Replication Appliance
+        Get information about the vSphere Replication Appliance.
 
         .DESCRIPTION
         The Get-VrmsApplianceDetail cmdlet retrieves information about the vSphere Replication Appliance.
 
         .EXAMPLE
         Get-VrmsApplianceDetail
-        This example retrieves information about the vSphere Replication Appliance
-    #>
+        This example retrieves information about the vSphere Replication Appliance.
+   #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance"
@@ -33246,7 +39806,7 @@ Export-ModuleMember -Function Get-VrmsApplianceDetail
 Function Set-VrmsApplianceState {
     <#
         .SYNOPSIS
-        Restart or shutdown the appliance
+        Restart or shutdown the appliance.
 
         .DESCRIPTION
         The Set-VrmsApplianceState cmdlet allows you to restart or shutdown the vSphere Replication appliance.
@@ -33257,11 +39817,14 @@ Function Set-VrmsApplianceState {
 
         .EXAMPLE
         Set-VrmsApplianceState -action stop
-        This example shutsdown the vSphere Replication appliance
-    #>
+        This example shutsdown the vSphere Replication appliance.
+
+        .PARAMETER action
+        The action parameter The action to be performed on the vSphere Replication appliance.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet('restart','stop')] [String]$action
+        [Parameter (Mandatory = $true)] [ValidateSet('restart', 'stop')] [String]$action
     )
 
     Try {
@@ -33280,7 +39843,7 @@ Export-ModuleMember -Function Set-VrmsApplianceState
 Function Get-VrmsTask {
     <#
         .SYNOPSIS
-        Get tasks
+        Get tasks.
 
         .DESCRIPTION
         The Get-VrmsTask cmdlet retrieves the tasks for a vSphere Replication appliance.
@@ -33291,8 +39854,11 @@ Function Get-VrmsTask {
 
         .EXAMPLE
         Get-VrmsTask -taskId <task_id>
-        This example retrieves a specific task based on the task ID from the vSphere Replication appliance
-    #>
+        This example retrieves a specific task based on the task ID from the vSphere Replication appliance.
+
+        .PARAMETER taskId
+        The taskId parameter The task to be retrieved.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
@@ -33314,7 +39880,7 @@ Export-ModuleMember -Function Get-VrmsTask
 Function Get-VrmsService {
     <#
         .SYNOPSIS
-        Get information about vSphere Replication appliance services
+        Get information about vSphere Replication appliance services.
 
         .DESCRIPTION
         The Get-VrmsService cmdlet retrieves information about the vSphere Replication appliance services.
@@ -33325,11 +39891,14 @@ Function Get-VrmsService {
 
         .EXAMPLE
         Get-VrmsService -serviceId hms
-        This example retrieves information about hms service on the vSphere Replication appliance
-    #>
+        This example retrieves information about hms service on the vSphere Replication appliance.
+
+        .PARAMETER serviceId
+        The serviceId parameter The service to be configured.
+   #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateSet('drclient','hbrsrv','hmsdb','hms','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId
+        [Parameter (Mandatory = $false)] [ValidateSet('drclient', 'hbrsrv', 'hmsdb', 'hms', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId
     )
 
     Try {
@@ -33350,7 +39919,7 @@ Export-ModuleMember -Function Get-VrmsService
 Function Set-VrmsService {
     <#
         .SYNOPSIS
-        Get information about vSphere Replication appliance services
+        Get information about vSphere Replication appliance services.
 
         .DESCRIPTION
         The Set-VrmsService cmdlet retrieves information about the vSphere Replication appliance services.
@@ -33365,12 +39934,18 @@ Function Set-VrmsService {
 
         .EXAMPLE
         Set-VrmsService -serviceId hms -state restart
-        This example restarts the hms service on the vSphere Replication appliance
-    #>
+        This example restarts the hms service on the vSphere Replication appliance.
+
+        .PARAMETER serviceId
+        The serviceId parameter The service to be configured.
+
+        .PARAMETER state
+        The state parameter The state of the service to be configured.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet('drclient','hbrsrv','hmsdb','hms','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId,
-        [Parameter (Mandatory = $true)] [ValidateSet('start','stop','restart')] [String]$state
+        [Parameter (Mandatory = $true)] [ValidateSet('drclient', 'hbrsrv', 'hmsdb', 'hms', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId,
+        [Parameter (Mandatory = $true)] [ValidateSet('start', 'stop', 'restart')] [String]$state
     )
 
     Try {
@@ -33385,15 +39960,15 @@ Export-ModuleMember -Function Set-VrmsService
 Function Get-VrmsNetworkAll {
     <#
         .SYNOPSIS
-        Get all network configuration
+        Get all network configuration.
 
         .DESCRIPTION
         The Get-VrmsNetworkAll cmdlet retrieves all the network configuration of a vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsNetworkAll
-        This example retrieves all network configuration of the vSphere Replication appliance
-    #>
+        This example retrieves all network configuration of the vSphere Replication appliance.
+   #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network"
@@ -33407,15 +39982,15 @@ Export-ModuleMember -Function Get-VrmsNetworkAll
 Function Get-VrmsNetworkDns {
     <#
         .SYNOPSIS
-        Get DNS configuration
+        Get DNS configuration.
 
         .DESCRIPTION
         The Get-VrmsNetworkDns cmdlet retrieves DNS configuration of a vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsNetworkDns
-        This example retrieves information about the DNS configuration of the vSphere Replication appliance
-    #>
+        This example retrieves information about the DNS configuration of the vSphere Replication appliance.
+   #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/dns"
@@ -33429,15 +40004,21 @@ Export-ModuleMember -Function Get-VrmsNetworkDns
 Function Set-VrmsNetworkDns {
     <#
         .SYNOPSIS
-        Set DNS configuration
+        Set DNS configuration.
 
         .DESCRIPTION
         The Set-VrmsNetworkDns cmdlet change the DNS configuration of a vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsNetworkDns -vrmsHostname sfo-m01-vrms01.sfo.rainpole.io -dnsServers "172.18.95.4","172.18.95.5"
-        This example retrieves information about the DNS configuration of the vSphere Replication appliance
-    #>
+        This example retrieves information about the DNS configuration of the vSphere Replication appliance.
+
+        .PARAMETER vrmsHostname
+        The vrmsHostname parameter The hostname of the vSphere Replication appliance.
+
+        .PARAMETER dnsServers
+        The dnsServers parameter The DNS servers to be configured.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsHostname,
@@ -33445,7 +40026,7 @@ Function Set-VrmsNetworkDns {
     )
 
     Try {
-        $body = New-Object psobject -Property @{servers = $dnsServers}
+        $body = New-Object psobject -Property @{servers = $dnsServers }
         $body | Add-Member -notepropertyname 'hostname' -notepropertyvalue $vrmsHostname
         $body | Add-Member -notepropertyname 'mode' -notepropertyvalue 'STATIC'
         $body = $body | ConvertTo-Json
@@ -33460,15 +40041,15 @@ Export-ModuleMember -Function Set-VrmsNetworkDns
 Function Get-VrmsNetworkInterface {
     <#
         .SYNOPSIS
-        Get network interface configuration
+        Get network interface configuration.
 
         .DESCRIPTION
         The Get-VrmsNetworkInterface cmdlet retrieves network interface configuration of a vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsNetworkInterface
-        This example retrieves information about the network interface configuration of the vSphere Replication appliance
-    #>
+        This example retrieves information about the network interface configuration of the vSphere Replication appliance.
+   #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
@@ -33482,15 +40063,27 @@ Export-ModuleMember -Function Get-VrmsNetworkInterface
 Function Set-VrmsNetworkInterface {
     <#
         .SYNOPSIS
-        Set network interface configuration
+        Set network interface configuration.
 
         .DESCRIPTION
         The Set-VrmsNetworkInterface cmdlet configures the network interface of a vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsNetworkInterface -interface eth1 -ipAddress 172.18.111.125 -gateway 172.18.111.1 -prefix 24
-        This example configures the network interface of the vSphere Replication appliance
-    #>
+        This example configures the network interface of the vSphere Replication appliance.
+
+        .PARAMETER interface
+        The interface parameter The network interface to be configured.
+
+        .PARAMETER ipAddress
+        The ipAddress parameter The IP address to be configured.
+
+        .PARAMETER gateway
+        The gateway parameter The gateway to be configured.
+
+        .PARAMETER prefix
+        The prefix parameter The prefix to be configured.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
@@ -33519,7 +40112,7 @@ Export-ModuleMember -Function Set-VrmsNetworkInterface
 Function Get-VrmsConfiguration {
     <#
         .SYNOPSIS
-        Get registration
+        Get registration.
 
         .DESCRIPTION
         The Get-VrmsConfiguration cmdlet retrieves registration configuration for a vSphere Replication appliance.
@@ -33534,8 +40127,14 @@ Function Get-VrmsConfiguration {
 
         .EXAMPLE
         Get-VrmsConfiguration -replication
-        This example retrieves the storage replication configuration for the vSphere Replication appliance
-    #>
+        This example retrieves the storage replication configuration for the vSphere Replication appliance.
+
+        .PARAMETER reconfigure
+        The reconfigure parameter The reconfiguration status for the vSphere Replication appliance.
+
+        .PARAMETER replication
+        The replication parameter The storage replication configuration for the vSphere Replication appliance.
+   #>
     
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
@@ -33563,15 +40162,33 @@ Export-ModuleMember -Function Get-VrmsConfiguration
 Function Set-VrmsConfiguration {
     <#
         .SYNOPSIS
-        Set the vCenter Server registration
+        Set the vCenter Server registration.
 
         .DESCRIPTION
         The Set-VrmsConfiguration cmdlet configures the vCenter Server registration for a vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail vrms-administrator@rainpole.io -siteName SFO-M01
-        This example configures the vCenter Server registration with the vSphere Replication appliance
-    #>
+        This example configures the vCenter Server registration with the vSphere Replication appliance.
+
+        .PARAMETER vcenterFqdn
+        The vcenterFqdn parameter The vCenter Server FQDN to be used to register the vSphere Replication appliance.
+
+        .PARAMETER vcenterInstanceId
+        The vcenterInstanceId parameter The vCenter Server instance ID to be used to register the vSphere Replication appliance.
+
+        .PARAMETER ssoUser
+        The ssoUser parameter The SSO user to be used to register the vSphere Replication appliance.
+
+        .PARAMETER ssoPassword
+        The ssoPassword parameter The SSO password to be used to register the vSphere Replication appliance.
+
+        .PARAMETER adminEmail
+        The adminEmail parameter The administrator email to be used to register the vSphere Replication appliance.
+
+        .PARAMETER siteName
+        The siteName parameter The site name to be used to register the vSphere Replication appliance.
+   #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
@@ -33616,15 +40233,21 @@ Export-ModuleMember -Function Set-VrmsConfiguration
 Function Remove-VrmsConfiguration {
     <#
         .SYNOPSIS
-        Remove the configuration
+        Remove the configuration.
 
         .DESCRIPTION
         The Remove-VrmsConfiguration cmdlet removes the vCenter Server registration for a vSphere Replication appliance.
 
         .EXAMPLE
         Remove-VrmsConfiguration -ssoUser administrator@vsphere.local -ssoPassword VMw@re1!
-        This example removes the vCenter Server registration for the vSphere Replication appliance
-    #>
+        This example removes the vCenter Server registration for the vSphere Replication appliance.
+
+        .PARAMETER ssoUser
+        The ssoUser parameter The SSO user to be used to remove the vCenter Server registration.
+
+        .PARAMETER ssoPassword
+        The ssoPassword parameter The SSO password to be used to remove the vCenter Server registration.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
@@ -33647,15 +40270,21 @@ Export-ModuleMember -Function Remove-VrmsConfiguration
 Function Set-VrmsReplication {
     <#
         .SYNOPSIS
-        Set the replication server settings
+        Set the replication server settings.
 
         .DESCRIPTION
         The Set-VrmsReplication cmdlet configures the replication server settings for a vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsReplication -filterIp 172.18.111.125 -managementIp 172.18.95.125
-        This example configures the vCenter Server registration with the vSphere Replication appliance
-    #>
+        This example configures the vCenter Server registration with the vSphere Replication appliance.
+
+        .PARAMETER filterIp
+        The filterIp parameter The IP address of the vSphere Replication appliance.
+
+        .PARAMETER managementIp
+        The managementIp parameter The IP address of the vSphere Replication appliance.
+   #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filterIp,
@@ -33678,15 +40307,15 @@ Export-ModuleMember -Function Set-VrmsReplication
 Function Get-VrmsVamiCertificate {
     <#
         .SYNOPSIS
-        Get the certificate of the VAMI Appliance interface
+        Get the certificate of the VAMI Appliance interface.
 
         .DESCRIPTION
         The Get-VrmsConfiguration cmdlet retrieves the certificate of the VAMI interface of a vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsConfiguration
-        This example retrieves the registration configuration for the vSphere Replication appliance
-    #>
+        This example retrieves the registration configuration for the vSphere Replication appliance.
+   #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
@@ -33700,7 +40329,7 @@ Export-ModuleMember -Function Get-VrmsVamiCertificate
 Function Set-VrmsVamiCertificate {
     <#
         .SYNOPSIS
-        Install a Signed Certificate for the VAMI Appliance interface
+        Install a Signed Certificate for the VAMI Appliance interface.
 
         .DESCRIPTION
         The Set-VrmsVamiCertificate cmdlet replaces the certificate on the VAMI interface of the vSphere
@@ -33708,8 +40337,14 @@ Function Set-VrmsVamiCertificate {
 
         .EXAMPLE
         Set-VrmsVamiCertificate -pkcs12CertFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1!
-        This example replaces the certificate on the VAMI Appliance interface of the vSphere Replication appliance
-    #>
+        This example replaces the certificate on the VAMI Appliance interface of the vSphere Replication appliance.
+
+        .PARAMETER pkcs12CertFile
+        The pkcs12CertFile parameter The path to the certificate file (.p12) to be installed on the.
+
+        .PARAMETER certPassword
+        The certPassword parameter The password to use to install the certificate file (.p12) on the.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
@@ -33750,7 +40385,7 @@ Export-ModuleMember -Function Set-VrmsVamiCertificate
 Function Request-SrmToken {
     <#
         .SYNOPSIS
-        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token
+        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token.
 
         .DESCRIPTION
         The Request-SrmToken cmdlet connects to the specified Site Recovery Manager and obtains an authorization
@@ -33758,8 +40393,17 @@ Function Request-SrmToken {
 
         .EXAMPLE
         Request-SrmToken -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to a Site Recovery Manager Appliance appliance
-    #>
+        This example shows how to connect to a Site Recovery Manager Appliance appliance.
+
+        .PARAMETER fqdn
+        The fqdn parameter The fully qualified domain name of the Site Recovery Manager Appliance.
+
+        .PARAMETER username
+        The username parameter The username to use to connect to the Site Recovery Manager Appliance.
+
+        .PARAMETER password
+        The password parameter The password to use to connect to the Site Recovery Manager Appliance.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -33787,7 +40431,7 @@ Function Request-SrmToken {
             $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -UseBasicParsing
         }
         if ($srmResponse.StatusCode -eq 200) {
-            $Global:srmHeader = @{"Accept" = "application/json"}
+            $Global:srmHeader = @{"Accept" = "application/json" }
             $srmHeader.Add("Content-Type", "application/json")
             $srmHeader.Add("x-dr-session", "$(($srmResponse.Content | ConvertFrom-Json).session_id)")
             Write-Output "Successfully connected to the Site Recovery Manager Appliance: $srmAppliance"
@@ -33801,15 +40445,15 @@ Export-ModuleMember -Function Request-SrmToken
 Function Get-SrmApplianceDetail {
     <#
         .SYNOPSIS
-        Get information about the Site Recovery Manager Appliance
+        Get information about the Site Recovery Manager Appliance.
 
         .DESCRIPTION
         The Get-SrmApplianceDetail cmdlet retrieves information about the Site Recovery Manager Appliance.
 
         .EXAMPLE
         Get-SrmApplianceDetail
-        This example retrieves information about the Site Recovery Manager Appliance
-    #>
+        This example retrieves information about the Site Recovery Manager Appliance.
+   #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance"
@@ -33823,7 +40467,7 @@ Export-ModuleMember -Function Get-SrmApplianceDetail
 Function Set-SrmApplianceState {
     <#
         .SYNOPSIS
-        Restart or shutdown the appliance
+        Restart or shutdown the appliance.
 
         .DESCRIPTION
         The Set-SrmApplianceState cmdlet allows you to restart or shutdown the Site Recovery Manager appliance.
@@ -33834,11 +40478,14 @@ Function Set-SrmApplianceState {
 
         .EXAMPLE
         Set-SrmApplianceState -action stop
-        This example shutsdown the Site Recovery Manager appliance
-    #>
+        This example shutsdown the Site Recovery Manager appliance.
+
+        .PARAMETER action
+        The action parameter The action to perform.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet('restart','stop')] [String]$action
+        [Parameter (Mandatory = $true)] [ValidateSet('restart', 'stop')] [String]$action
     )
 
     Try {
@@ -33857,7 +40504,7 @@ Export-ModuleMember -Function Set-SrmApplianceState
 Function Get-SrmTask {
     <#
         .SYNOPSIS
-        Get tasks
+        Get tasks.
 
         .DESCRIPTION
         The Get-SrmTask cmdlet retrieves the tasks for a Site Recovery Manager appliance.
@@ -33868,8 +40515,11 @@ Function Get-SrmTask {
 
         .EXAMPLE
         Get-SrmTask -taskId <task_id>
-        This example retrieves a specific task based on the task ID from the Site Recovery Manager appliance
-    #>
+        This example retrieves a specific task based on the task ID from the Site Recovery Manager appliance.
+
+        .PARAMETER taskId
+        The taskId parameter The task to retrieve.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
@@ -33891,7 +40541,7 @@ Export-ModuleMember -Function Get-SrmTask
 Function Get-SrmService {
     <#
         .SYNOPSIS
-        Get information about Site Recovery Manager appliance services
+        Get information about Site Recovery Manager appliance services.
 
         .DESCRIPTION
         The Get-SrmService cmdlet retrieves information about the Site Recovery Manager appliance services.
@@ -33902,11 +40552,14 @@ Function Get-SrmService {
 
         .EXAMPLE
         Get-SrmService -serviceId hms
-        This example retrieves information about hms service on the Site Recovery Manager appliance
-    #>
+        This example retrieves information about hms service on the Site Recovery Manager appliance.
+
+        .PARAMETER serviceId
+        The serviceId parameter The service to configure.
+   #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateSet('srm','db','drclient','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId
+        [Parameter (Mandatory = $false)] [ValidateSet('srm', 'db', 'drclient', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId
     )
 
     Try {
@@ -33926,7 +40579,7 @@ Export-ModuleMember -Function Get-SrmService
 Function Set-SrmService {
     <#
         .SYNOPSIS
-        Get information about Site Recovery Manager appliance services
+        Get information about Site Recovery Manager appliance services.
 
         .DESCRIPTION
         The Set-SrmService cmdlet retrieves information about the Site Recovery Manager appliance services.
@@ -33941,12 +40594,18 @@ Function Set-SrmService {
 
         .EXAMPLE
         Set-SrmService -serviceId srm -state restart
-        This example restarts the hms service on the Site Recovery Manager appliance
-    #>
+        This example restarts the hms service on the Site Recovery Manager appliance.
+
+        .PARAMETER serviceId
+        The serviceId parameter The service to configure.
+
+        .PARAMETER state
+        The state parameter The state of the service to configure.
+   #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet('srm','db','drclient','telegraf','iperf3','auditd','drrest','drclientplugin')] [String]$serviceId,
-        [Parameter (Mandatory = $true)] [ValidateSet('start','stop','restart')] [String]$state
+        [Parameter (Mandatory = $true)] [ValidateSet('srm', 'db', 'drclient', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId,
+        [Parameter (Mandatory = $true)] [ValidateSet('start', 'stop', 'restart')] [String]$state
     )
 
     Try {
@@ -33961,15 +40620,15 @@ Export-ModuleMember -Function Set-SrmService
 Function Get-SrmNetworkAll {
     <#
         .SYNOPSIS
-        Get all network configuration
+        Get all network configuration.
 
         .DESCRIPTION
         The Get-SrmNetworkAll cmdlet retrieves all the network configuration of a Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmNetworkAll
-        This example retrieves all network configuration of the Site Recovery Manager appliance
-    #>
+        This example retrieves all network configuration of the Site Recovery Manager appliance.
+   #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network"
@@ -33983,15 +40642,15 @@ Export-ModuleMember -Function Get-SrmNetworkAll
 Function Get-SrmNetworkDns {
     <#
         .SYNOPSIS
-        Get DNS configuration
+        Get DNS configuration.
 
         .DESCRIPTION
         The Get-SrmNetworkDns cmdlet retrieves DNS configuration of a Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmNetworkDns
-        This example retrieves information about the DNS configuration of the Site Recovery Manager appliance
-    #>
+        This example retrieves information about the DNS configuration of the Site Recovery Manager appliance.
+   #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/dns"
@@ -34005,15 +40664,21 @@ Export-ModuleMember -Function Get-SrmNetworkDns
 Function Set-SrmNetworkDns {
     <#
         .SYNOPSIS
-        Set DNS configuration
+        Set DNS configuration.
 
         .DESCRIPTION
         The Set-SrmNetworkDns cmdlet change the DNS configuration of a Site Recovery Manager appliance.
 
         .EXAMPLE
         Set-SrmNetworkDns -srmHostname sfo-m01-srm01.sfo.rainpole.io -dnsServers "172.18.95.4","172.18.95.5"
-        This example retrieves information about the DNS configuration of the Site Recovery Manager appliance
-    #>
+        This example retrieves information about the DNS configuration of the Site Recovery Manager appliance.
+
+        .PARAMETER srmHostname
+        The srmHostname parameter The hostname of the Site Recovery Manager appliance.
+
+        .PARAMETER dnsServers
+        The dnsServers parameter The DNS servers to configure.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmHostname,
@@ -34021,7 +40686,7 @@ Function Set-SrmNetworkDns {
     )
 
     Try {
-        $body = New-Object psobject -Property @{servers = $dnsServers}
+        $body = New-Object psobject -Property @{servers = $dnsServers }
         $body | Add-Member -notepropertyname 'hostname' -notepropertyvalue $srmHostname
         $body | Add-Member -notepropertyname 'mode' -notepropertyvalue 'STATIC'
         $body = $body | ConvertTo-Json
@@ -34036,15 +40701,15 @@ Export-ModuleMember -Function Set-SrmNetworkDns
 Function Get-SrmNetworkInterface {
     <#
         .SYNOPSIS
-        Get network interface configuration
+        Get network interface configuration.
 
         .DESCRIPTION
         The Get-SrmNetworkInterface cmdlet retrieves network interface configuration of a Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmNetworkInterface
-        This example retrieves information about the network interface configuration of the Site Recovery Manager appliance
-    #>
+        This example retrieves information about the network interface configuration of the Site Recovery Manager appliance.
+   #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
@@ -34058,15 +40723,27 @@ Export-ModuleMember -Function Get-SrmNetworkInterface
 Function Set-SrmNetworkInterface {
     <#
         .SYNOPSIS
-        Set network interface configuration
+        Set network interface configuration.
 
         .DESCRIPTION
         The Set-SrmNetworkInterface cmdlet configures the network interface of a Site Recovery Manager appliance.
 
         .EXAMPLE
         Set-SrmNetworkInterface -interface eth0 -ipAddress 172.18.95.126 -gateway 172.18.95.1 -prefix 24
-        This example configures the network interface of the Site Recovery Manager appliance
-    #>
+        This example configures the network interface of the Site Recovery Manager appliance.
+
+        .PARAMETER interface
+        The interface parameter The network interface to configure.
+
+        .PARAMETER ipAddress
+        The ipAddress parameter The IP address to configure.
+
+        .PARAMETER gateway
+        The gateway parameter The gateway to configure.
+
+        .PARAMETER prefix
+        The prefix parameter The prefix to configure.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
@@ -34095,7 +40772,7 @@ Export-ModuleMember -Function Set-SrmNetworkInterface
 Function Get-SrmConfiguration {
     <#
         .SYNOPSIS
-        Get registration
+        Get registration.
 
         .DESCRIPTION
         The Get-SrmConfiguration cmdlet retrieves registration configuration for a Site Recovery Manager appliance.
@@ -34106,8 +40783,11 @@ Function Get-SrmConfiguration {
 
         .EXAMPLE
         Get-SrmConfiguration -reconfigure
-        This example retrieves the reconfiguration status for the Site Recovery Manager appliance
-    #>
+        This example retrieves the reconfiguration status for the Site Recovery Manager appliance.
+
+        .PARAMETER reconfigure
+        The reconfigure parameter retrieves the reconfiguration status for the Site Recovery Manager appliance.
+   #>
     
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
@@ -34132,15 +40812,33 @@ Export-ModuleMember -Function Get-SrmConfiguration
 Function Set-SrmConfiguration {
     <#
         .SYNOPSIS
-        Set the vCenter Server registration
+        Set the vCenter Server registration.
 
         .DESCRIPTION
         The Set-SrmConfiguration cmdlet configures the vCenter Server registration for a Site Recovery Manager appliance.
 
         .EXAMPLE
         Set-SrmConfiguration -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterInstanceId 6d6399d4-65ce-4e68-8009-ed8a4735b4a2 -ssoUser administrator@vsphere.local -ssoPassword VMw@re1! -adminEmail srm-administrator@rainpole.io -siteName SFO-M01
-        This example configures the vCenter Server registration with the vSphere Replication appliance
-    #>
+        This example configures the vCenter Server registration with the vSphere Replication appliance.
+
+        .PARAMETER vcenterFqdn
+        The vCenter Server FQDN for the vCenter Server registration.
+
+        .PARAMETER vcenterInstanceId
+        The vCenter Server Instance ID for the vCenter Server registration.
+
+        .PARAMETER ssoUser
+        The SSO user for the vCenter Server registration.
+
+        .PARAMETER ssoPassword
+        The SSO password for the vCenter Server registration.
+
+        .PARAMETER adminEmail
+        The administrator email for the vCenter Server registration.
+
+        .PARAMETER siteName
+        The site name for the vCenter Server registration.
+   #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
@@ -34185,15 +40883,21 @@ Export-ModuleMember -Function Set-SrmConfiguration
 Function Remove-SrmConfiguration {
     <#
         .SYNOPSIS
-        Remove the configuration
+        Remove the configuration.
 
         .DESCRIPTION
         The Remove-SrmConfiguration cmdlet removes the vCenter Server registration for a vSphere Replication appliance.
 
         .EXAMPLE
         Remove-SrmConfiguration -ssoUser administrator@vsphere.local -ssoPassword VMw@re1!
-        This example removes the vCenter Server registration for the vSphere Replication appliance
-    #>
+        This example removes the vCenter Server registration for the vSphere Replication appliance.
+
+        .PARAMETER ssoUser
+        The SSO user for the vCenter Server registration.
+
+        .PARAMETER ssoPassword
+        The SSO password for the vCenter Server registration.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
@@ -34216,15 +40920,15 @@ Export-ModuleMember -Function Remove-SrmConfiguration
 Function Get-SrmVamiCertificate {
     <#
         .SYNOPSIS
-        Get the certificate of the VAMI Appliance interface
+        Get the certificate of the VAMI Appliance interface.
 
         .DESCRIPTION
         The Get-SrmVamiCertificate cmdlet retrieves the certificate of the VAMI interface of a Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmVamiCertificate
-        This example retrieves the registration configuration for the Site Recovery Manager appliance
-    #>
+        This example retrieves the registration configuration for the Site Recovery Manager appliance.
+   #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
@@ -34238,7 +40942,7 @@ Export-ModuleMember -Function Get-SrmVamiCertificate
 Function Set-SrmVamiCertificate {
     <#
         .SYNOPSIS
-        Install a Signed Certificate for the VAMI Appliance interface
+        Install a Signed Certificate for the VAMI Appliance interface.
 
         .DESCRIPTION
         The Set-SrmVamiCertificate cmdlet replaces the certificate on the VAMI interface of the Site Recovery
@@ -34246,8 +40950,14 @@ Function Set-SrmVamiCertificate {
 
         .EXAMPLE
         Set-SrmVamiCertificate -pkcs12CertFile C:\Certs\sfo-m01-srm01.4.p12 -certPassword VMw@re1!
-        This example replaces the certificate on the VAMI Appliance interface of the Site Recovery Manager appliance
-    #>
+        This example replaces the certificate on the VAMI Appliance interface of the Site Recovery Manager appliance.
+
+        .PARAMETER pkcs12CertFile
+        The path to the certificate file (.p12) to be installed on the VAMI Appliance interface.
+
+        .PARAMETER certPassword
+        The password for the certificate file (.p12) to be installed on the VAMI Appliance interface.
+   #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
@@ -34288,17 +40998,17 @@ Export-ModuleMember -Function Set-SrmVamiCertificate
 Function Show-PowerValidatedSolutionsOutput {
     Param (
         [Parameter (Mandatory = $true)] [AllowEmptyString()] [String]$message,
-        [Parameter (Mandatory = $false)] [ValidateSet("INFO", "ERROR", "WARNING", "EXCEPTION","ADVISORY","NOTE","QUESTION","WAIT")] [String]$type = "INFO",
+        [Parameter (Mandatory = $false)] [ValidateSet("INFO", "ERROR", "WARNING", "EXCEPTION", "ADVISORY", "NOTE", "QUESTION", "WAIT")] [String]$type = "INFO",
         [Parameter (Mandatory = $false)] [Switch]$skipnewline
     )
 
     If ($type -eq "INFO") {
         $messageColour = "92m" #Green
-    } elseIf ($type -in "ERROR","EXCEPTION") {
+    } elseIf ($type -in "ERROR", "EXCEPTION") {
         $messageColour = "91m" # Red
-    } elseIf ($type -in "WARNING","ADVISORY","QUESTION") {
+    } elseIf ($type -in "WARNING", "ADVISORY", "QUESTION") {
         $messageColour = "93m" #Yellow
-    } elseIf ($type -in "NOTE","WAIT") {
+    } elseIf ($type -in "NOTE", "WAIT") {
         $messageColour = "97m" # White
     }
 
@@ -34472,7 +41182,7 @@ Function Test-PowerValidatedSolutionsPrereq {
         .EXAMPLE
         Test-PowerValidatedSolutionsPrereq
         This example runs the prerequisite validation.
-    #>
+   #>
 
     Try {
         Clear-Host; Write-Host ""
@@ -34495,8 +41205,7 @@ Function Test-PowerValidatedSolutionsPrereq {
                 Show-PowerValidatedSolutionsOutput -type INFO -message $message
             }
         } 
-    }
-    Catch {
+    } Catch {
         Write-Error $_.Exception.Message
     }
 }
@@ -34525,7 +41234,7 @@ Function Test-EndpointConnection {
 
         .PARAMETER port
         The port number to test the endpoint connection.
-    #>
+   #>
 
     [CmdletBinding()]
 
@@ -34543,8 +41252,7 @@ Function Test-EndpointConnection {
                 $connection = $False
                 Return $connection
             } 
-        }
-        elseif ($PSVersionTable.PSEdition -eq 'Desktop') {
+        } elseif ($PSVersionTable.PSEdition -eq 'Desktop') {
             $OriginalProgressPreference = $Global:ProgressPreference; $Global:ProgressPreference = 'SilentlyContinue'
             if ($status = Test-NetConnection -ComputerName $server -Port $port -WarningAction SilentlyContinue) {
                 $Global:ProgressPreference = $OriginalProgressPreference
@@ -34586,11 +41294,11 @@ Function Test-VCFConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -34608,9 +41316,9 @@ Export-ModuleMember -Function Test-VCFConnection
 
 Function Test-VCFAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:accessToken -Force -Confirm:$false -ErrorAction Ignore
@@ -34657,11 +41365,11 @@ Function Test-EsxiConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -34697,12 +41405,12 @@ Function Test-EsxiAuthentication {
 
         .PARAMETER pass
         The password to authenticate to the ESXi host.
-    #>
+   #>
 
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Try {
@@ -34747,11 +41455,11 @@ Function Test-VsphereConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -34769,9 +41477,9 @@ Export-ModuleMember -Function Test-VsphereConnection
 
 Function Test-VsphereAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Try {
@@ -34812,11 +41520,11 @@ Function Test-SSOConnection {
 
         .PARAMETER port
         The port number to test the connection. Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443")] [Int32]$port = "443"
     )
 
     Try {
@@ -34834,9 +41542,9 @@ Export-ModuleMember -Function Test-SSOConnection
 
 Function Test-SSOAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Try {
@@ -34857,7 +41565,7 @@ Export-ModuleMember -Function Test-SSOAuthentication
 
 Function Test-vSphereApiConnection {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
     )
 
     Try {
@@ -34877,10 +41585,10 @@ Export-ModuleMember -Function Test-vSphereApiConnection
 
 Function Test-vSphereApiAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [Switch]$admin
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$admin
     )
 
     Try {
@@ -34929,11 +41637,11 @@ Function Test-NSXTConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -34951,9 +41659,9 @@ Export-ModuleMember -Function Test-NSXTConnection
 
 Function Test-NSXTAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:nsxtHeaders -Force -Confirm:$false -ErrorAction Ignore
@@ -35000,11 +41708,11 @@ Function Test-vRSLCMConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -35022,9 +41730,9 @@ Export-ModuleMember -Function Test-vRSLCMConnection
 
 Function Test-vRSLCMAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:vrslcmHeaders -Force -Confirm:$false -ErrorAction Ignore
@@ -35071,11 +41779,11 @@ Function Test-vROPSConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -35093,9 +41801,9 @@ Export-ModuleMember -Function Test-vROPSConnection
 
 Function Test-vROPSAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:vropsHeaders -Force -Confirm:$false -ErrorAction Ignore
@@ -35142,11 +41850,11 @@ Function Test-vRLIConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS), 80 (HTTP), 22 (SSH), 9000 (CFAPI), 9543 (CFAPI SSL), 514 (SYSLOG), 1514 (SYSLOG), 6514 (SYSLOG). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22","80","9000","9543","514","1514","6514")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22", "80", "9000", "9543", "514", "1514", "6514")] [Int32]$port = "443"
     )
 
     Try {
@@ -35164,9 +41872,9 @@ Export-ModuleMember -Function Test-vRLIConnection
 
 Function Test-vRLIAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:vrliHeaders -Force -Confirm:$false -ErrorAction Ignore
@@ -35213,11 +41921,11 @@ Function Test-vRAConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS), 8080 (HTTP). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22","8080")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22", "8080")] [Int32]$port = "443"
     )
 
     Try {
@@ -35235,9 +41943,9 @@ Export-ModuleMember -Function Test-vRAConnection
 
 Function Test-vRAAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:vraHeaders -Force -Confirm:$false -ErrorAction Ignore
@@ -35284,11 +41992,11 @@ Function Test-WSAConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS), 8443 (HTTPS). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","8443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "8443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -35306,9 +42014,9 @@ Export-ModuleMember -Function Test-WSAConnection
 
 Function Test-WSAAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Item variable:sessionToken -Force -Confirm:$false -ErrorAction Ignore
@@ -35351,11 +42059,11 @@ Function Test-VrmsVamiConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("5480")] [Int32]$port="5480"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("5480")] [Int32]$port = "5480"
     )
 
     Try {
@@ -35373,9 +42081,9 @@ Export-ModuleMember -Function Test-VrmsVamiConnection
 
 Function Test-VrmsVamiAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Variable -Name vrmsHeader -Scope Global -Force -Confirm:$false -ErrorAction Ignore
@@ -35418,11 +42126,11 @@ Function Test-SrmVamiConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("5480")] [Int32]$port="5480"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("5480")] [Int32]$port = "5480"
     )
 
     Try {
@@ -35440,9 +42148,9 @@ Export-ModuleMember -Function Test-SrmVamiConnection
 
 Function Test-SrmVamiAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
     )
 
     Remove-Variable -Name srmHeader -Scope Global -Force -Confirm:$false -ErrorAction Ignore
@@ -35489,11 +42197,11 @@ Function Test-SRMConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-    #>
+   #>
     
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory=$false)] [ValidateSet("443","22")] [Int32]$port="443"
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
     )
 
     Try {
@@ -35511,11 +42219,11 @@ Export-ModuleMember -Function Test-SRMConnection
 
 Function Test-SRMAuthentication {
     Param (
-        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
-		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$remoteUser,
-		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$remotePass
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remoteUser,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$remotePass
     )
 
     Try {
@@ -35567,15 +42275,20 @@ Export-ModuleMember -Function Test-SRMAuthentication
 Function Test-WMSubnetInput {
     <#
         .SYNOPSIS
-        Tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
+        Tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools.
 
         .DESCRIPTION
         The Test-WMSubnetInput cmdlet tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructure pools
         
         .EXAMPLE
         Test-WMSubnetInput -Subnet 192.168.21.0/24 -SubnetType Ingress
-        This example will return as 'true'
+        This example will return as 'true'.
 
+        .PARAMETER Subnet
+        The IPv4 subnet to test.
+
+        .PARAMETER SubnetType
+        The type of subnet to test. One of the following: Pod, Service, Egress, Ingress.
         #>
 
     Param (
@@ -35634,8 +42347,7 @@ Function Test-WMSubnetInput {
         $checkSuffix = [int[]]$suffix
         if ($checkSuffix -gt $subnetMinimum -or !$checkSuffix) {
             Write-Error "Improperly sized $subnetType subnet ($subnet). Host prefix length should be at least {$subnetminimum)"
-        }
-        else {
+        } else {
             $testSufix = $true
         }
     } Catch {
@@ -35662,7 +42374,13 @@ Function Test-IpAddress {
         .EXAMPLE
         Test-IpAddress -ipAddress 192.168.20.10 -Subnet 192.168.20.0/24
         This example will test whether the IPv4 address 192.168.20.10 is in the 192.168.20.0/24 subnet.
-    #>
+
+        .PARAMETER ipAddress
+        The IPv4 address to test.
+
+        .PARAMETER subnet
+        The IPv4 subnet to test against.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$ipAddress,
@@ -35672,23 +42390,23 @@ Function Test-IpAddress {
     $subnetStart = $Subnet.Split("/")[0]
     $suffix = $Subnet.Split("/")[1]
 
-    $subnetStartBinary = $subnetStart -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
-    $subnetStartBinary =  $subnetStartBinary -join ""
+    $subnetStartBinary = $subnetStart -split '\.' | ForEach-Object { [System.Convert]::ToString($_, 2).PadLeft(8, '0') }
+    $subnetStartBinary = $subnetStartBinary -join ""
     $subnetStartBinary = ($subnetStartBinary).ToCharArray()
 
-    $ipAddressBinary = $ipAddress -split '\.' | ForEach-Object {[System.Convert]::ToString($_,2).PadLeft(8,'0')}
-    $ipAddressBinary =  $ipAddressBinary -join ""
+    $ipAddressBinary = $ipAddress -split '\.' | ForEach-Object { [System.Convert]::ToString($_, 2).PadLeft(8, '0') }
+    $ipAddressBinary = $ipAddressBinary -join ""
     $ipAddressBinary = ($ipAddressBinary).ToCharArray()
 
-    for($i=0;$i -lt $subnetStartBinary.length;$i++){
-        if($i -ge $suffix){
+    for ($i = 0; $i -lt $subnetStartBinary.length; $i++) {
+        if ($i -ge $suffix) {
             $subnetStartBinary[$i] = "1"
         } 
     }
 
-    for ($i = 0;$i -lt $subnetStartBinary.length;$i++) {
+    for ($i = 0; $i -lt $subnetStartBinary.length; $i++) {
         $partSubnetStartBinary += $subnetStartBinary[$i] 
-        if(($i+1)%8 -eq 0){
+        if (($i + 1) % 8 -eq 0) {
             $partSubnetStartBinary = $partSubnetStartBinary -join ""
             $subnetBroadcastBinary += $partSubnetStartBinary -join ""
             $partSubnetStartBinary = ""
@@ -35699,8 +42417,8 @@ Function Test-IpAddress {
 
     [Int[]]$suffixComparison = (1..32)
 
-    for($i=0; $i -lt $suffixComparison.length; $i++){
-        if($suffixComparison[$i] -gt $suffix) {
+    for ($i = 0; $i -lt $suffixComparison.length; $i++) {
+        if ($suffixComparison[$i] -gt $suffix) {
             $suffixComparison[$i] = "0"
         } else {
             $suffixComparison[$i] = "1"
@@ -35711,8 +42429,8 @@ Function Test-IpAddress {
     [char[]]$suffixBinary = $suffixBinaryString.ToCharArray()
     $comparison = $true
 
-    for ($i=0; $i -le $subnetStartBinary.length; $i++){
-        if($subnetStartBinary[$i] -ne $ipAddressBinary[$i] -and $suffixBinary[$i] -ne "0") {
+    for ($i = 0; $i -le $subnetStartBinary.length; $i++) {
+        if ($subnetStartBinary[$i] -ne $ipAddressBinary[$i] -and $suffixBinary[$i] -ne "0") {
             $comparison = $false
         } 
     }
@@ -35742,7 +42460,10 @@ Function Test-IPaddressArray {
         .EXAMPLE
         Test-IpAddressArray -ipAddressArray "192.168.20.10"
         This example will test whether the string "192.168.20.10" can be converted to valid IPv4 addresses.
-    #>
+
+        .PARAMETER ipAddressArray
+        The array of strings to test.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [Array]$IPaddressArray
@@ -35784,17 +42505,23 @@ Function Test-DnsServers {
         .EXAMPLE
         Test-DnsServers -dnsServers "192.168.20.10" -domainName vmware.com
         This example will test whether dns server "192.168.20.10" can resolve domain name vmware.com.
-    #>
+
+        .PARAMETER dnsServers
+        The array of DNS servers to test.
+
+        .PARAMETER domainName
+        The domain name to resolve..
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [Array]$dnsServers,
-        [Parameter (Mandatory = $false)] [string]$domainName="vmware.com"
+        [Parameter (Mandatory = $false)] [string]$domainName = "vmware.com"
     )
 
     if (Test-IPaddressArray -IPaddressArray $dnsServers) {
     
         Foreach ($dnsServer in $dnsServers) {
-            [bool]$resolveResult=$false
+            [bool]$resolveResult = $false
                                                                 
             Try {
                 $checkDnsServer = Resolve-DnsName -Name $domainName -Type A -Server $dnsServer -QuickTimeout -ErrorAction Stop
@@ -35817,15 +42544,18 @@ Export-ModuleMember -Function Test-DnsServers
 Function Test-NtpServer {
     <#
         .SYNOPSIS
-        Checks the status of an NTP server
+        Checks the status of an NTP server.
 
         .DESCRIPTION
         The Test-NtpServer cmdlet checks the status of an NTP server
 
         .EXAMPLE
         Test-NtpServer -Server pool.ntp.org
-        This example will return the status of the NTP server responding at pool.ntp.org
-    #>
+        This example will return the status of the NTP server responding at pool.ntp.org.
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the NTP server to check.
+   #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server
@@ -35833,7 +42563,7 @@ Function Test-NtpServer {
 
     $ntpStatus = $null
     Try {
-        [Byte[]]$NtpData = ,0 * 48
+        [Byte[]]$NtpData = , 0 * 48
         $NtpData[0] = 0x1B
     
         $Socket = New-Object Net.Sockets.Socket([Net.Sockets.AddressFamily]::InterNetwork,

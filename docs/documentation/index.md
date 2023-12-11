@@ -1,6 +1,5 @@
 # Reference
 
-!!! note
+## Using the Module
 
-    The documentation for this module is currently not available.
-    Please follow the [GitHub Issue](https://github.com/vmware/power-validated-solutions-for-cloud-foundation/issues/72) for updates.
+Navigate the reference for this PowerShell module to view how to use each available cmdlet based on the topic area.

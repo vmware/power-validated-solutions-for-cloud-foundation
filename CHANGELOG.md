@@ -2,8 +2,9 @@
 
 ## v2.8.0
 
-> Release Date: (Un-Released)
+> Release Date: Unreleased
 
+- Added documentation for each cmdlet available from `Get-Help` and the module's [online documentation](https://vmware.github.io/power-validated-solutions-for-cloud-foundation/).
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -35,6 +36,11 @@
 - Added `Sync-vRSLCMDatacenterVcenter` cmdlet to trigger a data collection of a vCenter Server in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMSshStatus` cmdlet to retrieve the status of the SSH service for VMware Aria Suite Lifecycle.
 - Added `Set-vRSLCMSshStatus` cmdlet to disable or enable the SSH service for VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMMyVmwareAccount` cmdlet to retrieve a VMware Customer Connect account from VMware Aria Suite Lifecycle.
+- Added `New-vRSLCMMyVmwareAccount` cmdlet to add a VMware Customer Connect account from VMware Aria Suite Lifecycle.
+- Added `Remove-vRSLCMMyVmwareAccount` cmdlet to remove a VMware Customer Connect account from VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMProductVersion` cmdlet to retrieve the supported versions for a product from VMware Aria Suite Lifecycle.
+- Added `Request-vRSLCMProductBinary` cmdlet to download the supported version for a product from VMware Customer Connect in VMware Aria Suite Lifecycle.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.

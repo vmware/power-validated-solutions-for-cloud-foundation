@@ -1,0 +1,63 @@
+# Get-NsxtTransportNodeTunnelStatus
+
+## Synopsis
+
+Returns the status of all transport nodes with tunnel connections to transport node.
+
+## Syntax
+
+```powershell
+Get-NsxtTransportNodeTunnelStatus [-id] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+```
+
+## Description
+
+The `Get-NsxtTransportNodeTunnelStatus` cmdlet returns the status of all transport nodes with tunnel connections to transport node.
+
+## Examples
+
+### Example 1
+
+```powershell
+Get-NsxtTransportNodeTunnelStatus [-id] <String> 
+```
+
+This example returns the status of all transport nodes with tunnel connections to transport node.
+
+## Parameters
+
+### -id
+
+The id of the transport node.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ProgressAction
+
+Progress Action
+
+```yaml
+Type: ActionPreference
+Parameter Sets: (All)
+Aliases: proga
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### Common Parameters
+
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
