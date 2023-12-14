@@ -43,16 +43,15 @@ Edition                                                                         
 :material-powershell: &nbsp; [PowerShell Core][microsoft-powershell]              | >= 7.2.0
 :material-powershell: &nbsp; [Microsoft Windows PowerShell][microsoft-powershell] | 5.1
 
-
 ### Module Dependencies
 
 The following table lists the required PowerShell module dependencies for this module.
 
 PowerShell Module                                    | Version   | Publisher     | Reference
 -----------------------------------------------------|-----------|---------------|---------------------------------------------------------------------------
-[VMware.PowerCLI][psgallery-module-powercli]         | >= 13.1.0 | Broadcom      | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
-[VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | Broadcom      | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
-[PowerVCF][psgallery-module-powervcf]                | >= 2.4.0  | Broadcom      | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
+[VMware.PowerCLI][psgallery-module-powercli]         | >= 13.1.0 | Broadcome     | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
+[VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | Broadcome     | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
+[PowerVCF][psgallery-module-powervcf]                | >= 2.4.0  | Broadcome     | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
 [ImportExcel][psgallery-module-importexcel]          | >= 7.8.5  | Douglas Finke | :fontawesome-brands-github: &nbsp; [GitHub][github-module-importexcel]
 
 ## Related Projects
