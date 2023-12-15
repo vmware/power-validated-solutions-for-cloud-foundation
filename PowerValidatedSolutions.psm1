@@ -32630,7 +32630,7 @@ Function Get-vRSLCMMyVmwareAccount {
         .EXAMPLE
         Get-vRSLCMMyVmwareAccount
         This example retrieves all the My VMware Accounts assigned in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Try {
         if ($vrslcmAppliance) {
@@ -32644,39 +32644,6 @@ Function Get-vRSLCMMyVmwareAccount {
     }
 }
 Export-ModuleMember -Function Get-vRSLCMMyVmwareAccount
-
-Function Get-vRSLCMProductVersion {
-    <#
-        .SYNOPSIS
-        Get supported version for a product.
-
-        .DESCRIPTION
-        The Get-vRSLCMProductVersion cmdlet retrieves supported versions of a product from VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        Get-vRSLCMProductVersion -productId vra
-        This example retrieves the supported versions for VMware Aria Automation.
-
-        .PARAMETER productId
-        The product to get the supported versions for.
-   #>
-    
-    Param (
-        [Parameter (Mandatory = $false)] [ValidateSet("vidm", "vra", "vrli", "vrni", "vrops", "vro", "vssc")][ValidateNotNullOrEmpty()] [String]$productId
-    )
-
-    Try {
-        if ($vrslcmAppliance) {
-            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/policy/products/$productId/versions"
-            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
-        } else {
-            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Get-vRSLCMProductVersion
 
 Function New-vRSLCMMyVmwareAccount {
     <#
@@ -32692,7 +32659,7 @@ Function New-vRSLCMMyVmwareAccount {
 
         .PARAMETER alias
         The alias of the My VMware account to add to VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
@@ -32731,7 +32698,7 @@ Function Remove-vRSLCMMyVmwareAccount {
 
         .PARAMETER alias
         The alias of the My VMware account to remove from VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
@@ -32755,6 +32722,39 @@ Function Remove-vRSLCMMyVmwareAccount {
     }
 }
 Export-ModuleMember -Function Remove-vRSLCMMyVmwareAccount
+
+Function Get-vRSLCMProductVersion {
+    <#
+        .SYNOPSIS
+        Get supported version for a product.
+
+        .DESCRIPTION
+        The Get-vRSLCMProductVersion cmdlet retrieves supported versions of a product from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMProductVersion -productId vra
+        This example retrieves the supported versions for VMware Aria Automation.
+
+        .PARAMETER productId
+        The product to get the supported versions for.
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateSet("vidm", "vra", "vrli", "vrni", "vrops", "vro", "vssc")][ValidateNotNullOrEmpty()] [String]$productId
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/policy/products/$productId/versions"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMProductVersion
 
 Function Request-vRSLCMProductBinary {
     <#
@@ -32781,7 +32781,7 @@ Function Request-vRSLCMProductBinary {
 
         .PARAMETER productDownloadType
         The type of product binary to download.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$version,
@@ -32829,11 +32829,15 @@ Function Get-vRSLCMSshStatus {
         .EXAMPLE
         Get-vRSLCMSshStatus
         This example gets the SSH services.
-   #>
+    #>
 
     Try {
-        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
-        Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
+            Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
     } Catch {
         Write-Error $_.Exception.Message
     }
@@ -32851,16 +32855,20 @@ Function Set-vRSLCMSshStatus {
         .EXAMPLE
         Set-vRSLCMSshStatus -enabled false
         This example disables the SSH services.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('true','false')] [String]$enabled
     )
 
     Try {
-        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
-        $body = '{"sshStatus": "'+ $enabled +'"}'
-        Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        if ($vrslcmAppliance) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/ssh"
+            $body = '{"sshStatus": "'+ $enabled +'"}'
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
     } Catch {
         Write-Error $_.Exception.Message
     }
