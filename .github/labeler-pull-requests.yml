@@ -1,16 +1,28 @@
 ---
 chore:
-  - '.github/**/*'
-  - '.gitignore'
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".ci/**/*"
+          - ".github/**/*"
+          - ".gitignore"
 documentation:
-  - '**/*.md'
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "Makefile"
+          - "**/*.md"
+          - "mkdocs.yml"
 github-actions:
-  - '.github/workflows/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**/*"
 needs-review:
-  - '**'
-  - '.*'
-  - '.*/**'
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**"
 samples:
-  - 'SampleNotifications/**/*'
-  - 'SampleScripts/**/*'
-  - 'SampleYaml/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SampleNotifications/**/*"
+          - "SampleScripts/**/*"
+          - "SampleYaml/**/*"
