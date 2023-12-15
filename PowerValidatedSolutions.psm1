@@ -342,7 +342,7 @@ Function Invoke-UndoIamDeployment {
         .EXAMPLE
         Invoke-UndoIamDeployment -jsonFile .\iamSpec.json
         This example removes the Identity and Access Management using JSON spec supplied.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
@@ -522,7 +522,7 @@ Function Add-IdentitySource {
 
         .PARAMETER certificate
         The certificate to use for communication with Active Directory (ldaps only).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -630,7 +630,7 @@ Function Undo-IdentitySource {
 
         .PARAMETER domain
         The Active Directory domain name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -717,7 +717,7 @@ Function Add-SddcManagerRole {
 
         .PARAMETER type
         The type of user or group to assign the role to (group or user).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -821,7 +821,7 @@ Function Undo-SddcManagerRole {
 
         .PARAMETER type
         The type of user or group to remove access for (group or user).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -895,7 +895,7 @@ Function Install-WorkspaceOne {
 
         .PARAMETER wsaFolder
         The folder to deploy the Workspace ONE Access Virtual Appliance to.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1029,7 +1029,7 @@ Function Undo-WorkspaceOne {
 
         .PARAMETER wsaHostname
         The hostname of the Workspace ONE Access Virtual Appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1100,7 +1100,7 @@ Function Initialize-WorkspaceOne {
 
         .PARAMETER sshUserPass
         The default password for the SSH User.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaFqdn,
@@ -1231,7 +1231,7 @@ Function Set-WorkspaceOneNtpConfig {
 
         .PARAMETER vrslcmIntegrated
         Flag to indicate if the Workspace ONE Access Virtual Appliance is integrated with VMware Aria Suite Lifecycle Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1339,7 +1339,7 @@ Function Install-WorkspaceOneCertificate {
 
         .PARAMETER wsaCertKey
         The Workspace ONE Access certificate key file (.key).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1439,7 +1439,7 @@ Function Set-WorkspaceOneSmtpConfig {
 
         .PARAMETER smtpEmailPassword
         The password of the email address to send emails from.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1525,7 +1525,7 @@ Function Add-WorkspaceOneDirectory {
 
         .PARAMETER certificate
         The Root Certificate Authority certificate file (.cer).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1656,7 +1656,7 @@ Function Set-WorkspaceOneNsxtIntegration {
 
         .PARAMETER wsaPass
         The admin password of the Workspace ONE Access Virtual Appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1756,7 +1756,7 @@ Function Undo-WorkspaceOneNsxtIntegration {
 
         .PARAMETER wsaPass
         The admin password of the Workspace ONE Access Virtual Appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1851,7 +1851,7 @@ Function Add-NsxtVidmRole {
 
         .PARAMETER role
         The role to assign to the principal.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -1930,7 +1930,7 @@ Function Undo-NsxtVidmRole {
 
         .PARAMETER role
         The role to remove from the principal.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2011,7 +2011,7 @@ Function Add-NsxtLdapRole {
 
         .PARAMETER role
         The role to assign to the principal.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2251,7 +2251,7 @@ Function Add-NsxtIdentitySource {
 
         .PARAMETER certificate
         The certificate to use for the connection to the Active Directory Domain Controller.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2341,7 +2341,7 @@ Function Undo-NsxtIdentitySource {
 
         .PARAMETER domain
         The name of the Active Directory Domain.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2450,7 +2450,7 @@ Function Install-SiteRecoveryManager {
 
         .PARAMETER vmwareOvfToolPath
         The path to the VMware OVF Tool executable.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -2576,7 +2576,7 @@ Function Undo-SiteRecoveryManager {
 
         .PARAMETER srmHostname
         The hostname of the vSphere Replication Virtual Appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3033,7 +3033,7 @@ Function Undo-DRSolutionTovCenter {
 
         .PARAMETER solution
         The solution to register with the vCenter Server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3129,7 +3129,7 @@ Function Install-VamiCertificate {
 
         .PARAMETER solution
         The solution to register with the vCenter Server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3228,7 +3228,7 @@ Function Add-VrmsNetworkAdapter {
 
         .PARAMETER replicationRemoteNetwork
         The subnet of the remote vSphere Replication network.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3329,7 +3329,7 @@ Function Backup-VMOvfProperties {
 
         .PARAMETER fileDir
         The directory to store the backup files.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3438,7 +3438,7 @@ Function Restore-VMOvfProperties {
 
         .PARAMETER fileDir
         The directory where the OVF property backup files are stored.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3513,7 +3513,7 @@ Function Get-VMvAppConfig {
 
         .PARAMETER vm
         The virtual appliance to retrieve the OVF properties from.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm
@@ -3551,7 +3551,7 @@ Function New-VMOvfProperty {
 
         .PARAMETER property
         The property to set on the virtual appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3604,7 +3604,7 @@ Function Set-VMOvfIPAssignment {
 
         .PARAMETER assignment
         The IP Assignment to set on the virtual appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3647,7 +3647,7 @@ Function Set-VMOvfEnvTransport {
 
         .PARAMETER transport
         The Environment Transport to set on the virtual appliance.
-   #> 
+    #> 
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3685,7 +3685,7 @@ Function New-VMOvfProduct {
 
         .PARAMETER product
         The product to set on the virtual appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()][PSObject]$vm,
@@ -3736,7 +3736,7 @@ Function Set-VMOvfEULA {
 
         .PARAMETER eula
         The EULA to set on the virtual appliance.
-   #>    
+    #>    
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3772,7 +3772,7 @@ Function Get-VMOvfProperty {
 
         .PARAMETER vm
         The virtual appliance to get the OVF properties from.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [psObject]$vm
@@ -3809,7 +3809,7 @@ Function Set-VMOvfProperty {
 
         .PARAMETER properties
         A hash table of OVF properties to set on the virtual appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [PSObject]$vm,
@@ -3865,7 +3865,7 @@ Function Get-NSXLBDetails {
 
         .PARAMETER pass
         The password used to authenticate to SDDC Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -3942,7 +3942,7 @@ Function Add-vRSLCMNtpServer {
 
         .PARAMETER ntpServerDesc
         The NTP server description to add to the VMware Aria Suite Lifecycle appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4039,7 +4039,7 @@ Function Set-vRSLCMDnsConfig {
 
         .PARAMETER dnsSearchDomains
         The DNS search domains to configure on the VMware Aria Suite Lifecycle appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4129,7 +4129,7 @@ Function Undo-vRSLCMNtpServer {
 
         .PARAMETER pass
         The password used to authenticate to SDDC Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4231,7 +4231,7 @@ Function Undo-vRSLCMDnsConfig {
 
         .PARAMETER sddcManagerRootPass
         The root password used to authenticate to the VMware Aria Suite Lifecycle appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4317,7 +4317,7 @@ Function Set-WorkspaceOneDnsConfig {
 
         .PARAMETER dnsSearchDomains
         The DNS search domains to configure on all Workspace ONE Access appliances.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4432,7 +4432,7 @@ Function Undo-WorkspaceOneDnsConfig {
 
         .PARAMETER sddcManagerRootPass
         The root password of the SDDC Manager instance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4521,7 +4521,7 @@ Function Set-vROPSDnsConfig {
 
         .PARAMETER dnsSearchDomains
         The DNS search domains to configure on the VMware Aria Operations analytics cluster appliances.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4648,7 +4648,7 @@ Function Undo-vROPSDnsConfig {
 
         .PARAMETER environmentName
         The SDDC Manager environment name to connect with.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4743,7 +4743,7 @@ Function Add-vROPSNtpServer {
 
         .PARAMETER ntpServer
         The NTP server to add to the VMware Aria Operations appliances.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4850,7 +4850,7 @@ Function Undo-vROPSNtpServer {
 
         .PARAMETER environmentName
         The name of the environment to configure.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -4961,7 +4961,7 @@ Function Set-vRADnsConfig {
 
         .PARAMETER dnsSearchDomains
         The DNS search domain(s) to configure the VMware Aria Automation appliances to use.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5177,7 +5177,7 @@ Function Undo-vRADnsConfig {
 
         .PARAMETER environmentName
         The VMware Aria Automation appliance environment name to connect with.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5277,7 +5277,7 @@ Function Set-vRANtpConfig {
 
         .PARAMETER ntpServers
         The NTP server(s) to configure on the VMware Aria Automation appliances.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5433,7 +5433,7 @@ Function Undo-vRANtpConfig {
 
         .PARAMETER environmentName
         The VMware Aria Automation environment name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -5530,7 +5530,7 @@ Function Add-SRMMapping {
 
         .PARAMETER recovery
         The name of the object to be mapped in the recovery site.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -5796,7 +5796,7 @@ Function Undo-SRMMapping {
 
         .PARAMETER recovery
         The name of the object to be mapped in the recovery site.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -6044,7 +6044,7 @@ Function New-SRMSitePair {
 
         .PARAMETER sddcManagerBPass
         The password of the SDDC Manager instance in the recovery site.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -6172,7 +6172,7 @@ Function Undo-SRMSitePair {
 
         .PARAMETER sddcManagerBPass
         The password of the SDDC Manager instance in the recovery site.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
@@ -6290,7 +6290,7 @@ Function Add-EsxiVrmsVMkernelPort {
 
         .PARAMETER ipAddresses
         The IP addresses for the VMkernel port.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6375,7 +6375,7 @@ Function Undo-EsxiVrmsVMkernelPort {
 
         .PARAMETER portgroup
         The vSphere Distributed Port Group name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6461,7 +6461,7 @@ Function Add-EsxiVrmsStaticRoute {
 
         .PARAMETER portgroup
         The vSphere Distributed Port Group name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6545,7 +6545,7 @@ Function Undo-EsxiVrmsStaticRoute {
 
         .PARAMETER network
         The network address of the static route to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6618,7 +6618,7 @@ Function Add-SrmLicenseKey {
 
         .PARAMETER srmLicenseKey
         The Site Recovery Manager license key.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6717,7 +6717,7 @@ Function Undo-SrmLicenseKey {
 
         .PARAMETER srmLicenseKey
         The Site Recovery Manager license key.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6833,7 +6833,7 @@ Function Add-NetworkSegment {
 
         .PARAMETER segmentType
         The NSX Segment type.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -6924,7 +6924,7 @@ Function Undo-NetworkSegment {
 
         .PARAMETER segmentType
         The NSX Segment type.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7012,7 +7012,7 @@ Function Add-PrefixList {
 
         .PARAMETER action
         The NSX Prefix List action.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7095,7 +7095,7 @@ Function Undo-PrefixList {
 
         .PARAMETER prefixListName
         The NSX Prefix List name to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7179,7 +7179,7 @@ Function Add-RouteMap {
 
         .PARAMETER applyPolicy
         Specifies whether to apply the NSX Route Map to the NSX Tier0 Gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7264,7 +7264,7 @@ Function Undo-RouteMap {
 
         .PARAMETER routeMapName
         The NSX Route Map name to create.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7339,7 +7339,7 @@ Function Set-DatastoreTag {
 
         .PARAMETER tagCategoryName
         The vSphere Tag Category name to create.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7426,7 +7426,7 @@ Function Undo-DatastoreTag {
 
         .PARAMETER tagCategoryName
         The name of the tag category to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7503,7 +7503,7 @@ Function Add-StoragePolicy {
 
         .PARAMETER tagName
         The name of the tag to use for the storage policy.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7580,7 +7580,7 @@ Function Undo-StoragePolicy {
 
         .PARAMETER policyName
         The name of the storage policy to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7669,7 +7669,7 @@ Function Add-ContentLibrary {
 
         .PARAMETER published
         The content library to be published.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7781,7 +7781,7 @@ Function Undo-ContentLibrary {
 
         .PARAMETER contentLibraryName
         The content library name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -7965,7 +7965,7 @@ Function Enable-SupervisorCluster {
 
         .PARAMETER validateOnly
         Validates the input parameters and exits.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8382,7 +8382,7 @@ Function Undo-SupervisorCluster {
 
         .PARAMETER RunAsync
         Run the cmdlet in the background.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8490,7 +8490,7 @@ Function New-SupervisorClusterCSR {
 
         .PARAMETER filePath
         The file path of the certificate signing request file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8586,7 +8586,7 @@ Function Request-SignedCertificate {
 
         .PARAMETER ValidateOnly
         Only perform pre-validation checks.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$mscaComputerName,
@@ -8689,7 +8689,7 @@ Function Install-SupervisorClusterCertificate {
 
         .PARAMETER filePath
         The path to the signed TLS certificate file (.cer).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8771,7 +8771,7 @@ Function Add-SupervisorClusterLicense {
 
         .PARAMETER licenseKey
         The license key to add to the Supervisor Cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8872,7 +8872,7 @@ Function Add-Namespace {
 
         .PARAMETER storagePolicy
         The vSphere Storage Policy name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -8955,7 +8955,7 @@ Function Undo-Namespace {
 
         .PARAMETER namespace
         The Namespace name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9045,7 +9045,7 @@ Function Add-NamespacePermission {
 
         .PARAMETER type
         The type of the principal (group or user).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9155,7 +9155,7 @@ Function Undo-NamespacePermission {
 
         .PARAMETER principal
         The Active Directory group or user name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9232,7 +9232,7 @@ Function Enable-Registry {
 
         .PARAMETER storagePolicy
         The vSphere Storage Policy name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9313,7 +9313,7 @@ Function Undo-Registry {
 
         .PARAMETER domain
         The name of the workload domain to run against.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9395,7 +9395,7 @@ Function Add-NamespaceVmClass {
 
         .PARAMETER vmClass
         The Virtual Machine Class to add to the Namespace.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9476,7 +9476,7 @@ Function Add-TanzuKubernetesCluster {
 
         .PARAMETER yaml
         The YAML file to use to create the Tanzu Kubernetes Cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9558,7 +9558,7 @@ Function Undo-TanzuKubernetesCluster {
 
         .PARAMETER tkc
         The Tanzu Kubernetes Cluster name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -9628,7 +9628,7 @@ Function Export-IlaJsonSpec {
         .EXAMPLE
         Export-IlaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\ilaSpec.json
         This example creates a JSON specification Intelligent Logging and Analytics using the Planning and Preparation Workbook.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
@@ -9728,7 +9728,7 @@ Function Invoke-IlaDeployment {
         .EXAMPLE
         Invoke-IlaDeployment -jsonFile .\ilaSpec.json -certificates "F:\VMware.PlatformTools\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
         This example configures the Intelligent Logging and Analytics using JSON spec supplied.
-   #>  
+    #>  
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
@@ -9896,7 +9896,7 @@ Function Invoke-UndoIlaDeployment {
         .EXAMPLE
         Invoke-UndoIlaDeployment -jsonFile .\ilaSpec.json
         This example removes the configuration of Intelligent Logging and Analytics using JSON spec supplied.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
@@ -10031,7 +10031,7 @@ Function Export-vRLIJsonSpec {
 
         .PARAMETER contentLibrary
         The vSphere Content Library name to use to deploy the VMware Aria Operations for Logs OVA
-        #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10294,7 +10294,7 @@ Function New-vRLIDeployment {
 
         .PARAMETER contentLibrary
         The vSphere Content Library name to use to deploy the VMware Aria Operations for Logs OVA.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10408,7 +10408,7 @@ Function Undo-vRLIDeployment {
 
         .PARAMETER monitor
         Monitor the VMware Aria Suite Lifecycle request.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10496,7 +10496,7 @@ Function Add-vRLISmtpConfiguration {
 
         .PARAMETER smtpPass
         The SMTP server password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10576,7 +10576,7 @@ Function Add-vRLIAuthenticationWSA {
 
         .PARAMETER wsaPass
         The Workspace ONE Access administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10638,7 +10638,7 @@ Function Undo-vRLIAuthenticationWSA {
         .EXAMPLE
         Undo-vRLIAuthenticationWSA -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example disables Workspace ONE Access as an authentication source in VMware Aria Operations for Logs.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10692,7 +10692,7 @@ Function Add-vRLIAuthenticationAD {
         .EXAMPLE
         Add-vRLIAuthenticationAD -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -domainServers sfo-ad01.sfo.rainpole.io
         This example enables Active Directory as an authentication source in VMware Aria Operations for Logs.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10754,7 +10754,7 @@ Function Undo-vRLIAuthenticationAD {
         .EXAMPLE
         Undo-vRLIAuthenticationAD -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io
         This example enables Active Directory as an authentication source in VMware Aria Operations for Logs.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10824,7 +10824,7 @@ Function Install-vRLIPhotonAgent {
 
         .PARAMETER vmRootPass
         The Virtual Machine root password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -10931,7 +10931,7 @@ Function Undo-vRLIPhotonAgent {
 
         .PARAMETER vmRootPass
         The Virtual Machine root password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11016,7 +11016,7 @@ Function Add-vRLIAgentGroup {
 
         .PARAMETER criteria
         The Agent Group Criteria.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11083,7 +11083,7 @@ Function Undo-vRLIAgentGroup {
 
         .PARAMETER agentGroupName
         The Agent Group Name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11155,7 +11155,7 @@ Function Register-vRLIWorkloadDomain {
 
         .PARAMETER status
         The status of the Workload Domain in VMware Aria Operations for Logs "ENABLED" "DISABLED".
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11231,7 +11231,7 @@ Function Set-vRLISyslogEdgeCluster {
 
         .PARAMETER exportName
         The Syslog Exporter name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11308,7 +11308,7 @@ Function Undo-vRLISyslogEdgeCluster {
 
         .PARAMETER exportName
         The Syslog Exporter name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11390,7 +11390,7 @@ Function Add-vRLILogArchive {
 
         .PARAMETER archiveLocation
         The archive location to store logs.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11465,7 +11465,7 @@ Function Add-vRLIAuthenticationGroup {
 
         .PARAMETER role
         The role to assign to the group "Super Admin","User","Dashboard User","View Only Admin".
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11499,7 +11499,7 @@ Function Add-vRLIAuthenticationGroup {
                                     Write-Error "Workspace ONE Integration on VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), not enabled: PRE_VALIDATION_FAILED"
                                 }
                             } elseif ($authProvider -eq "ad") { 
-                                if ((Get-vRLIAuthenticationAD).enableAD -eq "True") {
+                                if ((Get-vRLIAuthenticationAD).enableAD -eq $true) {
                                     if (!(Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group})) {
                                         Add-vRLIGroup -authProvider ad -domain $domain -group $group -role $role | Out-Null
                                         if (Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group}) {
@@ -11546,7 +11546,7 @@ Function Undo-vRLIAuthenticationGroup {
         .EXAMPLE
         Undo-vRLIAuthenticationGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io -group gg-vrli-admins -authProvider ad
         This example removes the group gg-vrli-admins assigned via Active Directory from its assigned role in VMware Aria Operations for Logs.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11629,7 +11629,7 @@ Function Add-vRLIAlertDatacenter {
 
         .PARAMETER vropsIntegration
         Enables integration with VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11749,7 +11749,7 @@ Function Add-vRLIAlertVirtualMachine {
 
         .PARAMETER vropsIntegration
         Enables integration with VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11855,7 +11855,7 @@ Function Undo-vRLIAlert {
 
         .PARAMETER name
         The name of the alert to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11920,7 +11920,7 @@ Function Enable-vRLIAlert {
 
         .PARAMETER alertDefinition
         The alert definition file to use.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -11996,7 +11996,7 @@ Function Disable-vRLIAlert {
 
         .PARAMETER alertDefinition
         The alert definition file to use.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12095,7 +12095,7 @@ Function Add-vRLILogForwarder {
 
         .PARAMETER testConnection
         Tests the connection to the log forwarder destination. "true", "false".
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12189,7 +12189,7 @@ Function Undo-vRLILogForwarder {
 
         .PARAMETER transport
         The transport of the log forwarder to remove. 'TCP', 'UDP'.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12281,7 +12281,7 @@ Function Add-NsxtNodeProfileSyslogExporter {
 
         .PARAMETER domain
         The domain name of the SDDC Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12366,7 +12366,7 @@ Function Undo-NsxtNodeProfileSyslogExporter {
 
         .PARAMETER domain
         The name of the workload domain to run against.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12435,7 +12435,7 @@ Function Get-vROpsLogForwardingConfig {
 
         .PARAMETER pass
         The password used to authenticate to SDDC Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12506,7 +12506,7 @@ Function Get-vRAvRLIConfig {
 
         .PARAMETER rootPass
         The root password to connect to the first VMware Aria Automation appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12587,7 +12587,7 @@ Function Set-vRAvRLIConfig {
 
         .Parameter port
         The port to use for the VMware Aria Operations for Logs logging configuration. The default value for this parameter is 9543.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12695,7 +12695,7 @@ Function Remove-vRAvRLIConfig {
 
         .PARAMETER rootPass
         The root password to authenticate with the first VMware Aria Automation appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -12997,7 +12997,7 @@ Function Export-vROPsJsonSpec {
 
         .PARAMETER contentLibrary
         The vSphere Content Library to use for deploying VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13370,7 +13370,7 @@ Function New-vROPSDeployment {
 
         .PARAMETER contentLibrary
         The vSphere Content Library to use for deploying VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13498,7 +13498,7 @@ Function Import-vROPSUserAccount {
 
         .PARAMETER role
         The role to assign to the user.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13585,7 +13585,7 @@ Function Import-vROPSUserGroup {
 
         .PARAMETER role
         The role to assign to the group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13671,7 +13671,7 @@ Function Register-vROPSWorkloadDomain {
 
         .PARAMETER status
         The status of the Workload Domain in VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13743,7 +13743,7 @@ Function Add-vROPSGroupRemoteCollectors {
 
         .PARAMETER collectorGroupName
         The name of the Collector Group to create in VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13812,7 +13812,7 @@ Function Update-vROPSAdapterVcenter {
 
         .PARAMETER collectorGroupName
         The name of the Collector Group to assign to the vCenter Adapter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -13936,7 +13936,7 @@ Function Update-vROPSAdapterCollecterGroup {
 
         .PARAMETER adapterName
         The name of the Adapter to update.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14020,7 +14020,7 @@ Function Add-vROPSCurrency {
 
         .PARAMETER currency
         The currency to configure in VMware Aria Operations.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14090,7 +14090,7 @@ Function Enable-vROPSManagementPack {
 
         .PARAMETER pakFile
         The path to the Management Pack (.pak) file to install.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14181,7 +14181,7 @@ Function Register-vROPSManagementPack {
 
         .PARAMETER packType
         The Management Pack type to activate or deactivate.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14289,7 +14289,7 @@ Function Add-vROPSAdapterNsxt {
 
         .PARAMETER collectorGroupName
         The name of the Collector Group to assign to the NSX Adapter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14416,7 +14416,7 @@ Function Add-vROPSAdapterPing {
 
         .PARAMETER collectorGroupName
         The name of the Collector Group to assign to the Ping Adapter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14538,7 +14538,7 @@ Function Update-vROPSAdapterSddcHealth {
 
         .PARAMETER pass
         The password used to authenticate to SDDC Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14628,7 +14628,7 @@ Function Add-vROPSAdapterSddcHealth {
 
         .PARAMETER pass
         The password used to authenticate to SDDC Manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14737,7 +14737,7 @@ Function Add-vROPSAdapterIdentityManager {
 
         .PARAMETER collectorGroupName
         The name of the Collector Group to assign to the Identity Manager Adapter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14871,7 +14871,7 @@ Function Add-vROPSAdapterSrm {
 
         .PARAMETER collectorGroupName
         The name of the collector group to assign the adapter to.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -14998,7 +14998,7 @@ Function Add-vROPSAdapterVr {
 
         .PARAMETER collectorGroupName
         The name of the collector group to assign the vSphere Replication Adapter to.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15115,7 +15115,7 @@ Function Undo-vROPSAdapter {
 
         .PARAMETER adapterType
         The type of adapter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15188,7 +15188,7 @@ Function Undo-vROPSCredential {
 
         .PARAMETER credentialType
         The type of credential.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15286,7 +15286,7 @@ Function Add-vROPSAlertPluginEmail {
 
         .PARAMETER authPass
         The password to use for authentication.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15422,7 +15422,7 @@ Function Import-vROPSNotification {
 
         .PARAMETER csvPath
         The path to the .csv file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15494,7 +15494,7 @@ Function Test-vROPsAdapterStatusByType {
 
         .PARAMETER adapterKind
         The adapter kind.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15574,7 +15574,7 @@ Function Update-vROPSvRAAdapterCredential {
 
         .PARAMETER adapterKind
         The adapter kind.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15701,7 +15701,7 @@ Function Add-vROPSVcfCredential {
 
         .PARAMETER servicePassword
         The password of the VMware Cloud Foundation service account.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15784,7 +15784,7 @@ Function Add-vROPSVcenterCredential {
 
         .PARAMETER servicePassword
         The password of the vCenter Server service account.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -15882,7 +15882,7 @@ Function Add-vROPSNsxCredential {
 
         .PARAMETER certificateKey
         The path to the NSX certificate key file (.key).
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "credential")][OutputType('System.Management.Automation.PSObject')]
 
@@ -16046,7 +16046,7 @@ Function Export-vRAJsonSpec {
 
         .PARAMETER contentLibrary
         The name of the vSphere Content Library to use to deploy the VMware Aria Automation OVA.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16322,7 +16322,7 @@ Function New-vRADeployment {
 
         .PARAMETER contentLibrary
         The name of the vSphere Content Library to use to deploy the VMware Aria Automation OVA.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16444,7 +16444,7 @@ Function Update-vRAOrganizationDisplayName {
 
         .PARAMETER vraPass
         The VMware Aria Automation password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16521,7 +16521,7 @@ Function New-vRACloudAccount {
 
         .PARAMETER capabilityTab
         The capability tag.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16638,7 +16638,7 @@ Function Undo-vRACloudAccount {
 
         .PARAMETER vraPass
         The VMware Aria Automation password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16752,7 +16752,7 @@ Function Update-vRACloudAccountZone {
 
         .PARAMETER placementPolicy
         The placement policy.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -16852,7 +16852,7 @@ Function Add-vROvCenterServer {
 
         .PARAMETER vcPass
         The vCenter Server password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17063,7 +17063,7 @@ Function Remove-vROvCenterServer {
 
         .PARAMETER vraPass
         The VMware Aria Automation password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17170,7 +17170,7 @@ Function Add-vROTrustedCertificate {
 
         .PARAMETER certFile
         The trusted certificate file in PEM-encoded format.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17286,7 +17286,7 @@ Function Add-vRANotification {
 
         .PARAMETER connection
         The connection type to use for notifications.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17365,7 +17365,7 @@ Function Add-vRAUser {
 
         .PARAMETER serviceRole
         The service role to add to VMware Aria Automation.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17461,7 +17461,7 @@ Function Undo-vRAUser {
 
         .PARAMETER email
         The email address of the user to remove from the organization role and service roles.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17595,7 +17595,7 @@ Function Add-vRAGroup {
 
         .PARAMETER serviceRole
         The service role to add.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17691,7 +17691,7 @@ Function Undo-vRAGroup {
 
         .PARAMETER displayName
         The group display name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17777,7 +17777,7 @@ Function New-vRAvROPSIntegrationItem {
 
         .PARAMETER vropsIntegrationName
         The VMware Aria Operations integration name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17859,7 +17859,7 @@ Function Undo-vRAvROPsIntegrationItem {
 
         .PARAMETER vropsIntegrationName
         The VMware Aria Operations integration name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -17971,7 +17971,7 @@ Function Add-vCenterGlobalPermission {
 
         .PARAMETER localDomain
         Specifies whether the principal is a user or group in the local directory.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18110,7 +18110,7 @@ Function Undo-vCenterGlobalPermission {
 
         .PARAMETER localDomain
         Specifies whether the principal is a user or group in the local directory.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18205,7 +18205,7 @@ Function Set-vCenterPermission {
 
         .PARAMETER folderType
         The folder type.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18343,7 +18343,7 @@ Function Add-SsoPermission {
 
         .PARAMETER source
         Specifies whether the principal is a user or group in the local directory.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18525,7 +18525,7 @@ Function Undo-SsoPermission {
 
         .PARAMETER source
         Specifies whether the principal is a user or group in the local directory.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18672,7 +18672,7 @@ Function Add-SsoUser {
 
         .PARAMETER ssoPass
         The vCenter Single Sign-On user password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18743,7 +18743,7 @@ Function Add-vSphereRole {
 
         .PARAMETER template
         The template file to use for the role.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18898,7 +18898,7 @@ Function Add-VMFolder {
 
         .PARAMETER folderName
         The name of the folder to create.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -18975,7 +18975,7 @@ Function Add-StorageFolder {
 
         .PARAMETER folderName
         The name of the folder to create.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19059,7 +19059,7 @@ Function Undo-VMFolder {
 
         .PARAMETER folderType
         The type of folder to remove. Valid values are Datacenter, VM, Network, HostAndCluster, and Datastore.
-        #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19132,7 +19132,7 @@ Function Add-ResourcePool {
 
         .PARAMETER resourcePoolName
         The name of the resource pool to create.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19205,7 +19205,7 @@ Function Undo-ResourcePool {
 
         .PARAMETER resourcePoolName
         The name of the resource pool to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19282,7 +19282,7 @@ Function Add-AntiAffinityRule {
 
         .PARAMETER antiAffinityVMs
         The comma separated list of VMs to add to the anti-affinity rule.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19359,7 +19359,7 @@ Function Undo-AntiAffinityRule {
 
         .PARAMETER ruleName
         The name of the anti-affinity rule to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19436,7 +19436,7 @@ Function Add-ClusterGroup {
 
         .PARAMETER drsGroupVMs
         The list of VMs to add to the vSphere DRS Cluster Group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19514,7 +19514,7 @@ Function Undo-ClusterGroup {
 
         .PARAMETER drsGroupName
         The name of the vSphere DRS Cluster Group to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19599,7 +19599,7 @@ Function Add-VmStartupRule {
 
         .PARAMETER dependOnVmGroup
         The name of the vSphere DRS Group (VM Group to start after dependency).
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19684,7 +19684,7 @@ Function Undo-VmStartupRule {
 
         .PARAMETER ruleName
         The name of the vSphere DRS Virtual Machine to Virtual Machine startup rule to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19763,7 +19763,7 @@ Function Move-VMtoFolder {
 
         .PARAMETER folder
         The folder to move the virtual machines to.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server,
@@ -19841,7 +19841,7 @@ Function Add-VdsPortGroup {
 
         .PARAMETER vlan
         The VLAN ID to assign to the vSphere Distributed port group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19911,7 +19911,7 @@ Function Undo-VdsPortGroup {
 
         .PARAMETER portgroup
         The name of the vSphere Distributed port group to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19983,7 +19983,7 @@ Function Import-vRSLCMLockerCertificate {
 
         .PARAMETER certChainPath
         The path to the certificate chain file to add to the VMware Aria Suite Lifecycle locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20062,7 +20062,7 @@ Function Undo-vRSLCMLockerCertificate {
 
         .PARAMETER certificateAlias
         The alias of the certificate to remove from the VMware Aria Suite Lifecycle locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20136,7 +20136,7 @@ Function New-vRSLCMLockerPassword {
 
         .PARAMETER userName
         The username of the password to add to the VMware Aria Suite Lifecycle locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20207,7 +20207,7 @@ Function Undo-vRSLCMLockerPassword {
 
         .PARAMETER alias
         The alias of the password to remove from the VMware Aria Suite Lifecycle locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20274,7 +20274,7 @@ Function New-vRSLCMLockerLicense {
 
         .PARAMETER license
         The license key to add to the VMware Aria Suite Lifecycle locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20349,7 +20349,7 @@ Function Undo-vRSLCMLockerLicense {
 
         .PARAMETER alias
         The alias of the license to remove from the VMware Aria Suite Lifecycle locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20416,7 +20416,7 @@ Function New-vRSLCMDatacenter {
 
         .PARAMETER location
         The location of the datacenter to add to the inventory.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20487,7 +20487,7 @@ Function New-vRSLCMDatacenterVcenter {
 
         .PARAMETER userLockerAlias
         The user locker alias of the vCenter Server to add to the Datacenter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20562,7 +20562,7 @@ Function Undo-vRSLCMDatacenter {
 
         .PARAMETER datacenterName
         The name of the datacenter to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20627,7 +20627,7 @@ Function Update-vRSLCMPSPack {
 
         .PARAMETER psPack
         The Product Support Pack to install.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20698,7 +20698,7 @@ Function Add-VmGroup {
 
         .PARAMETER vmList
         The Virtual Machines to add to the VM Group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20772,7 +20772,7 @@ Function Add-WorkspaceOneDirectoryGroup {
 
         .PARAMETER adGroups
         The Active Directory Domain groups to sync.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -20897,7 +20897,7 @@ Function Undo-WorkspaceOneDirectoryGroup {
 
         .PARAMETER adGroups
         The Active Directory Domain groups to remove from Workspace ONE Access.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -21016,7 +21016,7 @@ Function Add-WorkspaceOneDirectoryConnector {
 
         .PARAMETER bindUserPass
         The Active Directory Bind User password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -21092,7 +21092,7 @@ Function Update-SddcDeployedFlavor {
 
         .PARAMETER vvsTag
         The Validated Solution tag to be added to the vCenter Server Advanced Setting `config.SDDC.Deployed.Flavor`.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -21158,7 +21158,7 @@ Function Invoke-VcenterCommand {
 
         .PARAMETER command
         The command to be executed on the vCenter Server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -21222,7 +21222,7 @@ Function Test-ADAuthentication {
 
         .PARAMETER domain
         The Active Directory Domain name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -21278,7 +21278,7 @@ Function Get-ADPrincipalGuid {
 
         .PARAMETER principal
         The Active Directory Domain user or group name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
@@ -21340,7 +21340,7 @@ Function Get-vCenterServerDetail {
 
         .PARAMETER domain
         The name of the workload domain to run against.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$server,
@@ -21443,7 +21443,7 @@ Function Get-NsxtServerDetail {
 
         .PARAMETER listNodes
         List NSX nodes.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -21521,7 +21521,7 @@ Function Get-vRSLCMServerDetail {
 
         .PARAMETER password
         The SDDC Manager administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -21585,7 +21585,7 @@ Function Get-WSAServerDetail {
 
         .PARAMETER password
         The SDDC Manager administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -21652,7 +21652,7 @@ Function Get-vRAServerDetail {
 
         .PARAMETER password
         The SDDC Manager administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -21716,7 +21716,7 @@ Function Get-vROPsServerDetail {
 
         .PARAMETER password
         The SDDC Manager administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -21788,7 +21788,7 @@ Function Get-vRLIServerDetail {
 
         .PARAMETER password
         The SDDC Manager administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$fqdn,
@@ -21852,7 +21852,7 @@ Function Get-VCFDnsSearchDomain {
 
         .PARAMETER sddcManagerRootPass
         The SDDC Manager root password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sddcManagerVmName,
@@ -21941,7 +21941,7 @@ Function Request-vSphereApiToken {
 
         .PARAMETER InputObject
         The vCenter Server object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -22074,7 +22074,7 @@ Function Request-VcenterApiToken {
 
         .PARAMETER skipCertificateCheck
         Skip SSL certificate check.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -22171,7 +22171,7 @@ Function Connect-vSphereMobServer {
 
         .PARAMETER password
         The vCenter Server administrator password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String] $server,
@@ -22219,7 +22219,7 @@ Function Disconnect-vSphereMobServer {
         
         .EXAMPLE
         Disconnect-vSphereMobServer.
-   #>
+    #>
 
     Try {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/logout"
@@ -22247,7 +22247,7 @@ Function Get-VCVersion {
         .EXAMPLE
         Get-VCVersion
         This example gets the version of the vCenter Server.
-   #>
+    #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/system/version"
@@ -22269,7 +22269,7 @@ Function Get-VCConfigurationNTP {
         .EXAMPLE
         Get-VCConfigurationNTP
         This example gets the NTP configuration of the vCenter Server.
-   #>
+    #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/ntp"
@@ -22291,7 +22291,7 @@ Function Get-VCConfigurationDNS {
         .EXAMPLE
         Get-VCConfigurationDNS
         This example gets the DNS configuration of the vCenter Server.
-   #>
+    #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/networking/dns/servers"
@@ -22313,7 +22313,7 @@ Function Get-VcenterPasswordExpiration {
         .EXAMPLE
         Get-VcenterPasswordExpiration
         This example retrieves the global password expiration policy of the vCenter Server.
-   #>
+    #>
 
     Try {
         $uri = "https://$vcApiServer/api/appliance/local-accounts/global-policy"
@@ -22344,7 +22344,7 @@ Function Set-VcenterPasswordExpiration {
 
         .PARAMETER warnDays
         The number of days before a password expires that a warning is issued.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$maxDays,
@@ -22375,7 +22375,7 @@ Function Get-VcenterRootPasswordExpiration {
         .EXAMPLE
         Get-VcenterRootPasswordExpiration
         This example retrieves the root user password expiration policy from vCenter Server.
-   #>
+    #>
 
     Try {
         if ($vcApiHeaders) {
@@ -22415,7 +22415,7 @@ Function Set-VcenterRootPasswordExpiration {
 
         .PARAMETER neverexpire
         Set the password to never expire.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false, ParameterSetName = 'expire')] [ValidateNotNullOrEmpty()] [String]$email,
@@ -22481,7 +22481,7 @@ Function Get-LocalUserPasswordExpiration {
 
         .PARAMETER sudo
         Use sudo to run the command.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
@@ -22563,7 +22563,7 @@ Function Set-LocalUserPasswordExpiration {
 
         .PARAMETER sudo
         Use sudo to run the command.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
@@ -22653,7 +22653,7 @@ Function Get-LocalPasswordComplexity {
 
         .PARAMETER policyFile
         The policy file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
@@ -22774,7 +22774,7 @@ Function Set-LocalPasswordComplexity {
 
         .PARAMETER nsx
         The NSX Manager flag.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
@@ -22907,7 +22907,7 @@ Function Get-LocalAccountLockout {
 
         .PARAMETER policyFile
         The policy file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
@@ -22985,7 +22985,7 @@ Function Set-LocalAccountLockout {
 
         .PARAMETER rootUnlockInterval
         The root unlock interval in seconds.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
@@ -23030,7 +23030,7 @@ Function Get-GlobalPermission {
         .EXAMPLE
         Get-GlobalPermission
         This example shows how to gets a list of vSphere Global Permission.
-   #>
+    #>
 
     Try {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/?moid=authorizationService&" + "method=AuthorizationService.GetGlobalAccessControlList"
@@ -23106,7 +23106,7 @@ Function Add-GlobalPermission {
 
         .PARAMETER type
         The user or group type.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
@@ -23159,7 +23159,7 @@ Function Remove-GlobalPermission {
 
         .PARAMETER type
         The user or group type.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
@@ -23218,7 +23218,7 @@ Function Add-DrsVmToVmGroup {
 
         .PARAMETER enabled
         The enabled flag.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -23266,7 +23266,7 @@ Function Remove-DrsVmToVmGroup {
 
         .PARAMETER cluster
         The name of the cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -23309,7 +23309,7 @@ Function Get-DrsVmToVmGroup {
 
         .PARAMETER cluster
         The name of the cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -23340,7 +23340,7 @@ Function Get-VcLicense {
         .EXAMPLE
         Get-VcLicense 
         This example shows how to get a list of licenses in vCenter Server.
-   #>
+    #>
 
     Try {
         $licenseManager = Get-View LicenseManager
@@ -23365,7 +23365,7 @@ Function New-VcLicense {
 
         .PARAMETER licenseKey
         The license key.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey
@@ -23394,7 +23394,7 @@ Function Remove-VcLicense {
 
         .PARAMETER licenseKey
         The license key.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$licenseKey
@@ -23423,7 +23423,7 @@ Function Get-SubscribedLibrary {
 
         .PARAMETER name
         The name of the Subscribed Content Library.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
@@ -23451,7 +23451,7 @@ Function Get-VcenterBackupStatus {
         .EXAMPLE
         Get-VcenterBackupStatus | Select-Object -Last 1
         This example demonstrates piping the results of this function into Select-Object to return the status of the last backup.
-   #>
+    #>
 
     Try {
         if ($vcenterApiHeaders) {
@@ -23478,7 +23478,7 @@ Function Get-SnapshotStatus {
 
         .PARAMETER vm
         The virtual machine name.
-   #>
+    #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vm
@@ -23507,7 +23507,7 @@ Function Get-SnapshotConsolidation {
 
         .PARAMETER vm
         The virtual machine name.
-   #>
+    #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vm
@@ -23536,7 +23536,7 @@ Function Get-EsxiAlert {
 
         .PARAMETER host
         The ESXi host name.
-   #>
+    #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$host
@@ -23576,7 +23576,7 @@ Function Get-VsanHealthTest {
 
         .PARAMETER cluster
         The vSAN cluster name.
-   #>
+    #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster
@@ -23619,7 +23619,7 @@ Function Get-VcenterTriggeredAlarm {
 
         .PARAMETER server
         The vCenter Server name.
-   #>
+    #>
 
     Param (
         [Parameter(Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server
@@ -23657,7 +23657,7 @@ Function Get-ESXiAdminGroup {
 
         .PARAMETER esxiHost
         The ESXi host name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$esxiHost
@@ -23696,7 +23696,7 @@ Function Set-ESXiAdminGroup {
 
         .PARAMETER groupName
         The new group name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$esxiHost,
@@ -23725,7 +23725,7 @@ Function Get-VCenterCEIP {
 
         .EXAMPLE
         Get-VCenterCEIP.
-   #>
+    #>
 
     Try {
         if (-Not $Global:DefaultVIServer.IsConnected) {
@@ -23764,7 +23764,7 @@ Function Set-VCenterCEIP {
 
         .PARAMETER Disabled
         Disables the CEIP setting for vCenter Server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()][Switch]$Enabled,
@@ -23826,7 +23826,7 @@ Function Request-WSAToken {
 
         .PARAMETER pass
         The Workspace ONE Access user password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -23879,7 +23879,7 @@ Function Get-WSAIdentityProvider {
         .EXAMPLE
         Get-WSAIdentityProvider
         This example retrieves a list of identity providers in Workspace ONE Access.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.identityprovider.summary.list+json" }
@@ -23904,7 +23904,7 @@ Function Get-WSAConnector {
         .EXAMPLE
         Get-WSAConnector
         This example retrieves a list of connectors in Workspace ONE Access.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Content-Type" = "application/vnd.vmware.horizon.manager.connector.management.connector+json" }
@@ -23938,7 +23938,7 @@ Function Add-WSAConnector {
 
         .PARAMETER bindUserPass
         The bind user password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaNode,
@@ -23985,7 +23985,7 @@ Function Get-WSADirectory {
 
         .PARAMETER directoryId
         The directory ID.
-   #>
+    #>
 
     Param (
         [Parameter (ParameterSetName = "connector", Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -24026,7 +24026,7 @@ Function Get-WSADirectoryDomain {
 
         .PARAMETER directoryId
         The directory ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [string]$directoryId
@@ -24067,7 +24067,7 @@ Function Add-WSALdapDirectory {
 
         .PARAMETER certificate
         The certificate file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domainName,
@@ -24141,7 +24141,7 @@ Function Set-WSABindPassword {
 
         .PARAMETER pass
         The bind password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -24177,7 +24177,7 @@ Function Set-WSASyncSetting {
 
         .PARAMETER directoryId
         The directory ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId
@@ -24202,7 +24202,7 @@ Function Start-WSADirectorySync {
         Start an directory sync.
 
         .DESCRIPTION
-    	The Start-WSADirectorySync cmdlets triggers a directory sync in Workspace ONE Access
+        The Start-WSADirectorySync cmdlets triggers a directory sync in Workspace ONE Access
 
         .EXAMPLE
         Start-WSADirectorySync -directoryId a1c985d5-0eeb-4a66-bc51-11eda9321aac
@@ -24210,7 +24210,7 @@ Function Start-WSADirectorySync {
 
         .PARAMETER directoryId
         The directory ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId
@@ -24246,7 +24246,7 @@ Function Set-WSADirectoryUser {
 
         .PARAMETER json
         The JSON file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -24282,7 +24282,7 @@ Function Set-WSADirectoryGroup {
 
         .PARAMETER json
         The JSON file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$directoryId,
@@ -24313,7 +24313,7 @@ Function Get-WSASmtpConfiguration {
         .EXAMPLE
         Get-WSASmtpConfiguration
         This example gets the current SMTP configuration of Workspace ONE Access.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/json, text/plain, */*" }
@@ -24350,7 +24350,7 @@ Function Set-WSASmtpConfiguration {
 
         .PARAMETER pass
         The password of the SMTP server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -24394,7 +24394,7 @@ Function Set-WSARoleMember {
 
         .PARAMETER groupId
         The Group ID.
-   #>
+    #>
 
 	Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -24435,7 +24435,7 @@ Function Get-WSARole {
 
         .PARAMETER id
         The Role ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24473,7 +24473,7 @@ Function Get-WSAGroup {
 
         .PARAMETER id
         The Group ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24511,7 +24511,7 @@ Function Get-WSAUser {
 
         .PARAMETER id
         The User ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -24546,7 +24546,7 @@ Function Get-WSARuleSet {
         .EXAMPLE
         Get-WSARuleSet
         This example retrieves the rulesets in Workspace ONE Access.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept-Type" = "application/json, text/plain, */*" }
@@ -24572,7 +24572,7 @@ Function Get-WSAOAuthToken {
         .EXAMPLE
         Get-WSAOAuthToken
         This example retrieves the am OAuth oken from Workspace ONE Access.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Content-Type" = "application/x-www-form-urlencoded; charset=UTF-8" }
@@ -24601,7 +24601,7 @@ Function Get-WSAClient {
 
         .PARAMETER clientId
         The client ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clientId
@@ -24642,7 +24642,7 @@ Function Add-WSAClient {
 
         .PARAMETER sharedSecret
         The shared secret.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$clientId,
@@ -24687,12 +24687,12 @@ Function Add-WSARoleAssociation {
         .EXAMPLE
         Add-WSARoleAssociation -roleId "1d0b09a1-8744-4f85-8c4f-ac104e586010" -groupId "1e942dc6-94ba-43ef-97ce-9ba34fee1609"
 
-       .PARAMETER roleId
+        .PARAMETER roleId
         The role id
-       
-       .PARAMETER groupId
+
+        .PARAMETER groupId
         The group id.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId,
@@ -24729,7 +24729,7 @@ Function Add-WSARoleAssociation {
 Export-ModuleMember -Function Add-WSARoleAssociation
 
 Function Get-WSARoleId {
-     <#
+    <#
         .SYNOPSIS
         Get role id for role name from Workspace ONE Access.
 
@@ -24740,9 +24740,9 @@ Function Get-WSARoleId {
         Get-WSARoleId -role "Super Admin"
         This example retrieves the rile id for the Super Admin role
 
-       .PARAMETER role
+        .PARAMETER role
         The role name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$role
@@ -24776,7 +24776,7 @@ Function Get-WSAActiveDirectoryGroupDetail {
         .PARAMETER group
         The group name
         This example gets the details for the Active Directory group 'gg-wsa-admins'.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$group
@@ -24813,7 +24813,7 @@ Function Get-WSARoleAssociation {
         .PARAMETER roleId
         The role id
         This example retrieves the associations based on the role Id provided.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$roleId
@@ -24841,7 +24841,7 @@ Function Get-WsaAccountLockout {
 
         .EXAMPLE
         Get-WsaAccountLockout.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.password.lockout+json" }
@@ -24873,7 +24873,7 @@ Function Set-WsaAccountLockout {
 
         .PARAMETER unlockInterval
         The unlock interval.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$numAttempts,
@@ -24904,7 +24904,7 @@ Function Get-WsaPasswordPolicy {
 
         .EXAMPLE
         Get-WsaPasswordPolicy.
-   #>
+    #>
 
     Try {
         $wsaHeaders = @{"Accept" = "application/vnd.vmware.horizon.manager.tenants.tenant.passwordpolicy+json" }
@@ -24963,7 +24963,7 @@ Function Set-WsaPasswordPolicy {
 
         .PARAMETER notificationIntervalInDays
         The notification interval in days.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$minLen,
@@ -25047,7 +25047,7 @@ Function Request-NsxtToken {
 
         .PARAMETER skipCertificateCheck
         Skip the certificate check.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()][String]$fqdn,
@@ -25142,7 +25142,7 @@ Function Get-NsxtComputeManager {
 
         .PARAMETER vCenterServer
         The vCenter Server FQDN.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vCenterServer
@@ -25188,7 +25188,7 @@ Function Set-NsxtComputeManager {
 
         .PARAMETER inputObject
         The input object from Get-NsxtComputeManager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Bool]$EnableTrust,
@@ -25251,7 +25251,7 @@ Function Get-NsxtVidm {
         .EXAMPLE
         Get-NsxtVidm
         This example gets the Identity Manager configuration.
-   #>
+    #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm"
@@ -25291,7 +25291,7 @@ Function Set-NsxtVidm {
 
         .PARAMETER disable
         Disable the Identity Manager configuration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wsaHostname,
@@ -25344,7 +25344,7 @@ Function Get-NsxtLdap {
 
         .PARAMETER id
         The LDAP identity source ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -25403,7 +25403,7 @@ Function New-NsxtLdap {
 
         .PARAMETER certificate
         The certificate file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dcMachineName,
@@ -25473,7 +25473,7 @@ Function Remove-NsxtLdap {
 
         .PARAMETER id
         The LDAP identity source ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -25513,7 +25513,7 @@ Function Get-NsxtPrincipalIdentity {
 
         .PARAMETER name
         The NSX Principal Identity name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$principalId,
@@ -25561,7 +25561,7 @@ Function New-NsxtPrincipalIdentity {
 
         .PARAMETER certificateData
         The NSX Principal Identity certificate.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -25615,7 +25615,7 @@ Function Set-NsxtPrincipalIdentityCertificate {
 
         .PARAMETER certificateId
         The NSX Principal Identity certificate ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId,
@@ -25649,7 +25649,7 @@ Function Remove-NsxtPrincipalIdentity {
 
         .PARAMETER principalId
         The NSX Principal Identity ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$principalId
@@ -25675,7 +25675,7 @@ Function Get-NsxtRole {
         .EXAMPLE
         Get-NsxtRole
         This example gets all roles in NSX Manager.
-   #>
+    #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/roles"
@@ -25716,7 +25716,7 @@ Function Set-NsxtRole {
 
         .PARAMETER domain
         The domain name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principal,
@@ -25774,7 +25774,7 @@ Function Remove-NsxtRole {
 
         .PARAMETER id
         The role ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -25801,7 +25801,7 @@ Function Get-NsxtUser {
         .EXAMPLE
         Get-NsxtUser
         This example gets all users and grops in NSX Manager.
-   #>
+    #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/aaa/role-bindings"
@@ -25826,7 +25826,7 @@ Function Get-NsxtVidmUser {
 
         .PARAMETER searchString
         The search string.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateLength(3, 255)] [String]$searchString
@@ -25855,7 +25855,7 @@ Function Get-NsxtVidmGroup {
 
         .PARAMETER searchString
         The search string.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateLength(3, 255)] [String]$searchString
@@ -25888,7 +25888,7 @@ Function Get-NsxEdgeCluster {
 
         .PARAMETER Name
         The NSX Edge Cluster name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$Name
@@ -25934,7 +25934,7 @@ Function Get-NsxtTransportZone {
 
         .PARAMETER name
         The Transport Zone name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
@@ -25994,7 +25994,7 @@ Function New-NsxtSegment {
 
         .PARAMETER VlanId
         The NSX VLAN ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$Name,
@@ -26067,7 +26067,7 @@ Function Get-NsxtSegment {
 
         .PARAMETER name
         The Segment name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
@@ -26103,7 +26103,7 @@ Function Remove-NsxtSegment {
 
         .PARAMETER name
         The Segment name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name
@@ -26144,7 +26144,7 @@ Function Get-NsxtTier0Gateway {
 
         .PARAMETER id
         The Tier 0 Gateway id.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -26196,7 +26196,7 @@ Function Get-NsxtTier1Gateway {
 
         .PARAMETER id
         The Tier 1 Gateway id.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -26251,7 +26251,7 @@ Function Get-NsxtPrefixList {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$tier0Gateway,
@@ -26328,7 +26328,7 @@ Function New-NsxtPrefixList {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$name,
@@ -26415,7 +26415,7 @@ Function Remove-NsxtPrefixList {
 
         .PARAMETER tier0Gateway
         The Tier-0 Gateway name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -26465,7 +26465,7 @@ Function Add-NsxtPrefix {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$prefixListName,
@@ -26566,7 +26566,7 @@ Function Get-NsxtRouteMap {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$tier0Gateway,
@@ -26640,7 +26640,7 @@ Function New-NsxtRouteMap {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$Name,
@@ -26715,7 +26715,7 @@ Function Remove-NsxtRouteMap {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$name,
@@ -26782,7 +26782,7 @@ Function Get-NsxtRouteRedistributionPolicy {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$tier0Gateway,
@@ -26836,7 +26836,7 @@ Function Set-NsxtRouteRedistributionPolicy {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [String]$tier0Gateway,
@@ -26947,7 +26947,7 @@ Function Get-NsxtManagerAuthPolicy {
 
         .PARAMETER nsxtManagerNode
         The NSX Manager Node name.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManagerNode
@@ -27027,7 +27027,7 @@ Function Set-NsxtManagerAuthPolicy {
 
         .PARAMETER inputObject
         The Tier-0 Gateway object.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManagerNode,
@@ -27126,7 +27126,7 @@ Function Get-NsxtEdgeNodeAuthPolicy {
 
         .PARAMETER nsxtEdgeNodeID
         The NSX Edge Node ID.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManager,
@@ -27169,7 +27169,7 @@ Function Set-NsxtEdgeNodeAuthPolicy {
 
         .PARAMETER min_passwd_length
         The minimum password length.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$nsxtManager,
@@ -27224,7 +27224,7 @@ Function Get-NsxtSyslogStatus {
 
         .PARAMETER id
         The NSX Edge node ID.
-   #>
+    #>
 
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -27273,7 +27273,7 @@ Function Get-NsxtSyslogExporter {
 
         .PARAMETER id
         The NSX Edge node ID.
-   #>
+    #>
 
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -27337,7 +27337,7 @@ Function Set-NsxtSyslogExporter {
 
         .PARAMETER server
         The Syslog server.
-   #>
+    #>
 
     Param (
         [Parameter ( ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -27402,7 +27402,7 @@ Function Remove-NsxtSyslogExporter {
 
         .PARAMETER exporterName
         The Syslog exporter name.
-   #>
+    #>
 
     Param (
         [Parameter (ParameterSetName = 'node', Mandatory = $true)] [ValidateNotNullOrEmpty()] [Switch]$node,
@@ -27464,7 +27464,7 @@ Function Copy-vRealizeLoadBalancer {
 
         .PARAMETER wsaCertName
         The name of the certificate to be used by the new Load Balancer.
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [String]$sddcManagerAFqdn,
@@ -28116,28 +28116,17 @@ Function Get-NsxtGlobalSegmentID {
     <#
         .SYNOPSIS
         Gets NSX Global Segment Id
-    
+
         .DESCRIPTION
         The Get-NsxtGlobalSegmentID cmdlet gets the NSX Global Segment Id
-    
+
         .EXAMPLE
         Get-NsxtGlobalSegmentID -segmentName sfo-w01-ec01-xintion
         This example returns the NSX Global Segment Id.
 
         .PARAMETER segmentName
         The name of the NSX Global Segment.
-   #>
-    <#
-        .SYNOPSIS
-        Gets the segment ID
-    
-        .DESCRIPTION
-        The Get-NsxtGlobalSegmentID cmdlet gets the Id for a global segment
-    
-        .EXAMPLE
-        Get-NsxtGlobalSegmentID -segmentName xint-m01-seg01
-        This example returns the Id for a global segment.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$segmentName
@@ -28158,28 +28147,17 @@ Function Add-CertToNsxCertificateStore {
     <#
         .SYNOPSIS
         Adds a Certificate to the NSX Certificate Store
-    
+
         .DESCRIPTION
         The Add-CertToNsxCertificateStore cmdlet adds a Certificate to the NSX Certificate Store
-    
+
         .EXAMPLE
         Add-CertToNsxCertificateStore -certName sfo-w01-ec01-xreg-wsa
         This example adds a Certificate to the NSX Certificate Store.
 
         .PARAMETER certName
         The name of the Certificate.
-   #>
-    <#
-        .SYNOPSIS
-        Adds a certificate to the certificate store
-    
-        .DESCRIPTION
-        The Add-CertToNsxCertificateStore cmdlet adds a certificate to the NSX Manager certificate store
-    
-        .EXAMPLE
-        Add-CertToNsxCertificateStore -certName <name>
-        This example returns the Id for a global segment.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certName 
@@ -28195,16 +28173,15 @@ Function Add-CertToNsxCertificateStore {
     } Catch {
         Write-Error $_.Exception.Message
     }
-    
+
     $certAlreadyImported = ""
-    
     #check for existing certificate
     Try {
         $certAlreadyImported = Get-NsxtCertificate -certificateName $certName -ErrorAction SilentlyContinue
     } Catch {
         $certAlreadyImported = $false
     }
-    
+
     # report on existing cert or install new cert
     if ($certAlreadyImported) {
         $wsaCertPresent = $true
@@ -28236,14 +28213,14 @@ Function Get-NsxtEdgeCluster {
     <#
         .SYNOPSIS
         Gets NSX Edge Cluster Id
-    
+
         .DESCRIPTION
         The Get-NsxtEdgeCluster cmdlet gets the NSX Edge Cluster Id
-    
+
         .EXAMPLE
         Get-NsxtEdgeCluster
         This example returns the NSX Edge Cluster Id.
-   #>
+    #>
 
     Try {
         $uri = "https://$nsxtmanager/api/v1/edge-clusters"
@@ -28259,10 +28236,10 @@ Function New-NsxtTier1 {
     <#
         .SYNOPSIS
         Creates a Tier 1 Gateway
-    
+
         .DESCRIPTION
         The New-NsxtTier1 cmdlet creates a Teir 1 Gateway
-    
+
         .EXAMPLE
         New-NsxtTier1 -tier1Gateway sfo-w01-ec01-t0-lb01 -json $ConfigJson
         This example creates a new Tier 1 Gateway.
@@ -28272,7 +28249,7 @@ Function New-NsxtTier1 {
 
         .PARAMETER json
         The JSON configuration for the Tier 1 Gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
@@ -28293,10 +28270,10 @@ Function Set-NsxtTier1 {
     <#
         .SYNOPSIS
         Configures Tier 1 Gateway
-    
+
         .DESCRIPTION
         The Set-NsxtTier1 cmdlet configures a Tier 1 Gateway
-    
+
         .EXAMPLE
         Set-NsxtTier1 -tier1Gateway -json
         This example sets the configuration on a Tier 1 Gateway.
@@ -28306,7 +28283,7 @@ Function Set-NsxtTier1 {
 
         .PARAMETER json
         The JSON configuration for the Tier 1 Gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
@@ -28327,10 +28304,10 @@ Function New-NsxtTier1ServiceInterface {
     <#        
         .SYNOPSIS
         Creates Service Interface on Tier 1 Gateway
-    
+
         .DESCRIPTION
         The New-NsxtTier1ServiceInterface cmdlet configures a Service Interface on Tier 1 Gateway
-    
+
         .EXAMPLE
         New-NsxtTier1ServiceInterface -tier1Gateway -interfaceId -json
         This example configures a Service Interface on a Tier 1 Gateway.
@@ -28343,7 +28320,7 @@ Function New-NsxtTier1ServiceInterface {
 
         .PARAMETER json
         The JSON configuration for the Tier 1 Gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
@@ -28365,10 +28342,10 @@ Function New-NsxtTier1StaticRoute {
     <#
         .SYNOPSIS
         Creates Static Route on Tier 1 Gateway
-    
+
         .DESCRIPTION
         The New-New-NsxtTier1StaticRoute cmdlet creates a static route on Tier 1 Gateway
-    
+
         .EXAMPLE
         New-NsxtTier1StaticRoute -tier1Gateway -segment -json
         This example configures a Service Interface on a Tier 1 Gateway.
@@ -28381,7 +28358,7 @@ Function New-NsxtTier1StaticRoute {
 
         .PARAMETER json
         The JSON configuration for the Tier 1 Gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$tier1Gateway,
@@ -28403,10 +28380,10 @@ Function New-NsxtLoadBalancer {
     <#
         .SYNOPSIS
         Creates a Load Balancer 
-    
+
         .DESCRIPTION
         The New-NsxtLoadBalancer cmdlet creates a load balancer 
-    
+
         .EXAMPLE
         New-NsxtLoadBalancer -lbName -json
         This example creates a load balancer.
@@ -28416,7 +28393,7 @@ Function New-NsxtLoadBalancer {
 
         .PARAMETER json
         The JSON configuration for the Load Balancer.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$lbName,
@@ -28437,10 +28414,10 @@ Function New-NsxtLBServiceMonitor {
     <#
         .SYNOPSIS
         Creates a Load Balancer Service Monitor
-    
+
         .DESCRIPTION
         The New-NsxtLBServiceMonitor cmdlet creates a Load Balancer Service Monitor
-    
+
         .EXAMPLE
         New-NsxtLBServiceMonitor -monitorName -json
         This example creates a Load Balancer Serviec Monitor.
@@ -28450,7 +28427,7 @@ Function New-NsxtLBServiceMonitor {
 
         .PARAMETER json
         The JSON configuration for the Load Balancer Service Monitor.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$monitorName,
@@ -28471,10 +28448,10 @@ Function New-NsxtLBAppProfile {
     <#
         .SYNOPSIS
         Creates a Load Balancer Application Profile
-    
+
         .DESCRIPTION
         The New-NsxtLBAppProfile cmdlet creates a Load Balancer Application Profile
-    
+
         .EXAMPLE
         New-NsxtLBAppProfile -appProfileName -json
         This example creates a Load Balancer Application Profile.
@@ -28484,7 +28461,7 @@ Function New-NsxtLBAppProfile {
 
         .PARAMETER json
         The JSON configuration for the Load Balancer Application Profile.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
@@ -28505,10 +28482,10 @@ Function New-NsxtLBPersistenceAppProfile {
     <#
         .SYNOPSIS
         Creates a Load Balancer Persistence Application Profile
-    
+
         .DESCRIPTION
         The New-NsxtLBPersistenceAppProfile cmdlet creates a Load Balancer Persistence Application Profile
-    
+
         .EXAMPLE
         New-NsxtLBPersistenceAppProfile -appProfileName -json
         This example creates a Load Balancer Persistence Application Profile.
@@ -28518,7 +28495,7 @@ Function New-NsxtLBPersistenceAppProfile {
 
         .PARAMETER json
         The JSON configuration for the Load Balancer Persistence Application Profile.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$appProfileName,
@@ -28539,10 +28516,10 @@ Function New-NsxtLBPool {
     <#
         .SYNOPSIS
         Creates a Load Balancer Pool
-    
+
         .DESCRIPTION
         The New-NsxtLBPool cmdlet creates a Load Balancer Pool
-    
+
         .EXAMPLE
         New-NsxtLBPool -poolName -json
         This example creates a Load Balancer Pool.
@@ -28552,7 +28529,7 @@ Function New-NsxtLBPool {
 
         .PARAMETER json
         The JSON configuration for the Load Balancer Pool.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$poolName,
@@ -28573,10 +28550,10 @@ Function New-NsxtLBVirtualServer {
     <#
         .SYNOPSIS
         Creates a Load Balancer Virtual Server
-    
+
         .DESCRIPTION
         The New-NsxtLBVirtualServer cmdlet creates a Load Balancer Virtual Server
-    
+
         .EXAMPLE
         New-NsxtLBVirtualServer -virtualServerName -json
         This example creates a Load Balancer Virtual Server.
@@ -28586,7 +28563,7 @@ Function New-NsxtLBVirtualServer {
 
         .PARAMETER json
         The JSON configuration for the Load Balancer Virtual Server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$virtualServerName,
@@ -28607,17 +28584,17 @@ Function Get-NsxtCertificate {
     <#
         .SYNOPSIS
         Gets NSX Certificates
-    
+
         .DESCRIPTION
         The Get-NsxtCertificates cmdlet gets certificates installed in NSX
-    
+
         .EXAMPLE
         Get-NsxtCertificates
         This example gets the certificates installed in NSX.
 
         .PARAMETER certificateName
         The name of the certificate.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$certificateName
@@ -28643,10 +28620,10 @@ Function Set-NsxtCertificate {
     <#
         .SYNOPSIS
         Installs a Certificate in NSX
-    
+
         .DESCRIPTION
         The Set-NsxtCertificates cmdlet installs certificates in NSX
-    
+
         .EXAMPLE
         Set-NsxtCertificates
         This example installs the certificates in NSX.
@@ -28656,7 +28633,7 @@ Function Set-NsxtCertificate {
 
         .PARAMETER json
         The JSON configuration for the certificate.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificateName,
@@ -28691,7 +28668,7 @@ Function Get-NsxtNodeProfile {
 
         .PARAMETER id
         The id of the node profile.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -28743,7 +28720,7 @@ Function Set-NsxtNodeProfileSyslogExporter {
 
         .PARAMETER logLevel
         The syslog log level.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -28793,7 +28770,7 @@ Function Remove-NsxtNodeProfileSyslogExporter {
 
         .PARAMETER id
         The id of the node profile.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -28830,7 +28807,7 @@ Function Get-NsxtBackupConfiguration {
 
         .PARAMETER fqdn
         The fully qualified domain name of the NSX Manager cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -28861,7 +28838,7 @@ Function Get-NsxtBackupHistory {
 
         .PARAMETER fqdn
         The fully qualified domain name of the NSX Manager cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -28891,7 +28868,7 @@ Function Get-NsxtAlarm {
 
         .PARAMETER fqdn
         The fully qualified domain name of the NSX Manager cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -28921,7 +28898,7 @@ Function Get-NsxtEvent {
 
         .PARAMETER fqdn
         The fully qualified domain name of the NSX Manager cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn
@@ -28951,7 +28928,7 @@ Function Get-NsxtTier0BgpStatus {
 
         .PARAMETER id
         The id of the NSX Tier-0 gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -28971,10 +28948,10 @@ Function New-NsxtTier0BgpNeighborConfig {
     <#
         .SYNOPSIS
         Create or update a BGP neighbor config for NSX Tier-0 gateways
-    
+
         .DESCRIPTION
         The New-NsxtTier0BgpNeighborConfig cmdlet configures or updates the BGP neighbor config for NSX Tier-0 gateways
-    
+
         .EXAMPLE
         New-NsxtTier0BgpNeighborConfig -id <guid> -localeservices $localeservices -neighborID $neighborID -json $bgpneighborJson
         This example configures or updates the BGP neighbor config for NSX Tier-0 gateways.
@@ -28990,7 +28967,7 @@ Function New-NsxtTier0BgpNeighborConfig {
 
         .PARAMETER json
         The JSON configuration for the BGP neighbor.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -29023,7 +29000,7 @@ Function Get-NsxtEdgeNode {
 
         .PARAMETER transportNodeId
         The id of the NSX Edge node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$transportNodeId
@@ -29052,7 +29029,7 @@ Function Get-NsxtTier0LocaleServiceBgp {
 
         .PARAMETER id
         The id of the NSX Tier-0 gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29072,17 +29049,17 @@ Function Get-NsxtLocaleService {
     <#
         .SYNOPSIS
         Get paginated list of all Tier-0 locale-services 
-    
+
         .DESCRIPTION
         The Get-NsxtLocaleService cmdlet returns a paginated list of all Tier-0 locale-services   
-    
+
         .EXAMPLE
         Get-NsxtLocaleservice -id <guid>
         This example will list all Tier-0 locale-services .
 
         .PARAMETER id
         The id of the NSX Tier-0 gateway.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29109,7 +29086,7 @@ Function Get-NsxtVidmStatus {
         .EXAMPLE
         Get-NsxtVidmStatus
         This example returns the status of the Identity Manager integration.
-   #>
+    #>
 
     Try {
         $uri = "https://$nsxtManager/api/v1/node/aaa/providers/vidm/status"
@@ -29143,7 +29120,7 @@ Function Get-NsxtTransportNode {
 
         .PARAMETER type
         The type of transport node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
@@ -29189,7 +29166,7 @@ Function Get-NsxtTransportNodeStatus {
 
         .PARAMETER type
         The type of transport node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet('host', 'edge')][ValidateNotNullOrEmpty()] [String]$type
@@ -29223,7 +29200,7 @@ Function Get-NsxtTransportNodeTunnel {
 
         .PARAMETER id
         The id of the transport node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29253,7 +29230,7 @@ Function Get-NsxtTransportNodeTunnelStatus {
 
         .PARAMETER id
         The id of the transport node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29283,7 +29260,7 @@ Function Get-NsxtComputeManagerStatus {
 
         .PARAMETER id
         The id of the compute manager.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29322,7 +29299,7 @@ Function Get-NsxtApplianceUser {
 
         .PARAMETER clusterNodeId
         The id of the cluster node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$transportNodeId,
@@ -29367,7 +29344,7 @@ Function Set-NsxtApplianceUserExpirationPolicy {
 
         .PARAMETER clusterNodeId
         The id of the cluster node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -29415,7 +29392,7 @@ Function Set-NsxtApplianceUserPassword {
 
         .PARAMETER clusterNodeId
         The id of the cluster node.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -29451,7 +29428,7 @@ Function Get-NsxtLogicalRouter {
         .EXAMPLE
         Get-NsxtLogicalRouter
         This example gets all logical routers.
-   #>
+    #>
 
     Try {
         $uri = "https://$nsxtmanager/api/v1/logical-routers"
@@ -29477,7 +29454,7 @@ Function Get-NsxtRoutingConfigRedistribution {
 
         .PARAMETER logicalRouterId
         The id of the logical router.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
@@ -29496,18 +29473,18 @@ Function Get-NsxtRoutingConfigRedistributionRule {
     <#
         .SYNOPSIS
         Get configured route redistribution
-    
+
         .DESCRIPTION
         The Get-NsxtRoutingConfigRedistributionRule cmdlet returns all the route redistribution rules for the specified
         logical router. 
-    
+
         .EXAMPLE
         Get-NsxtRoutingConfigRedistributionRule -logicalRouterId 
         This example gets the route redistribution rule details for the supplied logical router.
 
         .PARAMETER logicalRouterId
         The id of the logical router.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
@@ -29526,11 +29503,11 @@ Function Set-NsxtRoutingConfigRedistributionRule {
     <#
         .SYNOPSIS
         Set redistribution rule
-    
+
         .DESCRIPTION
         The Set-NsxtRoutingConfigRedistributionRule cmdlet configures the route redistribution rules for the specified
         logical router. 
-    
+
         .EXAMPLE
         Get-NsxtRoutingConfigRedistributionRule -logicalRouterId <router-id> -json <file>
         This example gets the route redistribution rule details for the supplied logical router.
@@ -29540,7 +29517,7 @@ Function Set-NsxtRoutingConfigRedistributionRule {
 
         .PARAMETER json
         The JSON configuration for the route redistribution rule.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId,
@@ -29561,17 +29538,17 @@ Function Get-NsxtRoutingConfigRouteMap {
     <#
         .SYNOPSIS
         Get configured route maps
-    
+
         .DESCRIPTION
         The Get-NsxtRoutingConfigRouteMap cmdlet returns a paginated list of RouteMaps
-    
+
         .EXAMPLE
         Get-NsxtRoutingConfigRouteMap -logicalRouterId <router-id>
         This example gets the route map details for the supplied logical router.
 
         .PARAMETER logicalRouterId
         The id of the logical router.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$logicalRouterId
@@ -29590,10 +29567,10 @@ Function Get-NsxtSecurityPolicy {
     <#
         .SYNOPSIS
         Get configured security policies
-    
+
         .DESCRIPTION
         The Get-NsxtSecurityPolicy cmdlet returns a paginated list of security policies
-    
+
         .EXAMPLE
         Get-NsxtSecurityPolicy
         This example retrieves a paginated list of all security policies
@@ -29604,7 +29581,7 @@ Function Get-NsxtSecurityPolicy {
 
         .PARAMETER id
         The id of the security policy.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29628,17 +29605,17 @@ Function Remove-NsxtSecurityPolicy {
     <#
         .SYNOPSIS
         Remove a security policy
-    
+
         .DESCRIPTION
         The Remove-NsxtSecurityPolicy cmdlet removes a security policy
-    
+
         .EXAMPLE
         Remove-NsxtSecurityPolicy -id <id_name>
         This example removes the specified security policy.
 
         .PARAMETER id
         The id of the security policy.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29657,10 +29634,10 @@ Function Get-NsxtGroup {
     <#
         .SYNOPSIS
         Get groups
-    
+
         .DESCRIPTION
         The Get-NsxtGroup cmdlet returns a paginated list of groups
-    
+
         .EXAMPLE
         Get-NsxtGroup
         This example retrieves a paginated list of all groups
@@ -29671,7 +29648,7 @@ Function Get-NsxtGroup {
 
         .PARAMETER id
         The id of the group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29696,17 +29673,17 @@ Function Remove-NsxtGroup {
     <#
         .SYNOPSIS
         Remove a group
-    
+
         .DESCRIPTION
         The Remove-NsxtGroup cmdlet removes a group
-    
+
         .EXAMPLE
         Remove-NsxtGroup -id <id_name>
         This example removes the specified security policy.
 
         .PARAMETER id
         The id of the group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -29757,7 +29734,7 @@ Function Enable-WMRegistry {
 
         .PARAMETER inputObject
         The input object from the pipeline.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$domain,
@@ -29886,7 +29863,7 @@ Function Get-WMRegistry {
 
         .PARAMETER inputObject
         The input object from the pipeline.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -29955,7 +29932,7 @@ Function Remove-WMRegistry {
 
         .PARAMETER inputObject
         The input object from the pipeline.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -30010,7 +29987,7 @@ Function Get-WMRegistryHealth {
 
         .PARAMETER inputObject
         The input object from the pipeline.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$registry,
@@ -30055,7 +30032,7 @@ Function Connect-WMCluster {
 
         .PARAMETER pass
         The vSphere SSO user password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -30087,7 +30064,7 @@ Function Disconnect-WMCluster {
         .EXAMPLE
         Disconnect-WMCluster
         This example disconnects from the Supervisor Cluster.
-   #>
+    #>
 
     Try {
         Invoke-Expression "kubectl vsphere logout" | Out-Null
@@ -30113,7 +30090,7 @@ Function New-TanzuKubernetesCluster {
 
         .PARAMETER YAML
         The path to the YAML file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$YAML
@@ -30151,7 +30128,7 @@ Function Get-TanzuKubernetesCluster {
 
         .PARAMETER detail
         The detailed information of the Tanzu Kubernetes Cluster.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace,
@@ -30204,7 +30181,7 @@ Function Remove-TanzuKubernetesCluster {
 
         .PARAMETER namespace
         The name of the Namespace.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -30244,7 +30221,7 @@ Function Get-VMClass {
 
         .PARAMETER namespace
         The name of the Namespace.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet("guaranteed-medium", "guaranteed-large", "guaranteed-xlarge", "best-effort-4xlarge", "guaranteed-small", "best-effort-medium", "best-effort-2xlarge", "guaranteed-2xlarge", "best-effort-large", "guaranteed-4xlarge", "best-effort-8xlarge", "best-effort-xsmall", "guaranteed-xsmall", "best-effort-xlarge", "guaranteed-8xlarge", "best-effort-small")] [String]$vmClass,
@@ -30288,7 +30265,7 @@ Function Add-VMClass {
 
         .PARAMETER namespace
         The name of the Namespace.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$namespace,
@@ -30332,7 +30309,7 @@ Function Get-WMLicenseStatus {
         .EXAMPLE
         Get-WMLicenseStatus
         This example gets the vSphere with Tanzu licenses status from vCenter Server for Workload Management.
-   #>
+    #>
 
     Try {
         $uri = "https://$vcApiServer/api/vcenter/namespace-management/capability"
@@ -30386,7 +30363,7 @@ Function Request-WMClusterCSR {
 
         .PARAMETER filePath
         The path to the Certificate Signing Request file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -30444,7 +30421,7 @@ Function Install-WMClusterCertificate {
 
         .PARAMETER filePath
         The path to the signed TLS certificate file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$cluster,
@@ -30514,7 +30491,7 @@ Function Watch-WmClusterConfigStatus {
 
         .PARAMETER sleepTime
         The sleep time between retries.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$wmClusterName,
@@ -30572,7 +30549,7 @@ Function Request-vRSLCMToken {
 
         .PARAMETER password
         The password of the VMware Aria Suite Lifecycle appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -30617,7 +30594,7 @@ Function Get-vRSLCMHealth {
         .EXAMPLE
         Get-vRSLCMHealth
         This example checks VMware Aria Suite Lifecycle Health Status.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/health/api/v2/status"
@@ -30654,7 +30631,7 @@ Function Get-vRSLCMLockerPassword {
 
         .PARAMETER alias
         The alias of the password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -30704,7 +30681,7 @@ Function Add-vRSLCMLockerPassword {
 
         .PARAMETER description
         The description of the password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userName,
@@ -30751,7 +30728,7 @@ Function Remove-vRSLCMLockerPassword {
 
         .PARAMETER vmid
         The vmid of the password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -30792,7 +30769,7 @@ Function Get-vRSLCMLockerCertificate {
 
         .PARAMETER alias
         The alias of the certificate.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -30845,7 +30822,7 @@ Function Add-vRSLCMLockerCertificate {
 
         .PARAMETER certChainPath
         The path to the certificate chain file.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrslcmFQDN,
@@ -30899,7 +30876,7 @@ Function Remove-vRSLCMLockerCertificate {
 
         .PARAMETER vmid
         The vmid of the certificate.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -30940,7 +30917,7 @@ Function Get-vRSLCMLockerLicense {
 
         .PARAMETER alias
         The alias of the license.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -30984,7 +30961,7 @@ Function Add-vRSLCMLockerLicense {
 
         .PARAMETER license
         The license of the license.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias,
@@ -31020,7 +30997,7 @@ Function Remove-vRSLCMLockerLicense {
 
         .PARAMETER vmid
         The vmid of the license.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -31061,7 +31038,7 @@ Function Get-vRSLCMDatacenter {
 
         .PARAMETER datacenterName
         The name of the datacenter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid,
@@ -31105,7 +31082,7 @@ Function Add-vRSLCMDatacenter {
 
         .PARAMETER location
         The location of the datacenter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
@@ -31140,7 +31117,7 @@ Function Remove-vRSLCMDatacenter {
 
         .PARAMETER datacenterVmid
         The vmid of the datacenter.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid
@@ -31184,7 +31161,7 @@ Function Get-vRSLCMDatacenterVcenter {
 
         .PARAMETER environments
         Switch to get all vCenter Servers for a Datacenter that is assigned to an Environemnt.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
@@ -31232,7 +31209,7 @@ Function Add-vRSLCMDatacenterVcenter {
 
         .PARAMETER userLockerAlias
         The alias of the user in the locker.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
@@ -31268,7 +31245,7 @@ Function Sync-vRSLCMDatacenterVcenter {
         .EXAMPLE
         Sync-vRSLCMDatacenterVcenter -datacenterVmid <datacenter_vmid> -vcenterName <vcenter_name>
         This example triggers a vCenter Server inventory sync.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterVmid,
@@ -31298,7 +31275,7 @@ Function Get-vRSLCMEnvironment {
 
         .PARAMETER vmid
         The vmid of the environment.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -31344,7 +31321,7 @@ Function Add-vRSLCMEnvironment {
 
         .PARAMETER addProduct
         Switch to add a product to an existing environment.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -31382,7 +31359,7 @@ Function Remove-vRSLCMEnvironment {
 
         .PARAMETER environmentId
         The vmid of the environment.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentId
@@ -31410,7 +31387,7 @@ Function Get-vRSLCMLoadbalancer {
         .EXAMPLE
         Get-vRSLCMLoadbalancer -type NSX_T
         This example gets all load balancers in VMware Aria Suite Lifecycle with a type of NSX_T.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('NSX_T','NSX_ALB','OTHERS')] [String]$type,
@@ -31437,7 +31414,7 @@ Function New-vRSLCMLoadbalancer {
         .EXAMPLE
         New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp 192.168.11.60 -loadBalancerFqdn xint-wsa01.rainpole.io
         This example adds load balancers in VMware Aria Suite Lifecycle with a type of NSX_T.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('NSX_T')] [String]$type,
@@ -31477,7 +31454,7 @@ Function Remove-vRSLCMLoadbalancer {
         .EXAMPLE
         Remove-vRSLCMLoadbalancer -type NSX_T -loadBalancerFqdn xint-wsa01.rainpole.io
         This example deletes the load balancer from VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('NSX_T','NSX_ALB','OTHERS')] [String]$type,
@@ -31519,7 +31496,7 @@ Function Get-vRSLCMRequest {
 
         .PARAMETER errorCauses
         Switch to get the errors for a request by id.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId,
@@ -31560,7 +31537,7 @@ Function Remove-vRSLCMRequest {
 
         .PARAMETER requestId
         The requestId of the request.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$requestId    )
@@ -31589,7 +31566,7 @@ Function Watch-vRSLCMRequest {
 
         .PARAMETER vmid
         The vmid of the request.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
@@ -31621,7 +31598,7 @@ Function Resume-vRSLCMRequest {
 
         .PARAMETER requestId
         The requestId of the request.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$requestId
@@ -31689,7 +31666,7 @@ Function Export-WsaJsonSpec {
 
         .PARAMETER contentLibrary
         The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -31703,7 +31680,6 @@ Function Export-WsaJsonSpec {
     )
 
     Try {
-
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
         } else {
@@ -31715,6 +31691,7 @@ Function Export-WsaJsonSpec {
 
         if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
         $pnpWorkbook = Open-ExcelPackage -Path $workbook
+
         ### Obtain Configuration Information from VMware Aria Suite Lifecycle
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
@@ -31955,7 +31932,7 @@ Function New-WSADeployment {
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
         This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -32070,6 +32047,7 @@ Function Set-WorkspaceOneApplianceNtpConfig {
         .PARAMETER ntpServer
         The NTP server to set on the Workspace ONE Access node.
     #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
@@ -32115,7 +32093,7 @@ Function New-vRSLCMAdapterOperation {
 
         .PARAMETER environmentId
         The environment ID to use to create the adapter in VMware Aria Operations via VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -32153,7 +32131,7 @@ Function Get-vRSLCMProductNtpServer {
 
         .PARAMETER ntpServer
         The NTP server to get from the product NTP configuration in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -32189,7 +32167,7 @@ Function Remove-vRSLCMProductNtpServer {
 
         .PARAMETER ntpServer
         The NTP server to remove from the product NTP configuration in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -32213,11 +32191,10 @@ Function Get-vRSLCMApplianceNtpConfig {
         .DESCRIPTION
         The Get-vRSLCMApplianceNtpConfig cmdlet gets appliance NTP configuration in VMware Aria Suite Lifecycle
 
-
         .EXAMPLE
         Get-vRSLCMApplianceNtpConfig
         This example gets the appliance NTP configuration in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/system-details/time"
@@ -32246,7 +32223,7 @@ Function Add-vRSLCMProductNtpServer {
 
         .PARAMETER ntpServerDesc
         The description of the NTP server to add to the product NTP configuration in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
@@ -32281,15 +32258,13 @@ Function Add-vRSLCMApplianceNtpConfig {
 
         .PARAMETER ntpServer
         The NTP server to add to the appliance NTP configuration in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer
     )
 
     $existingNtpServers = (Get-vRSLCMApplianceNtpConfig).ntpServers
-
-
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/settings/ntpsetting"
@@ -32320,7 +32295,7 @@ Function Set-vRSLCMApplianceNtpConfig {
 
         .PARAMETER ntpServer
         The NTP server to set the appliance NTP configuration in VMware Aria Suite Lifecycle to use.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer
@@ -32358,7 +32333,7 @@ Function Get-vRSLCMProductNode {
 
         .PARAMETER product
         The name of the product in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentName,
@@ -32395,7 +32370,7 @@ Function Stop-vRSLCMProductNode {
 
         .PARAMETER product
         The name of the product in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -32429,7 +32404,7 @@ Function Start-vRSLCMProductNode {
 
         .PARAMETER product
         The name of the product in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -32464,7 +32439,7 @@ Function Get-vRSLCMPSPack {
 
         .PARAMETER checkOnline
         The switch to update the manifest of available Product Support Packs online for VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$checkOnline
@@ -32498,7 +32473,7 @@ Function Install-vRSLCMPSPack {
 
         .PARAMETER pspackId
         The Product Support Pack ID to install on VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pspackId
@@ -32524,7 +32499,7 @@ Function Get-vRSLCMProductBinariesMapped {
         .EXAMPLE
         Get-vRSLCMProductBinariesMapped
         This example retrieves a list of mapped Product Binaries in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/product-binaries"
@@ -32552,7 +32527,7 @@ Function Get-vRSLCMProductBinaries {
 
         .PARAMETER sourceType
         The type of source for the product binaries in VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceLocation,
@@ -32592,7 +32567,7 @@ Function Register-vRSLCMProductBinary {
 
         .PARAMETER ovaType
         The type of OVA to add to VMware Aria Suite Lifecycle.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ovaName,
@@ -32912,7 +32887,7 @@ Function Request-vRAToken {
 
         .PARAMETER displayToken
         Displays the token needed for Terraform
-        #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -32975,7 +32950,7 @@ Function Get-vRAOrganizationId {
         .EXAMPLE
         Get-vRAOrganizationId
         This example gets organization Id for the logged in user.
-   #>
+    #>
 
     Try {
         $uri = "https://$vraAppliance/csp/gateway/am/api/loggedin/user/orgs"
@@ -33001,7 +32976,7 @@ Function Get-vRAOrganizationDisplayName {
 
         .PARAMETER orgId
         The organization Id to get the display name for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId
@@ -33034,7 +33009,7 @@ Function Set-vRAOrganizationDisplayName {
 
         .PARAMETER displayName
         The display name to configure.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
@@ -33070,7 +33045,7 @@ Function Get-vRACloudAccount {
 
         .PARAMETER type
         The type of cloud account to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet("vsphere", "vmc", "gcp", "nsx-v", "nsx-t", "aws", "azure")] [ValidateNotNullOrEmpty()] [String]$type
@@ -33119,7 +33094,7 @@ Function Add-vRACloudAccount {
 
         .PARAMETER json
         The json file to use to add the cloud account.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vsphere", "vmc", "gcp", "nsx-v", "nsx-t", "aws", "azure")] [ValidateNotNullOrEmpty()] [String]$type,
@@ -33156,7 +33131,7 @@ Function Remove-vRACloudAccount {
 
         .PARAMETER id
         The ID of the cloud account to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -33183,7 +33158,7 @@ Function Get-vRANotification {
         .EXAMPLE
         Get-vRANotification
         This example gets the current notification configuration from VMware Aria Automation.
-   #>
+    #>
 
     Try {
         $uri = "https://$vraAppliance/notification/api/email-config"
@@ -33237,7 +33212,7 @@ Function New-vRANotification {
 
         .PARAMETER password
         The password to authenticate with.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -33286,7 +33261,7 @@ Function Remove-vRANotification {
         .EXAMPLE
         Remove-vRANotification
         This example removes the current notification configuration from VMware Aria Automation.
-   #>
+    #>
 
     Try {
         $uri = "https://$vraAppliance/notification/api/email-config"
@@ -33316,7 +33291,7 @@ Function Get-vRAResourceCompute {
 
         .PARAMETER id
         The compute resource id to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -33358,7 +33333,7 @@ Function Add-vRAResourceComputeTag {
 
         .PARAMETER tagValue
         The tag value to add.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -33427,7 +33402,7 @@ Function Get-vRACloudZone {
 
         .PARAMETER compute
         Get the compute details for the Cloud Zone.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -33463,8 +33438,9 @@ Function Get-vRAAPIVersion {
         The Get-vRAAPIVersion cmdlet returns the latest version of the API
 
         .EXAMPLE
-        Get-vRAAPIVersion .
-   #>
+        Get-vRAAPIVersion.
+    #>
+
     Try {
         $uri = "https://$vraAppliance/iaas/api/about"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vraHeaders
@@ -33502,7 +33478,7 @@ Function Get-vRAIntegrationDetail {
 
         .PARAMETER getIntegrationID
         Get the integration id of the integration name provided.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -33510,6 +33486,7 @@ Function Get-vRAIntegrationDetail {
         [switch]$getVCID,
         [switch]$getIntegrationID
     )
+
     Try {
         $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
         $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"        
@@ -33562,7 +33539,7 @@ Function Update-vRACloudZone {
 
         .PARAMETER placementPolicy
         The placement policy to update the Cloud Zone to.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -33619,7 +33596,7 @@ Function Remove-vRACloudZone {
 
         .PARAMETER id
         The Cloud Zone id to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -33649,7 +33626,7 @@ Function Get-vRAServices {
 
         .PARAMETER orgId
         The organization Id to get the services for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId
@@ -33683,7 +33660,7 @@ Function Get-vRAUser {
 
         .PARAMETER email
         The email address of the user to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
@@ -33727,7 +33704,7 @@ Function New-vRAUser {
 
         .PARAMETER serviceRole
         The service role to assign to the user.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -33781,7 +33758,7 @@ Function Get-vRAGroup {
 
         .PARAMETER displayName
         The displayName of the group to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$orgId,
@@ -33831,7 +33808,7 @@ Function New-vRAGroup {
 
         .PARAMETER serviceRole
         The service role to assign to the group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -33899,7 +33876,7 @@ Function Get-vRAUserRoles {
 
         .PARAMETER orgId
         The organization Id to get the roles for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -33934,7 +33911,7 @@ Function Get-vRAGroupRoles {
 
         .PARAMETER orgId
         The organization Id to get the roles for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -33969,7 +33946,7 @@ Function Remove-vRAGroupRoles {
 
         .PARAMETER orgId
         The organization Id to remove the roles for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -34015,7 +33992,7 @@ Function Set-vRAGroupOrgRole {
 
         .PARAMETER orgRole
         The organization role to set.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -34065,7 +34042,7 @@ Function Remove-vRAGroupOrgRole {
 
         .PARAMETER orgRole
         The organization role to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -34115,7 +34092,7 @@ Function Set-vRAGroupServiceRole {
 
         .PARAMETER groupId
         The group id to be added.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -34174,7 +34151,7 @@ Function Remove-vRAGroupServiceRole {
 
         .PARAMETER groupId
         The group id to be removed.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupId,
@@ -34234,7 +34211,7 @@ Function Set-vRAUserOrgRole {
 
         .PARAMETER userId
         The user id to be added.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -34284,7 +34261,7 @@ Function Remove-vRAUserOrgRole {
 
         .PARAMETER userId
         The user id to be removed.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -34335,7 +34312,7 @@ Function Set-vRAUserServiceRole {
 
         .PARAMETER userId
         The user id to be added.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -34390,7 +34367,7 @@ Function Remove-vRAUserServiceRole {
 
         .PARAMETER userId
         The user id to be removed.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userId,
@@ -34443,7 +34420,7 @@ Function Add-vRAIntegrationItem {
 
         .PARAMETER integrationPassword
         The password of the integration to be added.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -34491,7 +34468,7 @@ Function Test-vRAIntegrationItem {
 
         .PARAMETER integrationPassword
         The password of the integration to be tested.
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -34566,7 +34543,7 @@ Function Remove-vRAIntegrationItem {
 
         .PARAMETER integrationId
         The ID of the integration to be removed.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
@@ -34652,7 +34629,7 @@ Function Invoke-vRORestMethod {
 
         .PARAMETER webRequest
         Use Invoke-WebRequest instead of Invoke-RestMethod.
-   #>
+    #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
@@ -34712,7 +34689,7 @@ function Get-vROVersion {
 
         .NOTES
         Attribution: PowervRO by Jakku Labs (https://github.com/jakkulabs/PowervRO/).
-   #>
+    #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
     
@@ -34785,7 +34762,7 @@ Function Get-vROWorkflow {
 
         .PARAMETER tag
         The tag to filter by.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "All")][OutputType('System.Management.Automation.PSObject')]
 
@@ -34967,7 +34944,7 @@ Function Invoke-vROWorkflow {
 
         .PARAMETER parameters
         An array of parameters to pass to the workflow.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
@@ -35064,7 +35041,7 @@ Function New-vROParameterDefinition {
 
         .PARAMETER scope
         The scope of the parameter.
-   #>
+    #>
 
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "Low")][OutputType('System.Management.Automation.PSObject')]
 
@@ -35125,7 +35102,7 @@ Function Get-vROWorkflowExecution {
 
         .PARAMETER name
         The name of the workflow.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "Name")][OutputType('System.Management.Automation.PSObject')]
 
@@ -35182,7 +35159,7 @@ Function Get-vROWorkflowExecutionState {
 
         .PARAMETER executionStateRef
         The execution state reference of the workflow execution.
-   #>
+    #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
@@ -35231,7 +35208,7 @@ Function Get-vROWorkflowExecutionResult {
 
         .PARAMETER executionRef
         The execution reference of the workflow execution.
-   #>
+    #>
 
     [CmdletBinding()][OutputType('System.Management.Automation.PSObject')]
 
@@ -35292,7 +35269,7 @@ Function Request-vROPSToken {
 
         .PARAMETER password
         The password to use for authentication.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -35350,7 +35327,7 @@ Function Get-vROPSVersion {
 
         .PARAMETER all
         Get all versions supported by the service.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$all
@@ -35390,7 +35367,7 @@ Function Get-vROPSCollector {
 
         .PARAMETER id
         The ID of the collector to get details for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -35430,7 +35407,7 @@ Function Get-vROPSCollectorGroup {
 
         .PARAMETER id
         The ID of the collector group to get details for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -35472,7 +35449,7 @@ Function Add-vROPSCollectorGroup {
 
         .PARAMETER collectorIds
         The IDs of the collectors to add to the group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -35508,7 +35485,7 @@ Function Remove-vROPSCollectorGroup {
 
         .PARAMETER id
         The ID of the collector group to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -35541,7 +35518,7 @@ Function Get-vROPSAdapter {
 
         .PARAMETER id
         The ID of the adapter to get details for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -35580,7 +35557,7 @@ Function Set-vROPSAdapter {
 
         .PARAMETER patch
         Patch the adapter based on the response from the test.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -35623,7 +35600,7 @@ Function Add-vROPSAdapter {
 
         .PARAMETER json
         The JSON file to use for the add.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -35660,7 +35637,7 @@ Function Remove-vROPSAdapter {
 
         .PARAMETER id
         The ID of the adapter to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -35697,7 +35674,7 @@ Function Test-vROPSAdapterConnection {
 
         .PARAMETER patch
         Patch the adapter based on the response from the test.
-   #>
+    #>
 
 
     Param (
@@ -35741,7 +35718,7 @@ Function Start-vROPSAdapter {
 
         .PARAMETER adapterId
         The ID of the adapter to start.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterId
@@ -35770,7 +35747,7 @@ Function Stop-vROPSAdapter {
 
         .PARAMETER adapterId
         The ID of the adapter to stop.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapterId
@@ -35804,7 +35781,7 @@ Function Get-vROPSAdapterKind {
 
         .PARAMETER adapterKind
         The adapter kind to get resource kinds for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet("Container", "EP Ops Adapter", "Http Post", "LogInsight", "MicrosoftAzureAdapter", "AmazonAWSAdapter", "NSXTAdapter", "PingAdapter", "SDDCHealthAdapter", "APPLICATIONDISCOVERY", "VMWARE", "VmcAdapter", "IdentityManagerAdapter", "APPOSUCP", "VOAAdapter", "CASAdapter", "LogInsightAdapter", "NETWORK_INSIGHT", "vCenter Operations Adapter", "vRealizeOpsMgrAPI", "VirtualAndPhysicalSANAdapter")] [ValidateNotNullOrEmpty()] [String]$adapterKind
@@ -35846,7 +35823,7 @@ Function Get-vROPSResourceDetail {
 
         .PARAMETER objectName
         The name of the object to get the details for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$adapter,
@@ -35884,7 +35861,7 @@ Function Get-vROPSCredential {
 
         .PARAMETER resource
         The resource to get credentials for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$credentialId,
@@ -35930,7 +35907,7 @@ Function Add-vROPSCredential {
 
         .PARAMETER json
         The JSON file containing the credential details.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -35967,7 +35944,7 @@ Function Remove-vROPSCredential {
 
         .PARAMETER credentialId
         The ID of the credential to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$credentialId
@@ -35993,7 +35970,7 @@ Function Get-vROPSCurrency {
         .EXAMPLE
         Get-vROPSCurrency
         This example gets the currency configuration for VMware Aria Operations.
-   #>
+    #>
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/costconfig/currency"
@@ -36020,7 +35997,7 @@ Function Set-vROPSCurrency {
 
         .PARAMETER currency
         The currency code to apply.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$currency
@@ -36063,7 +36040,7 @@ Function Get-vROPSSolution {
 
         .PARAMETER license
         The ID of the solution to get details for.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$solutionId,
@@ -36118,7 +36095,7 @@ Function Import-vROPSManagementPack {
 
         .PARAMETER pak
         The path to the management pack file to upload.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -36187,7 +36164,7 @@ Function Install-vROPSManagementPack {
 
         .PARAMETER pakId
         The ID of the management pack to install.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -36241,7 +36218,7 @@ Function Set-vROPSManagementPack {
 
         .PARAMETER status
         The status to set the management pack to. Valid values are enable or disable.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -36290,7 +36267,7 @@ Function Get-vROPSManagementPack {
 
         .PARAMETER password
         The password to authenticate to the VMware Aria Operations appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -36334,7 +36311,7 @@ Function Get-vROPSManagementPackStatus {
 
         .PARAMETER pakId
         The ID of the management pack to get the status of.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -36375,7 +36352,7 @@ Function Get-vROPSManagementPackActivity {
 
         .PARAMETER password
         The password to authenticate to the VMware Aria Operations appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -36407,7 +36384,7 @@ Function Get-vROPSAlertPlugin {
         .EXAMPLE
         Get-vROPSAlertPlugin
         This example gets a list of the alert plugins configure in VMware Aria Operations.
-   #>
+    #>
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/alertplugins"
@@ -36433,7 +36410,7 @@ Function Add-vROPSAlertPlugin {
 
         .PARAMETER json
         The JSON file containing the alert plugin configuration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -36470,7 +36447,7 @@ Function Set-vROPSAlertPlugin {
 
         .PARAMETER json
         The JSON file containing the alert plugin configuration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -36507,7 +36484,7 @@ Function Remove-vROPSAlertPlugin {
 
         .PARAMETER pluginId
         The ID of the alert plugin to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pluginId
@@ -36556,7 +36533,7 @@ Function Get-vROPSAlertDefinition {
 
         .PARAMETER resourceKind
         The resource kind of the alert definition to get.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
@@ -36608,7 +36585,7 @@ Function Set-vROPSAlertPluginStatus {
 
         .PARAMETER status
         The status of the alert plugin to enable/disable.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pluginId,
@@ -36643,7 +36620,7 @@ Function Get-vROPSAuthSource {
 
         .PARAMETER sourceId
         The ID of the authentication source to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId
@@ -36679,7 +36656,7 @@ Function Get-vROPSAuthRole {
 
         .PARAMETER name
         The name of the role to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
@@ -36733,7 +36710,7 @@ Function Get-vROPSUserAccount {
 
         .PARAMETER roleName
         The role name of the user account to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -36790,7 +36767,7 @@ Function Get-vROPSUserGroup {
 
         .PARAMETER name
         The name of the user group to get.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -36848,7 +36825,7 @@ Function Add-vROPSUserAccount {
 
         .PARAMETER role
         The name of the role to assign to the user account.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -36902,7 +36879,7 @@ Function Add-vROPSUserGroup {
 
         .PARAMETER role
         The name of the role to assign to the user group.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -36942,7 +36919,7 @@ Function Remove-vROPSUserAccount {
 
         .PARAMETER id
         The ID of the user account to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -36972,7 +36949,7 @@ Function Remove-vROPSUserGroup {
 
         .PARAMETER id
         The ID of the user group to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -37008,7 +36985,7 @@ Function Search-vROPSUserAccount {
 
         .PARAMETER userName
         The name of the user account to search.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -37051,7 +37028,7 @@ Function Search-vROPSUserGroup {
 
         .PARAMETER groupName
         The name of the user group to search.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$sourceId,
@@ -37088,7 +37065,7 @@ Function Update-vROPSUserAccount {
 
         .PARAMETER id
         The ID of the user account to update.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id
@@ -37115,7 +37092,7 @@ Function Get-vROpsLogForwarding {
         .EXAMPLE
         Get-vROpsLogForwarding
         This example returns the logging forwarding configuration on VMware Aria Operations.
-   #>
+    #>
 
     Try {
         $uri = "https://$vropsAppliance/suite-api/api/logs/forwarding"
@@ -37149,7 +37126,7 @@ Function Get-vROPSNotification {
 
         .PARAMETER id
         The ID of the notification to get.
-   #>
+     #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -37186,7 +37163,7 @@ Function New-vROPSNotification {
 
         .PARAMETER csvPath
         The path to the csv file containing the notifications to add.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$csvPath
@@ -37262,7 +37239,7 @@ Function Remove-vROPSNotification {
 
         .PARAMETER id
         The ID of the notification to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -37294,7 +37271,7 @@ Function Test-vROPsAdapterStatus {
 
         .PARAMETER resourceId
         The ID of the adapter to validate the integration status.
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$resourceId
@@ -37347,7 +37324,7 @@ Function Request-vRLIToken {
 
         .PARAMETER password
         The password of the VMware Aria Operations for Logs instance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -37397,7 +37374,7 @@ Function Get-vRLIVersion {
         .EXAMPLE
         Get-vRLIVersion
         This example gets the VMware Aria Operations for Logs version information.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/version"
@@ -37426,7 +37403,7 @@ Function Get-vRLIAuthenticationWSA {
 
         .PARAMETER status
         The status of the Workspace ONE Access Integration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$status
@@ -37472,7 +37449,7 @@ Function Set-vRLIAuthenticationWSA {
 
         .PARAMETER password
         The password of the Workspace ONE Access appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostname,
@@ -37514,7 +37491,7 @@ Function Remove-vRLIAuthenticationWSA {
         .EXAMPLE
         Remove-vRLIAuthenticationWSA
         This example disables Workspace ONE Access Integration.
-   #>
+    #>
 
     Try {
         $jsonSpec = @()
@@ -37542,7 +37519,7 @@ Function Get-vRLIAuthenticationAD {
         .EXAMPLE
         Get-vRLIAuthenticationAD
         This example gets the the Active Directory configuration settings.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/ad"
@@ -37590,7 +37567,7 @@ Function Set-vRLIAuthenticationAD {
 
         .PARAMETER port
         The port of the Active Directory server.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
@@ -37636,8 +37613,9 @@ Function Remove-vRLIAuthenticationAD {
         Operations for Logs
 
         .EXAMPLE
-        Remove-vRLIAuthenticationAD.
-   #>
+        Remove-vRLIAuthenticationAD
+        This example disables Active Directory as an authentication provider in VMware Aria Suite Lifecycle
+    #>
 
     Try {
         $jsonSpec = New-Object -TypeName psobject
@@ -37662,7 +37640,7 @@ Function Get-vRLIAgentGroup {
         .EXAMPLE
         Get-vRLIAgentGroup
         This example gets a list agent groups.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/agent/groups"
@@ -37698,7 +37676,7 @@ Function New-vRLIAgentGroup {
 
         .PARAMETER agentGroupName
         The name of the agent group to create. If not specified, the name is automatically generated..
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("wsa", "photon")] [ValidateNotNullOrEmpty()] [String]$agentGroupType,
@@ -37757,7 +37735,7 @@ Function Remove-vRLIAgentGroup {
 
         .PARAMETER groupName
         The name of the agent group to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$groupName
@@ -37784,7 +37762,7 @@ Function Get-vRLISmtpConfiguration {
         .EXAMPLE
         Get-vRLISmtpConfiguration
         This example gets the SMTP settings.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/channels"
@@ -37822,7 +37800,7 @@ Function Set-vRLISmtpConfiguration {
 
         .PARAMETER password
         The SMTP server password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$smtpServer,
@@ -37867,7 +37845,7 @@ Function Get-vRLIRetentionThreshold {
         .EXAMPLE
         Get-vRLIRetentionThreshold
         This example gets the retention configuration.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/config/retention-threshold"
@@ -37899,7 +37877,7 @@ Function Set-vRLIRetentionThreshold {
 
         .PARAMETER intervalUnit
         The interval unit for the retention configuration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("true", "false")] [ValidateNotNullOrEmpty()] [String]$enable,
@@ -37932,7 +37910,7 @@ Function Get-vRLIIndexPartition {
         .EXAMPLE
         Get-vRLIIndexPartition
         This example gets a list of index partitions.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/partitioning"
@@ -37970,7 +37948,7 @@ Function Set-vRLILogArchive {
 
         .PARAMETER archiveLocation
         The archive location.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -38009,7 +37987,7 @@ Function Get-vRLIEmailNotification {
         .EXAMPLE
         Get-vRLIEmailNotification
         This example gets a list of email notifications.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/notification/email"
@@ -38035,7 +38013,7 @@ Function Set-vRLIEmailNotification {
 
         .PARAMETER emailAddress
         The email address to add to the notifications.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$emailAddress
@@ -38066,7 +38044,8 @@ Function Get-vRLIRole {
         .EXAMPLE
         Get-vRLIRole
         This example gets a list of roles in VMware Aria Operations for Logs.
-   #>
+    #>
+
     Try {
         $uri = "https://$vrliAppliance/api/v1/roles"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
@@ -38095,7 +38074,7 @@ Function Get-vRLIGroup {
 
         .PARAMETER authProvider
         The authentication provider to use. Valid values are vidm or ad.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vidm", "ad")] [ValidateNotNullOrEmpty()] [String]$authProvider
@@ -38142,7 +38121,7 @@ Function Add-vRLIGroup {
         .EXAMPLE
         Add-vRLIGroup -authProvider ad -domain sfo.rainpole.io -group gg-vrli-admins -role "Super Admin"
         This example adds a group assigned using the the LDAP authenitcation provider and assigns the Super Admin role.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vidm", "ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
@@ -38195,7 +38174,7 @@ Function Remove-vRLIGroup {
         .EXAMPLE
         Remove-vRLIGroup -authProvider ad -domain sfo.rainpole.io -group gg-vrli-admins
         This example removes a group assigned using the the vIDM authenitcation provider.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vidm", "ad")] [ValidateNotNullOrEmpty()] [String]$authProvider,
@@ -38228,7 +38207,7 @@ Function Get-vRLIAlert {
         .EXAMPLE
         Get-vRLIGroup
         This example gets a list alerts from VMware Aria Operations for Logs.
-   #>
+    #>
 
     Try {
         if ((Get-vRLIVersion).version -Split ("-")[0] -gt 8.6.2) {
@@ -38257,7 +38236,7 @@ Function New-vRLIAlert {
 
         .PARAMETER json
         The JSON configuration of the alert to create.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json
@@ -38287,7 +38266,7 @@ Function Remove-vRLIAlert {
 
         .PARAMETER alertId
         The ID of the alert to delete.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alertId
@@ -38320,7 +38299,7 @@ Function Set-vRLIAlert {
 
         .PARAMETER enabled
         Enable or disable the alert. Valid values are true or false.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -38357,7 +38336,7 @@ Function Update-vRLIAlert {
 
         .PARAMETER email
         The email address to add to the alert.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -38408,7 +38387,7 @@ Function Get-vRLILogForwarder {
 
         .PARAMETER id
         The ID of the log forwarder destination.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -38469,7 +38448,7 @@ Function Set-vRLILogForwarder {
 
         .PARAMETER testConnection
         Test the connection to the log forwarder destination. Valid values are true or false.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$name,
@@ -38535,7 +38514,7 @@ Function Remove-vRLILogForwarder {
 
         .PARAMETER id
         The ID of the log forwarder destination.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$id
@@ -38572,7 +38551,7 @@ Function Update-vRLILogForwarder {
 
         .PARAMETER json
         The JSON payload for the log forwarder destination.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$id,
@@ -38608,7 +38587,7 @@ Function Test-vRLILogForwarder {
 
         .PARAMETER protocol
         The protocol of the log forwarder destination. Valid values are CFAPI, TCP, or UDP.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -38644,7 +38623,7 @@ Function Get-vRLIMarketplaceMetadata {
 
         .PARAMETER index
         Returns the index of available content packs in the Content Pack Marketplace.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$index,
@@ -38679,7 +38658,7 @@ Function Get-vRLIContentPack {
         .EXAMPLE
         Get-vRLIContentPack
         This example gets a list of all content packs.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrliAppliance/api/v1/content/contentpack"
@@ -38712,7 +38691,7 @@ Function Install-vRLIContentPack {
 
         .PARAMETER json
         The JSON payload for the content pack.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$json,
@@ -38768,7 +38747,7 @@ Function Request-CSPToken {
 
         .PARAMETER extensibilityProxy
         The fqdn of the Cloud Extensibility Proxy for VMware Aria Automation Orchestrator configuration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -38854,7 +38833,7 @@ Function Get-CloudProxy {
 
         .PARAMETER ovaUrl
         Return the URL to the OVA.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -38948,7 +38927,7 @@ Function Get-CloudProxyOtk {
 
         .PARAMETER region
         The region to request the One Time Key (OTK) for. Only required for production environment.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("production", "staging")] [ValidateNotNullOrEmpty()] [String]$environment,
@@ -39017,7 +38996,7 @@ Function Get-vROVersion {
 
         .PARAMETER extensibility
         Connect to a VMware Aria Automation Orchestrator instance running within the Cloud Extensibility Proxy appliance.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "embedded")][OutputType('System.Management.Automation.PSObject')]
 
@@ -39098,7 +39077,7 @@ Function Get-CEPWorkflow {
 
         .PARAMETER tag
         The tag to filter by.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "All")][OutputType('System.Management.Automation.PSObject')]
 
@@ -39280,7 +39259,7 @@ Function Invoke-CEPWorkflow {
 
         .PARAMETER parameters
         The VMware Aria Automation Orchestrator workflow parameters.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
@@ -39373,7 +39352,7 @@ Function Get-CEPWorkflowExecution {
 
         .PARAMETER name
         The VMware Aria Automation Orchestrator workflow name.
-   #>
+    #>
 
     [CmdletBinding(DefaultParametersetName = "A")][OutputType('System.Management.Automation.PSObject')]
 
@@ -39424,7 +39403,7 @@ Function Get-CEPWorkflowExecutionState {
 
         .PARAMETER executionId
         The VMware Aria Automation Orchestrator workflow execution ID.
-   #>
+    #>
 
     Param (   
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workflowId,
@@ -39468,7 +39447,7 @@ Function Add-CEPTrustedCertificate {
 
         .PARAMETER certFile
         The trusted certificate file in PEM-encoded format.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$extensibilityProxy,
@@ -39575,7 +39554,7 @@ Function Add-CEPvCenterServer {
 
         .PARAMETER servicePassword
         The vCenter Server service account password.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -39776,7 +39755,7 @@ Function Request-VrmsToken {
 
         .PARAMETER password
         The password parameter The password to be used to connect to the vSphere Replication Appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -39826,7 +39805,7 @@ Function Get-VrmsApplianceDetail {
         .EXAMPLE
         Get-VrmsApplianceDetail
         This example retrieves information about the vSphere Replication Appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance"
@@ -39855,7 +39834,7 @@ Function Set-VrmsApplianceState {
 
         .PARAMETER action
         The action parameter The action to be performed on the vSphere Replication appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('restart', 'stop')] [String]$action
@@ -39892,7 +39871,7 @@ Function Get-VrmsTask {
 
         .PARAMETER taskId
         The taskId parameter The task to be retrieved.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
@@ -39929,7 +39908,7 @@ Function Get-VrmsService {
 
         .PARAMETER serviceId
         The serviceId parameter The service to be configured.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet('drclient', 'hbrsrv', 'hmsdb', 'hms', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId
@@ -39975,7 +39954,7 @@ Function Set-VrmsService {
 
         .PARAMETER state
         The state parameter The state of the service to be configured.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('drclient', 'hbrsrv', 'hmsdb', 'hms', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId,
@@ -40002,7 +39981,7 @@ Function Get-VrmsNetworkAll {
         .EXAMPLE
         Get-VrmsNetworkAll
         This example retrieves all network configuration of the vSphere Replication appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network"
@@ -40024,7 +40003,7 @@ Function Get-VrmsNetworkDns {
         .EXAMPLE
         Get-VrmsNetworkDns
         This example retrieves information about the DNS configuration of the vSphere Replication appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/dns"
@@ -40052,7 +40031,7 @@ Function Set-VrmsNetworkDns {
 
         .PARAMETER dnsServers
         The dnsServers parameter The DNS servers to be configured.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrmsHostname,
@@ -40083,7 +40062,7 @@ Function Get-VrmsNetworkInterface {
         .EXAMPLE
         Get-VrmsNetworkInterface
         This example retrieves information about the network interface configuration of the vSphere Replication appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
@@ -40117,7 +40096,7 @@ Function Set-VrmsNetworkInterface {
 
         .PARAMETER prefix
         The prefix parameter The prefix to be configured.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
@@ -40168,7 +40147,7 @@ Function Get-VrmsConfiguration {
 
         .PARAMETER replication
         The replication parameter The storage replication configuration for the vSphere Replication appliance.
-   #>
+    #>
     
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
@@ -40222,8 +40201,8 @@ Function Set-VrmsConfiguration {
 
         .PARAMETER siteName
         The siteName parameter The site name to be used to register the vSphere Replication appliance.
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterInstanceId,
@@ -40281,7 +40260,7 @@ Function Remove-VrmsConfiguration {
 
         .PARAMETER ssoPassword
         The ssoPassword parameter The SSO password to be used to remove the vCenter Server registration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
@@ -40318,8 +40297,8 @@ Function Set-VrmsReplication {
 
         .PARAMETER managementIp
         The managementIp parameter The IP address of the vSphere Replication appliance.
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$filterIp,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$managementIp
@@ -40349,7 +40328,7 @@ Function Get-VrmsVamiCertificate {
         .EXAMPLE
         Get-VrmsConfiguration
         This example retrieves the registration configuration for the vSphere Replication appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
@@ -40378,7 +40357,7 @@ Function Set-VrmsVamiCertificate {
 
         .PARAMETER certPassword
         The certPassword parameter The password to use to install the certificate file (.p12) on the.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
@@ -40437,7 +40416,7 @@ Function Request-SrmToken {
 
         .PARAMETER password
         The password parameter The password to use to connect to the Site Recovery Manager Appliance.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
@@ -40487,7 +40466,7 @@ Function Get-SrmApplianceDetail {
         .EXAMPLE
         Get-SrmApplianceDetail
         This example retrieves information about the Site Recovery Manager Appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance"
@@ -40516,7 +40495,7 @@ Function Set-SrmApplianceState {
 
         .PARAMETER action
         The action parameter The action to perform.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('restart', 'stop')] [String]$action
@@ -40553,7 +40532,7 @@ Function Get-SrmTask {
 
         .PARAMETER taskId
         The taskId parameter The task to retrieve.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$taskId
@@ -40590,7 +40569,7 @@ Function Get-SrmService {
 
         .PARAMETER serviceId
         The serviceId parameter The service to configure.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateSet('srm', 'db', 'drclient', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId
@@ -40635,7 +40614,7 @@ Function Set-SrmService {
 
         .PARAMETER state
         The state parameter The state of the service to configure.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet('srm', 'db', 'drclient', 'telegraf', 'iperf3', 'auditd', 'drrest', 'drclientplugin')] [String]$serviceId,
@@ -40662,7 +40641,7 @@ Function Get-SrmNetworkAll {
         .EXAMPLE
         Get-SrmNetworkAll
         This example retrieves all network configuration of the Site Recovery Manager appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network"
@@ -40684,7 +40663,7 @@ Function Get-SrmNetworkDns {
         .EXAMPLE
         Get-SrmNetworkDns
         This example retrieves information about the DNS configuration of the Site Recovery Manager appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/dns"
@@ -40712,7 +40691,7 @@ Function Set-SrmNetworkDns {
 
         .PARAMETER dnsServers
         The dnsServers parameter The DNS servers to configure.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$srmHostname,
@@ -40743,7 +40722,7 @@ Function Get-SrmNetworkInterface {
         .EXAMPLE
         Get-SrmNetworkInterface
         This example retrieves information about the network interface configuration of the Site Recovery Manager appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/settings/network/interfaces"
@@ -40777,7 +40756,7 @@ Function Set-SrmNetworkInterface {
 
         .PARAMETER prefix
         The prefix parameter The prefix to configure.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$interface,
@@ -40821,7 +40800,7 @@ Function Get-SrmConfiguration {
 
         .PARAMETER reconfigure
         The reconfigure parameter retrieves the reconfiguration status for the Site Recovery Manager appliance.
-   #>
+    #>
     
     [CmdletBinding(DefaultParametersetName = 'default')][OutputType('System.Management.Automation.PSObject')]
 
@@ -40872,7 +40851,7 @@ Function Set-SrmConfiguration {
 
         .PARAMETER siteName
         The site name for the vCenter Server registration.
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
@@ -40931,7 +40910,7 @@ Function Remove-SrmConfiguration {
 
         .PARAMETER ssoPassword
         The SSO password for the vCenter Server registration.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ssoUser,
@@ -40962,7 +40941,7 @@ Function Get-SrmVamiCertificate {
         .EXAMPLE
         Get-SrmVamiCertificate
         This example retrieves the registration configuration for the Site Recovery Manager appliance.
-   #>
+    #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
@@ -40991,7 +40970,7 @@ Function Set-SrmVamiCertificate {
 
         .PARAMETER certPassword
         The password for the certificate file (.p12) to be installed on the VAMI Appliance interface.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pkcs12CertFile,
@@ -41216,7 +41195,7 @@ Function Test-PowerValidatedSolutionsPrereq {
         .EXAMPLE
         Test-PowerValidatedSolutionsPrereq
         This example runs the prerequisite validation.
-   #>
+    #>
 
     Try {
         Clear-Host; Write-Host ""
@@ -41268,7 +41247,7 @@ Function Test-EndpointConnection {
 
         .PARAMETER port
         The port number to test the endpoint connection.
-   #>
+    #>
 
     [CmdletBinding()]
 
@@ -41328,7 +41307,7 @@ Function Test-VCFConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -41399,7 +41378,7 @@ Function Test-EsxiConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -41439,7 +41418,7 @@ Function Test-EsxiAuthentication {
 
         .PARAMETER pass
         The password to authenticate to the ESXi host.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -41489,7 +41468,7 @@ Function Test-VsphereConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -41554,7 +41533,7 @@ Function Test-SSOConnection {
 
         .PARAMETER port
         The port number to test the connection. Default: 443 (HTTPS).
-   #>
+    #>
     
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -41671,8 +41650,8 @@ Function Test-NSXTConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
@@ -41742,8 +41721,8 @@ Function Test-vRSLCMConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
@@ -41813,8 +41792,8 @@ Function Test-vROPSConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
@@ -41884,8 +41863,8 @@ Function Test-vRLIConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS), 80 (HTTP), 22 (SSH), 9000 (CFAPI), 9543 (CFAPI SSL), 514 (SYSLOG), 1514 (SYSLOG), 6514 (SYSLOG). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "22", "80", "9000", "9543", "514", "1514", "6514")] [Int32]$port = "443"
@@ -41955,8 +41934,8 @@ Function Test-vRAConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS), 8080 (HTTP). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "22", "8080")] [Int32]$port = "443"
@@ -42026,8 +42005,8 @@ Function Test-WSAConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS), 8443 (HTTPS). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "8443", "22")] [Int32]$port = "443"
@@ -42093,8 +42072,8 @@ Function Test-VrmsVamiConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("5480")] [Int32]$port = "5480"
@@ -42160,8 +42139,8 @@ Function Test-SrmVamiConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 5480 (HTTPS/VAMI). Default: 5480 (HTTPS/VAMI).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("5480")] [Int32]$port = "5480"
@@ -42231,8 +42210,8 @@ Function Test-SRMConnection {
 
         .PARAMETER port
         The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
-   #>
-    
+    #>
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
@@ -42352,8 +42331,7 @@ Function Test-WMSubnetInput {
             Break
         }
     }
-    
-    
+
     Try {
         $checkSubnet = $null
         $subnetStart = $null
@@ -42414,7 +42392,7 @@ Function Test-IpAddress {
 
         .PARAMETER subnet
         The IPv4 subnet to test against.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$ipAddress,
@@ -42497,7 +42475,7 @@ Function Test-IPaddressArray {
 
         .PARAMETER ipAddressArray
         The array of strings to test.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [Array]$IPaddressArray
@@ -42544,8 +42522,8 @@ Function Test-DnsServers {
         The array of DNS servers to test.
 
         .PARAMETER domainName
-        The domain name to resolve..
-   #>
+        The domain name to resolve.
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [Array]$dnsServers,
@@ -42589,7 +42567,7 @@ Function Test-NtpServer {
 
         .PARAMETER server
         The fully qualified domain name (FQDN) or IP address of the NTP server to check.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [String]$server
