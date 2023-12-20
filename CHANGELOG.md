@@ -58,6 +58,10 @@
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
+- Removed `iamConfigureVsphere.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IamDeployment` cmdlet.
+- Removed `iamConfigureWorkspaceOneAccess.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IamDeployment` cmdlet.
+- Removed `iamConfigureNsx.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IamDeployment` cmdlet.
+- Removed `iamUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIamDeployment` cmdlet.
 
 ## v2.7.1
 
