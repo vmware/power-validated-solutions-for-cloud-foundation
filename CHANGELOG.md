@@ -5,15 +5,6 @@
 > Release Date: Unreleased
 
 - Added documentation for each cmdlet available from `Get-Help` and the module's [online documentation](https://vmware.github.io/power-validated-solutions-for-cloud-foundation/).
-- Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
-- Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
-- Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
-- Fixed `Add-WorkspaceOneRole` cmdlet where a blank line is returned due to no API response data.
-- Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
-- Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
-- Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
-- Fixed `Get-WSAServerDetails` cmdlet where incorrect initial check was looking for VMware Aria Automation not VMware Aria Suite Lifecycle.
-- Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
 - Added `Invoke-IamDeployment` cmdlet to perform an end-to-end deployment of Identify and Access Management.
 - Added `Invoke-UndoIamDeployment` cmdlet to perform removal of Identify and Access Management.
@@ -41,6 +32,15 @@
 - Added `Remove-vRSLCMMyVmwareAccount` cmdlet to remove a VMware Customer Connect account from VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductVersion` cmdlet to retrieve the supported versions for a product from VMware Aria Suite Lifecycle.
 - Added `Request-vRSLCMProductBinary` cmdlet to download the supported version for a product from VMware Customer Connect in VMware Aria Suite Lifecycle.
+- Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
+- Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
+- Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
+- Fixed `Add-WorkspaceOneRole` cmdlet where a blank line is returned due to no API response data.
+- Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
+- Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
+- Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
+- Fixed `Get-WSAServerDetails` cmdlet where incorrect initial check was looking for VMware Aria Automation not VMware Aria Suite Lifecycle.
+- Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
@@ -55,6 +55,9 @@
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
 - Enhanced `Export-vRLIJsonSpec` cmdlet to support automatic creation of anti-affinity rule.
+- Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
+- Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
+- Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
 
 ## v2.7.1
 

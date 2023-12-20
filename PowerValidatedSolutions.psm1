@@ -9626,7 +9626,7 @@ Function Export-IlaJsonSpec {
         - Generates the JSON specification file using the Planning and Preparation workbook
 
         .EXAMPLE
-        Export-IlaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\ilaSpec.json
+        Export-IlaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\ilaDeploySpec.json
         This example creates a JSON specification Intelligent Logging and Analytics using the Planning and Preparation Workbook.
     #>
 
@@ -9647,22 +9647,16 @@ Function Export-IlaJsonSpec {
                 'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
                 'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
                 'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
-                'licenseAlias'                  =  $pnpWorkbook.Workbook.Names["vrli_license_alias"].Value
+                'licenseAlias'                  = $pnpWorkbook.Workbook.Names["vrli_license_alias"].Value
                 'licenseKey'                    = if ($pnpWorkbook.Workbook.Names["vrs_license"].Value) { $pnpWorkbook.Workbook.Names["vrs_license"].Value } else { $pnpWorkbook.Workbook.Names["vrli_license"].Value }
                 'certificateAlias'              = $pnpWorkbook.Workbook.Names["region_vrli_virtual_hostname"].Value
                 'adminPasswordAlias'            = $pnpWorkbook.Workbook.Names["region_vrli_admin_password_alias"].Value
                 'adminPassword'                 = $pnpWorkbook.Workbook.Names["region_vrli_admin_password"].Value
                 'adminUsername'                 = $pnpWorkbook.Workbook.Names["region_vrli_admin_user"].Value
                 'environemntName'               = $pnpWorkbook.Workbook.Names["vrslcm_reg_env"].Value
-                'ilaFolder'                     = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
-                'ilaVmList'                     = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
-                'antiAffinityRuleName'          = $pnpWorkbook.Workbook.Names["region_vrli_anti_affinity_rule_name"].Value
-                'antiAffinityVMs'               = "$($pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value)"
-                'ruleName'                      = $pnpWorkbook.Workbook.Names["region_vrli_vm_to_vm_rule_name"].Value
-                'drsGroupNameIla'               = $pnpWorkbook.Workbook.Names["region_vrli_vm_group_name"].Value
-                'drsGroupNameWsa'               = $pnpWorkbook.Workbook.Names["standalone_wsa_vm_group"].Value
-                'drsGroupVMs'                   = "$($pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value),$($pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value)"
-                'groupName'                     = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value 
+                'vmFolder'                      = $pnpWorkbook.Workbook.Names["region_vrli_vm_folder"].Value
+                'vmList'                        = $pnpWorkbook.Workbook.Names["region_vrli_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["region_vrli_nodec_hostname"].Value
+                'drsVmGroupNameAz'              = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value 
                 'smtpServer'                    = $pnpWorkbook.Workbook.Names["smtp_server"].Value
                 'port'                          = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [Int]
                 'sender'                        = $pnpWorkbook.Workbook.Names["xreg_vra_smtp_sender_email_address"].Value
@@ -9673,17 +9667,14 @@ Function Export-IlaJsonSpec {
                 'retentionInterval'             = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_notification"].Value.Split(" ")[1]
                 'retentionPeriodDays'           = $pnpWorkbook.Workbook.Names["region_vrli_log_retention_period"].Value -as [Int]
                 'archiveLocation'               = $pnpWorkbook.Workbook.Names["region_vrli_archive_location"].Value
-                'wsaFqdn'                       = $pnpWorkbook.Workbook.Names["region_wsa_fqdn"].Value
-                'wsaAdminPassword'              = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_admin_password"].Value
-                'wsaAdminUser'                  = "admin"
                 'domainFqdn'                    = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'domainBindUser'                = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
-                'domainBindPass'                = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
-                'baseGroupDn'                   = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
-                'ilaAdminGroup'                 = $pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value
-                'ilaUserGroup'                  = $pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value
-                'ilaViewerGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value
-                'ilaAdGroups'                   = "$($pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value)"
+                'domainBindUser'                = $pnpWorkbook.Workbook.Names["svc_ila_ad_user"].Value
+                'domainBindPass'                = $pnpWorkbook.Workbook.Names["svc_ila_ad_password"].Value
+                'domainServers'                 = ($pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value + "." + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value)
+                'logsAdminGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value
+                'logsUserGroup'                 = $pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value
+                'logsViewerGroup'               = $pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value
+                'logsAdGroups'                  = "$($pnpWorkbook.Workbook.Names["group_gg_vrli_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrli_users"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrli_viewers"].Value)"
                 'parentDomain'                  = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
                 'childDomain'                   = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
                 'vmNameNode1'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
@@ -9691,14 +9682,14 @@ Function Export-IlaJsonSpec {
                 'vmNameNode3'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
                 'vmRootPass'                    = $pnpWorkbook.Workbook.Names["vrslcm_xreg_env_password"].Value
                 'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
-                'agentGroupWsa'                 = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_wsa"].Value
-                'agentGroupPhoton'                 = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_photon"].Value
+                'agentGroupNameWsa'             = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_wsa"].Value
+                'agentGroupNamePhoton'          = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_photon"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $jsonValue.value -eq $null) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
                     $issueWithJson = $true
                 }
             }
@@ -9726,8 +9717,8 @@ Function Invoke-IlaDeployment {
         and Analytics for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-IlaDeployment -jsonFile .\ilaSpec.json -certificates "F:\VMware.PlatformTools\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
-        This example configures the Intelligent Logging and Analytics using JSON spec supplied.
+        Invoke-IlaDeployment -jsonFile .\ilaDeploySpec.json -workbook .\pnpWorkbook.xlsx -certificates ".\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
+        This example configures Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied
     #>  
 
     Param (
@@ -9755,15 +9746,15 @@ Function Invoke-IlaDeployment {
 
                             Show-PowerValidatedSolutionsOutput -message "Adding $logsProductName License to $lcmProductName"
                             $StatusMsg = New-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -license $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             Show-PowerValidatedSolutionsOutput -message "Importing the $logsProductName Certificate to $lcmProductName"
                             $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $operationsForLogsPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             Show-PowerValidatedSolutionsOutput -message "Adding the $logsProductName Admin Password to $lcmProductName"
                             $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -password $jsonInput.adminPassword -userName $jsonInput.adminUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             Show-PowerValidatedSolutionsOutput -message "Deploying $logsProductName By Using $lcmProductName"
                             if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
@@ -9771,66 +9762,50 @@ Function Invoke-IlaDeployment {
                             } else {
                                 $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             }
-                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg; $ErrorMsg = $null } if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; Break }
-                            if ( $StatusMsg -contains "FAILED") { Show-PowerValidatedSolutionsOutput -type ERROR -message "Deployment of $automationProductName failed"; Break }
+                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; Break }
+                            if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $logsProductName FAILED"; Break }
 
                             Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folder for $logsProductName"
-                            $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.ilaFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             Show-PowerValidatedSolutionsOutput -message "Moving the $logsProductName Virtual Machines to the Dedicated Folder"
-                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.ilaVmList -folder $jsonInput.ilaFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "Relocating $logsProductName Virtual Machines to Dedicated Folder: SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg } if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
-
-                            Show-PowerValidatedSolutionsOutput -message "Configuring a vSphere DRS Anti-Affinity Rule for $logsProductName"
-                            $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -antiAffinityVMs $jsonInput.antiAffinityVMs -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                            Show-PowerValidatedSolutionsOutput -message "Creating a VM Group and Defining the Startup Order of the $logsProductName Cluster"
-                            $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameIla -drsGroupVMs $jsonInput.drsGroupVMs -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                            $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -drsGroupVMs ($jsonInput.wsaFqdn).Split('.')[0] -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                            $StatusMsg = Add-VmStartupRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName  $jsonInput.ruleName -vmGroup  $jsonInput.drsGroupNameIla -dependOnVmGroup $jsonInput.drsGroupNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Move-VMtoFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -vmList $jsonInput.vmList -folder $jsonInput.vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "Relocating $logsProductName Virtual Machines to Dedicated Folder: SUCCESSFUL" }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
 
                             if ($stretchedCluster -eq "Include") {
                                 Show-PowerValidatedSolutionsOutput -message "Adding the $logsProductName Virtual Machines to the First Availability Zone VM Group"
-                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.groupName -vmList $jsonInput.ilaVmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             }
 
                             Show-PowerValidatedSolutionsOutput -message "Configuring SMTP for $logsProductName"
                             $StatusMsg = Add-vRLISmtpConfiguration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -smtpServer $jsonInput.smtpServer -port $jsonInput.port -sender $jsonInput.sender -smtpUser $jsonInput.smtpUser -smtpPass $jsonInput.smtpPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             if (!($archiveLocation -match "Value Missing")) {
                                 Show-PowerValidatedSolutionsOutput -message "Configuring Log Retention and Archiving for $logsProductName"
                                 $StatusMsg = Add-vRLILogArchive -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -emailAddress $jsonInput.emailAddress -retentionNotificationDays $jsonInput.retentionNotificationDays -retentionInterval $jsonInput.retentionInterval -retentionPeriodDays $jsonInput.retentionPeriodDays -archiveLocation $jsonInput.archiveLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             }
 
-                            Show-PowerValidatedSolutionsOutput -message "Activating Authentication for $logsProductName by Using Workspace ONE Access"
-                            $StatusMsg = Add-vRLIAuthenticationWSA -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -wsaFqdn $jsonInput.wsaFqdn -wsaUser $jsonInput.wsaAdminUser -wsaPass $jsonInput.wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                            Show-PowerValidatedSolutionsOutput -message "Syncing Active Directory Groups to Workspace ONE Access"
-                            $StatusMsg = Add-WorkspaceOneDirectoryGroup -server $jsonInput.wsaFqdn -user $jsonInput.wsaAdminUser -pass $jsonInput.wsaAdminPassword -domain $jsonInput.domainFqdn -bindUser $jsonInput.domainBindUser -bindPass $jsonInput.domainBindPass -baseDnGroup $jsonInput.baseGroupDn -adGroups $jsonInput.ilaAdGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            Show-PowerValidatedSolutionsOutput -message "Activating Authentication for VMware Aria Operations for Logs by Using Active Directory over LDAP"
+                            $StatusMsg = Add-vRLIAuthenticationAD -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -domainServers $jsonInput.domainServers -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             Show-PowerValidatedSolutionsOutput -message "Assigning $logsProductName Roles to Active Directory Groups"
-                            $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaAdminGroup -role 'Super Admin' -authProvider vidm -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                            $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaUserGroup -role 'User' -authProvider vidm  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                            $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.ilaViewerGroup -role 'View Only Admin' -authProvider vidm  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsAdminGroup -role 'Super Admin' -authProvider ad -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsUserGroup -role 'User' -authProvider ad  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-vRLIAuthenticationGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -group $jsonInput.logsViewerGroup -role 'View Only Admin' -authProvider ad  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                             Show-PowerValidatedSolutionsOutput -message "Connecting VI Workload Domains to $logsProductName"
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -eq "VI") {
                                     $StatusMsg = Register-vRLIWorkloadDomain -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -status ENABLED -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                                 }
                             }
 
@@ -9839,34 +9814,34 @@ Function Invoke-IlaDeployment {
                             Show-PowerValidatedSolutionsOutput -message "Configuring the NSX Edge Nodes to Forward Log Events to $logsProductName"
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $StatusMsg = Add-NsxtNodeProfileSyslogExporter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             }
 
                             Show-PowerValidatedSolutionsOutput -message "Installing and Configuring the $logsProductName Agent on the Clustered Workspace ONE Access Nodes"
                             $StatusMsg = Install-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode1 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             if (((Invoke-Expression Get-VCFWSA).nodes).Count -gt 1) {
                                 $StatusMsg = Install-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode2 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                                 $StatusMsg = Install-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode3 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             }
 
                             if (((Invoke-Expression Get-VCFWSA).nodes).Count -gt 1) {
-                                $wsaVmList      = "$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode2).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode3).$($jsonInput.parentDomain)"
-                                $photonVmList   = "$($jsonInput.sddcManagerFqdn)","$((Get-VCFVrslcm).fqdn)","$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode2).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode3).$($jsonInput.parentDomain)"
+                                $agentGroupVmListWsa      = "$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode2).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode3).$($jsonInput.parentDomain)"
+                                $agentGroupVmListPhoton   = "$($jsonInput.sddcManagerFqdn)","$((Get-VCFVrslcm).fqdn)","$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode2).$($jsonInput.parentDomain)","$($jsonInput.vmNameNode3).$($jsonInput.parentDomain)"
                             } else {
-                                $wsaVmList      = "$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)"
-                                $photonVmList   = "$($jsonInput.sddcManagerFqdn)","$((Get-VCFVrslcm).fqdn)","$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)"
+                                $agentGroupVmListWsa      = "$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)"
+                                $agentGroupVmListPhoton   = "$($jsonInput.sddcManagerFqdn)","$((Get-VCFVrslcm).fqdn)","$($jsonInput.vmNameNode1).$($jsonInput.parentDomain)"
                             }
 
                             Show-PowerValidatedSolutionsOutput -message "Configuring the $logsProductName Agent Group for the Clustered Workspace ONE Access"
-                            $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -agentGroupName $jsonInput.agentGroupWsa -agentGroupType wsa -criteria $wsaVmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -agentGroupName $jsonInput.agentGroupNameWsa -agentGroupType wsa -criteria $agentGroupVmListWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             
                             Show-PowerValidatedSolutionsOutput -message "Creating a $logsProductName Photon OS Agent Group for the Management Nodes"
-                            $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass $jsonInput.agentGroupPhoton -agentGroupType photon -criteria $photonVmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-vRLIAgentGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass $jsonInput.agentGroupNamePhoton -agentGroupType photon -criteria $agentGroupVmListPhoton -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                         }
                     }
                 } else {
@@ -9884,6 +9859,7 @@ Function Invoke-IlaDeployment {
 }
 Export-ModuleMember -Function Invoke-IlaDeployment
 
+
 Function Invoke-UndoIlaDeployment {
     <#
         .SYNOPSIS
@@ -9894,7 +9870,7 @@ Function Invoke-UndoIlaDeployment {
         and Analytics for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-UndoIlaDeployment -jsonFile .\ilaSpec.json
+        Invoke-UndoIlaDeployment -jsonFile .\ilaDeploySpec.json
         This example removes the configuration of Intelligent Logging and Analytics using JSON spec supplied.
     #>
 
@@ -9911,65 +9887,69 @@ Function Invoke-UndoIlaDeployment {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    $allWorkloadDomains     = Get-VCFWorkloadDomain
-
-                    Show-PowerValidatedSolutionsOutput -message "Removing the $logsProductName Agent on the Clustered Workspace ONE Access Nodes"
-                    $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode1 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                    if (((Invoke-Expression Get-VCFWSA).nodes).Count -gt 1) {
-                        $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode2 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                        $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode3 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                    }
-
-                    Show-PowerValidatedSolutionsOutput -message "Removing the $logsProductName Configuration from the NSX Edge Nodes"
-                    foreach ($sddcDomain in $allWorkloadDomains) {
-                        $StatusMsg = Undo-NsxtNodeProfileSyslogExporter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                    }
-
-                    Show-PowerValidatedSolutionsOutput -message "Disconnecting VI Workload Domains from $logsProductName"
-                    foreach ($sddcDomain in $allWorkloadDomains) {
-                        if ($sddcDomain.type -eq "VI") {
-                            $StatusMsg = Register-vRLIWorkloadDomain -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -status DISABLED -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        $allWorkloadDomains     = Get-VCFWorkloadDomain
+                        
+                        if (Get-VCFVrli) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing the $logsProductName Agent on the Clustered Workspace ONE Access Nodes"
+                            $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode1 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if (((Invoke-Expression Get-VCFWSA).nodes).Count -gt 1) {
+                                $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode2 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode3 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
                         }
+
+                        Show-PowerValidatedSolutionsOutput -message "Removing the $logsProductName Configuration from the NSX Edge Nodes"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            $StatusMsg = Undo-NsxtNodeProfileSyslogExporter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        }
+
+                        if (Get-VCFVrli) {
+                            Show-PowerValidatedSolutionsOutput -message "Disconnecting VI Workload Domains from $logsProductName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "VI") {
+                                    $StatusMsg = Register-vRLIWorkloadDomain -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -status DISABLED -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                }
+                            }
+                        }
+
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                foreach ($vm in ($jsonInput.vmList -Split ',')) {
+                                    if (Get-VM -name $vm -ErrorAction SilentlyContinue ) {
+                                        Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                        Do {$powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
+                                        Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                    }
+                                }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                Show-PowerValidatedSolutionsOutput -message "Deleting $logsProductName from $lcmProductName"
+                                $StatusMsg = Undo-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -environmentName $jsonInput.environemntName -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Deleting the Virtual Machine and Template Folder for $logsProductName"
+                        $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+
+                        Show-PowerValidatedSolutionsOutput -message "Deleting the $logsProductName Admin Password from $lcmProductName"
+                        $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+
+                        Show-PowerValidatedSolutionsOutput -message "Deleting the $logsProductName Certificate from $lcmProductName"
+                        $StatusMsg = Undo-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+
+                        Show-PowerValidatedSolutionsOutput -message "Deleting $logsProductName License from $lcmProductName"
+                        $StatusMsg = Undo-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                     }
-
-                    Show-PowerValidatedSolutionsOutput -message "Removing $logsProductName Active Directory Groups from Workspace ONE Access"
-                    $StatusMsg = Undo-WorkspaceOneDirectoryGroup -server $jsonInput.wsaFqdn -user $jsonInput.wsaAdminUser -pass $jsonInput.wsaAdminPassword -domain $jsonInput.domainFqdn -bindUser $jsonInput.domainBindUser -bindPass $jsonInput.domainBindPass -baseDnGroup $jsonInput.baseGroupDn -adGroups $jsonInput.ilaAdGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Deleting $logsProductName from $lcmProductName"
-                    $StatusMsg = Undo-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -environmentName $jsonInput.environemntName -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; $ErrorMsg = ''} elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                    
-                    Show-PowerValidatedSolutionsOutput -message "Deleting the VM Group and Start Up Rule for the $logsProductName Cluster"
-                    $StatusMsg = Undo-VmStartupRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.ruleName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                    $StatusMsg = Undo-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameIla -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                    
-                    Show-PowerValidatedSolutionsOutput -message "Deleting the vSphere DRS Anti-Affinity Rule for $logsProductName"
-                    $StatusMsg = Undo-AntiAffinityRule -server  $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Deleting the Virtual Machine and Template Folder for $logsProductName"
-                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.ilaFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Deleting the $logsProductName Admin Password from $lcmProductName"
-                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Deleting the $logsProductName Certificate from $lcmProductName"
-                    $StatusMsg = Undo-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Deleting $logsProductName License from $lcmProductName"
-                    $StatusMsg = Undo-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                 }
             }
         } else {
@@ -9979,7 +9959,6 @@ Function Invoke-UndoIlaDeployment {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Invoke-UndoIlaDeployment
 
 Function Export-vRLIJsonSpec {
     <#
