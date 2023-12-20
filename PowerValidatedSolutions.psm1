@@ -52,8 +52,8 @@ Function Export-IamJsonSpec {
         - Generates the JSON specification file using the Planning and Preparation workbook
 
         .EXAMPLE
-        Export-IamJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\iamSpec.json
-        This example creates a JSON specification Identity and Access Management using the Planning and Preparation Workbook.
+        Export-IamJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\iamDeploySpec.json
+        This example creates a JSON specification for Identity and Access Management using the Planning and Preparation workbook.
     #>
 
     Param (
@@ -77,7 +77,7 @@ Function Export-IamJsonSpec {
                 'domainBindUser'                = ($pnpWorkbook.Workbook.Names["iam_ad_bind_username"].Value -Split ("@"))[0]
                 'domainBindPass'                = $pnpWorkbook.Workbook.Names["iam_ad_bind_username_password"].Value
                 'domainControllerMachineName'   = $pnpWorkbook.Workbook.Names["domain_controller_hostname"].Value
-                'baseDn'                        = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
+                'baseDn'                        = $pnpWorkbook.Workbook.Names["iam_ad_based_dn"].Value
                 'baseGroupDn'                   = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
                 'baseUserDn'                    = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
                 'vcenterAdConnectionType'       = (($pnpWorkbook.Workbook.Names["iam_ad_connection_type"].Value -Split ("://"))[0]).ToUpper()
@@ -87,36 +87,17 @@ Function Export-IamJsonSpec {
                 'vcfAdminGroup'                 = $pnpWorkbook.Workbook.Names["group_gg_vcf_admins"].Value
                 'vcfOperatorGroup'              = $pnpWorkbook.Workbook.Names["group_gg_vcf_operators"].Value
                 'vcfViewerGroup'                = $pnpWorkbook.Workbook.Names["group_gg_vcf_viewers"].Value
-                'wsaFolder'                     = $pnpWorkbook.Workbook.Names["iam_wsa_vm_folder"].Value
-                'wsaIpAddress'                  = $pnpWorkbook.Workbook.Names["region_wsa_ip"].Value
-                'wsaGateway'                    = $pnpWorkbook.Workbook.Names["reg_seg01_gateway_ip"].Value
-                'wsaSubnetMask'                 = $pnpWorkbook.Workbook.Names["reg_seg01_mask_overlay_backed"].Value
-                'wsaFqdn'                       = $pnpWorkbook.Workbook.Names["region_wsa_fqdn"].Value
-                'wsaHostname'                   = $pnpWorkbook.Workbook.Names["region_wsa_hostname"].Value
-                'drsGroupName'                  = $pnpWorkbook.Workbook.Names["standalone_wsa_vm_group"].Value
-                'drsGroupVMs'                   = $pnpWorkbook.Workbook.Names["region_wsa_hostname"].Value
-                'wsaAdminPassword'              = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_admin_password"].Value
-                'wsaRootPassword'               = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_root_password"].Value
-                'wsaSshUserPassword'            = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_sshuser_password"].Value
-                'smtpServerFqdn'                = $pnpWorkbook.Workbook.Names["smtp_server"].Value
-                'smtpServerPort'                = $pnpWorkbook.Workbook.Names["smtp_server_port"].Value -as [int]
-                'smtpEmailAddress'              = $pnpWorkbook.Workbook.Names["standalone_wsa_appliance_notifications_address"].Value
-                'wsabindUserDn'                 = "cn=" + $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value + "," + $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
-                'wsabindUserPassword'           = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
-                'wsaSuperAdminGroup'            = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
-                'wsaDirAdminGroup'              = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
-                'wsaReadOnlyGroup'              = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
                 'nsxEnterpriseAdminGroup'       = $pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'nsxNetworkAdminsGroup'         = $pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'nsxAuditorGroup'               = $pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'adGroups'                      = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)"
+                'nsxAdGroups'                   = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)"
                 'vsphereRoleName'               = $pnpWorkbook.Workbook.Names["nsxt_vsphere_role_name"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
-                if ($jsonValue.value -eq "Value Missing" -or $jsonValue.value -eq $null) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
                     $issueWithJson = $true
                 }
             }
@@ -137,21 +118,20 @@ Export-ModuleMember -Function Export-IamJsonSpec
 Function Invoke-IamDeployment {
     <#
         .SYNOPSIS
-        End-to-end Deployment of Identity and Access Management.
+        End-to-end Deployment of Identity and Access Management
 
         .DESCRIPTION
         The Invoke-IamDeployment cmdlet is a single function to implement the configuration of the Identity and Access
         Management for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-IamDeployment -jsonFile .\iamSpec.json -certificates "F:\VMware.PlatformTools\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
-        This example configures Identity and Access Management using JSON spec supplied.
+        Invoke-IamDeployment -jsonFile .\iamDeploySpec.json -certificates ".\certificates\"
+        This example configures Identity and Access Management for VMware Cloud Foundation using the JSON spec supplied.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates
     )
 
     Try {
@@ -159,165 +139,104 @@ Function Invoke-IamDeployment {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             $rootCertificate = $certificates + "Root64.cer"
             if (Test-Path -Path $rootCertificate) {
-                if ((Get-ChildItem $binaries | Where-Object {$_.name -match "identity-manager"}).name) {
-                    $wsaOvaPath = $binaries + (Get-ChildItem $binaries | Where-Object {$_.name -match "identity-manager"}).name
-                    $wsaCertificateKey = $certificates +  $jsonInput.wsaHostname + ".key"
-                    if (Test-Path -Path $wsaCertificateKey) {
-                        $wsaCertificate = $certificates +  $jsonInput.wsaHostname + ".1.cer"
-                        if (Test-Path -Path $wsaCertificateKey) {
-                            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
-                                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                                    $allWorkloadDomains     = Get-VCFWorkloadDomain
-                                    $pvsModulePath          = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
-                                    $nsxVsphereTemplate     = $pvsModulePath + "\vSphereRoles\" + "nsx-vsphere-integration.role"
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $allWorkloadDomains     = Get-VCFWorkloadDomain
+                        $pvsModulePath          = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+                        $nsxVsphereTemplate     = $pvsModulePath + "\vSphereRoles\" + "nsx-vsphere-integration.role"
 
-                                    Show-PowerValidatedSolutionsOutput -message "Adding Active Directory as an Identity Provider in vCenter Server"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            if ($jsonInput.vcenterAdConnectionType -eq "LDAPS") {
-                                                $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                            } else {
-                                                $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldap -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                            }
-                                        }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Assigning vCenter Server Roles to Active Directory Groups"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.vcenterAdminGroup -role Admin -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                            $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.vcenterReadOnlyGroup -role ReadOnly -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Assigning vCenter Single Sign-On Roles to Active Directory Groups"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            $StatusMsg = Add-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Assigning SDDC Manager Roles to Active Directory Groups"
-                                    $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.vcfAdminGroup -role ADMIN -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        Show-PowerValidatedSolutionsOutput -message "Adding Active Directory as an Identity Provider in vCenter Server"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                if ($jsonInput.vcenterAdConnectionType -eq "LDAPS") {
+                                    $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass $jsonInput.vcfOperatorGroup -role OPERATOR -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                } else {
+                                    $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldap -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass $jsonInput.vcfViewerGroup -role VIEWER -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    
-                                    Show-PowerValidatedSolutionsOutput -message  "Defining a Custom Role in vSphere for the NSX Service Accounts"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                            $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -template $nsxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folder for the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.wsaFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Deploying the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Install-WorkspaceOne -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -wsaFqdn $jsonInput.wsaFqdn -wsaIpAddress $jsonInput.wsaIpAddress -wsaGateway $jsonInput.wsaGateway -wsaSubnetMask $jsonInput.wsaSubnetMask -wsaFolder $jsonInput.wsaFolder -wsaOvaPath $wsaOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg -match "SUCCESSFUL") { Show-PowerValidatedSolutionsOutput -message "Deploying ($($jsonInput.wsaFqdn)) using ($wsaOvaPath): SUCCESSFUL"; $ErrorMsg = '' } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Creating a VM Group for the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupName -drsGroupVMs $jsonInput.drsGroupVMs -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Completing the Initial Configuration of the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Initialize-WorkspaceOne -wsaFqdn $jsonInput.wsaFqdn -adminPass $jsonInput.wsaAdminPassword -rootPass $jsonInput.wsaRootPassword -sshUserPass $jsonInput.wsaSshUserPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Configuring Identity Source for the Standalone Workspace ONE Access Instance"
-                                    if ($jsonInput.vcenterAdConnectionType -eq "LDAPS") {
-                                        $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.wsaFqdn -user admin -pass $jsonInput.wsaAdminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDn -bindUserDn $jsonInput.wsaBindUserDn -bindUserPass $jsonInput.wsaBindUserPassword -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    } else {
-                                        $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.wsaFqdn -user admin -pass $jsonInput.wsaAdminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDn -bindUserDn $jsonInput.wsaBindUserDn -bindUserPass $jsonInput.wsaBindUserPassword -adGroups $jsonInput.adGroups -protocol ldap -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Configuring NTP on the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -wsaFqdn $jsonInput.wsaFqdn -rootPass $jsonInput.wsaRootPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Configuring SMTP on the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Set-WorkspaceOneSmtpConfig -server $jsonInput.wsaFqdn -user admin -pass $jsonInput.wsaAdminPassword -smtpFqdn $jsonInput.smtpServerFqdn -smtpPort $jsonInput.smtpServerPort -smtpEmail $jsonInput.smtpEmailAddress -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Assigning Workspace ONE Access Roles to Active Directory Groups"
-                                    $StatusMsg = Add-WorkspaceOneRole -server $jsonInput.wsaFqdn -user admin -pass $jsonInput.wsaAdminPassword -group $jsonInput.wsaSuperAdminGroup -role "Super Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    $StatusMsg = Add-WorkspaceOneRole -server $jsonInput.wsaFqdn -user admin -pass $jsonInput.wsaAdminPassword -group $jsonInput.wsaDirAdminGroup -role "Directory Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    $StatusMsg = Add-WorkspaceOneRole -server $jsonInput.wsaFqdn -user admin -pass $jsonInput.wsaAdminPassword -group $jsonInput.wsaReadOnlyGroup -role "ReadOnly Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Integrating NSX Manager with the Standalone Workspace ONE Access Instance"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        $StatusMsg = Set-WorkspaceOneNsxtIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -wsaFqdn $jsonInput.wsaFqdn -wsaUser admin -wsaPass $jsonInput.wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ( $StatusMsg -match "SUCCESSFUL" ) { Show-PowerValidatedSolutionsOutput -message "Integrating NSX with Workspace ONE Access for Workload Domain ($($sddcDomain.name)): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Assigning NSX Manager Roles to Active Directory Groups"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        $StatusMsg = Add-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxEnterpriseAdminGroup -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        $StatusMsg = Add-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxNetworkAdminsGroup -role network_engineer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        $StatusMsg = Add-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxAuditorGroup -role auditor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Adding NSX Service Accounts to the vCenter Single Sign-On License Administrators Group"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
-                                        $StatusMsg = Add-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -ssoGroup "LicenseService.Administrators" -type user -source local -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Reconfiguring the vSphere Role and Permissions Scope for NSX Service Accounts"
-                                    foreach ($sddcDomain in $allWorkloadDomains) {
-                                        $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
-                                        $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -role $jsonInput.vsphereRoleName -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        if ($sddcDomain.type -eq "MANAGEMENT") {
-                                            $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "VI"}
-                                            foreach ($viDomain in $viWorkloadDomains) {
-                                                $viServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
-                                                $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                            }
-                                        }
-                                        if ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -eq "vsphere.local") {
-                                            $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}
-                                            $mgmtServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
-                                            $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                        }
-                                    }
-
-                                    Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of the Standalone Workspace ONE Access Instance"
-                                    $StatusMsg = Install-WorkspaceOneCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -wsaFqdn $jsonInput.wsaFqdn -rootPass $jsonInput.wsaRootPassword -sshUserPass $jsonInput.wsaSshUserPassword -rootCa $rootCertificate -wsaCertKey $wsaCertificateKey -wsaCert $wsaCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; $ErrorMsg = '' } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Services to Restart on the Standalone Workspace ONE Access Instance"; Start-Sleep 40
                                 }
                             }
-                        } else {
-                            Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Key (.cer) for Workspace ONE Access ($wsaCertificate): File Not Found"
                         }
-                    } else {
-                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate Key (.key) for Workspace ONE Access ($wsaCertificateKey): File Not Found"
+
+                        Show-PowerValidatedSolutionsOutput -message "Assigning vCenter Server Roles to Active Directory Groups"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.vcenterAdminGroup -role Admin -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.vcenterReadOnlyGroup -role ReadOnly -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Assigning vCenter Single Sign-On Roles to Active Directory Groups"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                $StatusMsg = Add-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Assigning SDDC Manager Roles to Active Directory Groups"
+                        $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.vcfAdminGroup -role ADMIN -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass $jsonInput.vcfOperatorGroup -role OPERATOR -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass $jsonInput.vcfViewerGroup -role VIEWER -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        
+                        Show-PowerValidatedSolutionsOutput -message  "Defining a Custom Role in vSphere for the NSX Service Accounts"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -template $nsxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Configuring an LDAP Identity Source in NSX Manager"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            $StatusMsg = Add-NsxtIdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -dcMachineName $jsonInput.domainControllerMachineName -baseDn $jsonInput.baseDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Assigning NSX Manager Roles to Active Directory Groups"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxEnterpriseAdminGroup -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxNetworkAdminsGroup -role network_engineer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxAuditorGroup -role auditor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Adding NSX Service Accounts to the vCenter Single Sign-On License Administrators Group"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
+                            $StatusMsg = Add-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -ssoGroup "LicenseService.Administrators" -type user -source local -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                        }
+
+                        Show-PowerValidatedSolutionsOutput -message "Reconfiguring the vSphere Role and Permissions Scope for NSX Service Accounts"
+                        foreach ($sddcDomain in $allWorkloadDomains) {
+                            $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
+                            $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -role $jsonInput.vsphereRoleName -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            if ($sddcDomain.type -eq "MANAGEMENT") {
+                                $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "VI"}
+                                foreach ($viDomain in $viWorkloadDomains) {
+                                    $viServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
+                                    $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                                }
+                            }
+                            if ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -eq "vsphere.local") {
+                                $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}
+                                $mgmtServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
+                                $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
+                        }
                     }
-                } else {
-                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Workspace ONE Access OVA in ($binaries) Folder: File Not Found"
-                } 
+                }
             } else {
                 Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate (.cer) for Root Certificate Authority ($rootCertificate): File Not Found"
             }
@@ -333,22 +252,20 @@ Export-ModuleMember -Function Invoke-IamDeployment
 Function Invoke-UndoIamDeployment {
     <#
         .SYNOPSIS
-        End-to-end removal of Identity and Access Management.
+        End-to-end removal of Identity and Access Management
 
         .DESCRIPTION
         The Invoke-UndoIamDeployment cmdlet is a single function to remove the configuration of the Identity and Access
         Management for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-UndoIamDeployment -jsonFile .\iamSpec.json
-        This example removes the Identity and Access Management using JSON spec supplied.
+        Invoke-UndoIamDeployment -jsonFile .\iamDeploySpec.json
+        This example removes the Identity and Access Management for VMware Cloud Foundation using the JSON spec supplied.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
     )
-
-    
 
     Try {
         if (Test-Path -Path $jsonFile) {
@@ -375,29 +292,27 @@ Function Invoke-UndoIamDeployment {
                         }
                     }
 
-                    Show-PowerValidatedSolutionsOutput -message  "Removing NSX Service Accounts to the vCenter Single Sign-On License Administrators Group"
+                    Show-PowerValidatedSolutionsOutput -message  "Removing NSX Service Accounts from the vCenter Single Sign-On License Administrators Group"
                     foreach ($sddcDomain in $allWorkloadDomains) {
                         $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                         $StatusMsg = Undo-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -ssoGroup "LicenseService.Administrators" -type user -source local -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                     }
 
-                    Show-PowerValidatedSolutionsOutput -message "Removing NSX Manager Roles to Active Directory Groups"
+                    Show-PowerValidatedSolutionsOutput -message "Removing NSX Manager Roles from Active Directory Groups"
                     foreach ($sddcDomain in $allWorkloadDomains) {
-                        $StatusMsg = Undo-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxEnterpriseAdminGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxEnterpriseAdminGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                        $StatusMsg = Undo-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxNetworkAdminsGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxNetworkAdminsGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                        $StatusMsg = Undo-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxAuditorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxAuditorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                     }
 
-                    if (Test-WSAConnection -server $jsonInput.wsaFqdn -ErrorAction SilentlyContinue) {
-                        Show-PowerValidatedSolutionsOutput -message "Disable Integration between NSX Manager with the Standalone Workspace ONE Access Instance"
-                        foreach ($sddcDomain in $allWorkloadDomains) {
-                            $StatusMsg = Undo-WorkspaceOneNsxtIntegration -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -wsaFqdn $jsonInput.wsaFqdn -wsaUser admin -wsaPass $jsonInput.wsaAdminPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-                        }
+                    Show-PowerValidatedSolutionsOutput -message "Removing LDAP Identity Source from NSX Manager"
+                    foreach ($sddcDomain in $allWorkloadDomains) {
+                        $StatusMsg = Undo-NsxtIdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                     }
 
                     Show-PowerValidatedSolutionsOutput -message "Removing the Custom Role in vSphere for the NSX Service Accounts"
@@ -407,18 +322,6 @@ Function Invoke-UndoIamDeployment {
                             if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                         }
                     }
-
-                    Show-PowerValidatedSolutionsOutput -message "Removing the Standalone Workspace ONE Access Instance"
-                    $StatusMsg = Undo-WorkspaceOne -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -wsaHostname $jsonInput.wsaHostname -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Removing a VM Group for the Standalone Workspace ONE Access Instance"
-                    $StatusMsg = Undo-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
-
-                    Show-PowerValidatedSolutionsOutput -message "Removing the Virtual Machine and Template Folder for the Standalone Workspace ONE Access Instance"
-                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.wsaFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
 
                     Show-PowerValidatedSolutionsOutput -message "Removing SDDC Manager Roles from Active Directory Groups"
                     $StatusMsg = Undo-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -principal $jsonInput.vcfAdminGroup -type GROUP -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -9717,7 +9620,7 @@ Function Invoke-IlaDeployment {
         and Analytics for VMware Cloud Foundation validated solution.
 
         .EXAMPLE
-        Invoke-IlaDeployment -jsonFile .\ilaDeploySpec.json -workbook .\pnpWorkbook.xlsx -certificates ".\certificates\" -binaries "F:\VMware.PlatformTools\binaries\"
+        Invoke-IlaDeployment -jsonFile .\ilaDeploySpec.json -workbook .\pnpWorkbook.xlsx -certificates ".\certificates\" -binaries ".\binaries\"
         This example configures Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied
     #>  
 
@@ -9859,7 +9762,6 @@ Function Invoke-IlaDeployment {
 }
 Export-ModuleMember -Function Invoke-IlaDeployment
 
-
 Function Invoke-UndoIlaDeployment {
     <#
         .SYNOPSIS
@@ -9959,6 +9861,7 @@ Function Invoke-UndoIlaDeployment {
         Debug-ExceptionWriter -object $_
     }
 }
+Export-ModuleMember -Function Invoke-UndoIlaDeployment
 
 Function Export-vRLIJsonSpec {
     <#
