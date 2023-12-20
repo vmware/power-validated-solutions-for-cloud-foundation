@@ -6685,6 +6685,267 @@ Function Undo-SrmLicenseKey {
 }
 Export-ModuleMember -Function Undo-SrmLicenseKey
 
+Function Add-vSphereReplication {
+    <#
+		.SYNOPSIS
+        Adds a vSphere Replication for a specified virtual machine.
+
+        .DESCRIPTION
+        The Add-vSphereReplication cmdlet adds vSphere Replication for a specified virtual machine. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to the vSphere Replication instance
+        - Adds a vSphere Replication for the specified virtual machine.
+
+        .EXAMPLE
+        Add-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 
+        This example adds vSphere Replication for VM xint-vrslcm01 from the protected VCF instance to the recovery VCF instance.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully-qualified domain name of the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAUser
+        The username to authenticate to the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAPass
+        The password to authenticate to the SDDC Manager server in the protected site
+        
+        .PARAMETER sddcManagerBFqdn
+        The fully-qualified domain name of the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBUser
+        The username to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBPass
+        The password to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER vmName
+        The name of the virtual machine to target
+
+        .PARAMETER recoveryPointObjective
+        The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateRange(5,1440)] [Int]$recoveryPointObjective
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                if (Test-SrmConnection -server $vrmsAFqdn) {
+                                                    if (Test-SrmConnection -server $vrmsBFqdn) {
+                                                        $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
+                                                        if ($vrmsAuth -eq $true) {
+                                                            $vrmsVm = Get-VrmsVm -vmName $vmName
+                                                            if (!$vrmsVm) {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.GetValueException]"Virtual machine $vmName does not exist: PRE_VALIDATION_FAILED"),
+                                                                        'Add-vSphereReplication',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
+                                                                    )
+                                                                )
+                                                            }
+                                                            $vrmsReplications = Get-VrmsReplications
+                                                            $skip = $false
+                                                            foreach ($vrmsReplication in $vrmsReplications) {
+                                                                if ($vmName -eq $vrmsReplication.name) {
+                                                                    Write-Warning "Replication for virtual machine $vmName already exists: SKIPPING"
+                                                                    $skip = $true
+                                                                    break
+                                                                }
+                                                            }
+                                                            if ($skip -eq $false) {
+                                                                $newReplication = Add-VrmsReplication -vmName $vmName -recoveryPointObjective $recoveryPointObjective
+                                                                if (!$newReplication) {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Replication for virtual machine $vmName failed: POST_VALIDATION_FAILED"),
+                                                                            'Add-vSphereReplication',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                } else {
+                                                                    Write-Host "Add vSphere Replication for virtual machine ($vmName): SUCCESSFUL"
+                                                                }
+                                                            }   
+                                                        } else {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication servers: PRE_VALIDATION_FAILED"),
+                                                                    'Add-vSphereReplication',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+
+}
+Export-ModuleMember -Function Add-vSphereReplication
+
+Function Undo-vSphereReplication {
+    <#
+		.SYNOPSIS
+        Removes a vSphere Replication for a specified virtual machine.
+
+        .DESCRIPTION
+        The Undo-vSphereReplication cmdlet adds vSphere Replication for a specified virtual machine. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to the vSphere Replication instance
+        - Removes a vSphere Replication for the specified virtual machine.
+
+        .EXAMPLE
+        Undo-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 
+        This example removes the vSphere Replication for VM xint-vrslcm01
+
+        .PARAMETER sddcManagerAFqdn
+        The fully-qualified domain name of the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAUser
+        The username to authenticate to the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAPass
+        The password to authenticate to the SDDC Manager server in the protected site
+        
+        .PARAMETER sddcManagerBFqdn
+        The fully-qualified domain name of the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBUser
+        The username to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBPass
+        The password to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER vmName
+        The name of the virtual machine to target
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                if (Test-SrmConnection -server $vrmsAFqdn) {
+                                                    if (Test-SrmConnection -server $vrmsBFqdn) {
+                                                        $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
+                                                        if ($vrmsAuth -eq $true) {
+                                                            $vrmsVm = Get-VrmsVm -vmName $vmName
+                                                            if (!$vrmsVm) {
+                                                                $PSCmdlet.ThrowTerminatingError(
+                                                                    [System.Management.Automation.ErrorRecord]::new(
+                                                                        ([System.Management.Automation.GetValueException]"Virtual machine $vmName does not exist: PRE_VALIDATION_FAILED"),
+                                                                        'Undo-vSphereReplication',
+                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                        ""
+                                                                    )
+                                                                )
+                                                            }
+                                                            $vrmsReplications = Get-VrmsReplications
+                                                            $checkReplicationExists = $vrmsReplications | Where-Object {$_.name -eq $vmName}
+                                                            if (!$checkReplicationExists) {
+                                                                Write-Warning "Replication for virtual machine $vmName does not exist: SKIPPING"
+                                                                break
+                                                            } else {
+                                                                $unconfigureReplication = Remove-VrmsReplication -vmName $vmName
+                                                                if (!$unconfigureReplication) {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Replication for virtual machine $vmName failed: POST_VALIDATION_FAILED"),
+                                                                            'Undo-vSphereReplication',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                } else {
+                                                                    Write-Host "Remove vSphere Replication for virtual machine ($vmName): SUCCESSFUL"
+                                                                }
+                                                            }
+                                                        } else {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication servers: PRE_VALIDATION_FAILED"),
+                                                                    'Undo-vSphereReplication',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vSphereReplication
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -40271,6 +40532,331 @@ Function Set-VrmsVamiCertificate {
 }
 Export-ModuleMember -Function Set-VrmsVamiCertificate
 
+Function Request-VrmsTokenREST {
+    <#
+        .SYNOPSIS
+        Connects to the specified vSphere Replication Appliance and obtains an authorization token using the REST API
+
+        .DESCRIPTION
+        The Request-VrmsToken cmdlet connects to the specified vSphere Replication Appliance and obtains an
+        authorization token using the REST API. It is required once per session before running all other cmdlets. This
+        authorization is separate from the VAMI token acquired using Request-VrmsToken.
+
+        .EXAMPLE
+        Request-VrmsTokenREST -fqdn sfo-m01-vrms01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
+        This example shows how to connect to the vSphere Replication REST API using a vCenter Server SSO user.
+
+        .PARAMETER fqdn
+        The fully-qualified domain name of the vSphere Replication REST API server
+
+        .PARAMETER username
+        The username to authenticate to the vSphere Replication REST API server
+
+        .PARAMETER password
+        The password to authenticate to the vSphere Replication REST API server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
+        $vrmsBasicHeader = @{"Accept" = "application/json, text/plain, */*" }
+        $vrmsBasicHeader.Add("Authorization", "Basic $base64AuthInfo")
+        $vrmsBasicHeader.Add("Content-Type", "application/json")
+        $Global:vrmsAppliance = $fqdn
+
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/session"
+        if ($PSEdition -eq "Core") {
+            $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $vrmsResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsBasicHeader -UseBasicParsing
+        }
+        if ($vrmsResponse.StatusCode -eq 200) {
+            $Global:vrmsHeaderREST = @{"Accept" = "application/json"}
+            $vrmsHeaderREST.Add("Content-Type", "application/json")
+            $vrmsHeaderREST.Add("x-dr-session", "$(($vrmsResponse.Content | ConvertFrom-Json).session_id)")
+            Write-Output "Successfully connected to the vSphere Replication Appliance: $vrmsAppliance"
+        }
+    } Catch {
+        internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
+    }
+}
+Export-ModuleMember -Function Request-VrmsTokenREST
+
+Function Get-VrmsSitePairing {
+    <#
+        .SYNOPSIS
+        Retrieve site pairing information from a vSphere Replication server via the REST API
+
+        .DESCRIPTION
+        The Get-VrmsSitePairing cmdlet retrieves site pairing information from a vSphere Replication server via the
+        REST API.
+
+        .EXAMPLE
+        Get-VrmsSitePairing
+        This example retrieves site pairings from the vSphere Replication server via REST API
+    #>
+
+    Try {
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings"
+        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeaderREST
+        $return.list | Where-Object {$_.local_vc_server.name -ne $_.remote_vc_server.name}
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Get-VrmsSitePairing
+
+Function Connect-VrmsRemoteSession {
+    <#
+        .SYNOPSIS
+        Instantiates a connection with the remote vSphere Replication server via the REST API
+
+        .DESCRIPTION
+        The Connect-VrmsRemoteSession cmdlet instantiates a connection with the remote vSphere Replication server via 
+        the REST API
+
+        .EXAMPLE
+        Connect-VrmsRemoteSession -username administrator@vsphere.local -password VMw@re1!
+        This example instantiates a connection with the remote vSphere Replication server via the REST API
+
+        .PARAMETER username
+        The username to authenticate to the remote vSphere Replication server
+
+        .PARAMETER password
+        The password to authenticate to the remote vSphere Replication server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+            $creds = Get-Credential # Request Credentials
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        $vrmsSessionId = $vrmsHeaderREST.Get_Item("x-dr-session")
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
+        $global:vrmsRemoteHeader = @{"Accept" = "application/json" }
+        $vrmsRemoteHeader.Add("Authorization", "Basic $base64AuthInfo")
+        $vrmsRemoteHeader.Add("Content-Type", "application/json")
+        $vrmsRemoteHeader.Add("x-dr-session", "$vrmsSessionId")
+
+        $pairing_id = (Get-VrmsSitePairing).pairing_id
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/remote-session"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsRemoteHeader
+        Write-Output "Successfully connected to the vSphere Replication remote session."
+        } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Connect-VrmsRemoteSession
+
+Function Get-VrmsVm {
+    <#
+        .SYNOPSIS
+        Retrieves a list of all VMs from a vSphere Replication server via the REST API
+
+        .DESCRIPTION
+        The Get-VrmsVm cmdlet retrieves a list of all VMs from a vSphere Replication server via the REST API
+
+        .EXAMPLE
+        Get-VrmsVm
+        This example retrieves a list of all VMs from the vSphere Replication server via REST API
+
+        .PARAMETER vmName
+        The name of the optional virtual machine to target
+    #>
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmName
+    )
+
+    Try {
+        $pairing_id = (Get-VrmsSitePairing).pairing_id
+        $source_vc_id = (Get-VrmsSitePairing).local_vc_server.id
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/vcenters/$source_vc_id/vms"
+        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeaderREST
+        if ($vmName) {
+            $return.list | Where-Object {$_.name -eq $vmName} 
+        }
+        Else {
+            $return.list
+        }
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Get-VrmsVm
+
+Function Get-VrmsDatastore {
+    <#
+        .SYNOPSIS
+        Retrieves a list of datastores from a vSphere Replication server via the REST API
+
+        .DESCRIPTION
+        The Get-VrmsDatastore cmdlet retrieves a list of all datastores from a vSphere Replication server via the REST API
+
+        .EXAMPLE
+        Get-VrmsDatastore -site recovery
+        This example retrieves a list of all datastores from the recovery site via vSphere Replication server REST API
+
+        .PARAMETER site
+        The site, either recovery or protected, to target
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('protected','recovery')] [String]$site
+    )
+
+    Try {
+        $pairing_id = (Get-VrmsSitePairing).pairing_id
+        if ($site -eq "protected") {
+            $vcenter_id = (Get-VrmsSitePairing).local_vc_server.id
+        }
+        elseif ($site -eq "recovery") {
+            $vcenter_id = (Get-VrmsSitePairing).remote_vc_server.id
+        }
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/vcenters/$vcenter_id/datastores"
+        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeaderREST
+        $return.list
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Get-VrmsDatastore
+
+Function Get-VrmsReplications {
+    <#
+        .SYNOPSIS
+        Retrieves a list of replications from a vSphere Replication server via the REST API
+
+        .DESCRIPTION
+        The Get-VrmsReplications cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
+
+        .EXAMPLE
+        Get-VrmsReplications
+        This example retrieves a list of all replications from the vSphere Replication server REST API
+    #>
+
+    Try {
+        $pairing_id = (Get-VrmsSitePairing).pairing_id
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications"
+        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeaderREST
+        $return.list
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Get-VrmsReplications
+
+Function Add-VrmsReplication {
+    <#
+        .SYNOPSIS
+        Adds a vSphere Replication for the specified virtual machine via the REST API
+
+        .DESCRIPTION
+        The Add-VrmsReplication cmdlet adds a vSphere Replication for the specified virtual machine via the REST API
+
+        .EXAMPLE
+        Add-VrmsReplication -vmName xint-vrslcm01 -recoveryPointObjective 1440
+        This example adds a vSphere Replication for virtual machine xint-vrslcm01 to the vSphere Replication server REST API
+
+        .PARAMETER vmName
+        The name of the virtual machine to target
+
+        .PARAMETER recoveryPointObjective
+        The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateRange(5,1440)] [Int]$recoveryPointObjective
+    )
+
+    Try {
+        $sitePair = Get-VrmsSitePairing
+        $pairingId = $sitePair.pairing_id
+        $vmToReplicate = Get-VrmsVm -vmName $vmName
+        $existingDisks = $vmToReplicate.disks
+        $destinationDatastore = Get-VrmsDatastore -site recovery
+        $disks = @() 
+        foreach ($existingDisk in $existingDisks) {
+            $tempDisk = @{
+                destination_datastore_id = $destinationDatastore.id
+                destination_disk_format = "SAME_AS_SOURCE"
+                enabled_for_replication = $true
+                vm_disk = $existingDisk
+            }
+            $disks += $tempDisk
+        }
+        $vrmsBody = @{
+            auto_replicate_new_disks = $true
+            disks = $disks
+            lwd_encryption_enabled = $false
+            mpit_enabled = $false
+            network_compression_enabled = $false
+            rpo = $recoveryPointObjective
+            target_vc_id = $sitePair.remote_vc_server.id
+            vm_id = $vmToReplicate.id
+        }
+        $json = $vrmsBody | Convertto-JSON -depth 20
+        $json = "[$json]"
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairingId/replications"
+        $return = Invoke-RestMethod -Method POST -Uri $uri -Body $json -Headers $vrmsHeaderREST
+        $return.list
+    } catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-VrmsReplication
+
+Function Remove-VrmsReplication {
+    <#
+        .SYNOPSIS
+        Removes a vSphere Replication for the specified virtual machine via the REST API
+
+        .DESCRIPTION
+        The Remove-VrmsReplication cmdlet removes a vSphere Replication for the specified virtual machine via the REST
+        API
+
+        .EXAMPLE
+        Remove-VrmsReplication -vmName xint-vrslcm01
+        This example removes the replication for virtual machine xint-vrslcm01 from the vSphere Replication server REST API
+
+        .PARAMETER vmName
+        The name of the virtual machine to target
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName
+    )
+
+    Try {
+        $sitePair = Get-VrmsSitePairing
+        $pairingId = $sitePair.pairing_id
+        $vmReplicationId = (Get-VrmsReplications -vmName $vmName | Where-Object {$_.name -eq $vmName}).id
+        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairingId/replications/$vmReplicationId/actions/unconfigure?retain_replica_disks=false"
+        $return = Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeaderREST
+        $return
+    } catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Remove-VrmsReplication
+
 #EndRegion  End of vSphere Replication Functions                             ######
 ###################################################################################
 
@@ -40883,6 +41469,139 @@ Function Set-SrmVamiCertificate {
     }
 }
 Export-ModuleMember -Function Set-SrmVamiCertificate
+
+Function Request-SrmTokenREST {
+    <#
+        .SYNOPSIS
+        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token using the REST API
+
+        .DESCRIPTION
+        The Request-SrmToken cmdlet connects to the specified Site Recovery Manager and obtains an authorization
+        token using the REST API. It is required once per session before running all other cmdlets. This
+        authorization is separate from the VAMI token acquired using Request-SrmToken.
+
+        .EXAMPLE
+        Request-SrmTokenREST -fqdn sfo-m01-srm01.sfo.rainpole.io -username administrator@vsphere.local -password VMw@re1!
+        This example shows how to connect to the Site Recovery Manager REST API using a vCenter Server SSO user.
+
+        .PARAMETER fqdn
+        The fully-qualified domain name of the Site Recovery Manager REST API server
+
+        .PARAMETER username
+        The username to authenticate to the Site Recovery Manager REST API server
+
+        .PARAMETER password
+        The password to authenticate to the Site Recovery Manager REST API server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$fqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+        $creds = Get-Credential # Request Credentials
+        $username = $creds.UserName.ToString()
+        $password = $creds.GetNetworkCredential().password
+    }
+
+    Try {
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
+        $srmBasicHeader = @{"Accept" = "application/json, text/plain, */*" }
+        $srmBasicHeader.Add("Authorization", "Basic $base64AuthInfo")
+        $srmBasicHeader.Add("Content-Type", "application/json")
+        $Global:srmAppliance = $fqdn
+
+        $uri = "https://$srmAppliance/api/rest/srm/v2/session"
+        if ($PSEdition -eq 'Core') {
+            $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -SkipCertificateCheck -UseBasicParsing # PS Core has -SkipCertificateCheck implemented, PowerShell 5.x does not
+        } else {
+            $srmResponse = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmBasicHeader -UseBasicParsing
+        }
+        if ($srmResponse.StatusCode -eq 200) {
+            $Global:srmHeaderREST = @{"Accept" = "application/json"}
+            $srmHeaderREST.Add("Content-Type", "application/json")
+            $srmHeaderREST.Add("x-dr-session", "$(($srmResponse.Content | ConvertFrom-Json).session_id)")
+            Write-Output "Successfully connected to the Site Recovery Manager Appliance: $srmAppliance"
+        }
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
+    }
+}
+Export-ModuleMember -Function Request-SrmTokenREST
+
+Function Connect-SrmRemoteSession {
+    <#
+        .SYNOPSIS
+        Instantiates a connection to the remote Site Recovery Manager server via the REST API
+
+        .DESCRIPTION
+        The Connect-SrmRemoteSession cmdlet instantiates a connection to the remote Site Recovery Manager server via 
+        the REST API
+
+        .EXAMPLE
+        Connect-SrmRemoteSession -username administrator@vsphere.local -password VMw@re1!
+        This example instantiates a connection to the remote Site Recovery Manager server via REST API
+
+        .PARAMETER username
+        The username to authenticate to the remote Site Recovery Manager server
+
+        .PARAMETER password
+        The password to authenticate to the remote Site Recovery Manager server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$password
+    )
+
+    Try {
+        if ( -not $PsBoundParameters.ContainsKey("username") -or ( -not $PsBoundParameters.ContainsKey("password"))) {
+            $creds = Get-Credential # Request Credentials
+            $username = $creds.UserName.ToString()
+            $password = $creds.GetNetworkCredential().password
+        }
+        $srmSessionId = $srmHeaderREST.Get_Item("x-dr-session")
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(("{0}:{1}" -f $username, $password))) # Create Basic Authentication Encoded Credentials
+        $global:srmRemoteHeader = @{"Accept" = "application/json" }
+        $srmRemoteHeader.Add("Authorization", "Basic $base64AuthInfo")
+        $srmRemoteHeader.Add("Content-Type", "application/json")
+        $srmRemoteHeader.Add("x-dr-session", "$srmSessionId")
+
+        $pairing_id = (Get-SrmSitePairing).pairing_id
+        $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairing_id/remote-session"
+        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmRemoteHeader
+        Write-Output "Successfully connected to the vSphere Replication remote session."
+        } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Connect-SrmRemoteSession
+
+Function Get-SrmSitePairing {
+    <#
+        .SYNOPSIS
+        Retrieve site pairing information from a Site Recovery Manager server via the REST API
+
+        .DESCRIPTION
+        The Get-SrmSitePairing cmdlet retrieves site pairing information from a Site Recovery Manager server via
+        the REST API.
+
+        .EXAMPLE
+        Get-SrmSitePairing
+        This example retrieves site pairings from the vSphere Replication server via REST API
+    #>
+
+    Try {
+        $uri = "https://$srmAppliance/api/rest/srm/v2/pairings"
+        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeaderREST
+        $return.list | Where-Object {$_.local_vc_server.name -ne $_.remote_vc_server.name}
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Get-SrmSitePairing
 
 #EndRegion  End of Site Recovery Manager Functions                           ######
 ###################################################################################
@@ -42166,6 +42885,77 @@ Function Test-SRMAuthentication {
     }
 }
 Export-ModuleMember -Function Test-SRMAuthentication
+
+Function Test-SRMAuthenticationREST {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$remoteUser,
+		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$remotePass
+    )
+
+    Try {
+        $srmServerConnection = Request-SrmTokenREST -fqdn $server -username $user -password $pass | Out-Null
+    
+        if ($srmServerConnection -eq "Successfully connected to the Site Recovery Manager Appliance: $server") {
+            $srmAuthentication = $True
+            Return $srmAuthentication
+        } else {
+            $srmAuthentication = $False
+            Return $srmAuthentication
+        }
+
+        if ($remoteUser -and $remotePass) {
+            $srmRemoteConnection = Connect-SrmRemoteSession -username $remoteUser -password $remotePass | Out-Null
+        }
+
+        if ($srmRemoteConnection -eq "Successfully connected to the Site Recovery Manager remote session.") {
+            $srmRemoteAuthentication = $True
+            Return $srmRemoteAuthentication
+        } else {
+            $srmRemoteAuthentication = $False
+            Return $srmRemoteAuthentication
+        }
+
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-SRMAuthenticationREST
+
+Function Test-VrmsAuthenticationREST {
+    Param (
+        [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
+		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$remoteUser,
+		[Parameter (Mandatory=$false)] [ValidateNotNullOrEmpty()] [String]$remotePass
+    )
+
+    Try {
+        $global:vrmsServerConnection = Request-VrmsTokenREST -fqdn $server -username $user -password $pass
+    
+        if ($vrmsServerConnection -eq "Successfully connected to the vSphere Replication Appliance: $server") {
+            if ($remoteUser -and $remotePass) {
+                $global:vrmsRemoteConnection = Connect-VrmsRemoteSession -username $remoteUser -password $remotePass
+                if ($vrmsRemoteConnection -eq "Successfully connected to the vSphere Replication remote session.") {
+                    $vrmsAuthentication = $True
+                    Return $vrmsAuthentication
+                } else {
+                    $vrmsAuthentication = $False
+                    Return $vrmsAuthentication
+                }
+            }
+        } else {
+            $vrmsAuthentication = $False
+            Return $vrmsAuthentication
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Test-VrmsAuthenticationREST
 
 Function Test-WMSubnetInput {
     <#

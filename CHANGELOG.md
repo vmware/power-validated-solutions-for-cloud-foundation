@@ -32,6 +32,21 @@
 - Added `Remove-vRSLCMMyVmwareAccount` cmdlet to remove a VMware Customer Connect account from VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductVersion` cmdlet to retrieve the supported versions for a product from VMware Aria Suite Lifecycle.
 - Added `Request-vRSLCMProductBinary` cmdlet to download the supported version for a product from VMware Customer Connect in VMware Aria Suite Lifecycle.
+- Added `Add-vSphereReplication` cmdlet to enable vSphere Replication for a targeted virtual machine.
+- Added `Undo-vSphereReplication` cmdlet to disable vSphere Replication for a targeted virtual machine.
+- Added `Request-VrmsTokenREST` cmdlet to connect to the vSphere Replication REST API and retrieve an authentication token.
+- Added `Get-VrmsSitePairing` cmdlet to retrieve the site pairing information from a vSphere Replication server.
+- Added `Connect-VrmsRemoteSession` cmdlet to instantiate a connection with the remote vSphere Replication server.
+- Added `Get-VrmsVm` cmdlet to retrieve a list of all virtual machines or a single specified virtual machine from a vSphere Replication server.
+- Added `Get-VrmsDatastore` cmdlet to retrieve a list of all datastores from a vSphere Replication server.
+- Added `Get-VrmsReplications` cmdlet to retrieve a list of all virtual machine replications from a vSphere Replication server.
+- Added `Add-VrmsReplication` cmdlet to add a vSphere Replication for a targeted virtual machine.
+- Added `Remove-VrmsReplication` cmdlet to remove a vSphere Replication for a targeted virtual machine.
+- Added `Request-SrmTokenREST` cmdlet to connect to the Site Recovery Manager REST API and retrieve an authentication token.
+- Added `Get-SrmSitePairing` cmdlet to retrieve the site pairing information from a Site Recovery Manager server.
+- Added `Connect-SrmRemoteSession` cmdlet to instantiate a connection with the remote Site Recovery Manager server.
+- Added `Test-SrmAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted Site Recovery Manager server via REST API.
+- Added `Test-VrmsAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted vSphere Replication server via REST API.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
