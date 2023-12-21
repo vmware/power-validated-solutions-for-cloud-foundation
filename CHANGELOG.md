@@ -47,6 +47,8 @@
 - Added `Connect-SrmRemoteSession` cmdlet to instantiate a connection with the remote Site Recovery Manager server.
 - Added `Test-SrmAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted Site Recovery Manager server via REST API.
 - Added `Test-VrmsAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted vSphere Replication server via REST API.
+- Added `Remove-DefaultAdapters` cmdlet to support removing the default vCenter Server and vSAN adapters from VMware Aria Operations.
+- Added `Undo-vROPSDeployment` cmdlet to support removing VMware Aria Operations from VMware Aria Suite Lifecycle.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -70,6 +72,7 @@
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
 - Enhanced `Export-vRLIJsonSpec` cmdlet to support automatic creation of anti-affinity rule.
+- Enhanced `Remove-vRSLCMEnvironment` cmdlet to support removing a product from an environment in VMware Aria Suite Lifecycle.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
