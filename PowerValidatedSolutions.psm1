@@ -267,6 +267,8 @@ Function Invoke-UndoIamDeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
     )
 
+    $solutionName = "Identity and Access Management for VMware Cloud Foundation"
+
     Try {
         if (Test-Path -Path $jsonFile) {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -274,6 +276,7 @@ Function Invoke-UndoIamDeployment {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
                     $allWorkloadDomains     = Get-VCFWorkloadDomain
 
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
                     Show-PowerValidatedSolutionsOutput -message "Reconfiguring the vSphere Role and Permissions Scope for NSX Service Accounts"
                     foreach ($sddcDomain in $allWorkloadDomains) {
                         if ($sddcDomain.type -eq "MANAGEMENT") {
@@ -9908,6 +9911,7 @@ Function Invoke-IlaDeployment {
                         if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
                             $allWorkloadDomains     = Get-VCFWorkloadDomain
 
+                            Show-PowerValidatedSolutionsOutput -message "Starting Deployment of $solutionName"
                             Show-PowerValidatedSolutionsOutput -message "Adding $logsProductName License to $lcmProductName"
                             $StatusMsg = New-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -license $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
@@ -9974,6 +9978,7 @@ Function Invoke-IlaDeployment {
                             }
 
                             Show-PowerValidatedSolutionsOutput -message "Install Workspace ONE Access Content Pack - Manual Install Required"
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "CURRENTLY NO AUTOMATION"
 
                             Show-PowerValidatedSolutionsOutput -message "Configuring the NSX Edge Nodes to Forward Log Events to $logsProductName"
                             foreach ($sddcDomain in $allWorkloadDomains) {
@@ -10015,7 +10020,7 @@ Function Invoke-IlaDeployment {
                 Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
             }
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Intelligent Logging and Analytics ($jsonFile): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -10034,7 +10039,7 @@ Function Invoke-UndoIlaDeployment {
 
         .EXAMPLE
         Invoke-UndoIlaDeployment -jsonFile .\ilaDeploySpec.json
-        This example removes the configuration of Intelligent Logging and Analytics using JSON spec supplied.
+        This example removes the configuration of Intelligent Logging and Analytics for VMware Cloud Foundation using JSON spec supplied.
     #>
 
     Param (
@@ -10053,6 +10058,7 @@ Function Invoke-UndoIlaDeployment {
                     if (($vcfVcenterDetails = Get-vCenterServerDetail $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
                         $allWorkloadDomains     = Get-VCFWorkloadDomain
                         
+                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
                         if (Get-VCFVrli) {
                             Show-PowerValidatedSolutionsOutput -message "Removing the $logsProductName Agent on the Clustered Workspace ONE Access Nodes"
                             $StatusMsg = Undo-vRLIPhotonAgent -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vmName $jsonInput.vmNameNode1 -vmRootPass $jsonInput.vmRootPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -10116,7 +10122,7 @@ Function Invoke-UndoIlaDeployment {
                 }
             }
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Intelligent Logging and Analytics ($jsonFile): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -13604,6 +13610,84 @@ Function New-vROPSDeployment {
 }
 Export-ModuleMember -Function New-vROPSDeployment
 
+Function Undo-vROPSDeployment {
+    <#
+        .SYNOPSIS
+        Remove the VMware Aria Operations from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Undo-vROPSDeployment cmdlet removes VMware Aria Operations from VMware Aria Suite Lifecycle. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment exist in VMware Aria Suite Lifecycle
+        - Requests a the deletion of VMware Aria Operations from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Undo-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env
+        This example starts a removal of VMware Aria Operations from VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER environmentName
+        The VMware Aria Operations Environment Name.
+
+        .PARAMETER monitor
+        Monitor the VMware Aria Suite Lifecycle request.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$environmentName,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if ($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            if (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName}) {
+                                $newRequest = Remove-vRSLCMEnvironment -environmentId (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName}).environmentId -productId vrops
+                                if ($newRequest) {
+                                    if ($PsBoundParameters.ContainsKey("monitor")) {
+                                        Start-Sleep 10
+                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                        if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName})) {
+                                            Write-Output "Removal of VMware Aria Operations from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Removal of VMware Aria Operations from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Output "Removal request of VMware Aria Operations Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                    }
+                                } else {
+                                    Write-Error "Removal request of VMware Aria Operations failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Environment with name ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already removed: SKIPPED"
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vROPSDeployment
+
 Function Import-vROPSUserAccount {
     <#
         .SYNOPSIS
@@ -14133,6 +14217,76 @@ Function Update-vROPSAdapterCollecterGroup {
     }
 }
 Export-ModuleMember -Function Update-vROPSAdapterCollecterGroup
+
+Function Remove-DefaultAdapters {
+    <#
+		.SYNOPSIS
+        Removes the default vCenter Server and vSAN Adapters from VMware Aria Operations.
+
+        .DESCRIPTION
+        The Remove-DefaultAdapters cmdlet removes the default vCenter Server and vSAN adapters and associated
+        credentials from VMware Aria Operations.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Deletes the adapters and credentials from VMware Aria Operations 
+
+        .EXAMPLE
+        Remove-DefaultAdapters -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example deletes the default adapter and credentials from VMware Aria Operations
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to connect to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if ($vcenterAdapter = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -match "VCF_VC"})) {
+                                Undo-vROPSAdapter -server $server -user $user -pass $pass -adapterName $vcenterAdapter.resourceKey.name -adapterType VMWARE
+                                $vcenterCredential = (Get-vROPSCredential -credentialId $vcenterAdapter.credentialInstanceId).name
+                                Undo-vROPSCredential -server $server -user $user -pass $pass -credentialName $vcenterCredential -credentialType VMWARE
+                                $alreadyRemoved = $false
+                            } else {
+                                $alreadyRemoved = $true
+                            }
+                            if ($vsanAdapter = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -match "VCF_vSAN"})) {
+                                Undo-vROPSAdapter -server $server -user $user -pass $pass -adapterName $vsanAdapter.resourceKey.name -adapterType VirtualAndPhysicalSANAdapter
+                                $vsanCredential = (Get-vROPSCredential -credentialId $vsanAdapter.credentialInstanceId).name
+                                Undo-vROPSCredential -server $server -user $user -pass $pass -credentialName $vsanCredential -credentialType VirtualAndPhysicalSANAdapter
+                                $alreadyRemoved = $false
+                            } else {
+                                $alreadyRemoved = $true
+                            }
+                            if ($alreadyRemoved) {
+                                Write-Warning "Removing Default vCenter Server/vSAN Adapter and Credentials from VMware Aria Operations, does not exist: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Remove-OperationsDefaultAdapters
 
 Function Add-vROPSCurrency {
     <#
@@ -16310,7 +16464,7 @@ Function Export-vRAJsonSpec {
                                                     'fipsMode'                     = "false"
                                                     'timeSyncMode'                 = "ntp"
                                                     'ntp'                          = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
-                                                    'affinityRule'                 = $false
+                                                    'affinityRule'                 = $true
                                                     'configureAffinitySeparateAll' = "true"
                                                     'contentLibraryItemId'         = $contentLibraryItemId
                                                     'nodeSize'                     = $pnpWorkbook.Workbook.Names["xreg_vra_appliance_size"].Value.ToLower()
@@ -16322,6 +16476,7 @@ Function Export-vRAJsonSpec {
                                                 #### Generate VMware Aria Automation Cluster Details
                                                 $clusterVipProperties = @()
                                                 $clusterVipProperties += [pscustomobject]@{
+                                                    'controllerType' = "NSX_T"
                                                     'hostName' = $pnpWorkbook.Workbook.Names["xreg_vra_virtual_fqdn"].Value
                                                 }
                                                 $clusterVipsObject = @()
@@ -18970,7 +19125,7 @@ Function Undo-vSphereRole {
 
         .PARAMETER roleName
         The name of the role to remove.
-   #>
+    #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
@@ -19768,12 +19923,12 @@ Function Add-VmStartupRule {
                                             Add-DrsVmToVmGroup -name $ruleName -vmGroup $vmGroup -dependOnVmGroup $dependOnVmGroup -Enabled -cluster $cluster | Out-Null
                                             Start-Sleep 5
                                             if (Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName) {
-                                                Write-Output "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
+                                                Write-Output "Adding vSphere DRS VM to VM Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
                                             } else {
-                                                Write-Error "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
+                                                Write-Error "Adding vSphere DRS VM to VM Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                             }
                                         } else {
-                                            Write-Warning "Adding vSphere DRS Virtual Machine to Virtual Machine Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
+                                            Write-Warning "Adding vSphere DRS VM to VM Group to vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already exists: SKIPPED"
                                         }
                                     } else {
                                         Write-Error "vSphere DRS Group (VM Group to Start After) in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($dependOnVmGroup), does not exist: PRE_VALIDATION_FAILED"
@@ -19849,12 +20004,12 @@ Function Undo-VmStartupRule {
                                     Remove-DrsVmToVmGroup -name $ruleName -cluster $cluster | Out-Null
                                     Start-Sleep 3
                                     if (!(Get-DrsVmToVmGroup -Cluster $cluster -Name $ruleName)) {
-                                        Write-Output "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
+                                        Write-Output "Removing vSphere DRS VM to VM Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
+                                        Write-Error "Removing vSphere DRS VM to VM Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Removing vSphere DRS Virtual Machine to Virtual Machine Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already removed: SKIPPED"
+                                    Write-Warning "Removing vSphere DRS VM to VM Group from vCenter Server ($($vcfVcenterDetails.fqdn)) named ($ruleName), already removed: SKIPPED"
                                 }
                                 Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
@@ -31505,14 +31660,21 @@ Function Remove-vRSLCMEnvironment {
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentId
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentId,
+        [Parameter (Mandatory = $false)] [ValidateSet('vrops','vra','vrni')] [String]$productId
     )
 
     Try {
-        $body = '{ "deleteFromInventory": true, "deleteFromVcenter": true, "deleteLbFromSddc": true, "deleteWindowsVMs": true }'
-        $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId"
-        $response = Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders -Body $body
-        $response
+        
+        if ($PsBoundParameters.ContainsKey("productId")) {
+            $body = '{ "deleteFromVcenter": true, "deleteLbFromSddc": true, "deleteWindowsVMs": true }'
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products/$productId"
+        } else {
+            $body = '{ "deleteFromInventory": true, "deleteFromVcenter": true, "deleteLbFromSddc": true, "deleteWindowsVMs": true }'
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId"
+            
+        }
+        Invoke-RestMethod $uri -Method 'DELETE' -Headers $vrslcmHeaders -Body $body
     } Catch {
         Write-Error $_.Exception.Message
     }
