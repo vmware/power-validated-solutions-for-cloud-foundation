@@ -10668,11 +10668,15 @@ Function Undo-vRLIDeployment {
                                 if ($newRequest) {
                                     if ($PsBoundParameters.ContainsKey("monitor")) {
                                         Start-Sleep 10
-                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                        $status = Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                         if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName})) {
-                                            Write-Output "Removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                            if ($status -match "COMPLETED") {
+                                                Write-Output "Removal of VMware Aria Operations for Logs from Environment ($environmentName) VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removal of VMware Aria Operations for Logs from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
                                         } else {
-                                            Write-Error "Removal of VMware Aria Operations for Logs from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Removal of VMware Aria Operations for Logs from Environment ($environmentName) VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Output "Removal request of VMware Aria Operations for Logs Submitted Successfully (Request Ref: $($newRequest.requestId))"
@@ -13757,11 +13761,15 @@ Function Undo-vROPSDeployment {
                                 if ($newRequest) {
                                     if ($PsBoundParameters.ContainsKey("monitor")) {
                                         Start-Sleep 10
-                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                        $status = Watch-vRSLCMRequest -vmid $($newRequest.requestId)
                                         if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName})) {
-                                            Write-Output "Removal of VMware Aria Operations from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                            if ($status -match "COMPLETED") {
+                                                Write-Output "Removal of VMware Aria Operations from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removal of VMware Aria Operations from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
                                         } else {
-                                            Write-Error "Removal of VMware Aria Operations from VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Removal of VMware Aria Operations from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Output "Removal request of VMware Aria Operations Submitted Successfully (Request Ref: $($newRequest.requestId))"
