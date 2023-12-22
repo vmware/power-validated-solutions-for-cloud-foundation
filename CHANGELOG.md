@@ -49,6 +49,7 @@
 - Added `Test-VrmsAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted vSphere Replication server via REST API.
 - Added `Remove-DefaultAdapters` cmdlet to support removing the default vCenter Server and vSAN adapters from VMware Aria Operations.
 - Added `Undo-vROPSDeployment` cmdlet to support removing VMware Aria Operations from VMware Aria Suite Lifecycle.
+- Added `Get-NsxtLdapStatus` cmdlet to retrieve the configuration status of an identity source in NSX.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -58,6 +59,7 @@
 - Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
 - Fixed `Get-WSAServerDetails` cmdlet where incorrect initial check was looking for VMware Aria Automation not VMware Aria Suite Lifecycle.
 - Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
+- Fixed `Add-NsxtLdapRole` cmdlet which was passing the Workload Domain rather than the identity source domain when assigning groups and users.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
@@ -73,6 +75,8 @@
 - Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
 - Enhanced `Export-vRLIJsonSpec` cmdlet to support automatic creation of anti-affinity rule.
 - Enhanced `Remove-vRSLCMEnvironment` cmdlet to support removing a product from an environment in VMware Aria Suite Lifecycle.
+- Enhanced `Add-NsxtIdentitySource` cmdlet to use `Get-NsxtLdapStatus` and check if the identity source connection is operational.
+- Enhanced `Undo-SddcManagerRole` cmdlet for better error handling and message output.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
