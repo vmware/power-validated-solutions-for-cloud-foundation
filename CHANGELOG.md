@@ -53,6 +53,7 @@
 - Added `Export-IomJsonSpec` cmdlet to generate a JSON specification file for Intelligent Operations Management.
 - Added `Invoke-IomDeployment` cmdlet to perform an end-to-end deployment of Intelligent Operations Management.
 - Added `Invoke-UndoIomDeployment` cmdlet to perform removal of Intelligent Operations Management.
+- Added `Undo-vRADeployment` cmdlet to remove VMware Aria Automation from VMware Aria Suite Lifecycle.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -80,6 +81,7 @@
 - Enhanced `Remove-vRSLCMEnvironment` cmdlet to support removing a product from an environment in VMware Aria Suite Lifecycle.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to use `Get-NsxtLdapStatus` and check if the identity source connection is operational.
 - Enhanced `Undo-SddcManagerRole` cmdlet for better error handling and message output.
+- Enhanced `Export-vRAJsonSpec` cmdlet to generate the JSON specification file using the Private Cloud Automation JSON specification file.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
