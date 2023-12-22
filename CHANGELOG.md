@@ -50,6 +50,9 @@
 - Added `Remove-DefaultAdapters` cmdlet to support removing the default vCenter Server and vSAN adapters from VMware Aria Operations.
 - Added `Undo-vROPSDeployment` cmdlet to support removing VMware Aria Operations from VMware Aria Suite Lifecycle.
 - Added `Get-NsxtLdapStatus` cmdlet to retrieve the configuration status of an identity source in NSX.
+- Added `Export-IomJsonSpec` cmdlet to generate a JSON specification file for Intelligent Operations Management.
+- Added `Invoke-IomDeployment` cmdlet to perform an end-to-end deployment of Intelligent Operations Management.
+- Added `Invoke-UndoIomDeployment` cmdlet to perform removal of Intelligent Operations Management.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -84,6 +87,8 @@
 - Removed `iamConfigureWorkspaceOneAccess.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IamDeployment` cmdlet.
 - Removed `iamConfigureNsx.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IamDeployment` cmdlet.
 - Removed `iamUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIamDeployment` cmdlet.
+- Removed `iomDeployAriaOperations.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IomDeployment` cmdlet.
+- Removed `iomConfigureAriaOperations.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IomDeployment` cmdlet.
 
 ## v2.7.1
 
