@@ -92,7 +92,7 @@ Function Export-IamJsonSpec {
                 'nsxEnterpriseAdminGroup'       = $pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'nsxNetworkAdminsGroup'         = $pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'nsxAuditorGroup'               = $pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value + "@" + $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
-                'nsxAdGroups'                   = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)"
+                'nsxAdGroups'                   = "$($pnpWorkbook.Workbook.Names["group_gg_nsx_enterprise_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_network_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_nsx_auditors"].Value)"
                 'vsphereRoleName'               = $pnpWorkbook.Workbook.Names["nsxt_vsphere_role_name"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
@@ -104,12 +104,12 @@ Function Export-IamJsonSpec {
                 }
             }
             if ($issueWithJson) {
-                Write-Error "Creation of JSON Specification file for Identity and Access Management, missing data: POST_VALIDATION_FAILED"
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for Identity and Access Management, missing data: POST_VALIDATION_FAILED"
             } else { 
-                Write-Output "Creation of JSON Specification file for Identity and Access Management: SUCCESSFUL"
+                Show-PowerValidatedSolutionsOutput -message "Creation of JSON Specification file for Identity and Access Management: SUCCESSFUL"
             }
         } else {
-            Write-Error "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -9903,12 +9903,12 @@ Function Export-IlaJsonSpec {
                 }
             }
             if ($issueWithJson) {
-                Write-Error "Creation of JSON Specification file for Intelligent Logging and Analytics, missing data: POST_VALIDATION_FAILED"
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for Intelligent Logging and Analytics, missing data: POST_VALIDATION_FAILED"
             } else { 
-                Write-Output "Creation of JSON Specification file for Intelligent Logging and Analytics: SUCCESSFUL"
+                Show-PowerValidatedSolutionsOutput -message "Creation of JSON Specification file for Intelligent Logging and Analytics: SUCCESSFUL"
             }
         } else {
-            Write-Error "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -9978,7 +9978,7 @@ Function Invoke-IlaDeployment {
                                     $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 }
                                 if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; $failureDetected = $true }
-                                if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $logsProductName FAILED"; Break }
+                                if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $logsProductName FAILED"; $failureDetected = $true }
                             }
 
                             if (!$failureDetected) {
@@ -13289,12 +13289,12 @@ Function Export-IomJsonSpec {
                 }
             }
             if ($issueWithJson) {
-                Write-Error "Creation of JSON Specification file for Intelligent Operations Management, missing data: POST_VALIDATION_FAILED"
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for Intelligent Operations Management, missing data: POST_VALIDATION_FAILED"
             } else { 
-                Write-Output "Creation of JSON Specification file for Intelligent Operations Management: SUCCESSFUL"
+                Show-PowerValidatedSolutionsOutput -message "Creation of JSON Specification file for Intelligent Operations Management: SUCCESSFUL"
             }
         } else {
-            Write-Error "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
