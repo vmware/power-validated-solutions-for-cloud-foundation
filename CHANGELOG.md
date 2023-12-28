@@ -56,6 +56,7 @@
 - Added `Undo-vRADeployment` cmdlet to remove VMware Aria Automation from VMware Aria Suite Lifecycle.
 - Added `Add-vRSLCMMyVMwareAccount` cmdlet to add a Customer Connect Account to VMware Aria Suite Lifecycle.
 - Added `Undo-vRSLCMMyVMwareAccount` cmdlet to remove a Customer Connect Account to VMware Aria Suite Lifecycle.
+- Added `Start-vRSLCMSnapshot` cmdlet to start a snapshop operation of VMware Aria Suite Lifecycle.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -84,6 +85,7 @@
 - Enhanced `Add-NsxtIdentitySource` cmdlet to use `Get-NsxtLdapStatus` and check if the identity source connection is operational.
 - Enhanced `Undo-SddcManagerRole` cmdlet for better error handling and message output.
 - Enhanced `Export-vRAJsonSpec` cmdlet to generate the JSON specification file using the Private Cloud Automation JSON specification file.
+- Enhanced `Update-vRSLCMPSPack` cmdlet to perform a snapshot as part of the workflow and improved status checks.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
