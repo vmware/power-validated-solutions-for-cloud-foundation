@@ -21746,15 +21746,29 @@ Function Update-vRSLCMPSPack {
                     if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
                         if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                             $request = Get-vRSLCMPSPack -checkOnline
-                            Start-Sleep 5
-                            Watch-vRSLCMRequest -vmid $request.requestId
-                            $allPsPacks = Get-vRSLCMPSPack
-                            $pspackId = ($allPsPacks | Where-Object {$_.fileName -like "*$psPack"}).pspackId
-                            if ($pspackId) {
-                                $request = Install-vRSLCMPSPack -pspackId $pspackId
-                                Write-Output "Product Support Pack ($psPack) install started on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                            Start-Sleep 3
+                            Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
+                            if ($getStatus -eq "COMPLETED") {
+                                $allPsPacks = Get-vRSLCMPSPack
+                                $pspackId = ($allPsPacks | Where-Object {$_.fileName -like "*$psPack"}).pspackId
+                                if ($pspackId) {
+                                    $vcenterDetails = Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter).dataCenterVmid
+                                    $request = Start-vRSLCMSnapshot -vcenterFqdn $vcenterDetails.vCenterHost -vcenterName $vcenterDetails.vCenterName -username $vcenterDetails.vcUsername
+                                    Start-Sleep 3
+                                    Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
+                                    if ($getStatus -eq "COMPLETED") {
+                                        Start-Sleep 3
+                                        $request = Install-vRSLCMPSPack -pspackId $pspackId
+                                        Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS") 
+                                        Write-Output "Product Support Pack ($psPack) install started on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "VMware Aria Suite Lifecycle Snapshot Task ($($getStatus.vmid)) finished with state ($($getStatus)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Product Support Pack ($psPack) not found in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                }
                             } else {
-                                Write-Error "Product Support Pack ($psPack) not found in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                Write-Error "VMware Aria Suite Lifecycle Product Support Pack Check Task ($($getStatus.vmid)) finished with state ($($getStatus)): POST_VALIDATION_FAILED"
                             }
                         }
                     }
@@ -33987,6 +34001,47 @@ Function Set-vRSLCMSshStatus {
     }
 }
 Export-ModuleMember -Function Set-vRSLCMSshStatus
+
+Function Start-vRSLCMSnapshot {
+    <#
+        .SYNOPSIS
+        Create snapshot of the VMware Aria Suite Lifecycle appliance
+
+        .DESCRIPTION
+        The Start-vRSLCMSnapshot cmdlet starts the operation to create a snapshot of the VMware Aria Suite Lifecycle
+        appliance.
+
+        .EXAMPLE
+        Start-vRSLCMSnapshot -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterName sfo-m01-vc01 -username svc-xint-vrslcm01-sfo-m01-vc01@vsphere.local
+        This example creates a snapshot of the VMware Aria Suite Lifecycle appliance
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username
+    )
+
+    Try {
+        if ($vrslcmAppliance) {
+            $userDetails = Get-vRSLCMLockerPassword | Where-Object {$_.userName -eq $username}
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-snapshot"
+            $body = '{
+                "vCenterHost": "' + $vcenterFqdn + '",
+                "vCenterName": "' + $vcenterName + '",
+                "vcPassword": "locker:password:' + $userDetails.vmid + ':' + $userDetails.alias + '",
+                "vcUsedAs": "MANAGEMENT",
+                "vcUsername": "' + $username + '"
+            }'
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        } else {
+            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Start-vRSLCMSnapshot
 
 #EndRegion  End VMware Aria Suite Lifecycle Functions                        ######
 ###################################################################################
