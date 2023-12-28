@@ -9974,8 +9974,10 @@ Function Invoke-IlaDeployment {
                                 Show-PowerValidatedSolutionsOutput -message "Deploying $logsProductName By Using $lcmProductName"
                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                     $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $logsProductName in $lcmProductName to Complete"
                                 } else {
                                     $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $logsProductName in $lcmProductName to Complete"
                                 }
                                 if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; $failureDetected = $true }
                                 if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $logsProductName FAILED"; $failureDetected = $true }
@@ -13246,7 +13248,7 @@ Function Export-IomJsonSpec {
                 'vmToVmRuleNameProxies'             = $pnpWorkbook.Workbook.Names["xreg_vrops_vm_to_vm_rule_name"].Value
                 'stretchedCluster'                  = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
                 'currency'                          = $pnpWorkbook.Workbook.Names["xreg_vrops_currency"].Value
-                'wsaFqdn'                           = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "." + $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                'wsaFqdn'                           = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
                 'wsaUser'                           = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
                 'wsaPass'                           = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
                 'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
@@ -13410,13 +13412,17 @@ Function Invoke-IomDeployment {
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Deploying $operationsProductName Using $lcmProductName"
                                 if ($PsBoundParameters.ContainsKey("nested")) {
-                                    $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -nested -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg    
+                                    $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -nested -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                 } elseif ($PsBoundParameters.ContainsKey("nested") -and $PsBoundParameters.ContainsKey("useContentLibrary")) {
                                     $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -nested -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg    
+                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                 } elseif ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                     $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                 } else {
                                     $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                 }
                                 if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" }; if ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; $failureDetected = $true }
                                 if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $operationsProductName FAILED"; $failureDetected = $true }
@@ -17238,7 +17244,7 @@ Function New-vRADeployment {
                                 if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                     $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
                                 }
-                                $outputPath = Split-Path $jsonFile -Parent
+                                $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
                                 Invoke-Expression "Export-vRAJsonSpec -server $server -user $user -pass $pass -jsonFile $jsonFile -outputPath $outputPath $($commandSwitch) | Out-Null"
                                 $json = (Get-Content -Raw ($outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "automationDeploySpec.json")))
                                 $jsonSpec = $json | ConvertFrom-Json
@@ -21348,6 +21354,139 @@ Function Undo-vRSLCMLockerLicense {
     }
 }
 Export-ModuleMember -Function Undo-vRSLCMLockerLicense
+
+Function Add-vRSLCMMyVMwareAccount {
+    <#
+        .SYNOPSIS
+        Add a Customer Connection Account to the VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Add-vRSLCMMyVMwareAccount cmdlet adds a Customer Connection Account to VMware Aria Suite Lifecycle based on
+        credentials added to the VMware Aria Suite Lifecycle locker. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values then:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the account is not present in VMware Aria Suite Lifecycle
+        - Adds the Customer Connection Account to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Add-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
+        This example adds an account to Customer Connection Account using an alias of 'myVmwareAccount' to VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the password credential in the VMware Aria Suite Lifecycle locker.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            if (Get-vRSLCMLockerPassword -alias $alias) {
+                                if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
+                                    New-vRSLCMMyVmwareAccount -alias $alias | Out-Null
+                                    if ((Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
+                                        Write-Output "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), already exists: SKIPPED"
+                                }
+                            } else {
+                                Write-Error "Unable to locate the password with alias ($alias) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMMyVMwareAccount
+
+Function Undo-vRSLCMMyVMwareAccount {
+    <#
+        .SYNOPSIS
+        Remove a Customer Connection Account from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Undo-vRSLCMMyVMwareAccount cmdlet removes a Customer Connection Account from VMware Aria Suite Lifecycle.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the account is present in VMware Aria Suite Lifecycle
+        - Removes the Customer Connection Account from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Undo-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
+        This example removes the Customer Connection Account 'myVmwareAccount' from VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the password credential in the VMware Aria Suite Lifecycle locker.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            if (Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias}) {
+                                Remove-vRSLCMMyVmwareAccount -alias $alias | Out-Null
+                                if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
+                                    Write-Output "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), does not exist: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMMyVMwareAccount
 
 Function New-vRSLCMDatacenter {
     <#
