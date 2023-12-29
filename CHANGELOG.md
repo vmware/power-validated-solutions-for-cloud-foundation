@@ -56,7 +56,8 @@
 - Added `Undo-vRADeployment` cmdlet to remove VMware Aria Automation from VMware Aria Suite Lifecycle.
 - Added `Add-vRSLCMMyVMwareAccount` cmdlet to add a Customer Connect Account to VMware Aria Suite Lifecycle.
 - Added `Undo-vRSLCMMyVMwareAccount` cmdlet to remove a Customer Connect Account to VMware Aria Suite Lifecycle.
-- Added `Start-vRSLCMSnapshot` cmdlet to start a snapshop operation of VMware Aria Suite Lifecycle.
+- Added `Start-vRSLCMSnapshot` cmdlet to start a snapshot operation of VMware Aria Suite Lifecycle.
+- Added `Import-ContentLibraryItem` cmdlet to support adding files to a vSphere Content Library.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
