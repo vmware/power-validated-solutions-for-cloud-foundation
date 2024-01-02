@@ -58,13 +58,15 @@
 - Added `Undo-vRSLCMMyVMwareAccount` cmdlet to remove a Customer Connect Account to VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMSnapshot` cmdlet to start a snapshot operation of VMware Aria Suite Lifecycle.
 - Added `Import-ContentLibraryItem` cmdlet to support adding files to a vSphere Content Library.
+- Added `Export-PcaJsonSpec` cmdlet to generate a JSON specification file for Private Cloud Automation.
+- Added `Invoke-PcaDeployment` cmdlet perform an end-to-end deployment of Private Cloud Automation.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Add-WorkspaceOneRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-vCenterGlobalPermission` cmdlet where incorrect input variable is checked.
 - Fixed `Set-NsxtRole` cmdlet where missing input commands were missing from the example.
-- Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address from the Planning and Preparation workbook.
+- Fixed `Export-vROPSJsonSpec` cmdlet to not populate secondary NTP server address correctly.
 - Fixed `Get-WSAServerDetails` cmdlet where incorrect initial check was looking for VMware Aria Automation not VMware Aria Suite Lifecycle.
 - Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
 - Fixed `Add-NsxtLdapRole` cmdlet which was passing the Workload Domain rather than the identity source domain when assigning groups and users.
@@ -81,11 +83,19 @@
 - Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
-- Enhanced `Export-vRLIJsonSpec` cmdlet to support automatic creation of anti-affinity rule.
+- Enhanced `Export-vRLIJsonSpec` cmdlet
+  - to support automatic creation of anti-affinity rule.
+  - to generate the JSON specification file using the Intelligent Logging and Analytics JSON specification file.
+  - to support a custom output folder for the JSON specification file.
 - Enhanced `Remove-vRSLCMEnvironment` cmdlet to support removing a product from an environment in VMware Aria Suite Lifecycle.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to use `Get-NsxtLdapStatus` and check if the identity source connection is operational.
 - Enhanced `Undo-SddcManagerRole` cmdlet for better error handling and message output.
-- Enhanced `Export-vRAJsonSpec` cmdlet to generate the JSON specification file using the Private Cloud Automation JSON specification file.
+- Enhanced `Export-vRAJsonSpec` cmdlet
+  - to generate the JSON specification file using the Private Cloud Automation JSON specification file.
+  - to support a custom output folder for the JSON specification file.
+- Enhanced `Export-vROPSJsonSpec` cmdlet:
+  - to generate the JSON specification file using the Intelligent Operations Management JSON specification file.
+  - to support a custom output folder for the JSON specification file.
 - Enhanced `Update-vRSLCMPSPack` cmdlet to perform a snapshot as part of the workflow and improved status checks.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
@@ -96,6 +106,7 @@
 - Removed `iamUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIamDeployment` cmdlet.
 - Removed `iomDeployAriaOperations.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IomDeployment` cmdlet.
 - Removed `iomConfigureAriaOperations.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IomDeployment` cmdlet.
+- Removed `pcaDeployAriaAutomation.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-PcaDeployment` cmdlet.
 
 ## v2.7.1
 
