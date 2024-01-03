@@ -10316,7 +10316,7 @@ Function Export-vRLIJsonSpec {
         This example creates a JSON specification file for deploying VMware Aria Operations for Logs using a custom version and data from the JSON specification file for Intelligent Logging and Analytics
 
         .EXAMPLE
-        Export-vRLIJsonSpec  -jsonFile .\ilaDeploySpec.json -useContentLibrary -contentLibrary Operations
+        Export-vRLIJsonSpec -jsonFile .\ilaDeploySpec.json -useContentLibrary -contentLibrary Operations
         This example creates a JSON specification file for deploying VMware Aria Operations for Logs deploying the OVA from a vSphere Conent Library and data from the JSON specification file for Intelligent Logging and Analytics
 
         .PARAMETER jsonFile
@@ -17775,11 +17775,6 @@ Function New-vRADeployment {
         [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
     )
 
-    if (!(Test-Path -Path $jsonFile)) {
-        Write-Error "JSON Specification for VMware Aria Automation (.josn) '$jsonFile' File Not Found"
-        Break
-    }
-
     Try {
         if (Test-Path -Path $jsonFile) {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -22910,6 +22905,241 @@ Function Import-ContentLibraryItem {
         Debug-ExceptionWriter -object $_
     }
 }
+Export-ModuleMember -Function Import-ContentLibraryItem
+
+Function Request-AslcmBundle {
+    <#
+        .SYNOPSIS
+        Request the download of the VMware Aria Suite Lifecycle bundle
+
+        .DESCRIPTION
+        The Request-AslcmBundle cmdlet requests the download of the VMware Aria Suite Lifecycle bundle in SDDC
+        Manager.
+
+        .EXAMPLE
+        Request-AslcmBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
+                $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
+                if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -ne 'SUCCESSFUL') {
+                    $request = Request-VCFBundle -id (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).id
+                    Start-Sleep 5
+                    Do { $taskStatus = Get-VCFTask -id $($request.id) | Select-Object status; Start-Sleep 5 } Until ($taskStatus -ne "IN_PROGRESS")
+                    if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
+                        Write-Output "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: SUCCESSFUL"
+                    } else {
+                        Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager, already downloaded: SKIPPED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-AslcmBundle
+
+Function New-AslcmDeployment {
+    <#
+        .SYNOPSIS
+        Deploy VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The New-AslcmDeployment cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Suite Lifecycle has not been deployed
+        - Requests a new deployment of VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        New-AslcmDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
+        This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$outputPath
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (!((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn)) {
+                        if ($PsBoundParameters.ContainsKey("outputPath")) {
+                            $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                        } else {
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                        }
+                        $deployVrslcmObject = @()
+                        $deployVrslcmObject += [pscustomobject]@{
+                            'apiPassword'           = $jsonInput.aslcmAdminPassword
+                            'fqdn'                  = $jsonInput.aslcmFqdn
+                            'nsxtStandaloneTier1Ip' = $jsonInput.aslcmIp
+                            'sshPassword'           = $jsonInput.aslcmSshPassword
+                        }
+                        $deployVrslcmObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
+                        $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
+                        $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
+                        if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
+                            $newRequest = New-VCFvRSLCM -json $jsonSpecFileName
+                            Start-Sleep 5
+                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                            if ($request.status -eq "Failed") {
+                                Write-Error "Deployment of VMware Aria Suite Lifecyle Finished with a Status ($(($request.status).ToUpper())): POST_VALIDATED_FAILED"
+                            } else {
+                                Write-Output "Deployment of VMware Aria Suite Lifecyle Finished with a Status: SUCCESSFUL"
+                            }
+                        } else {
+                            Write-Error "VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager. Not Found: PRE_VALIDATION_FAILED"
+                        }
+                    } else {
+                        Write-Warning "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), already exists: SKIPPED"
+                    }
+                }
+            }
+        } else {
+            Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-AslcmDeployment
+
+Function Install-AslcmCertificate {
+    <#
+        .SYNOPSIS
+        Install a signed certificate on VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Install-AslcmCertificate cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
+        Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Install a signed certificate on VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Install-AslcmCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
+        This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (Get-VCFCertificateAuthority -caType Microsoft) {
+                        if ((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn) {
+                            $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                            $csrGenerationSpecJson = '{
+                                "csrGenerationSpec": {
+                                    "country": "'+ $jsonInput.country + '",
+                                    "email": "'+ $jsonInput.email + '",
+                                    "keyAlgorithm": "'+ $jsonInput.keyAlgorithm + '",
+                                    "keySize": "'+ $jsonInput.keySize + '",
+                                    "locality": "'+ $jsonInput.locality + '",
+                                    "organization": "'+ $jsonInput.organization + '",
+                                    "organizationUnit": "'+ $jsonInput.organizationUnit + '",
+                                    "state": "'+ $jsonInput.state + '"
+                                    },
+                                    "resources":  [
+                                        {
+                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
+                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
+                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
+                                            "type":  "VRSLCM"
+                                        }
+                                    ]
+                                }'
+                            $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
+                            $caTypeJson = '{
+                                "caType": "Microsoft",
+                                    "resources":  [
+                                        {
+                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
+                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
+                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
+                                            "type":  "VRSLCM"
+                                        }
+                                    ]
+                                }'
+                            $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
+                            $operationTypeJson = '{
+                                "operationType": "INSTALL",
+                                    "resources":  [
+                                        {
+                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
+                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
+                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
+                                            "type":  "VRSLCM"
+                                        }
+                                    ]
+                                }'
+                            $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
+                            $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
+                            Start-Sleep 3
+                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
+                                if ($request.status -eq "FAILED") {
+                                    Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
+                                } else {
+                                    $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
+                                    Start-Sleep 3
+                                    Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
+                                    if ($request.status -eq "FAILED") {
+                                        Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                    } else {
+                                        $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
+                                        Start-Sleep 3
+                                        Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                                        if ($request.status -eq "FAILED") {
+                                            Write-Error "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                        } else {
+                                            Write-Output "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                        } else {
+                            Write-Error "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), Not Found: PRE_VALIDATION_FAILED"
+                        }
+                    } else {
+                        Write-Error "Microsoft Certificate Authority Not Configured in SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-AslcmCertificate
+
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
