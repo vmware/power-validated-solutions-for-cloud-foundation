@@ -17559,10 +17559,10 @@ Function Invoke-UndoPcaDeployment {
                                         if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                             Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder and Resource Pool for the $automationProductName-Managed Workloads"
                                             $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -foldername ($sddcDomain.name + $jsonInput.folderSuffix) -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                             Foreach ($cluster in $sddcDomain.clusters) {
                                                 $StatusMsg = Undo-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -resourcePoolName (((Get-VCFCluster -id $cluster.id).name) + $jsonInput.resourcePoolSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                             }
                                         }
                                     }
@@ -17574,7 +17574,7 @@ Function Invoke-UndoPcaDeployment {
                                         if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                             Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the $automationProductName Workload Virtual Machines for Workload Domain ($($sddcDomain.name))"
                                             $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -foldername ($sddcDomain.name + $jsonInput.nsxEdgeVmFolderSuffix) -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                         }
                                     }
                                 }
@@ -17585,7 +17585,7 @@ Function Invoke-UndoPcaDeployment {
                                         if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                             Show-PowerValidatedSolutionsOutput -message "Removeing Service Account Permissions for the $automationProductName to NSX-T Data Center Integration on the Workload Domain ($($sddcDomain.name))"
                                             $StatusMsg = Undo-NsxtVidmRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.serviceAccountNsx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                         }
                                     }
                                 }
@@ -17593,7 +17593,7 @@ Function Invoke-UndoPcaDeployment {
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Active Directory Groups for $automationProductName from Workspace ONE Access"
                                     $StatusMsg = Undo-WorkspaceOneDirectoryGroup -server $jsonInput.wsaFqdn -user $jsonInput.wsaUser -pass $jsonInput.wsaPass -domain $jsonInput.domainFqdn -bindUser $jsonInput.domainBindUserWsa -bindPass $jsonInput.domainBindPassWsa -baseDnGroup $jsonInput.baseDnGroup -adGroups $jsonInput.adGroups -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
@@ -17625,37 +17625,37 @@ Function Invoke-UndoPcaDeployment {
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the $automationProductName Password from $lcmProductName"
                                     $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                     $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.xintPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the Certificate for $automationProductName from $lcmProductName"
                                     $StatusMsg = Undo-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the $automationProductName License from $lcmProductName"
                                     $StatusMsg = Undo-vRSLCMLockerLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.licenseAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for the $automationProductName and $orchestratorProductName Integrations to vSphere"
                                     $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountAutomation -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true } 
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true } 
                                     $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountOrchestrator -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing Custom Roles from vSphere for $automationProductName and $orchestratorProductName"
                                     $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName-roleName $jsonInput.vsphereRoleNameAutomation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                     $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName-roleName $jsonInput.vsphereRoleNameOrchestrator -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
                             }
                         }
@@ -19590,6 +19590,1819 @@ Function Undo-vRAvROPsIntegrationItem {
     }
 }
 Export-ModuleMember -Function Undo-vRAvROPsIntegrationItem
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
+#Region                 V M W A R E  A R I A  S U I T E  L I F E C Y C L E  F U N C T I O N S               ###########
+
+Function Export-AslcmJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Export-AslcmJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
+        to deploy the VMware Aria Suite Lifecycle:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-AslcmJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\aslcmDeploySpec.json
+        This example creates a JSON specification VMware Aria Suite Lifecycleusing the Planning and Preparation Workbook.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        } 
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $Workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+                'sddcManagerFqdn'                   = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'                   = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'                   = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'                = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'contentLibraryName'                = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+                'customerConnectAlias'              = ($pnpWorkbook.Workbook.Names["xreg_customer_connect_email"].Value).Split('@')[0]
+                'customerConnectPassword'           = $pnpWorkbook.Workbook.Names["xreg_customer_connect_password"].Value
+                'customerConnectUsername'           = $pnpWorkbook.Workbook.Names["xreg_customer_connect_email"].Value
+                'aslcmFqdn'                         = $pnpWorkbook.Workbook.Names["xreg_vrslcm_fqdn"].Value
+                'aslcmIp'                           = $pnpWorkbook.Workbook.Names["vrs_t1_lb_si_ip"].Value
+                'aslcmAdminPassword'                = $pnpWorkbook.Workbook.Names["vcfadmin_local_password"].Value
+                'aslcmSshPassword'                  = $pnpWorkbook.Workbook.Names["vrslcm_root_password"].Value
+                'country'                           = $pnpWorkbook.Workbook.Names["ca_country"].Value
+                'email'                             = $pnpWorkbook.Workbook.Names["ca_email_address"].Value
+                'keyAlgorithm'                      = $pnpWorkbook.Workbook.Names["ca_algorithm"].Value
+                'keySize'                           = $pnpWorkbook.Workbook.Names["ca_key_size"].Value
+                'locality'                          = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+                'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+                'organizationUnit'                  = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+                'state'                             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+            }
+            Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    $issueWithJson = $true
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Creation of JSON Specification file for VMware Aria Suite Lifecycle, missing data: POST_VALIDATION_FAILED"
+            } else { 
+                Show-PowerValidatedSolutionsOutput -message "Creation of JSON Specification file for VMware Aria Suite Lifecycle: SUCCESSFUL"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-AslcmJsonSpec
+
+Function Invoke-AslcmDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end Deployment of VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Invoke-AslcmDeployment cmdlet is a single function to deploy and configure VMware Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Invoke-AslcmDeployment -jsonFile .\aslcmDeploySpec.json
+        This example deploies and configures VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    # Define Reusable Parameters
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    $failureDetected = $false
+
+                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $lcmProductName"
+                    
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -message "Downloading $lcmProductName Install Bundle in SDDC Manager"
+                        $StatusMsg = Request-AslcmBundle -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                    }
+
+                    if (!$failureDetected) { 
+                        Show-PowerValidatedSolutionsOutput -message "Deploying $lcmProductName using SDDC Manager"
+                        $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                        $StatusMsg = New-AslcmDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                    }
+
+                    if (!$failureDetected) {
+                        Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
+                        $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"; $ErrorMsg = $null }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                    }
+
+                    if (Get-VCFvRSLCM) {
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of the $lcmProductName Instance using SDDC Manager"
+                            $StatusMsg = Install-AslcmCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Adding the VMware Customer Connect Password to $lcmProductName"
+                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.customerConnectAlias -password $jsonInput.customerConnectPassword -userName $jsonInput.customerConnectUsername -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -type INFO -Message "Adding Customer Connect Account to $lcmProductName"
+                            $StatusMsg = Add-vRslcmMyVMwareAccount -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.customerConnectAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (((Get-VCFVrslcm).version -Split ('-'))[-0] -lt "8.14.0") {
+                            if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
+                                    $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack "PSPACK17" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Obtain and Upload $lcmProductName Upgrade ISO to vSphere Content Library"
+                                $upgradeIsoPath = $binaries + (Get-ChildItem $binaries | Where-Object {$_.name -match ("(updaterepo.iso)")}).name
+                                if ($upgradeIsoPath = $binaries + (Get-ChildItem $binaries | Where-Object {$_.name -match ("(updaterepo.iso)")}).name) {
+                                    Show-PowerValidatedSolutionsOutput -message "Importing $lcmProductName Upgrade ISO into vSphere Content Library"
+                                    $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $upgradeIsoPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$lcmProductName Upgrade ISO ($upgradeIsoPath) File Not Found: PRE_VALIDATION_FAILED"
+                                }
+                                
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Upgrading VMware Aria Suite Lifecycle"
+                                Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Deleting Snapshots of $lcmProductName"
+                                Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                            }
+                        }
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Deployment of $lcmProductName Not Found"
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-AslcmDeployment
+
+Function Add-vRSLCMMyVMwareAccount {
+    <#
+        .SYNOPSIS
+        Add a Customer Connection Account to the VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Add-vRSLCMMyVMwareAccount cmdlet adds a Customer Connection Account to VMware Aria Suite Lifecycle based on
+        credentials added to the VMware Aria Suite Lifecycle locker. The cmdlet connects to SDDC Manager using the
+        -server, -user, and -password values then:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the account is not present in VMware Aria Suite Lifecycle
+        - Adds the Customer Connection Account to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Add-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
+        This example adds an account to Customer Connection Account using an alias of 'myVmwareAccount' to VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the password credential in the VMware Aria Suite Lifecycle locker.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            if (Get-vRSLCMLockerPassword -alias $alias) {
+                                if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
+                                    New-vRSLCMMyVmwareAccount -alias $alias | Out-Null
+                                    if ((Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
+                                        Write-Output "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), already exists: SKIPPED"
+                                }
+                            } else {
+                                Write-Error "Unable to locate the password with alias ($alias) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-vRSLCMMyVMwareAccount
+
+Function Undo-vRSLCMMyVMwareAccount {
+    <#
+        .SYNOPSIS
+        Remove a Customer Connection Account from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Undo-vRSLCMMyVMwareAccount cmdlet removes a Customer Connection Account from VMware Aria Suite Lifecycle.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Verifies that the account is present in VMware Aria Suite Lifecycle
+        - Removes the Customer Connection Account from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Undo-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
+        This example removes the Customer Connection Account 'myVmwareAccount' from VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER alias
+        The alias of the password credential in the VMware Aria Suite Lifecycle locker.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            if (Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias}) {
+                                Remove-vRSLCMMyVmwareAccount -alias $alias | Out-Null
+                                if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
+                                    Write-Output "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), does not exist: SKIPPED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMMyVMwareAccount
+
+Function New-vRSLCMDatacenter {
+    <#
+        .SYNOPSIS
+        Adds a datacenter to VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The New-vRSLCMDatacenter cmdlet adds a datacenter to the VMware Aria Suite Lifecycle inventory. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the datacenter has not already been created in the inventory
+        - Creates the datacenter in the inventory
+
+        .EXAMPLE
+        New-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -location "San Francisco, California, US"
+        This example adds a datacenter to the VMware Aria Suite Lifecycle inventory.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER datacenterName
+        The name of the datacenter to add to the inventory.
+
+        .PARAMETER location
+        The location of the datacenter to add to the inventory.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
+                            if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
+                                Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location | Out-Null
+                                if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
+                                    Write-Output "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
+                            }
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRSLCMDatacenter
+
+Function New-vRSLCMDatacenterVcenter {
+    <#
+        .SYNOPSIS
+        Adds a vCenter Server to a Datacenter to VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The New-vRSLCMDatacenterVcenter cmdlet adds a vCenter Server to a Datacenter to the VMware Aria Suite Lifecycle
+        Manager inventory. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the vCenter Server has not already been added to the Datacenter
+        - Adds the vCenter Server to the Datacenter
+
+        .EXAMPLE
+        New-vRSLCMDatacenterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -userLockerAlias sfo-m01-vc01-sfo-m01-dc01
+        This example adds a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER datacenterName
+        The name of the datacenter to add the vCenter Server to.
+
+        .PARAMETER vcenterFqdn
+        The FQDN of the vCenter Server to add to the Datacenter.
+
+        .PARAMETER userLockerAlias
+        The user locker alias of the vCenter Server to add to the Datacenter.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userLockerAlias
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
+                            if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
+                                if (Get-vRSLCMLockerPassword -alias $userLockerAlias) {
+                                    if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName  ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue)) {
+                                        Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
+                                        Start-Sleep 10
+                                        if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
+                                            Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])), already exists: SKIPPED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to find Password alias in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($userLockerAlias): PRE_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Error "Unable to find Datacenter named ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function New-vRSLCMDatacenterVcenter
+
+Function Undo-vRSLCMDatacenter {
+    <#
+        .SYNOPSIS
+        Deletes a datacenter from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Undo-vRSLCMDatacenter cmdlet deletes a datacenter from the VMware Aria Suite Lifecycle inventory. The
+        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the datacenter has not already been removed from the inventory
+        - Deletes the datacenter from the inventory
+
+        .EXAMPLE
+        Undo-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01
+        This example deletes a datacenter from the VMware Aria Suite Lifecycle inventory.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER datacenterName
+        The name of the datacenter to delete.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
+                            if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
+                                Remove-vRSLCMDatacenter -datacenterVmid ((Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid) | Out-Null
+                                Start-Sleep 5
+                                if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
+                                    Write-Output "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
+                            }
+                        }
+                    }
+                }                         
+            }
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Undo-vRSLCMDatacenter
+
+Function Update-vRSLCMPSPack {
+    <#
+        .SYNOPSIS
+        Refresh Product Support Packs and Install.
+
+        .DESCRIPTION
+        The Update-vRSLCMPSPack cmdlet refreshes the available Product Support Packs and installs the required version
+        to VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password
+        values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Update-vRSLCMPSPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -psPack PSPACK6
+        This example refreshes the available Product Support Packs and installs the required version to VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER psPack
+        The Product Support Pack to install.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$psPack
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            $request = Get-vRSLCMPSPack -checkOnline
+                            Start-Sleep 3
+                            Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
+                            if ($getStatus -eq "COMPLETED") {
+                                $allPsPacks = Get-vRSLCMPSPack
+                                $pspackId = ($allPsPacks | Where-Object {$_.fileName -like "*$psPack"}).pspackId
+                                if ($pspackId) {
+                                    $vcenterDetails = Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter).dataCenterVmid
+                                    $request = Start-vRSLCMSnapshot -vcenterFqdn $vcenterDetails.vCenterHost -vcenterName $vcenterDetails.vCenterName -username $vcenterDetails.vcUsername
+                                    Start-Sleep 3
+                                    Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
+                                    if ($getStatus -eq "COMPLETED") {
+                                        Start-Sleep 3
+                                        $request = Install-vRSLCMPSPack -pspackId $pspackId
+                                        Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS") 
+                                        Write-Output "Product Support Pack ($psPack) install started on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "VMware Aria Suite Lifecycle Snapshot Task ($($getStatus.vmid)) finished with state ($($getStatus)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Product Support Pack ($psPack) not found in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Error "VMware Aria Suite Lifecycle Product Support Pack Check Task ($($getStatus.vmid)) finished with state ($($getStatus)): POST_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Update-vRSLCMPSPack
+
+Function Request-AslcmBundle {
+    <#
+        .SYNOPSIS
+        Request the download of the VMware Aria Suite Lifecycle bundle
+
+        .DESCRIPTION
+        The Request-AslcmBundle cmdlet requests the download of the VMware Aria Suite Lifecycle bundle in SDDC
+        Manager.
+
+        .EXAMPLE
+        Request-AslcmBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
+                $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
+                if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -ne 'SUCCESSFUL') {
+                    $request = Request-VCFBundle -id (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).id
+                    Start-Sleep 5
+                    Do { $taskStatus = Get-VCFTask -id $($request.id) | Select-Object status; Start-Sleep 5 } Until ($taskStatus -ne "IN_PROGRESS")
+                    if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
+                        Write-Output "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: SUCCESSFUL"
+                    } else {
+                        Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: POST_VALIDATION_FAILED"
+                    }
+                } else {
+                    Write-Warning "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager, already downloaded: SKIPPED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Request-AslcmBundle
+
+Function New-AslcmDeployment {
+    <#
+        .SYNOPSIS
+        Deploy VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The New-AslcmDeployment cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Suite Lifecycle has not been deployed
+        - Requests a new deployment of VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        New-AslcmDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
+        This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$outputPath
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (!((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn)) {
+                        if ($PsBoundParameters.ContainsKey("outputPath")) {
+                            $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                        } else {
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                        }
+                        $deployVrslcmObject = @()
+                        $deployVrslcmObject += [pscustomobject]@{
+                            'apiPassword'           = $jsonInput.aslcmAdminPassword
+                            'fqdn'                  = $jsonInput.aslcmFqdn
+                            'nsxtStandaloneTier1Ip' = $jsonInput.aslcmIp
+                            'sshPassword'           = $jsonInput.aslcmSshPassword
+                        }
+                        $deployVrslcmObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
+                        $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
+                        $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
+                        if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
+                            $newRequest = New-VCFvRSLCM -json $jsonSpecFileName
+                            Start-Sleep 5
+                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                            if ($request.status -eq "Failed") {
+                                Write-Error "Deployment of VMware Aria Suite Lifecyle Finished with a Status ($(($request.status).ToUpper())): POST_VALIDATED_FAILED"
+                            } else {
+                                Write-Output "Deployment of VMware Aria Suite Lifecyle Finished with a Status: SUCCESSFUL"
+                            }
+                        } else {
+                            Write-Error "VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager. Not Found: PRE_VALIDATION_FAILED"
+                        }
+                    } else {
+                        Write-Warning "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), already exists: SKIPPED"
+                    }
+                }
+            }
+        } else {
+            Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-AslcmDeployment
+
+Function Undo-AslcmDeployment {
+    <#
+        .SYNOPSIS
+        Remove VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Undo-AslcmDeployment cmdlet removes VMware Aria Suite Lifecycle from SDDC Manager. The cmdlet connects to
+        SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment exist in VMware Aria Suite Lifecycle
+        - Requests a deletion of VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Undo-AslcmDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example starts the removal of VMware Aria Suite Lifecycle from SDDC Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
+                    if (Get-VCFvRSLCM) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                $scriptCommand = 'psql -h localhost -U postgres -d platform -c "update vrslcm set status = ''DISABLED''"'
+                                Invoke-VMScript -VM  (($server).split('.')[-0]) -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass | Out-Null
+                                $newRequest = Remove-VCFvRSLCM
+                                Start-Sleep 3
+                                Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                                if ($request.status -eq "FAILED") {
+                                    Write-Error "Removing VMware Aria Suite Lifecycle ($((Get-VCFvRSLCM).fqdn)) from SDDC Manager: POST_VALIDATED_FAILED"
+                                } else {
+                                    Write-Output "Removing VMware Aria Suite Lifecycle ($((Get-VCFvRSLCM).fqdn)) from SDDC Manager: SUCCESSFUL"
+                                }
+                            }
+                        }
+                    } else {
+                        Write-Warning "Removing VMware Aria Suite Lifecycle from SDDC Manager, not present: SKIPPED"
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-AslcmDeployment
+
+Function Install-AslcmCertificate {
+    <#
+        .SYNOPSIS
+        Install a signed certificate on VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Install-AslcmCertificate cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
+        Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
+        - Install a signed certificate on VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Install-AslcmCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
+        This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (Get-VCFCertificateAuthority -caType Microsoft) {
+                        if ((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn) {
+                            $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
+                            $csrGenerationSpecJson = '{
+                                "csrGenerationSpec": {
+                                    "country": "'+ $jsonInput.country + '",
+                                    "email": "'+ $jsonInput.email + '",
+                                    "keyAlgorithm": "'+ $jsonInput.keyAlgorithm + '",
+                                    "keySize": "'+ $jsonInput.keySize + '",
+                                    "locality": "'+ $jsonInput.locality + '",
+                                    "organization": "'+ $jsonInput.organization + '",
+                                    "organizationUnit": "'+ $jsonInput.organizationUnit + '",
+                                    "state": "'+ $jsonInput.state + '"
+                                    },
+                                    "resources":  [
+                                        {
+                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
+                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
+                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
+                                            "type":  "VRSLCM"
+                                        }
+                                    ]
+                                }'
+                            $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
+                            $caTypeJson = '{
+                                "caType": "Microsoft",
+                                    "resources":  [
+                                        {
+                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
+                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
+                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
+                                            "type":  "VRSLCM"
+                                        }
+                                    ]
+                                }'
+                            $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
+                            $operationTypeJson = '{
+                                "operationType": "INSTALL",
+                                    "resources":  [
+                                        {
+                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
+                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
+                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
+                                            "type":  "VRSLCM"
+                                        }
+                                    ]
+                                }'
+                            $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
+                            $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
+                            Start-Sleep 3
+                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
+                                if ($request.status -eq "FAILED") {
+                                    Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
+                                } else {
+                                    $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
+                                    Start-Sleep 3
+                                    Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
+                                    if ($request.status -eq "FAILED") {
+                                        Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                    } else {
+                                        $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
+                                        Start-Sleep 3
+                                        Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                                        if ($request.status -eq "FAILED") {
+                                            Write-Error "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
+                                        } else {
+                                            Write-Output "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
+                                        }
+                                    }
+                                }
+                        } else {
+                            Write-Error "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), Not Found: PRE_VALIDATION_FAILED"
+                        }
+                    } else {
+                        Write-Error "Microsoft Certificate Authority Not Configured in SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Install-AslcmCertificate
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
+#Region                       W O R K S P A C E  O N E  A C C E S S  F U N C T I O N S                      ###########
+
+Function Export-GlobalWsaJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Global Workspace ONE Access
+
+        .DESCRIPTION
+        The Export-GlobalWsaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation
+        workbook to deploy and configure Global Workspace ONE Access:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-GlobalWsaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\wsaDeploySpec.json
+        This example creates a JSON specification for Global Workspace ONE Access using the Planning and Preparation Workbook.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        } 
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $Workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+            'sddcManagerFqdn'                   = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+            'sddcManagerUser'                   = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+            'sddcManagerPass'                   = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+            'mgmtSddcDomainName'                = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+            'environmentName'                   = "globalenvironment"
+            'contentLibraryName'                = $pnpWorkbook.Workbook.Names["vrslcm_xreg_content_library"].Value
+            'xintDatacenter'                    = $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value
+            'xintLocation'                      = $pnpWorkbook.Workbook.Names["vrslcm_xreg_location"].Value
+            'certificateAlias'                  = $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value
+            'globalPasswordAlias'               = $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value
+            'globalPassword'                    = $pnpWorkbook.Workbook.Names["global_env_admin_username"].Value
+            'globalUserName'                    = $pnpWorkbook.Workbook.Names["xreg_vra_root_username"].Value
+            'rootPasswordAlias'                 = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password_alias"].Value
+            'rootPassword'                      = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password"].Value
+            'rootUserName'                      = $pnpWorkbook.Workbook.Names["local_vcf_aware_wsa_root_password_username"].Value
+            'adminPasswordAlias'                = $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value
+            'adminPassword'                     = $pnpWorkbook.Workbook.Names["local_admin_password"].Value
+            'adminUserName'                     = $pnpWorkbook.Workbook.Names["local_admin_username"].Value
+            'configAdminPasswordAlias'          = $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value
+            'configAdminPassword'               = $pnpWorkbook.Workbook.Names["local_configadmin_password"].Value
+            'configAdminUserName'               = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
+            'wsaClusterFqdn'                    = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
+            'vcFqdn'                            = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+            'vcHostname'                        = $pnpWorkbook.Workbook.Names["mgmt_vc_hostname"].Value
+            'vmList'                            = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value + "," + $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+            'antiAffinityRuleName'              = "anti-affinity-rule-wsa" # $pnpWorkbook.Workbook.Names["xreg_wsa_anti_affinity_rule"].Value
+            'drsGroupNameWsa'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_vm_group_name"].Value
+            'stretchedCluster'                  = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            'drsVmGroupNameAz'                  = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+            'ntpServer'                         = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+            'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            'domainBindDn'                      = $pnpWorkbook.Workbook.Names["child_ad_bind_dn"].Value
+            'domainBindUser'                    = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_user"].Value
+            'domainBindPass'                    = $pnpWorkbook.Workbook.Names["child_svc_wsa_ad_password"].Value
+            'baseGroupDn'                       = $pnpWorkbook.Workbook.Names["child_ad_groups_ou"].Value
+            'baseUserDn'                        = $pnpWorkbook.Workbook.Names["child_ad_users_ou"].Value
+            'adGroups'                          = "$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value)","$($pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value)"
+            'wsaAdminGroup'                     = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_admins"].Value
+            'wsaDirectoryAdminGroup'            = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_directory_admins"].Value
+            'wsaReadOnlyGroup'                  = $pnpWorkbook.Workbook.Names["group_child_gg_wsa_read_only"].Value
+            'aslcmAdminGroup'                   = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_admins"].Value
+            'aslcmReleaseManagersGroup'         = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_release_managers"].Value
+            'aslcmContentDevelopersGroup'       = $pnpWorkbook.Workbook.Names["group_gg_vrslcm_content_developers"].Value
+            'firstNodeWsa'                      = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
+
+        }
+        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    $issueWithJson = $true
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message  "Creation of JSON Specification file for Clustered Workspace ONE Access, missing data: POST_VALIDATION_FAILED"
+            } else { 
+                Show-PowerValidatedSolutionsOutput -message  "Creation of JSON Specification file for Clustered Workspace ONE Access: SUCCESSFUL"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-GlobalWsaJsonSpec
+
+Function Invoke-GlobalWsaDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end Deployment of Global Workspace ONE Access
+
+        .DESCRIPTION
+        The Invoke-GlobalWsaDeployment cmdlet is a single function to deploy and configure Global Workspace ONE Access.
+
+        .EXAMPLE
+        Invoke-GlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
+        This example deploys and configures Global Workspace ONE Access using JSON spec supplied
+
+        .EXAMPLE
+        Invoke-GlobalWsaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
+        This example deploys and configures Global Workspace ONE Access using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary
+    )
+
+    # Define Reusable Parameters
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $wsaProductName = "Workspace ONE Access"
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            if (Test-Path -Path $workbook) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                $wsaPem = $certificates + $jsonInput.certificateAlias + ".2.chain.pem"
+                if (Test-Path -Path $wsaPem) {
+                    $rootPem = $certificates + "Root64.pem"
+                    if (Test-Path -Path $rootPem) {
+                        if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                            if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                        $failureDetected = $false
+
+                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $wsaProductName"
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
+                                            $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                $wsaOvaPath = $binaries + (Get-ChildItem $binaries | Where-Object {$_.name -match "identity-manager"}).name
+                                                if ((([regex]::Match(((Split-Path $wsaOvaPath -leaf)), "(?<=-)\d+\.\d+\.\d+").Value) -notin (Get-vRSLCMProductVersion -productId vidm))) {
+                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName OVA ($(Split-Path $wsaOvaPath -leaf)) does not match a supported version: PRE_VALIDATION_FAILED"; $failureDetected = $true
+                                                } elseif (($wsaOvaPath -match "identity-manager")) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Importing $wsaProductName OVA into vSphere Content Library"
+                                                    $StatusMsg = Import-ContentLibraryItem -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -contentLibrary $jsonInput.contentLibraryName -file $wsaOvaPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                                } else {
+                                                    Show-PowerValidatedSolutionsOutput -type ERROR -message "$wsaProductName OVA ($(Split-Path $wsaOvaPath -leaf)). File Not Found: PRE_VALIDATION_FAILED"
+                                                }
+                                            }
+                                            $allDatacenters = Get-vRSLCMDatacenter
+                                            foreach ($datacenter in $allDatacenters) {
+                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                            }
+                                        }
+                                        
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring Data Center and vCenter Server in $lcmProductName"
+                                            $StatusMsg = New-vRSLCMDatacenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -location $jsonInput.xintLocation -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"; $ErrorMsg = $null }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            $userNameAlias = (Get-vRSLCMLockerPassword | Where-Object {$_.userName -match $jsonInput.vcHostname}).alias
+                                            $StatusMsg = New-vRSLCMDatacenterVcenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -vcenterFqdn $jsonInput.vcfqdn -userLockerAlias $userNameAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"; $ErrorMsg = $null }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) { 
+                                            Show-PowerValidatedSolutionsOutput -message "Importing the $wsaProductName Certificate to $lcmProductName"
+                                            $StatusMsg = Import-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -certChainPath $wsaPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Adding $wsaProductName Passwords to $lcmProductName"
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.globalPasswordAlias -password $jsonInput.globalPassword  -userName $jsonInput.globalUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -password $jsonInput.rootPassword  -userName $jsonInput.rootUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -password $jsonInput.adminPassword  -userName $jsonInput.adminUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            $StatusMsg = New-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.configAdminPasswordAlias -password $jsonInput.configAdminPassword  -userName $jsonInput.configAdminUserName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Deploying $wsaProductName Instance Using $lcmProductName"
+                                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                $StatusMsg = New-WsaDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            } else {
+                                                $StatusMsg = New-WsaDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -workbook $workbook -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            }
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            if ( $StatusMsg -contains "FAILED") { Show-PowerValidatedSolutionsOutput -type ERROR -message "Deployment of $automationProductName failed"; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configure an Anti-Affinity Rule and a Virtual Machine Group for a $wsaProductName Instance"
+                                            $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -antiAffinityVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            $StatusMsg = Add-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -drsGroupVMs $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            if ($stretchedCluster -eq "Include") {
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Appliances to the First Availability Zone VM Group"
+                                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmList -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"  }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configure NTP on $wsaProductName"
+                                            $clusterNodes = (Get-vRSLCMProductNode -environmentName $jsonInput.environment -product vidm).hostname
+                                            foreach ($wsaNode in $clusterNodes) {
+                                                Show-PowerValidatedSolutionsOutput -message "Configuring NTP on $wsaProductName Virtual Appliance ($wsaNode)"
+                                                $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -wsaFqdn $wsaNode -rootPass $jsonInput.rootPassword -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring the Domain and Domain Search Parameters on $wsaProductName"
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring an Identity Source for $wsaProductName"
+                                            $StatusMsg = Add-WorkspaceOneDirectory -server $jsonInput.firstNodeWsa -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -domain $jsonInput.domainFqdn -baseDnUser $jsonInput.baseUserDn -baseDnGroup $jsonInput.baseGroupDN -bindUserDn $jsonInput.domainBindDn -bindUserPass $jsonInput.domainBindPass -adGroups $jsonInput.adGroups -protocol ldaps -certificate $rootPem -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            $clusterNodes = (Get-vRSLCMProductNode -environmentName $jsonInput.environment -product vidm).hostname
+                                            if ($clusterNodes.Count -gt 1) {
+                                                Show-PowerValidatedSolutionsOutput -message "Adding the $wsaProductName Cluster Nodes as Identity Provider Connectors"
+                                                $allNodes = @()
+                                                $allNodes += ($clusterNodes -Split ",")[1]
+                                                $allNodes += ($clusterNodes -Split ",")[2]
+                                                Foreach ($node in $allNodes) {
+                                                    Show-PowerValidatedSolutionsOutput -message "Adding Node ($node) as Identity Provider Connector sto Workspace Access ONE Instance ($($jsonInput.wsaClusterFqdn))"
+                                                    $StatusMsg = Add-WorkspaceOneDirectoryConnector -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -wsaNode $node -wsaUser $jsonInput.adminUserName -wsaPass $jsonInput.adminPassword -bindUserPass $jsonInput.domainBindPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                                }
+                                            }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Assiging Roles to Active Directory Groups for $wsaProductName"
+                                            $wsaSuperAdminRole  = "Super Admin"
+                                            $wsaDirAdminRole = "Directory Admin"
+                                            $wsaReadOnlyRole = "ReadOnly Admin"
+                                            Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaSuperAdminRole) Role to ($($jsonInput.wsaAdminGroup))"
+                                            $StatusMsg = Add-WorkspaceOneRole -server $jsonInput.wsaClusterFqdn -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaAdminGroup -role $wsaSuperAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaDirAdminRole) Role to ($($jsonInput.wsaDirectoryAdminGroup))"
+                                            $StatusMsg = Add-WorkspaceOneRole -server $jsonInput.wsaClusterFqdn -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaDirectoryAdminGroup -role $wsaDirAdminRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                            Show-PowerValidatedSolutionsOutput -message "Attempting to Assign the ($wsaReadOnlyRole) Role to ($($jsonInput.wsaReadOnlyGroup))"
+                                            $StatusMsg = Add-WorkspaceOneRole -server $jsonInput.wsaClusterFqdn -user $jsonInput.adminUserName -pass $jsonInput.adminPassword -group $jsonInput.wsaReadOnlyGroup -role $wsaReadOnlyRole -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+
+                                        if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Assign Roles to Active Directory Groups for $lcmProductName"
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for Root Certificate Authority ($rootPem): File Not Found"
+                    }
+                } else {
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message "Certificate File (.pem) for $wsaProductName ($wsaPem): File Not Found"
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $wsaProductName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-GlobalWsaDeployment
+
+Function Invoke-UndoGlobalWsaDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end removal of Global Workspace ONE Access
+
+        .DESCRIPTION
+        The Invoke-UndoGlobalWsaDeployment cmdlet is a single function to remove Global Workspace ONE Access.
+
+        .EXAMPLE
+        Invoke-UndoGlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json
+        This example removes Global Workspace ONE Access using JSON spec supplied
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    # Define Reusable Parameters
+    $lcmProductName = "VMware Aria Suite Lifecycle"
+    $wsaProductName = "Workspace ONE Access"
+
+    Try {
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $jsonInput.sddcManagerFqdn -username $jsonInput.sddcManagerUser -password $jsonInput.sddcManagerPass)) {
+                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                $failureDetected = $false
+
+                                Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $wsaProductName"
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Remove Roles for Active Directory Groups in $lcmProductName"
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing an Anti-Affinity Rule and a Virtual Machine Group for  $wsaProductName Instance"
+                                    $StatusMsg = Undo-ClusterGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -drsGroupName $jsonInput.drsGroupNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    $StatusMsg = Undo-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                            foreach ($vm in ($jsonInput.vmList -Split ',')) {
+                                                if (Get-VM -name $vm -ErrorAction SilentlyContinue ) {
+                                                    Get-VM -name $vm | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                                    Do {$powerState = (Get-VM -name $vm | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
+                                                    Get-VM -name $vm | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                                }
+                                            }
+                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                            Show-PowerValidatedSolutionsOutput -message "Deleting $automationProductName from $lcmProductName"
+                                            $StatusMsg = Undo-WsaDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -environmentName $jsonInput.environmentName -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        }
+                                    }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Data Center and vCenter Server from $lcmProductName"
+                                    $StatusMsg = Undo-vRSLCMDatacenter -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -datacenterName $jsonInput.xintDatacenter -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg"; $ErrorMsg = $null } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) { 
+                                    Show-PowerValidatedSolutionsOutput -message "Removing the $wsaProductName Certificate from $lcmProductName"
+                                    $StatusMsg = Undo-vRSLCMLockerCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -certificateAlias $jsonInput.certificateAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing $wsaProductName Passwords from $lcmProductName"
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.globalPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.rootPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.adminPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    $StatusMsg = Undo-vRSLCMLockerPassword -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -alias $jsonInput.configAdminPasswordAlias -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $wsaProductName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-CatchWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoGlobalWsaDeployment
+
+Function Export-WsaJsonSpec {
+    <#
+        .SYNOPSIS
+        Create Workspace ONE Access JSON specification.
+
+        .DESCRIPTION
+        The Export-WsaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
+        to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
+        - Validates that the Planning and Preparation is available
+        - Validates that network connectivity is available to VMware Aria Suite Lifecycle
+        - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
+        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
+        This example creates a JSON deployment specification of Standard Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
+        This example creates a JSON deployment specification of Clustered Workspace ONE Access using a custom version and the Planning and Preparation Workbook
+
+        .EXAMPLE
+        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+
+        .PARAMETER server
+        The fully qualified domain name of the VMware Aria Suite Lifecycle instance.
+
+        .PARAMETER user
+        The username of the VMware Aria Suite Lifecycle instance.
+
+        .PARAMETER pass
+        The password of the VMware Aria Suite Lifecycle instance.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation Workbook (.xlsx).
+
+        .PARAMETER standard
+        Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
+
+        .PARAMETER customVersion
+        The version of Workspace ONE Access to deploy.
+
+        .PARAMETER useContentLibrary
+        Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        } else {
+            if (!(Test-Path -Path $workbook)) {
+                Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+                Break
+            }
+        }
+
+        if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
+        $pnpWorkbook = Open-ExcelPackage -Path $workbook
+
+        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "wsaDeploymentSpec.json")
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
+                            if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value }) {
+                                if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
+                                    if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
+                                        if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
+                                            if ($vcfVersion -ge "4.5.0") {
+                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local") }
+                                            } else {
+                                                $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
+                                            }
+                                            if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value }) {
+                                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value }
+                                                
+                                                #### Generate the Workspace ONE Properties Section
+                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
+                                                    if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5" }
+                                                    if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5" }
+                                                    if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6" }
+                                                    if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6" }
+                                                    if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6" }
+                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7" }
+                                                    if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
+                                                    if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
+                                                    if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
+                                                } else {
+                                                    $wsaVersion = $customVersion
+                                                }
+
+                                                $infrastructurePropertiesObject = @()
+                                                $infrastructurePropertiesObject += [pscustomobject]@{
+                                                    'acceptEULA'        = "true"
+                                                    'enableTelemetry'   = "true"
+                                                    'regionName'        = "default"
+                                                    'zoneName'          = "default"
+                                                    'dataCenterVmid'    = $datacenterName.dataCenterVmid
+                                                    'vCenterName'       = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
+                                                    'vCenterHost'       = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
+                                                    'vcUsername'        = $vcCredentials.userName
+                                                    'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
+                                                    'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
+                                                    'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                    'cluster'           = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
+                                                    'storage'           = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
+                                                    'diskMode'          = "thin"
+                                                    'network'           = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                                                    'masterVidmEnabled' = "false"
+                                                    'dns'               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+                                                    'domain'            = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
+                                                    'gateway'           = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
+                                                    'netmask'           = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
+                                                    'searchpath'        = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
+                                                    'timeSyncMode'      = "ntp"
+                                                    'ntp'               = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                                                    'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
+                                                }
+
+                                                $infrastructureObject = @()
+                                                $infrastructureObject += [pscustomobject]@{
+                                                    'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
+                                                }
+
+                                                ### Generate the Properties Details
+                                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
+                                                    if ($contentLibraryItems) {
+                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
+                                                    } else {
+                                                        Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                                        Break
+                                                    }
+                                                }
+                                                $productPropertiesObject = @()
+                                                $productPropertiesObject += [pscustomobject]@{
+                                                    'vidmAdminPassword'            = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
+                                                    'syncGroupMembers'             = $true
+                                                    'nodeSize'                     = ($pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value).ToLower()
+                                                    'defaultConfigurationEmail'    = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
+                                                    'defaultConfigurationUsername' = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
+                                                    'defaultConfigurationPassword' = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
+                                                    'defaultTenantAlias'           = ""
+                                                    'vidmDomainName'               = ""
+                                                    'certificate'                  = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                    'contentLibraryItemId'         = $contentLibraryItemId
+                                                    'fipsMode'                     = "false"
+                                                }
+
+                                                #### Generate Workspace ONE Access Details
+                                                if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                    $clusterLbProperties = @()
+                                                    $clusterLbProperties += [pscustomobject]@{
+                                                        'controllerType'        = "NSX_T"
+                                                        'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
+                                                        'lockerCertificate'     = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
+                                                    }
+                                                
+                                                    $clusterDelegateObject = @()
+                                                    $clusterDelegateObject += [pscustomobject]@{
+                                                        'ip' = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
+                                                    }
+
+                                                    $clusterVipsObject = @()
+                                                    $clusterVipsObject += [pscustomobject]@{
+                                                        'type'       = "vidm-lb"
+                                                        'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
+                                                    }
+                                                    $clusterVipsObject += [pscustomobject]@{
+                                                        'type'       = "vidm-delegate"
+                                                        'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
+                                                    }
+
+                                                    $clusterObject = @()
+                                                    $clusterObject += [pscustomobject]@{
+                                                        'clusterVips'	= $clusterVipsObject
+                                                    }
+                                                } else {
+                                                    $clusterObject = @()
+                                                    $clusterObject += [pscustomobject]@{
+                                                        'clusterVips'	= @()
+                                                    }
+                                                }
+
+                                                #### Generate Worspace ONE Access Node Details
+                                                $wsaPrimaryProperties = @()
+                                                $wsaPrimaryProperties += [pscustomobject]@{
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
+                                                }
+
+                                                $wsaSecondary1Properties = @()
+                                                $wsaSecondary1Properties += [pscustomobject]@{
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
+                                                }
+
+                                                $wsaSecondary2Properties = @()
+                                                $wsaSecondary2Properties += [pscustomobject]@{
+                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
+                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
+                                                }
+
+                                                $nodesObject = @()
+                                                $nodesobject += [pscustomobject]@{
+                                                    'type'       = "vidm-primary"
+                                                    'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
+                                                }
+                                                if (!$PsBoundParameters.ContainsKey("standard")) {
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'       = "vidm-secondary"
+                                                        'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
+                                                    }
+                                                    $nodesobject += [pscustomobject]@{
+                                                        'type'       = "vidm-secondary"
+                                                        'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
+                                                    }
+                                                }
+
+                                                $productsObject = @()
+                                                $productsObject += [pscustomobject]@{
+                                                    'id'         = "vidm"
+                                                    'version'    = $wsaVersion
+                                                    'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
+                                                    'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
+                                                    'nodes'      = $nodesObject	
+                                                }
+                                                
+                                                $wsaDeploymentObject = @()
+                                                $wsaDeploymentObject += [pscustomobject]@{
+                                                    'environmentId'   = "globalenvironment"
+                                                    'environmentName' = "globalenvironment"
+                                                    'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
+                                                    'products'        = $productsObject
+                                                } 
+
+                                                $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
+                                                Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
+                                            }
+                                        } else {
+                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                        }
+                                    } else {
+                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                    }
+                                } else {
+                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                                }
+                            } else {
+                                Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-WsaJsonSpec
+
+Function New-WSADeployment {
+    <#
+        .SYNOPSIS
+        Deploy Workspace ONE Access to VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The New-WSADeployment cmdlet deploys Workspace ONE Access via VMware Aria Suite Lifecycle. The cmdlet connects
+        to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity is available to the SDDC Manager instance
+        - Makes a connection to the SDDC Manager instance and validates that authentication possible
+        - Validates that Workspace ONE Access has not been deployed in VMware Cloud Foundation aware mode 
+        - Requests a new deployment of a Workspace ONE Access
+
+        .EXAMPLE
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+        This example starts a deployment of a clustered Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
+        This example starts a deployment of a standard Workspace ONE Access using the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
+        This example starts a deployment of Workspace ONE Access using a custom version and the Planning and Preparation Workbook
+
+        .EXAMPLE
+        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+        This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+    )
+
+    if (!$PsBoundParameters.ContainsKey("workbook")) {
+        $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+    } else {
+        if (!(Test-Path -Path $workbook)) {
+            Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
+            Break
+        }
+    }
+
+    if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered" }
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            $commandSwitch = ""
+                            if ($PsBoundParameters.ContainsKey("customVersion")) {
+                                $commandSwitch = $commandSwitch + " -customVersion $customVersion"
+                            }
+                            if ($PsBoundParameters.ContainsKey("standard")) {
+                                $commandSwitch = $commandSwitch + " -standard"
+                            }
+                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
+                                $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
+                            }
+                            Invoke-Expression "Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) -ErrorAction SilentlyContinue -ErrorVariable ErrorMsg | Out-Null"
+                            if (!$ErrorMsg) {
+                                $pnpWorkbook = Open-ExcelPackage -Path $workbook
+                                $loadBalancerFqdn = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
+                                $loadBalancerIp = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value
+                                if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}))) {
+                                    New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $loadBalancerIp -loadBalancerFqdn $loadBalancerFqdn | Out-Null
+                                }
+                                $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
+                                $json = (Get-Content -Raw $jsonSpecFileName)
+                                $jsonSpec = $json | ConvertFrom-Json
+                                if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
+                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
+                                        if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
+                                            if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
+                                                $newRequest = Add-vRSLCMEnvironment -json $json
+                                                if ($newRequest) {
+                                                    if ($PsBoundParameters.ContainsKey("monitor")) {
+                                                        Start-Sleep 10
+                                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                                    } else {
+                                                        Write-Output "Deployment Request for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
+                                                    }
+                                                } else {
+                                                    Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI"
+                                                }
+                                                
+                                            } else {
+                                                Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
+                                }
+                            } else {
+                                Write-Error "JSON specification validation: PRE_VALIDATED_FAILED"
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function New-WSADeployment
+
+Function Undo-WSADeployment {
+    <#
+        .SYNOPSIS
+        Remove the Workspace ONE Access from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Undo-WSADeployment cmdlet removes Workspace ONE Access from VMware Aria Suite Lifecycle. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validates that the environment exist in VMware Aria Suite Lifecycle
+        - Requests a the deletion of Workspace ONE Access from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Undo-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName globalenvironment
+        This example starts a removal of Workspace ONE Access from VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager vSphere SSO username.
+
+        .PARAMETER pass
+        The SDDC Manager vSphere SSO password.
+
+        .PARAMETER environmentName
+        The Workspace ONE Access Environment Name.
+
+        .PARAMETER monitor
+        Monitor the VMware Aria Suite Lifecycle request.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$environmentName,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if ($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
+                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                            if (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName -and $_.products.id -eq 'vidm'}) {
+                                $newRequest = Remove-vRSLCMEnvironment -environmentId (Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName}).environmentId -productId vidm -ErrorAction SilentlyContinue
+                                if ($newRequest) {
+                                    if ($PsBoundParameters.ContainsKey("monitor")) {
+                                        Start-Sleep 10
+                                        $status = Watch-vRSLCMRequest -vmid $($newRequest.requestId)
+                                        if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $environmentName -and $_.products.id -eq 'vidm'})) {
+                                            if ($status -match "COMPLETED") {
+                                                Write-Output "Removal of Workspace ONE Access from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
+                                            } else {
+                                                Write-Error "Removal of Workspace ONE Access from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "Removal of Workspace ONE Access from Environment ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Output "Removal request of Workspace ONE Access Submitted Successfully (Request Ref: $($newRequest.requestId))"
+                                    }
+                                } else {
+                                    Write-Error "Removal request of Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Environment with name ($environmentName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already removed: SKIPPED"
+                            }
+                        }
+                    }
+                } 
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-WSADeployment
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -22082,432 +23895,6 @@ Function Undo-vRSLCMLockerLicense {
 }
 Export-ModuleMember -Function Undo-vRSLCMLockerLicense
 
-Function Add-vRSLCMMyVMwareAccount {
-    <#
-        .SYNOPSIS
-        Add a Customer Connection Account to the VMware Aria Suite Lifecycle.
-
-        .DESCRIPTION
-        The Add-vRSLCMMyVMwareAccount cmdlet adds a Customer Connection Account to VMware Aria Suite Lifecycle based on
-        credentials added to the VMware Aria Suite Lifecycle locker. The cmdlet connects to SDDC Manager using the
-        -server, -user, and -password values then:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-        - Verifies that the account is not present in VMware Aria Suite Lifecycle
-        - Adds the Customer Connection Account to VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        Add-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
-        This example adds an account to Customer Connection Account using an alias of 'myVmwareAccount' to VMware Aria Suite Lifecycle.
-
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The SDDC Manager admin user.
-
-        .PARAMETER pass
-        The SDDC Manager admin password.
-
-        .PARAMETER alias
-        The alias of the password credential in the VMware Aria Suite Lifecycle locker.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (Get-vRSLCMLockerPassword -alias $alias) {
-                                if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
-                                    New-vRSLCMMyVmwareAccount -alias $alias | Out-Null
-                                    if ((Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
-                                        Write-Output "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
-                                    } else {
-                                        Write-Error "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
-                                    }
-                                } else {
-                                    Write-Warning "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), already exists: SKIPPED"
-                                }
-                            } else {
-                                Write-Error "Unable to locate the password with alias ($alias) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Add-vRSLCMMyVMwareAccount
-
-Function Undo-vRSLCMMyVMwareAccount {
-    <#
-        .SYNOPSIS
-        Remove a Customer Connection Account from VMware Aria Suite Lifecycle.
-
-        .DESCRIPTION
-        The Undo-vRSLCMMyVMwareAccount cmdlet removes a Customer Connection Account from VMware Aria Suite Lifecycle.
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-        - Verifies that the account is present in VMware Aria Suite Lifecycle
-        - Removes the Customer Connection Account from VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        Undo-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
-        This example removes the Customer Connection Account 'myVmwareAccount' from VMware Aria Suite Lifecycle.
-
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The SDDC Manager admin user.
-
-        .PARAMETER pass
-        The SDDC Manager admin password.
-
-        .PARAMETER alias
-        The alias of the password credential in the VMware Aria Suite Lifecycle locker.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$alias
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            if (Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias}) {
-                                Remove-vRSLCMMyVmwareAccount -alias $alias | Out-Null
-                                if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
-                                    Write-Output "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
-                                } else {
-                                    Write-Error "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
-                                }
-                            } else {
-                                Write-Warning "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), does not exist: SKIPPED"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Undo-vRSLCMMyVMwareAccount
-
-Function New-vRSLCMDatacenter {
-    <#
-        .SYNOPSIS
-        Adds a datacenter to VMware Aria Suite Lifecycle.
-
-        .DESCRIPTION
-        The New-vRSLCMDatacenter cmdlet adds a datacenter to the VMware Aria Suite Lifecycle inventory. The
-        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-        - Validates that the datacenter has not already been created in the inventory
-        - Creates the datacenter in the inventory
-
-        .EXAMPLE
-        New-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -location "San Francisco, California, US"
-        This example adds a datacenter to the VMware Aria Suite Lifecycle inventory.
-
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The SDDC Manager admin user.
-
-        .PARAMETER pass
-        The SDDC Manager admin password.
-
-        .PARAMETER datacenterName
-        The name of the datacenter to add to the inventory.
-
-        .PARAMETER location
-        The location of the datacenter to add to the inventory.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$location
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
-                            if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
-                                Add-vRSLCMDatacenter -datacenterName $datacenterName -location $location | Out-Null
-                                if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
-                                    Write-Output "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): SUCCESSFUL"
-                                } else {
-                                    Write-Error "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName): POST_VALIDATION_FAILED"
-                                }
-                            } else {
-                                Write-Warning "Adding Datacenter to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory name ($datacenterName), already exists: SKIPPED"
-                            }
-                        }
-                    }
-                }                         
-            }
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function New-vRSLCMDatacenter
-
-Function New-vRSLCMDatacenterVcenter {
-    <#
-        .SYNOPSIS
-        Adds a vCenter Server to a Datacenter to VMware Aria Suite Lifecycle.
-
-        .DESCRIPTION
-        The New-vRSLCMDatacenterVcenter cmdlet adds a vCenter Server to a Datacenter to the VMware Aria Suite Lifecycle
-        Manager inventory. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-        - Validates that the vCenter Server has not already been added to the Datacenter
-        - Adds the vCenter Server to the Datacenter
-
-        .EXAMPLE
-        New-vRSLCMDatacenterVcenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01 -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -userLockerAlias sfo-m01-vc01-sfo-m01-dc01
-        This example adds a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle.
-
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The SDDC Manager admin user.
-
-        .PARAMETER pass
-        The SDDC Manager admin password.
-
-        .PARAMETER datacenterName
-        The name of the datacenter to add the vCenter Server to.
-
-        .PARAMETER vcenterFqdn
-        The FQDN of the vCenter Server to add to the Datacenter.
-
-        .PARAMETER userLockerAlias
-        The user locker alias of the vCenter Server to add to the Datacenter.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vcenterFqdn,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$userLockerAlias
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
-                            if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
-                                if (Get-vRSLCMLockerPassword -alias $userLockerAlias) {
-                                    if (!(Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName  ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue)) {
-                                        Add-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterFqdn $vcenterFqdn -userLockerAlias $userLockerAlias | Out-Null
-                                        Start-Sleep 10
-                                        if (Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid -vcenterName ($vcenterFqdn.Split(".")[0]) -ErrorAction SilentlyContinue) {
-                                            Write-Output "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): SUCCESSFUL"
-                                        } else {
-                                            Write-Error "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
-                                        }
-                                    } else {
-                                        Write-Warning "Adding vCenter Server to Datacenter ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($($vcenterFqdn.Split(".")[0])), already exists: SKIPPED"
-                                    }
-                                } else {
-                                    Write-Error "Unable to find Password alias in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) named ($userLockerAlias): PRE_VALIDATION_FAILED"
-                                }
-                            } else {
-                                Write-Error "Unable to find Datacenter named ($datacenterName) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
-                            }
-                        }
-                    }
-                }                         
-            }
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function New-vRSLCMDatacenterVcenter
-
-Function Undo-vRSLCMDatacenter {
-    <#
-        .SYNOPSIS
-        Deletes a datacenter from VMware Aria Suite Lifecycle.
-
-        .DESCRIPTION
-        The Undo-vRSLCMDatacenter cmdlet deletes a datacenter from the VMware Aria Suite Lifecycle inventory. The
-        cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-        - Validates that the datacenter has not already been removed from the inventory
-        - Deletes the datacenter from the inventory
-
-        .EXAMPLE
-        Undo-vRSLCMDatacenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -datacenterName xint-m01-dc01
-        This example deletes a datacenter from the VMware Aria Suite Lifecycle inventory.
-
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The SDDC Manager admin user.
-
-        .PARAMETER pass
-        The SDDC Manager admin password.
-
-        .PARAMETER datacenterName
-        The name of the datacenter to delete.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$datacenterName
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) { 
-                            if (Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue ) {
-                                Remove-vRSLCMDatacenter -datacenterVmid ((Get-vRSLCMDatacenter -datacenterName $datacenterName).datacenterVmid) | Out-Null
-                                Start-Sleep 2
-                                if (!(Get-vRSLCMDatacenter -datacenterName $datacenterName -ErrorAction SilentlyContinue )) {
-                                    Write-Output "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): SUCCESSFUL"
-                                } else {
-                                    Write-Error "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName): POST_VALIDATION_FAILED"
-                                }
-                            } else {
-                                Write-Warning "Removing Datacenter from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) inventory named ($datacenterName), does not exist: SKIPPED"
-                            }
-                        }
-                    }
-                }                         
-            }
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Undo-vRSLCMDatacenter
-
-Function Update-vRSLCMPSPack {
-    <#
-        .SYNOPSIS
-        Refresh Product Support Packs and Install.
-
-        .DESCRIPTION
-        The Update-vRSLCMPSPack cmdlet refreshes the available Product Support Packs and installs the required version
-        to VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password
-        values.
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details
-        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        Update-vRSLCMPSPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -psPack PSPACK6
-        This example refreshes the available Product Support Packs and installs the required version to VMware Aria Suite Lifecycle.
-
-        .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
-
-        .PARAMETER user
-        The SDDC Manager admin user.
-
-        .PARAMETER pass
-        The SDDC Manager admin password.
-
-        .PARAMETER psPack
-        The Product Support Pack to install.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$psPack
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            $request = Get-vRSLCMPSPack -checkOnline
-                            Start-Sleep 3
-                            Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
-                            if ($getStatus -eq "COMPLETED") {
-                                $allPsPacks = Get-vRSLCMPSPack
-                                $pspackId = ($allPsPacks | Where-Object {$_.fileName -like "*$psPack"}).pspackId
-                                if ($pspackId) {
-                                    $vcenterDetails = Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter).dataCenterVmid
-                                    $request = Start-vRSLCMSnapshot -vcenterFqdn $vcenterDetails.vCenterHost -vcenterName $vcenterDetails.vCenterName -username $vcenterDetails.vcUsername
-                                    Start-Sleep 3
-                                    Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
-                                    if ($getStatus -eq "COMPLETED") {
-                                        Start-Sleep 3
-                                        $request = Install-vRSLCMPSPack -pspackId $pspackId
-                                        Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS") 
-                                        Write-Output "Product Support Pack ($psPack) install started on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): SUCCESSFUL"
-                                    } else {
-                                        Write-Error "VMware Aria Suite Lifecycle Snapshot Task ($($getStatus.vmid)) finished with state ($($getStatus)): POST_VALIDATION_FAILED"
-                                    }
-                                } else {
-                                    Write-Error "Product Support Pack ($psPack) not found in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
-                                }
-                            } else {
-                                Write-Error "VMware Aria Suite Lifecycle Product Support Pack Check Task ($($getStatus.vmid)) finished with state ($($getStatus)): POST_VALIDATION_FAILED"
-                            }
-                        }
-                    }
-                } 
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Update-vRSLCMPSPack
-
 Function Add-VmGroup {
     <#
 		.SYNOPSIS
@@ -23087,240 +24474,6 @@ Function Import-ContentLibraryItem {
     }
 }
 Export-ModuleMember -Function Import-ContentLibraryItem
-
-Function Request-AslcmBundle {
-    <#
-        .SYNOPSIS
-        Request the download of the VMware Aria Suite Lifecycle bundle
-
-        .DESCRIPTION
-        The Request-AslcmBundle cmdlet requests the download of the VMware Aria Suite Lifecycle bundle in SDDC
-        Manager.
-
-        .EXAMPLE
-        Request-AslcmBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
-    )
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
-                $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
-                if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -ne 'SUCCESSFUL') {
-                    $request = Request-VCFBundle -id (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).id
-                    Start-Sleep 5
-                    Do { $taskStatus = Get-VCFTask -id $($request.id) | Select-Object status; Start-Sleep 5 } Until ($taskStatus -ne "IN_PROGRESS")
-                    if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
-                        Write-Output "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: SUCCESSFUL"
-                    } else {
-                        Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: POST_VALIDATION_FAILED"
-                    }
-                } else {
-                    Write-Warning "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager, already downloaded: SKIPPED"
-                }
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Request-AslcmBundle
-
-Function New-AslcmDeployment {
-    <#
-        .SYNOPSIS
-        Deploy VMware Aria Suite Lifecycle
-
-        .DESCRIPTION
-        The New-AslcmDeployment cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager. The cmdlet
-        connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that VMware Aria Suite Lifecycle has not been deployed
-        - Requests a new deployment of VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        New-AslcmDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
-        This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$outputPath
-    )
-
-    Try {
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            if (Test-VCFConnection -server $server) {
-                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                    if (!((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn)) {
-                        if ($PsBoundParameters.ContainsKey("outputPath")) {
-                            $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
-                        } else {
-                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
-                        }
-                        $deployVrslcmObject = @()
-                        $deployVrslcmObject += [pscustomobject]@{
-                            'apiPassword'           = $jsonInput.aslcmAdminPassword
-                            'fqdn'                  = $jsonInput.aslcmFqdn
-                            'nsxtStandaloneTier1Ip' = $jsonInput.aslcmIp
-                            'sshPassword'           = $jsonInput.aslcmSshPassword
-                        }
-                        $deployVrslcmObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName
-                        $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
-                        $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
-                        if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
-                            $newRequest = New-VCFvRSLCM -json $jsonSpecFileName
-                            Start-Sleep 5
-                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
-                            if ($request.status -eq "Failed") {
-                                Write-Error "Deployment of VMware Aria Suite Lifecyle Finished with a Status ($(($request.status).ToUpper())): POST_VALIDATED_FAILED"
-                            } else {
-                                Write-Output "Deployment of VMware Aria Suite Lifecyle Finished with a Status: SUCCESSFUL"
-                            }
-                        } else {
-                            Write-Error "VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager. Not Found: PRE_VALIDATION_FAILED"
-                        }
-                    } else {
-                        Write-Warning "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), already exists: SKIPPED"
-                    }
-                }
-            }
-        } else {
-            Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function New-AslcmDeployment
-
-Function Install-AslcmCertificate {
-    <#
-        .SYNOPSIS
-        Install a signed certificate on VMware Aria Suite Lifecycle
-
-        .DESCRIPTION
-        The Install-AslcmCertificate cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
-        Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to SDDC Manager
-        - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
-        - Install a signed certificate on VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        Install-AslcmCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
-        This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
-    )
-
-    Try {
-        if (Test-Path -Path $jsonFile) {
-            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
-            if (Test-VCFConnection -server $server) {
-                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                    if (Get-VCFCertificateAuthority -caType Microsoft) {
-                        if ((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn) {
-                            $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\"
-                            $csrGenerationSpecJson = '{
-                                "csrGenerationSpec": {
-                                    "country": "'+ $jsonInput.country + '",
-                                    "email": "'+ $jsonInput.email + '",
-                                    "keyAlgorithm": "'+ $jsonInput.keyAlgorithm + '",
-                                    "keySize": "'+ $jsonInput.keySize + '",
-                                    "locality": "'+ $jsonInput.locality + '",
-                                    "organization": "'+ $jsonInput.organization + '",
-                                    "organizationUnit": "'+ $jsonInput.organizationUnit + '",
-                                    "state": "'+ $jsonInput.state + '"
-                                    },
-                                    "resources":  [
-                                        {
-                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
-                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
-                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
-                                            "type":  "VRSLCM"
-                                        }
-                                    ]
-                                }'
-                            $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
-                            $caTypeJson = '{
-                                "caType": "Microsoft",
-                                    "resources":  [
-                                        {
-                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
-                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
-                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
-                                            "type":  "VRSLCM"
-                                        }
-                                    ]
-                                }'
-                            $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
-                            $operationTypeJson = '{
-                                "operationType": "INSTALL",
-                                    "resources":  [
-                                        {
-                                            "fqdn":  "'+(Get-VCFvRSLCM).fqdn+'",
-                                            "name":  "'+(Get-VCFvRSLCM).fqdn.Split(".")[0]+'",
-                                            "resourceId":  "'+(Get-VCFvRSLCM).id+'",
-                                            "type":  "VRSLCM"
-                                        }
-                                    ]
-                                }'
-                            $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
-                            $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
-                            Start-Sleep 3
-                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
-                                if ($request.status -eq "FAILED") {
-                                    Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
-                                } else {
-                                    $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
-                                    Start-Sleep 3
-                                    Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
-                                    if ($request.status -eq "FAILED") {
-                                        Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
-                                    } else {
-                                        $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
-                                        Start-Sleep 3
-                                        Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
-                                        if ($request.status -eq "FAILED") {
-                                            Write-Error "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
-                                        } else {
-                                            Write-Output "Installing VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: SUCCESSFUL"
-                                        }
-                                    }
-                                }
-                        } else {
-                            Write-Error "VMware Aria Suite Lifecycle Manager ($($jsonInput.aslcmFqdn)), Not Found: PRE_VALIDATION_FAILED"
-                        }
-                    } else {
-                        Write-Error "Microsoft Certificate Authority Not Configured in SDDC Manager ($server): PRE_VALIDATION_FAILED"
-                    }
-                }
-            }
-        } else {
-            Write-Error "JSON Specification file for VMware Aria Suite Lifecycle ($jsonFile), File Not Found: PRE_VALIDATED_FAILED"
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Install-AslcmCertificate
-
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -33523,13 +34676,17 @@ Function Remove-vRSLCMEnvironment {
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$environmentId,
-        [Parameter (Mandatory = $false)] [ValidateSet('vrops','vra','vrni')] [String]$productId
+        [Parameter (Mandatory = $false)] [ValidateSet('vrops','vra','vrni','vidm')] [String]$productId
     )
 
     Try {
         
         if ($PsBoundParameters.ContainsKey("productId")) {
-            $body = '{ "deleteFromVcenter": true, "deleteLbFromSddc": true, "deleteWindowsVMs": true }'
+            if ($productId -eq "vidm") {
+                $body = '{ "deleteFromVcenter": false, "deleteLbFromSddc": true, "deleteWindowsVMs": false }'
+            } else {
+                $body = '{ "deleteFromVcenter": true, "deleteLbFromSddc": true, "deleteWindowsVMs": true }'
+            }
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/environments/$environmentId/products/$productId"
         } else {
             $body = '{ "deleteFromInventory": true, "deleteFromVcenter": true, "deleteLbFromSddc": true, "deleteWindowsVMs": true }'
@@ -33780,418 +34937,6 @@ Function Resume-vRSLCMRequest {
     }
 }
 Export-ModuleMember -Function Resume-vRSLCMRequest
-
-Function Export-WsaJsonSpec {
-    <#
-        .SYNOPSIS
-        Create Workspace ONE Access JSON specification.
-
-        .DESCRIPTION
-        The Export-WsaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
-        - Validates that the Planning and Preparation is available
-        - Validates that network connectivity is available to VMware Aria Suite Lifecycle
-        - Makes a connection to the VMware Aria Suite Lifecycle instance and validates that authentication possible
-        - Generates the JSON specification file using the Planning and Preparation workbook and details from VMware Aria Suite Lifecycle
-
-        .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook
-
-        .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
-        This example creates a JSON deployment specification of Standard Workspace ONE Access using the Planning and Preparation Workbook
-
-        .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using a custom version and the Planning and Preparation Workbook
-
-        .EXAMPLE
-        Export-WsaJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example creates a JSON deployment specification of Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
-
-        .PARAMETER server
-        The fully qualified domain name of the VMware Aria Suite Lifecycle instance.
-
-        .PARAMETER user
-        The username of the VMware Aria Suite Lifecycle instance.
-
-        .PARAMETER pass
-        The password of the VMware Aria Suite Lifecycle instance.
-
-        .PARAMETER workbook
-        The path to the Planning and Preparation Workbook (.xlsx).
-
-        .PARAMETER standard
-        Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
-
-        .PARAMETER customVersion
-        The version of Workspace ONE Access to deploy.
-
-        .PARAMETER useContentLibrary
-        Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
-
-        .PARAMETER contentLibrary
-        The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
-    )
-
-    Try {
-        if (!$PsBoundParameters.ContainsKey("workbook")) {
-            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        } else {
-            if (!(Test-Path -Path $workbook)) {
-                Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
-                Break
-            }
-        }
-
-        if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered"}
-        $pnpWorkbook = Open-ExcelPackage -Path $workbook
-
-        ### Obtain Configuration Information from VMware Aria Suite Lifecycle
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
-                    $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object { $_.type -eq "MANAGEMENT" }).name) + "-" + "wsaDeploymentSpec.json")
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {   
-                            if ($wsaCertificate = Get-vRSLCMLockerCertificate | Where-Object { $_.alias -eq $pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value }) {
-                                if ($defaultPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value) { 
-                                    if ($configAdminPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value) { 
-                                        if ($wsaPassword = Get-vRSLCMLockerPassword -alias $pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value) {
-                                            if ($vcfVersion -ge "4.5.0") {
-                                                $vcCredentials = Get-vRSLCMLockerPassword | Where-Object { $_.userName -match (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "@vsphere.local") }
-                                            } else {
-                                                $vcCredentials = Get-vRSLCMLockerPassword -alias (($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0] + "-" + $pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value)
-                                            }
-                                            if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value }) {
-                                                $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $pnpWorkbook.Workbook.Names["vrslcm_xreg_env"].Value }
-                                                
-                                                #### Generate the Workspace ONE Properties Section
-                                                if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                    if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5" }
-                                                    if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5" }
-                                                    if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6" }
-                                                    if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6" }
-                                                    if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6" }
-                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7" }
-                                                    if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
-                                                    if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
-                                                    if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
-                                                } else {
-                                                    $wsaVersion = $customVersion
-                                                }
-
-                                                $infrastructurePropertiesObject = @()
-                                                $infrastructurePropertiesObject += [pscustomobject]@{
-                                                    'acceptEULA'        = "true"
-                                                    'enableTelemetry'   = "true"
-                                                    'regionName'        = "default"
-                                                    'zoneName'          = "default"
-                                                    'dataCenterVmid'    = $datacenterName.dataCenterVmid
-                                                    'vCenterName'       = ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]
-                                                    'vCenterHost'       = $pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value
-                                                    'vcUsername'        = $vcCredentials.userName
-                                                    'vcPassword'        = ("locker:password:" + $($vcCredentials.vmid) + ":" + $($vcCredentials.alias))
-                                                    'defaultPassword'   = ("locker:password:" + $($defaultPassword.vmid) + ":" + $($defaultPassword.alias))
-                                                    'certificate'       = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    'cluster'           = ($pnpWorkbook.Workbook.Names["mgmt_datacenter"].Value + "#" + $pnpWorkbook.Workbook.Names["mgmt_cluster"].Value)
-                                                    'storage'           = $pnpWorkbook.Workbook.Names["mgmt_vsan_datastore"].Value
-                                                    'diskMode'          = "thin"
-                                                    'network'           = $pnpWorkbook.Workbook.Names["xreg_seg01_name"].Value
-                                                    'masterVidmEnabled' = "false"
-                                                    'dns'               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + "," + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
-                                                    'domain'            = $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value
-                                                    'gateway'           = $pnpWorkbook.Workbook.Names["xreg_seg01_gateway_ip"].Value
-                                                    'netmask'           = $pnpWorkbook.Workbook.Names["xreg_seg01_mask"].Value
-                                                    'searchpath'        = $pnpWorkbook.Workbook.Names["parent_dns_zone"].Value
-                                                    'timeSyncMode'      = "ntp"
-                                                    'ntp'               = $pnpWorkbook.Workbook.Names["xregion_ntp1_server"].Value
-                                                    'vcfProperties'     = '{"vcfEnabled":true,"sddcManagerDetails":[{"sddcManagerHostName":"' + $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value + '","sddcManagerName":"default","sddcManagerVmid":"default"}]}'
-                                                }
-
-                                                $infrastructureObject = @()
-                                                $infrastructureObject += [pscustomobject]@{
-                                                    'properties'	= ($infrastructurePropertiesObject | Select-Object -Skip 0)
-                                                }
-
-                                                ### Generate the Properties Details
-                                                if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                                    $contentLibraryItems = ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenterName.dataCenterVmid -vcenterName ($pnpWorkbook.Workbook.Names["mgmt_vc_fqdn"].Value).Split(".")[0]).contentLibraries | Where-Object { $_.contentLibraryName -eq $contentLibrary }).contentLibraryItems
-                                                    if ($contentLibraryItems) {
-                                                        $contentLibraryItemId = ($contentLibraryItems | Where-Object { $_.contentLibraryItemName -match "identity-manager-$wsaVersion" }).contentLibraryItemId
-                                                    } else {
-                                                        Write-Error "Unable to find vSphere Content Library ($contentLibrary) or Content Library Item in VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
-                                                        Break
-                                                    }
-                                                }
-                                                $productPropertiesObject = @()
-                                                $productPropertiesObject += [pscustomobject]@{
-                                                    'vidmAdminPassword'            = ("locker:password:" + $($wsaPassword.vmid) + ":" + $($wsaPassword.alias))
-                                                    'syncGroupMembers'             = $true
-                                                    'nodeSize'                     = ($pnpWorkbook.Workbook.Names["xreg_wsa_node_size"].Value).ToLower()
-                                                    'defaultConfigurationEmail'    = $pnpWorkbook.Workbook.Names["xreg_configadmin_email"].Value
-                                                    'defaultConfigurationUsername' = $pnpWorkbook.Workbook.Names["local_configadmin_username"].Value
-                                                    'defaultConfigurationPassword' = ("locker:password:" + $($configAdminPassword.vmid) + ":" + $($configAdminPassword.alias))
-                                                    'defaultTenantAlias'           = ""
-                                                    'vidmDomainName'               = ""
-                                                    'certificate'                  = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    'contentLibraryItemId'         = $contentLibraryItemId
-                                                    'fipsMode'                     = "false"
-                                                }
-
-                                                #### Generate Workspace ONE Access Details
-                                                if (!$PsBoundParameters.ContainsKey("standard")) {
-                                                    $clusterLbProperties = @()
-                                                    $clusterLbProperties += [pscustomobject]@{
-                                                        'controllerType'        = "NSX_T"
-                                                        'hostName'	            = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                                                        'lockerCertificate'     = ("locker:certificate:" + $($wsaCertificate.vmid) + ":" + $($wsaCertificate.alias))
-                                                    }
-                                                
-                                                    $clusterDelegateObject = @()
-                                                    $clusterDelegateObject += [pscustomobject]@{
-                                                        'ip' = $pnpWorkbook.Workbook.Names["xreg_wsa_delegate_ip"].Value
-                                                    }
-
-                                                    $clusterVipsObject = @()
-                                                    $clusterVipsObject += [pscustomobject]@{
-                                                        'type'       = "vidm-lb"
-                                                        'properties'	= ($clusterLbProperties | Select-Object -Skip 0)
-                                                    }
-                                                    $clusterVipsObject += [pscustomobject]@{
-                                                        'type'       = "vidm-delegate"
-                                                        'properties'	= ($clusterDelegateObject | Select-Object -Skip 0)
-                                                    }
-
-                                                    $clusterObject = @()
-                                                    $clusterObject += [pscustomobject]@{
-                                                        'clusterVips'	= $clusterVipsObject
-                                                    }
-                                                } else {
-                                                    $clusterObject = @()
-                                                    $clusterObject += [pscustomobject]@{
-                                                        'clusterVips'	= @()
-                                                    }
-                                                }
-
-                                                #### Generate Worspace ONE Access Node Details
-                                                $wsaPrimaryProperties = @()
-                                                $wsaPrimaryProperties += [pscustomobject]@{
-                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_fqdn"].Value
-                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
-                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_ip"].Value
-                                                }
-
-                                                $wsaSecondary1Properties = @()
-                                                $wsaSecondary1Properties += [pscustomobject]@{
-                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_fqdn"].Value
-                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
-                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_ip"].Value
-                                                }
-
-                                                $wsaSecondary2Properties = @()
-                                                $wsaSecondary2Properties += [pscustomobject]@{
-                                                    'hostName' = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_fqdn"].Value
-                                                    'vmName'   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-                                                    'ip'       = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_ip"].Value
-                                                }
-
-                                                $nodesObject = @()
-                                                $nodesobject += [pscustomobject]@{
-                                                    'type'       = "vidm-primary"
-                                                    'properties'	= ($wsaPrimaryProperties | Select-Object -Skip 0)
-                                                }
-                                                if (!$PsBoundParameters.ContainsKey("standard")) {
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'       = "vidm-secondary"
-                                                        'properties'	= ($wsaSecondary1Properties | Select-Object -Skip 0)
-                                                    }
-                                                    $nodesobject += [pscustomobject]@{
-                                                        'type'       = "vidm-secondary"
-                                                        'properties'	= ($wsaSecondary2Properties | Select-Object -Skip 0)
-                                                    }
-                                                }
-
-                                                $productsObject = @()
-                                                $productsObject += [pscustomobject]@{
-                                                    'id'         = "vidm"
-                                                    'version'    = $wsaVersion
-                                                    'properties'	= ($productPropertiesObject  | Select-Object -Skip 0)
-                                                    'clusterVIP'	= ($clusterObject  | Select-Object -Skip 0)
-                                                    'nodes'      = $nodesObject	
-                                                }
-                                                
-                                                $wsaDeploymentObject = @()
-                                                $wsaDeploymentObject += [pscustomobject]@{
-                                                    'environmentId'   = "globalenvironment"
-                                                    'environmentName' = "globalenvironment"
-                                                    'infrastructure'  = ($infrastructureObject  | Select-Object -Skip 0)
-                                                    'products'        = $productsObject
-                                                } 
-
-                                                $wsaDeploymentObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonSpecFileName 
-                                                Write-Output "Creation of Deployment JSON Specification file for $deploymentType Workspace ONE Access: SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Datacenter Provided in the Planning and Preparation Workbook '$($pnpWorkbook.Workbook.Names["vrslcm_xreg_dc"].Value)' does not exist, create and retry"
-                                            }
-                                        } else {
-                                            Write-Error "Root Password with alias '$($pnpWorkbook.Workbook.Names["local_admin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
-                                        }
-                                    } else {
-                                        Write-Error "Admin Password with alias '$($pnpWorkbook.Workbook.Names["global_env_admin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
-                                    }
-                                } else {
-                                    Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["local_configadmin_password_alias"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
-                                }
-                            } else {
-                                Write-Error "Certificate with alias '$($pnpWorkbook.Workbook.Names["xreg_wsa_cert_name"].Value)' not found in the VMware Aria Suite Lifecycle Locker, add and retry"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Export-WsaJsonSpec
-
-Function New-WSADeployment {
-    <#
-        .SYNOPSIS
-        Deploy Workspace ONE Access to VMware Aria Suite Lifecycle.
-
-        .DESCRIPTION
-        The New-WSADeployment cmdlet deploys Workspace ONE Access via VMware Aria Suite Lifecycle. The cmdlet connects
-        to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity is available to the SDDC Manager instance
-        - Makes a connection to the SDDC Manager instance and validates that authentication possible
-        - Validates that Workspace ONE Access has not been deployed in VMware Cloud Foundation aware mode 
-        - Requests a new deployment of a Workspace ONE Access
-
-        .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
-        This example starts a deployment of a clustered Workspace ONE Access using the Planning and Preparation Workbook
-
-        .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -standard
-        This example starts a deployment of a standard Workspace ONE Access using the Planning and Preparation Workbook
-
-        .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 3.3.7
-        This example starts a deployment of Workspace ONE Access using a custom version and the Planning and Preparation Workbook
-
-        .EXAMPLE
-        New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$workbook,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$monitor,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$standard,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$customVersion,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
-    )
-
-    if (!$PsBoundParameters.ContainsKey("workbook")) {
-        $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-    } else {
-        if (!(Test-Path -Path $workbook)) {
-            Write-Error  "Planning and Preparation Workbook (.xlsx) '$workbook' File Not Found"
-            Break
-        }
-    }
-
-    if ($PsBoundParameters.ContainsKey("standard")) { $deploymentType = "Standard (Single Node)" } else { $deploymentType = "Clustered" }
-
-    Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
-                    if (Test-vRSLCMConnection -server $vcfVrslcmDetails.fqdn) {
-                        if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                            $commandSwitch = ""
-                            if ($PsBoundParameters.ContainsKey("customVersion")) {
-                                $commandSwitch = $commandSwitch + " -customVersion $customVersion"
-                            }
-                            if ($PsBoundParameters.ContainsKey("standard")) {
-                                $commandSwitch = $commandSwitch + " -standard"
-                            }
-                            if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                $commandSwitch = $commandSwitch + " -useContentLibrary -contentLibrary $contentLibrary"
-                            }
-                            Invoke-Expression "Export-WSAJsonSpec -server $server -user $user -pass $pass -workbook $workbook $($commandSwitch) -ErrorAction SilentlyContinue -ErrorVariable ErrorMsg | Out-Null"
-                            if (!$ErrorMsg) {
-                                $pnpWorkbook = Open-ExcelPackage -Path $workbook
-                                $loadBalancerFqdn = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_fqdn"].Value
-                                $loadBalancerIp = $pnpWorkbook.Workbook.Names["xreg_wsa_virtual_ip"].Value
-                                if (!(((Get-vRSLCMLoadbalancer -type NSX_T) | Where-Object {$_.loadBalancerDetails -match $loadBalancerFqdn}))) {
-                                    New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp $loadBalancerIp -loadBalancerFqdn $loadBalancerFqdn | Out-Null
-                                }
-                                $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "wsaDeploymentSpec.json")
-                                $json = (Get-Content -Raw $jsonSpecFileName)
-                                $jsonSpec = $json | ConvertFrom-Json
-                                if (!(Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonSpec.environmentName})) {
-                                    if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])) {
-                                        if (Get-vRSLCMLockerPassword -alias $($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])) {
-                                            if (Get-vRSLCMLockerCertificate | Where-Object {$_.alias -Match $($jsonSpec.products.properties.certificate.Split(":")[3])}) {
-                                                $newRequest = Add-vRSLCMEnvironment -json $json
-                                                if ($newRequest) {
-                                                    if ($PsBoundParameters.ContainsKey("monitor")) {
-                                                        Start-Sleep 10
-                                                        Watch-vRSLCMRequest -vmid $($newRequest.requestId)
-                                                    } else {
-                                                        Write-Output "Deployment Request for $deploymentType Workspace ONE Access (Request Ref: $($newRequest.requestId))"
-                                                    }
-                                                } else {
-                                                    Write-Error "Request to deploy $deploymentType Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI"
-                                                }
-                                                
-                                            } else {
-                                                Write-Error "Certificate in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.certificate.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
-                                            }
-                                        } else {
-                                            Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.defaultConfigurationPassword.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
-                                        }
-                                    } else {
-                                        Write-Error "Password in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) Locker with alias ($($jsonSpec.products.properties.vidmAdminPassword.Split(":")[3])), does not exist: : PRE_VALIDATED_FAILED"
-                                    }
-                                } else {
-                                    Write-Warning "$deploymentType Workspace ONE Access in environment ($($jsonSpec.environmentName)) on VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)), already exists: SKIPPED"
-                                }
-                            } else {
-                                Write-Error "JSON specification validation: PRE_VALIDATED_FAILED"
-                            }
-                        }
-                    }
-                } 
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function New-WSADeployment
 
 Function Set-WorkspaceOneApplianceNtpConfig {
     <#
