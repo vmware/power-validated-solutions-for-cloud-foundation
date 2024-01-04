@@ -59,10 +59,11 @@
 - Added `Start-vRSLCMSnapshot` cmdlet to start a snapshot operation of VMware Aria Suite Lifecycle.
 - Added `Import-ContentLibraryItem` cmdlet to support adding files to a vSphere Content Library.
 - Added `Export-PcaJsonSpec` cmdlet to generate a JSON specification file for Private Cloud Automation.
-- Added `Invoke-PcaDeployment` cmdlet perform an end-to-end deployment of Private Cloud Automation.
+- Added `Invoke-PcaDeployment` cmdlet to perform an end-to-end deployment of Private Cloud Automation.
 - Added `Request-AslcmBundle` cmdlet to download the VMware Aria Suite Lifecycle bundle in SDDC Manager.
 - Added `New-AslcmDeployment` cmdlet to perform the deployment of VMware Aria Suite Lifecycle using SDDC Manager.
 - Added `Install-AslcmCertificate` cmdlet to install a signed certificate for VMware Aria Suite Lifecycle using SDDC Manager.
+- Added `Invoke-UndoPcaDeployment` cmldet to perform an end-to-end removal of Private Cloud Automation.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
