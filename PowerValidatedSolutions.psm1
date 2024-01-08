@@ -24475,6 +24475,168 @@ Function Import-ContentLibraryItem {
 }
 Export-ModuleMember -Function Import-ContentLibraryItem
 
+Function Add-NsxtPrincipalIdentity {
+    <#
+        .SYNOPSIS
+        Add a principal identity to NSX Manager.
+
+        .DESCRIPTION
+        The Add-NsxtPrincipalIdentity cmdlet adds a principal identity to NSX Manager. The cmdlet connects to SDDC Manager
+        using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Adds a principal identity to NSX Manager. 
+
+        .EXAMPLE
+        Add-NsxtPrincipalIdentity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principalId svc-iom-sfo-m01-nsx01 -role enterprise_admin
+        This example adds a principal identity to NSX Manager
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload Domain.
+
+        .PARAMETER principalId
+        The name of the principal identity to create.
+
+        .PARAMETER role
+        The role to assign to the principal identity.
+
+        .PARAMETER outputPath
+        The location where the certificate files should be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principalId,
+        [Parameter (Mandatory = $true)] [ValidateSet("lb_admin", "security_engineer", "vpn_admin", "network_op", "netx_partner_admin", "gi_partner_admin", "security_op", "network_engineer", "lb_auditor", "auditor", "enterprise_admin")] [String]$role,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$outputPath
+    )
+
+    Try {
+        $command = 'openssl version'
+        if ((Invoke-Expression -Command "& $command 2>&1") -match "OpenSSL") {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                        if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                            if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                                if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                    if (!(Get-NsxtPrincipalIdentity -name $principalId)) {
+                                        if ($PsBoundParameters.ContainsKey("outputPath")) {
+                                            $certificateName = $outputPath + ($($vcfNsxDetails.fqdn)).Split('.')[-0]
+                                        } else {
+                                            $certificateName = ($($vcfNsxDetails.fqdn)).Split('.')[-0]
+                                        }
+                                        $command = 'openssl req -newkey rsa:2048 -sha256 -x509 -days 365 -subj "/CN='+ $($vcfNsxDetails.fqdn) +'" -extensions usr_cert -nodes -keyout '+ $certificateName +'.key -out '+ $certificateName +'.cer'
+                                        Invoke-Expression -Command "& $command 2>&1 | Out-Null"
+                                        New-NsxtPrincipalIdentity -name $principalId -nodeId $($vcfNsxDetails.fqdn) -role $role -certificateData ($certificateName +'.cer') | Out-Null
+                                        if (Get-NsxtPrincipalIdentity -name $principalId) {
+                                            Write-Output "Creating Principal Identity ($principalId) in NSX for Workload Domain ($domain): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Creating Principal Identity ($principalId) in NSX for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Creating Principal Identity ($principalId) in NSX for Workload Domain ($domain), already exists: SKIPPED"
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        } else {
+            Write-Error "Unable to find OpenSSL on the local machine: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Add-NsxtPrincipalIdentity
+
+Function Undo-NsxtPrincipalIdentity {
+    <#
+        .SYNOPSIS
+        Remove a principal identity from NSX Manager.
+
+        .DESCRIPTION
+        The Undo-NsxtPrincipalIdentity cmdlet removes a principal identity from NSX Manager. The cmdlet connects to SDDC Manager
+        using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to NSX Manager
+        - Removes a principal identity from NSX Manager. 
+
+        .EXAMPLE
+        Undo-NsxtPrincipalIdentity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principalId svc-iom-sfo-m01-nsx01
+        This example removes a principal identity from NSX Manager
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER domain
+        The name of the workload Domain.
+
+        .PARAMETER principalId
+        The name of the principal identity to delete.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$principalId
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain}) {
+                    if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $domain)) {
+                        if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                            if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                if (Get-NsxtPrincipalIdentity -name $principalId) {
+                                    Remove-NsxtPrincipalIdentity -principalId (Get-NsxtPrincipalIdentity -name $principalId).id | Out-Null
+                                    if (!(Get-NsxtPrincipalIdentity -name $principalId)) {
+                                        Write-Output "Deleting Principal Identity ($principalId) in NSX for Workload Domain ($domain): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Deleting Principal Identity ($principalId) in NSX for Workload Domain ($domain): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Deleting Principal Identity ($principalId) in NSX for Workload Domain ($domain), does not exist: SKIPPED"
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Undo-NsxtPrincipalIdentity
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 

@@ -71,6 +71,8 @@
 - Added `Undo-AslcmDeployment` cmdlet to remove VMware Aria Suite Lifecycle from SDDC Manager.
 - Added `Export-AslcmJsonSpec` cmdlet to generate a JSON specification file for VMware Aria Suite Lifecycle.
 - Added `Invoke-AslcmDeployment` cmdlet to perform an end-to-end install of VMware Aria Suite Lifecycle.
+- Added `Add-NsxtPrincipalIdentity` cmdlet to add a certificate based principal identity to NSX Manager.
+- Added `Undo-NsxtPrincipalIdentity` cmdlet to remove a certificate based principal identity from NSX Manager.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
