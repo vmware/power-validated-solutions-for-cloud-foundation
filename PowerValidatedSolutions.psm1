@@ -10039,10 +10039,8 @@ Function Invoke-IlaDeployment {
                                     Show-PowerValidatedSolutionsOutput -message "Deploying $logsProductName By Using $lcmProductName"
                                     if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                         $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $logsProductName in $lcmProductName to Complete"
                                     } else {
                                         $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $logsProductName in $lcmProductName to Complete"
                                     }
                                     if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; $failureDetected = $true }
                                     if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $logsProductName FAILED"; $failureDetected = $true }
@@ -13134,6 +13132,82 @@ Function Enable-vRLIContentPack {
 }
 Export-ModuleMember -Function Enable-vRLIContentPack
 
+Function Uninstall-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Uninstalls the VMware Aria Operations for Logs content pack.
+
+        .DESCRIPTION
+        The Uninstall-vRLIContentPack cmdlet removes a designated VMware Aria Operations for Logs content pack.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Management Domain vCenter Server
+        - Validates that network connectivity is possible to VMware Aria Operations for Logs
+        - Removes the VMware Aria Operations for Logs content pack
+
+        .EXAMPLE
+        Uninstall-vRLIContentPack -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentPack WSA
+        This examples removes the Workspace ONE Access content pack from VMware Aria Operations for Logs
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the SDDC Manager.
+
+        .PARAMETER user
+        The user name to authenticate with SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate with SDDC Manager.
+
+        .PARAMETER contentPack
+        The content pack to remove. 'VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD'
+        #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateSet('VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD')] [String]$contentPack
+    )
+
+    Try {
+        if ($contentPack -eq 'VSPHERE') {$contentPackNamespace = 'com.vmware.vsphere'}
+        if ($contentPack -eq 'VSAN') {$contentPackNamespace = 'com.vmware.vsan'}
+        if ($contentPack -eq 'NSX') {$contentPackNamespace = 'com.vmware.nsxt'}
+        if ($contentPack -eq 'WSA') {$contentPackNamespace = 'com.vmware.vidm'}
+        if ($contentPack -eq 'VRSLCM') {$contentPackNamespace = 'com.vmware.vrslcm801'}
+        if ($contentPack -eq 'VROPS') {$contentPackNamespace = 'com.vmware.vrops67'}
+        if ($contentPack -eq 'VRNI') {$contentPackNamespace = 'om.vmware.vrni'}
+        if ($contentPack -eq 'VRA') {$contentPackNamespace = 'com.vmware.vra.83'}
+        if ($contentPack -eq 'VRO') {$contentPackNamespace = 'com.vmware.vro.83'}
+        if ($contentPack -eq 'SRM') {$contentPackNamespace = 'com.vmware.srm81'}                            
+        if ($contentPack -eq 'LINUX') {$contentPackNamespace = 'com.linux'}
+        if ($contentPack -eq 'LINUX-SYSTEMD') {$contentPackNamespace = 'com.linux.systemd'}
+
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRLIConnection -server $vcfVrliDetails.fqdn) {
+                        if (Test-vRLIAuthentication -server $vcfVrliDetails.fqdn -user $vcfVrliDetails.adminUser -pass $vcfVrliDetails.adminPass) {
+                            if (Get-vRLIContentPack | Where-Object { $_.namespace -match $contentPackNamespace }) {
+                                Remove-vRLIContentPack -namespace $contentPackNamespace | Out-Null
+                                if (!(Get-vRLIContentPack | Where-Object { $_.name -eq $contentPack })) {
+                                    Write-Output "Disabling content pack ($contentPack) in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Disabling content pack ($contentPack) in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)): POST_VALIDATION_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Disabling content pack ($contentPack) in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), does not exist: SKIPPED"
+                            }       
+                        }          
+                    }         
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Uninstall-vRLIContentPack
 Function Update-vRLIContentPack {
     <#
         .SYNOPSIS
@@ -13501,8 +13575,10 @@ Function Invoke-IomDeployment {
 
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration"
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "CURRENTLY NO AUTOMATION"
                                         foreach ($sddcDomain in $allWorkloadDomains) {
+                                            Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration for Workload Domain ($($sddcDomain.name))"
+                                            $StatusMsg = Add-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-iom-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                         }
                                     }
 
@@ -13530,16 +13606,12 @@ Function Invoke-IomDeployment {
                                         Show-PowerValidatedSolutionsOutput -message "Deploying $operationsProductName Using $lcmProductName"
                                         if ($PsBoundParameters.ContainsKey("nested")) {
                                             $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -nested -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                         } elseif ($PsBoundParameters.ContainsKey("nested") -and $PsBoundParameters.ContainsKey("useContentLibrary")) {
                                             $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -nested -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg    
-                                            Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                         } elseif ($PsBoundParameters.ContainsKey("useContentLibrary")) {
                                             $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                         } else {
                                             $StatusMsg = New-vROPSDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                            Show-PowerValidatedSolutionsOutput -type WAIT -message "Waiting for Deployment of $operationsProductName in $lcmProductName to Complete"
                                         }
                                         if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -Type INFO -Message "$StatusMsg" } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -Type WARNING -Message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message $ErrorMsg; $failureDetected = $true }
                                         if ( $StatusMsg -match "FAILED" -or $WarnMsg -match "FAILED" ) { Show-PowerValidatedSolutionsOutput -Type ERROR -Message "Deployment of $operationsProductName FAILED"; $failureDetected = $true }
@@ -13808,9 +13880,10 @@ Function Invoke-UndoIomDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing the NSX to $operationsProductName Integration"
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "CURRENTLY NO AUTOMATION"
                                     foreach ($sddcDomain in $allWorkloadDomains) {
-
+                                        Show-PowerValidatedSolutionsOutput -message "Removing the NSX to $operationsProductName Integration for Workload Domain ($($sddcDomain.name))"
+                                        $StatusMsg = Undo-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-iom-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                     }
                                 }
 
@@ -19646,6 +19719,7 @@ Function Export-AslcmJsonSpec {
                 'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
                 'organizationUnit'                  = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
                 'state'                             = $pnpWorkbook.Workbook.Names["ca_state"].Value
+                'psPack'                            = $pnpWorkbook.Workbook.Names["xreg_vrslcm_pspack   "].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -19740,7 +19814,7 @@ Function Invoke-AslcmDeployment {
                         if (((Get-VCFVrslcm).version -Split ('-'))[-0] -lt "8.14.0") {
                             if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
-                                    $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack "PSPACK17" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $jsonInput.psPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg }
                             }
 
@@ -41825,6 +41899,32 @@ Function Install-vRLIContentPack {
     }
 }
 Export-ModuleMember -Function Install-vRLIContentPack
+
+Function Remove-vRLIContentPack {
+    <#
+        .SYNOPSIS
+        Remove a VMware Aria Operations for Log content pack
+
+        .DESCRIPTION
+        The Remove-vRLIContentPack cmdlet removes a content pack from VMware Aria Operations for Logs
+
+        .EXAMPLE
+        Remove-vRLIContentPack -namespace 'com.vmware.vidm'
+        This example removes the Workspace ONE Access content pack
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$namespace
+    )
+
+    Try {
+        $uri = "https://$vrliAppliance/api/v1/content/contentpack/$namespace"
+        Invoke-RestMethod -Method 'DELETE' -Uri $Uri -Headers $vrliHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Remove-vRLIContentPack
 
 #EndRegion  End VMware Aria Operations for Logs Functions                    ######
 ###################################################################################
