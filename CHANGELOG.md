@@ -73,6 +73,8 @@
 - Added `Invoke-AslcmDeployment` cmdlet to perform an end-to-end install of VMware Aria Suite Lifecycle.
 - Added `Add-NsxtPrincipalIdentity` cmdlet to add a certificate based principal identity to NSX Manager.
 - Added `Undo-NsxtPrincipalIdentity` cmdlet to remove a certificate based principal identity from NSX Manager.
+- Added `Remove-vRLIContentPack` cmdlet to support the removal of a content pack from VMware Aria Operations for Logs.
+- Added `Uninstall-vRLIContentPack` cmdlet to remove a content pack from VMware Aria Operations for Logs.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
