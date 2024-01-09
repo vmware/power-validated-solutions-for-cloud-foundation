@@ -12,7 +12,7 @@ To verify that the PowerShell module is updated, run the following command in th
 --8<-- "./docs/snippets/installed-module.ps1"
 ```
 
-To verify the [module dependencies](/power-validated-solutions-for-cloud-foundation/#module-dependencies) meet the minimum requirements, use the `Test-PowerValidatedSolutionsPrereq` cmdlet.
+To verify the [module dependencies](index.md#module-dependencies) meet the minimum requirements, use the `Test-PowerValidatedSolutionsPrereq` cmdlet.
 
 If a dependency does not meet the minimum requirements, run the appropriate `Update-Module` command for the dependency in the PowerShell console.
 
