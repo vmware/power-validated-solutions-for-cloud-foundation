@@ -112,6 +112,7 @@
   - to generate the JSON specification file using the Intelligent Operations Management JSON specification file.
   - to support a custom output folder for the JSON specification file.
 - Enhanced `Update-vRSLCMPSPack` cmdlet to perform a snapshot as part of the workflow and improved status checks.
+- Enhanced `Add-vCenterGlobalPermission` cmdlet to check for the existence of the vCenter Server role.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaConfigureAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
 - Removed `ilaUndoAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoIlaDeployment` cmdlet.
