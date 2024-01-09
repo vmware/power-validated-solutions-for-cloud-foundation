@@ -9924,10 +9924,10 @@ Function Export-IlaJsonSpec {
                 'vmNameNode1'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
                 'vmNameNode2'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
                 'vmNameNode3'                   = $pnpWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
-
                 'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
                 'agentGroupNameWsa'             = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_wsa"].Value
                 'agentGroupNamePhoton'          = $pnpWorkbook.Workbook.Names["region_vrli_agent_group_photon"].Value
+                'gitHubToken'                   = $pnpWorkbook.Workbook.Names["ila_github_token"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -10109,8 +10109,9 @@ Function Invoke-IlaDeployment {
                                 }
 
                                 if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Install Workspace ONE Access Content Pack - Manual Install Required"
-                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "CURRENTLY NO AUTOMATION"
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Install Workspace ONE Access Content Pack"
+                                    $StatusMsg = Enable-vRLIContentPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -token $jsonInput.gitHubToken -contentPack WSA -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                 }
 
                                 if (!$failureDetected) {
@@ -21593,56 +21594,60 @@ Function Add-vCenterGlobalPermission {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
-                            $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal})
-                            if (!($roleAssigned | Where-Object {$_.Role -eq $role})) {
-                                if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
-                                    if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
-                                            Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
-                                        } else {
-                                            if ($type -eq "group") {
-                                                if (!$localDomain) {
-                                                    $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                                                    $principal = $domain.ToUpper() + "\" + $principal
-                                                } else {
-                                                    $objectCheck = (Get-VIAccount -Group -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
-                                                    $principal = $domain.ToUpper() + "\" + $principal
-                                                }
-                                            } elseif ($type -eq "user") {
-                                                if (!$localDomain){
-                                                    $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
-                                                    $principal = $domain.ToUpper() + "\" + $principal
-                                                } else {
-                                                    $principal = $domain.ToUpper() + "\" + $principal
-                                                    $objectCheck = (Get-VIAccount -User -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
-                                                }
-                                            }
-                                            if ($objectCheck) {
-                                                $roleId = (Get-VIRole -Name $role -Server $vcfVcenterDetails.fqdn | Select-Object -ExpandProperty Id)
-                                                Add-GlobalPermission -principal $principal -roleId $roleId -propagate $propagate -type $type | Out-Null
-                                                $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal.Split("\")[-1]})
-                                                if ($roleAssigned | Where-Object {$_.Role -eq $role}) {
-                                                    Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): SUCCESSFUL"
-                                                } else {
-                                                    Write-Error "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): POST_VALIDATION_FAILED"
-                                                }
+                            if (Get-VIRole -Name $role -ErrorAction SilentlyContinue ) {
+                                Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
+                                $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal})
+                                if (!($roleAssigned | Where-Object {$_.Role -eq $role})) {
+                                    if (Test-SSOConnection -server $($vcfVcenterDetails.fqdn)) {
+                                        if (Test-SSOAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                            if (!(Get-IdentitySource | Where-Object { $_.Name -eq $domain })) {
+                                                Write-Error "Unable to find Identity Source in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($domain): PRE_VALIDATION_FAILED"
                                             } else {
-                                                if ($localDomain) {
-                                                    Write-Error "Unable to find $type ($principal) in Local Domain, create and retry: PRE_VALIDATION_FAILED"
+                                                if ($type -eq "group") {
+                                                    if (!$localDomain) {
+                                                        $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
+                                                        $principal = $domain.ToUpper() + "\" + $principal
+                                                    } else {
+                                                        $objectCheck = (Get-VIAccount -Group -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
+                                                        $principal = $domain.ToUpper() + "\" + $principal
+                                                    }
+                                                } elseif ($type -eq "user") {
+                                                    if (!$localDomain){
+                                                        $objectCheck = (Get-ADUser -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
+                                                        $principal = $domain.ToUpper() + "\" + $principal
+                                                    } else {
+                                                        $principal = $domain.ToUpper() + "\" + $principal
+                                                        $objectCheck = (Get-VIAccount -User -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
+                                                    }
+                                                }
+                                                if ($objectCheck) {
+                                                    $roleId = (Get-VIRole -Name $role -Server $vcfVcenterDetails.fqdn | Select-Object -ExpandProperty Id)
+                                                    Add-GlobalPermission -principal $principal -roleId $roleId -propagate $propagate -type $type | Out-Null
+                                                    $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal.Split("\")[-1]})
+                                                    if ($roleAssigned | Where-Object {$_.Role -eq $role}) {
+                                                        Write-Output "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal): POST_VALIDATION_FAILED"
+                                                    }
                                                 } else {
-                                                    Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
+                                                    if ($localDomain) {
+                                                        Write-Error "Unable to find $type ($principal) in Local Domain, create and retry: PRE_VALIDATION_FAILED"
+                                                    } else {
+                                                        Write-Error "Unable to find $type ($principal) in Active Directory Domain ($domain), create and retry: PRE_VALIDATION_FAILED"
+                                                    }
                                                 }
                                             }
                                         }
+                                        Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
                                     }
-                                    Disconnect-SsoAdminServer -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue
+                                } else {
+                                    Write-Warning "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
                                 }
+                                Disconnect-vSphereMobServer
                             } else {
-                                Write-Warning "Adding Global Permission with Role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)) to $type ($principal), already applied: SKIPPED"
+                                Write-Error "Unable to find role ($role) in vCenter Server ($($vcfVcenterDetails.vmName)): PRE_VALIDATION_FAILED"
                             }
                             Disconnect-VIServer -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force -WarningAction SilentlyContinue
-                            Disconnect-vSphereMobServer
                         }
                     }
                 }
