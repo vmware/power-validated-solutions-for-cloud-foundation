@@ -1,16 +1,14 @@
-# PowerShell Module for VMware Validated Solutions for VMware Cloud Foundation
-# Contributions are welcome. https://github.com/vmware/power-validated-solutions-for-cloud-foundation/blob/main/CONTRIBUTING.md
+# Copyright 2023-2024 Broadcom. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 # WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-### Note
-# It is recommended you don't use it for any production environment without testing extensively!
-
-# Enable communication with self signed certs when using Powershell Core. If you require all communications to be secure
-# and do not wish to allow communication with self-signed certificates remove lines 15-38 before importing the module.
+# Enable communication with self-signed certificates when using Powershell Core. If you require all communications
+# to be secure and do not wish to allow communication with self-signed certificates, remove lines 17-36 before
+# importing the module.
 
 if ($PSEdition -eq 'Core') {
     $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck", $true)
