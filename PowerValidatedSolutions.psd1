@@ -1,4 +1,4 @@
-# Copyright 2023 Broadcom. All Rights Reserved.
+# Copyright 2023-2024 Broadcom. All Rights Reserved.
 # SPDX-License-Identifier: BSD-2
 
 # Module manifest for module 'PowerValidatedSolutions'
@@ -11,7 +11,7 @@
     RootModule = 'PowerValidatedSolutions.psm1'
     
     # Version number of this module.
-    ModuleVersion = '2.8.0.1037'
+    ModuleVersion = '2.8.0.1038'
     
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -26,7 +26,7 @@
     CompanyName = 'Broadcom'
     
     # Copyright statement for this module
-    Copyright = 'Copyright 2023 Broadcom. All Rights Reserved.'
+    Copyright = 'Copyright 2023-2024 Broadcom. All Rights Reserved.'
     
     # Description of the functionality provided by this module
     Description = 'PowerShell Module for VMware Validated Solutions'
