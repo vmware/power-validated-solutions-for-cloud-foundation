@@ -1,73 +1,73 @@
 # Installing the Module
 
-## From Powershell Gallery
+Verify that your system has a [supported edition and version](index.md#powershell) of PowerShell installed.
 
-Verify that your system has a [supported edition and version](/power-validated-solutions-for-cloud-foundation/#powershell) of PowerShell installed.
+=== ":material-pipe: &nbsp; Connected Environment"
 
-Install the PowerShell [module dependencies](/power-validated-solutions-for-cloud-foundation/#module-dependencies) from the PowerShell Gallery by running the following commands:
-
-```powershell
---8<-- "./docs/snippets/install-module.ps1"
-```
-
-If using PowerShell Core, import the modules before proceeding:
-
-For example:
-
-```powershell
---8<-- "./docs/snippets/import-module.ps1"
-```
-
-## From Air-gapped Machine
-
-Verify that your system has a [supported edition and version](/powershell-module-for-vmware-cloud-foundation-password-management/#powershell) of PowerShell installed.
-
-=== ":fontawesome-brands-windows: &nbsp; Windows"
-
-    Save Modules [module dependencies](/powershell-module-for-vmware-cloud-foundation-password-management/#module-dependencies) from the PowerShell Gallery on a non air-gapped machine by running the following commands:
-
+    For environments connected to the Internet, you can install the [module dependencies](index.md#module-dependencies) from the PowerShell Gallery by running the following commands in the PowerShell console:
+        
     ```powershell
-    --8<-- "./docs/snippets/save-module-local-windows.ps1"
+    --8<-- "./docs/snippets/install-module.ps1"
     ```
 
-    Copy the PowerShell Modules [module dependencies](/powershell-module-for-vmware-cloud-foundation-password-management/#module-dependencies) from the Local Machine to air-gapped facing machine by running the following commands:
+    If using PowerShell Core, import the modules before proceeding:
 
-    ```powershell
-    --8<-- "./docs/snippets/copy-module-local-windows.ps1"
-    ```
-
-    Import the PowerShell Modules [module dependencies](/powershell-module-for-vmware-cloud-foundation-password-management/#module-dependencies) from the air-gapped machine by running the following commands:
+    For example:
 
     ```powershell
     --8<-- "./docs/snippets/import-module.ps1"
     ```
 
-=== ":fontawesome-brands-linux: &nbsp; Linux"
+=== ":material-pipe-disconnected: &nbsp; Disconnected Environment"
 
-    Prerequisite for module install on Linux Machine
+    For environments disconnected from the Internet _(e.g., dark-site, air-gapped)_, you can save the [module dependencies](index.md#module-dependencies) from the PowerShell Gallery by running the following commands in the PowerShell console:
 
-    ```bash
-    --8<-- "./docs/snippets/pre-req-linux.sh"
-    ```
+    === ":fontawesome-brands-windows: &nbsp; Windows"
 
-    Save Modules [module dependencies](/powershell-module-for-vmware-cloud-foundation-password-management/#module-dependencies) from the PowerShell Gallery on a non air-gapped machine by running the following commands:
+        From a system with an Internet connection, save the module dependencies from the PowerShell Gallery by running the following commands in the PowerShell console:
 
-    ```powershell
-    --8<-- "./docs/snippets/save-module-local-linux.ps1"
-    ```
+        ```powershell
+        --8<-- "./docs/snippets/save-module-local-windows.ps1"
+        ```
 
-    Copy the PowerShell Modules [module dependencies](/powershell-module-for-vmware-cloud-foundation-password-management/#module-dependencies) from the Local Machine to air-gapped facing machine by running the following commands:
+        From the system with the Internet connection, copy the module dependencies to a target system by running the following commands in the PowerShell console:
 
-    ```bash
-    --8<-- "./docs/snippets/copy-module-local-linux.sh"
-    ```
+        ```powershell
+        --8<-- "./docs/snippets/copy-module-local-windows.ps1"
+        ```
 
-    Import the PowerShell Modules [module dependencies](/powershell-module-for-vmware-cloud-foundation-password-management/#module-dependencies) from the air-gapped machine by running the following commands in PowerShell:
+        On the target system, import the module dependencies by running the following commands in the PowerShell console:
 
-    ```powershell
-    --8<-- "./docs/snippets/import-module-local-linux.ps1"
-    ```
-    
+        ```powershell
+        --8<-- "./docs/snippets/import-module.ps1"
+        ```
+
+    === ":fontawesome-brands-linux: &nbsp; Linux"
+
+        Prerequisite for module install on Linux Machine
+
+        ```bash
+        --8<-- "./docs/snippets/pre-req-linux.sh"
+        ```
+
+        From a system with an Internet connection, save the module dependencies from the PowerShell Gallery by running the following commands in the PowerShell console:
+
+        ```powershell
+        --8<-- "./docs/snippets/save-module-local-linux.ps1"
+        ```
+
+        From the system with an Internet connection, copy the module dependencies to a target system by running the following commands in the PowerShell console:
+
+        ```bash
+        --8<-- "./docs/snippets/copy-module-local-linux.sh"
+        ```
+
+        On the target system, import the module dependencies by running the following commands in the PowerShell console:
+
+        ```powershell
+        --8<-- "./docs/snippets/import-module-local-linux.ps1"
+        ```
+
 To verify the correct versions of the supporting modules are installed, run the following command in the PowerShell console.
 
 ```powershell

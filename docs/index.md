@@ -10,7 +10,7 @@
 
 The module helps reduce human error, delivers consistency and robustness, and accelerates the time-to-deploy these solutions. The module's cmdlets reduce complexity by automating the deployment and configuration steps using the product APIs or command-line tools.
 
-This infrastructure-as-code model enables you to use the module to accelerate the deployment and management of the VMware Validate Solutions or use it in your own end-to-end automation.
+This infrastructure-as-code model enables you to use the module to accelerate the deployment and management of the VMware Validated Solutions or use it in your own end-to-end automation.
 
 ## Requirements
 
