@@ -6991,6 +6991,270 @@ Function Undo-vSphereReplication {
 }
 Export-ModuleMember -Function Undo-vSphereReplication
 
+Function Add-ProtectionGroup {
+    <#
+		.SYNOPSIS
+        Adds a Site Recovery Manager Protection Group.
+
+        .DESCRIPTION
+        The Add-ProtectionGroup cmdlet adds a Site Recovery Manager Protection Group. The cmdlet
+        connects to SDDC Manager instances in both the protected and recovery sites:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
+        - Adds a Site Recovery Manager Protection Group
+
+        .EXAMPLE
+        Add-ProtectionGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -pgName xint-vrops01 -vmName @("xint-vrops01a", "xint-vrops01b", "xint-vrops01c") 
+        This example adds vSphere Replication for VM xint-vrslcm01 from the protected VCF instance to the recovery VCF instance.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully-qualified domain name of the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAUser
+        The username to authenticate to the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAPass
+        The password to authenticate to the SDDC Manager server in the protected site
+        
+        .PARAMETER sddcManagerBFqdn
+        The fully-qualified domain name of the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBUser
+        The username to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBPass
+        The password to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER pgName
+        The name of the new Protection Group
+
+        .PARAMETER vmName
+        The name of the virtual machine(s) to target. Must be presented as an array.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pgName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$vmName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                            $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                                $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $vrmsAFqdn)) {
+                                                    if ((Test-SrmConnection -server $srmBFqdn) -and (Test-SrmConnection -server $vrmsBFqdn)) {
+                                                        $srmAuth = Test-SrmAuthenticationREST -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
+                                                        $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
+                                                        if (($srmAuth.srmAuthentication -eq $true) -and ($srmAuth.srmRemoteAuthentication -eq $true) -and ($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
+                                                            foreach ($vm in $vmName) {
+                                                                $getVm = Get-VrmsVm -vmName $vm
+                                                                if (!$getVM) {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Virtual machine $vm does not exist: PRE_VALIDATION_FAILED"),
+                                                                            'Add-ProtectionGroup',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                }
+                                                                $getReplicationStatus = Get-VrmsReplication 
+                                                            }
+                                                            $srmProtectionGroups = Get-SrmProtectionGroup
+                                                            $skip = $false
+                                                            if ($srmProtectionGroups) {
+                                                                foreach ($srmProtectionGroup in $srmProtectionGroups) {
+                                                                    if ($pgName -eq $srmProtectionGroup.name) {
+                                                                        Write-Warning "Protection Group $pgName already exists: SKIPPING"
+                                                                        $skip = $true
+                                                                        break
+                                                                    }
+                                                                }
+                                                            }
+                                                            if ($skip -eq $false) {
+                                                                $newProtectionGroup = Add-SrmProtectionGroup -pgName $pgName -vmName $vmName
+                                                                if (!$newProtectionGroup) {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Protection Group $pgName creation failed: POST_VALIDATION_FAILED"),
+                                                                            'Add-ProtectionGroup',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                } else {
+                                                                    Write-Host "Add Protection Group ($pgName): SUCCESSFUL"
+                                                                }
+                                                            }   
+                                                        } else {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication or Site Recovery Manager servers: PRE_VALIDATION_FAILED"),
+                                                                    'Add-ProtectionGroup',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+
+}
+Export-ModuleMember -Function Add-ProtectionGroup
+
+Function Undo-ProtectionGroup {
+    <#
+		.SYNOPSIS
+        Removes a Site Recovery Manager Protection Group.
+
+        .DESCRIPTION
+        The Undo-ProtectionGroup cmdlet removes a Site Recovery Manager Protection Group. The cmdlet
+        connects to SDDC Manager instances in both the protected and recovery sites:
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
+        - Removes a Site Recovery Manager Protection Group
+
+        .EXAMPLE
+        Undo-ProtectionGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -pgName xint-vrops01
+        This example removes vSphere Replication for VM xint-vrslcm01 from the protected VCF instance to the recovery VCF instance.
+
+        .PARAMETER sddcManagerAFqdn
+        The fully-qualified domain name of the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAUser
+        The username to authenticate to the SDDC Manager server in the protected site
+
+        .PARAMETER sddcManagerAPass
+        The password to authenticate to the SDDC Manager server in the protected site
+        
+        .PARAMETER sddcManagerBFqdn
+        The fully-qualified domain name of the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBUser
+        The username to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER sddcManagerBPass
+        The password to authenticate to the SDDC Manager server in the recovery site
+
+        .PARAMETER pgName
+        The name of the new Protection Group
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerAPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pgName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $sddcManagerAFqdn) {
+            if (Test-VCFAuthentication -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass) {
+                if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                            $vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                            if (Test-VCFConnection -server $sddcManagerBFqdn) {
+                                if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
+                                    if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
+                                        if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
+                                            if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
+                                                $vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $vrmsAFqdn)) {
+                                                    if ((Test-SrmConnection -server $srmBFqdn) -and (Test-SrmConnection -server $vrmsBFqdn)) {
+                                                        $srmAuth = Test-SrmAuthenticationREST -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
+                                                        $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
+                                                        if (($srmAuth.srmAuthentication -eq $true) -and ($srmAuth.srmRemoteAuthentication -eq $true) -and ($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
+                                                            $protectionGroup = Get-SrmProtectionGroup -pgName $pgName
+                                                            $skip = $false
+                                                            if (!$protectionGroup) {
+                                                                Write-Warning "Protection Group ($pgName) not found: SKIPPING"
+                                                                $skip = $true
+                                                                break
+                                                            }
+                                                            if ($skip -eq $false) {
+                                                                $removeProtectionGroup = Remove-SrmProtectionGroup -pgName $pgName
+                                                                if ($removeProtectionGroup -match "Protection Group $pgName was not found") {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Remove Protection Group $pgName failed: POST_VALIDATION_FAILED"),
+                                                                            'Undo-ProtectionGroup',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
+                                                                    )
+                                                                } else {
+                                                                    Write-Host "Remove Protection Group ($pgName): SUCCESSFUL"
+                                                                }
+                                                            }   
+                                                        } else {
+                                                            $PSCmdlet.ThrowTerminatingError(
+                                                                [System.Management.Automation.ErrorRecord]::new(
+                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication or Site Recovery Manager servers: PRE_VALIDATION_FAILED"),
+                                                                    'Undo-ProtectionGroup',
+                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                    ""
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+
+}
+Export-ModuleMember -Function Undo-ProtectionGroup
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -43741,11 +44005,12 @@ Function Connect-VrmsRemoteSession {
         $vrmsRemoteHeader.Add("Authorization", "Basic $base64AuthInfo")
         $vrmsRemoteHeader.Add("Content-Type", "application/json")
         $vrmsRemoteHeader.Add("x-dr-session", "$vrmsSessionId")
-
         $pairing_id = (Get-VrmsSitePairing).pairing_id
         $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/remote-session"
-        Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsRemoteHeader
-        Write-Output "Successfully connected to the vSphere Replication remote session."
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsRemoteHeader
+        if (($return.StatusCode -eq 200) -or ($return.StatusCode -eq 202) -or ($return.StatusCode -eq 204)) {
+            Write-Output "Successfully connected to the vSphere Replication remote session."
+        }
         } Catch {
         # Do Nothing
     }
@@ -43825,7 +44090,7 @@ Function Get-VrmsDatastore {
 }
 Export-ModuleMember -Function Get-VrmsDatastore
 
-Function Get-VrmsReplications {
+Function Get-VrmsReplication {
     <#
         .SYNOPSIS
         Retrieves a list of replications from a vSphere Replication server via the REST API
@@ -43836,18 +44101,36 @@ Function Get-VrmsReplications {
         .EXAMPLE
         Get-VrmsReplications
         This example retrieves a list of all replications from the vSphere Replication server REST API
+
+        .PARAMETER name
+        The name of the replication to target
     #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
+    )
 
     Try {
         $pairing_id = (Get-VrmsSitePairing).pairing_id
-        $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications"
+        if ($name) {
+            $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications?filter_property=name&filter=$name"
+        } else {
+            $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications"
+        }
         $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeaderREST
-        $return.list
+        $global:evaluateReturn = $return.list
+        if ([string]::IsNullOrEmpty($evaluateReturn) -and ($name)) {
+            Write-Output "vSphere Replication $name was not found"  
+        } elseif ([string]::IsNullOrEmpty($evaluateReturn) -and (!$name)) {
+            Write-Output "No vSphere Replications found"
+        } else {
+            $return.list
+        }
     } Catch {
         # Do Nothing
     }
 }
-Export-ModuleMember -Function Get-VrmsReplications
+Export-ModuleMember -Function Get-VrmsReplication
 
 Function Add-VrmsReplication {
     <#
@@ -44655,11 +44938,12 @@ Function Connect-SrmRemoteSession {
         $srmRemoteHeader.Add("Authorization", "Basic $base64AuthInfo")
         $srmRemoteHeader.Add("Content-Type", "application/json")
         $srmRemoteHeader.Add("x-dr-session", "$srmSessionId")
-
         $pairing_id = (Get-SrmSitePairing).pairing_id
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairing_id/remote-session"
-        Invoke-RestMethod -Method POST -Uri $uri -Headers $srmRemoteHeader
-        Write-Output "Successfully connected to the vSphere Replication remote session."
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmRemoteHeader
+        if (($return.StatusCode -eq 200) -or ($return.StatusCode -eq 202) -or ($return.StatusCode -eq 204)) {
+            Write-Output "Successfully connected to the Site Recovery Manager remote session."
+        }
         } Catch {
         # Do Nothing
     }
@@ -44677,18 +44961,156 @@ Function Get-SrmSitePairing {
 
         .EXAMPLE
         Get-SrmSitePairing
-        This example retrieves site pairings from the vSphere Replication server via REST API
+        This example retrieves site pairings from the Site Recovery Manager server via REST API
     #>
 
     Try {
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings"
-        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeaderREST
-        $return.list | Where-Object {$_.local_vc_server.name -ne $_.remote_vc_server.name}
+        $global:pairing = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeaderREST
+        $pairing.list | Where-Object {$_.local_vc_server.name -ne $_.remote_vc_server.name}
     } Catch {
         # Do Nothing
     }
 }
 Export-ModuleMember -Function Get-SrmSitePairing
+
+Function Get-SrmProtectionGroup {
+    <#
+        .SYNOPSIS
+        Retrieves either a named Protection Group or all Protection Groups from a Site Recovery Manager server via the
+        REST API
+
+        .DESCRIPTION
+        The Get-SrmProtectionGroup cmdlet retrieves either a named Protection Group or all Protection Groups from a 
+        Site Recovery Manager server via the REST API
+
+        .EXAMPLE
+        Get-SrmProtectionGroup
+        This example retrieves all Protection Groups from a Site Recovery Manager server via REST API
+
+        .PARAMETER pgName
+        The name of the Protection Group to retrieve from the Site Recovery Manager server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pgName
+    )
+
+    Try {
+        $sitePair = Get-SrmSitePairing
+        $pairingId = $sitePair.pairing_id     
+        if ($pgName) {
+            $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/protection-management/groups?filter_property=name&filter=$pgName"
+        } else {
+            $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/protection-management/groups"
+        }
+        $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeaderREST
+        $return.list
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Get-SrmProtectionGroup
+
+Function Add-SrmProtectionGroup {
+    <#
+        .SYNOPSIS
+        Adds a Protection Group to a Site Recovery Manager server via the REST API
+
+        .DESCRIPTION
+        The Add-SrmProtectionGroup cmdlet Retrieves either a named Protection Group or all Protection Groups from a 
+        Site Recovery Manager server via the REST API
+
+        .EXAMPLE
+        Add-SrmProtectionGroup
+        This example adds a ProtectionGroup to the Site Recovery Manager server via REST API
+
+        .PARAMETER pgName
+        The name of the Protection Group to add to the Site Recovery Manager server
+
+        .PARAMETER vmName
+        The name of the virtual machine(s) to add to the Protection Group. Must be presented as an array.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pgName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$vmName
+    )
+
+    Try {
+        $sitePair = Get-SrmSitePairing
+        $sourceVcId = $sitePair.local_vc_server.id
+        $pairingId = $sitePair.pairing_id
+        $vms = @()
+        foreach ($vm in $vmName) {
+            $vmId = (Get-VrmsVm -vmName $vm).id
+            $vms += $vmId
+        }
+        $vmsJson = $vms | ConvertTo-Json
+$pgBody = @"
+{
+    "hbr_spec": {
+        "vms": $vmsJson
+    },
+    "name": "$pgName",
+    "protected_vc_guid": "$sourceVcId",
+    "replication_type": "HBR"
+}
+"@
+        $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/protection-management/groups"
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $pgBody -Headers $srmHeaderREST
+        if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
+            Write-Output "Protection Group $pgName was successfully added."
+        } else {
+            Write-Error "Protection Group $pgName was not successfully added."
+        }    
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Add-SrmProtectionGroup
+
+Function Remove-SrmProtectionGroup {
+    <#
+        .SYNOPSIS
+        Removes a named Protection Group from a Site Recovery Manager server via the REST API
+
+        .DESCRIPTION
+        The Remove-SrmProtectionGroup cmdlet removes a named Protection Group from a Site Recovery Manager server via 
+        the REST API
+
+        .EXAMPLE
+        Remove-SrmProtectionGroup -pgName xint-vrops01
+        This example removes the Protection Group xint-vrops01 from the Site Recovery Manager server via REST API
+
+        .PARAMETER pgName
+        The name of the Protection Group to remove from the Site Recovery Manager server
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pgName
+    )
+
+    Try {
+        $sitePair = Get-SrmSitePairing
+        $pairingId = $sitePair.pairing_id
+        $groupId = (Get-SrmProtectionGroup -pgName $pgName).id
+        if ($groupId) {
+            $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/protection-management/groups/$groupId"
+            $return = Invoke-WebRequest -Method DELETE -Uri $uri -Headers $srmHeaderREST
+            if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
+                Write-Output "Protection Group $pgName was successfully removed"
+            } else {
+                Write-Output "Protection Group $pgName was not successfully removed"
+            }
+        } else{
+            Write-Output "Protection Group $pgName was not found"
+        }
+    } Catch {
+        # Do Nothing
+    }
+}
+Export-ModuleMember -Function Remove-SrmProtectionGroup
 
 #EndRegion  End of Site Recovery Manager Functions                           ######
 ###################################################################################
@@ -45983,28 +46405,26 @@ Function Test-SRMAuthenticationREST {
     )
 
     Try {
-        $srmServerConnection = Request-SrmTokenREST -fqdn $server -username $user -password $pass | Out-Null
+        $srmServerConnection = Request-SrmTokenREST -fqdn $server -username $user -password $pass
     
-        if ($srmServerConnection -eq "Successfully connected to the Site Recovery Manager Appliance: $server") {
+        if ($srmServerConnection -match "Successfully") {
             $srmAuthentication = $True
-            Return $srmAuthentication
         } else {
             $srmAuthentication = $False
-            Return $srmAuthentication
         }
-
         if ($remoteUser -and $remotePass) {
-            $srmRemoteConnection = Connect-SrmRemoteSession -username $remoteUser -password $remotePass | Out-Null
+            $srmRemoteConnection = Connect-SrmRemoteSession -username $remoteUser -password $remotePass
+            if ($srmRemoteConnection -match "Successfully") {
+                $srmRemoteAuthentication = $True
+            } else {
+                $srmRemoteAuthentication = $False
+            }
         }
-
-        if ($srmRemoteConnection -eq "Successfully connected to the Site Recovery Manager remote session.") {
-            $srmRemoteAuthentication = $True
-            Return $srmRemoteAuthentication
-        } else {
-            $srmRemoteAuthentication = $False
-            Return $srmRemoteAuthentication
+        $outputObject = [PSCustomObject]@{
+            srmAuthentication = $srmAuthentication
+            srmRemoteAuthentication = $srmRemoteAuthentication
         }
-
+        return $outputObject
     } Catch {
         Debug-ExceptionWriter -object $_
     }
@@ -46021,23 +46441,26 @@ Function Test-VrmsAuthenticationREST {
     )
 
     Try {
-        $global:vrmsServerConnection = Request-VrmsTokenREST -fqdn $server -username $user -password $pass
+        $vrmsServerConnection = Request-VrmsTokenREST -fqdn $server -username $user -password $pass
     
-        if ($vrmsServerConnection -eq "Successfully connected to the vSphere Replication Appliance: $server") {
-            if ($remoteUser -and $remotePass) {
-                $global:vrmsRemoteConnection = Connect-VrmsRemoteSession -username $remoteUser -password $remotePass
-                if ($vrmsRemoteConnection -eq "Successfully connected to the vSphere Replication remote session.") {
-                    $vrmsAuthentication = $True
-                    Return $vrmsAuthentication
-                } else {
-                    $vrmsAuthentication = $False
-                    Return $vrmsAuthentication
-                }
-            }
+        if ($vrmsServerConnection -match "Successfully") {
+            $vrmsAuthentication = $True
         } else {
             $vrmsAuthentication = $False
-            Return $vrmsAuthentication
         }
+        if ($remoteUser -and $remotePass) {
+            $vrmsRemoteConnection = Connect-VrmsRemoteSession -username $remoteUser -password $remotePass
+            if ($vrmsRemoteConnection -match "Successfully") {
+                $vrmsRemoteAuthentication = $True
+            } else {
+                $vrmsRemoteAuthentication = $False
+            }
+        }
+        $outputObject = [PSCustomObject]@{
+            vrmsAuthentication = $vrmsAuthentication
+            vrmsRemoteAuthentication = $vrmsRemoteAuthentication
+        }
+        return $outputObject
     } Catch {
         Debug-ExceptionWriter -object $_
     }
