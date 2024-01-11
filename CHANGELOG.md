@@ -75,6 +75,11 @@
 - Added `Undo-NsxtPrincipalIdentity` cmdlet to remove a certificate based principal identity from NSX Manager.
 - Added `Remove-vRLIContentPack` cmdlet to support the removal of a content pack from VMware Aria Operations for Logs.
 - Added `Uninstall-vRLIContentPack` cmdlet to remove a content pack from VMware Aria Operations for Logs.
+- Added `Add-ProtectionGroup` cmdlet to add Protection Groups to Site Recovery Manager.
+- Added `Undo-ProtectionGroup` cmdlet to remove Protection Groups to Site Recovery Manager.
+- Added `Get-SrmProtectionGroup` cmdlet to retrieve a Protection Group from Site Recovery Manager.
+- Added `Add-SrmProtectionGroup` cmdlet to add a Protection Group to Site Recovery Manager.
+- Added `Remove-SrmProtectionGroup` cmdlet to remove a Protection Group from Site Recovery Manager.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
@@ -111,6 +116,8 @@
 - Enhanced `Export-vROPSJsonSpec` cmdlet:
   - to generate the JSON specification file using the Intelligent Operations Management JSON specification file.
   - to support a custom output folder for the JSON specification file.
+- Enhanced `Test-SrmAuthenticationREST` cmdlet to improve output. 
+- Enhanced `Test-VrmsAuthenticationREST` cmdlet to improve output. 
 - Enhanced `Update-vRSLCMPSPack` cmdlet to perform a snapshot as part of the workflow and improved status checks.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet to check for the existence of the vCenter Server role.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
