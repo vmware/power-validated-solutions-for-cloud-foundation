@@ -1,5 +1,4 @@
-mkdocs-git-authors-plugin>=0.7.2
-mkdocs-git-revision-date-localized-plugin>=1.2.0
+mkdocs-git-revision-date-localized-plugin>=1.2.2
 mkdocs-markdownextradata-plugin>=0.2.5
-mkdocs-minify-plugin>=0.7.1
-mkdocs-open-in-new-tab>=1.0.2
+mkdocs-minify-plugin>=0.7.2
+mkdocs-open-in-new-tab>=1.0.3
