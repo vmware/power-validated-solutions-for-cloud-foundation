@@ -1,35 +1,36 @@
-# Undo-NsxtLdapRole
+# Undo-WSADeployment
 
 ## Synopsis
 
-Remove an LDAP user/group role-based access control from NSX Manager.
+Remove the Workspace ONE Access from VMware Aria Suite Lifecycle.
 
 ## Syntax
 
 ```powershell
-Undo-NsxtLdapRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-WSADeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>]
+ [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-NsxtLdapRole` cmdlet removes role assignments in NSX Manager for LDAP users/groups.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
+The `Undo-WSADeployment` cmdlet removes Workspace ONE Access from VMware Aria Suite Lifecycle.
+The cmdlet
+connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Removes user or group's from NSX Manager roles based on the -principal
+- Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+- Validates that the environment exist in VMware Aria Suite Lifecycle
+- Requests a the deletion of Workspace ONE Access from VMware Aria Suite Lifecycle
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Undo-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
+Undo-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName globalenvironment
 ```
 
-This example removes the group <gg-nsx-enterprise-admins@sfo.rainpole.io> from NSX Manager.
+This example starts a removal of Workspace ONE Access from VMware Aria Suite Lifecycle.
 
 ## Parameters
 
@@ -51,7 +52,7 @@ Accept wildcard characters: False
 
 ### -user
 
-The username to authenticate to the SDDC Manager.
+The SDDC Manager vSphere SSO username.
 
 ```yaml
 Type: String
@@ -67,7 +68,7 @@ Accept wildcard characters: False
 
 ### -pass
 
-The password to authenticate to the SDDC Manager.
+The SDDC Manager vSphere SSO password.
 
 ```yaml
 Type: String
@@ -81,34 +82,34 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -domain
+### -environmentName
 
-The name of the Management Domain.
+The Workspace ONE Access Environment Name.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -principal
+### -monitor
 
-The principal to remove the role from.
+Monitor the VMware Aria Suite Lifecycle request.
 
 ```yaml
-Type: String
+Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
 
-Required: True
-Position: 5
-Default value: None
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

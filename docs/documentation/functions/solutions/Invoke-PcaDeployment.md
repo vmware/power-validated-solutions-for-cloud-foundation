@@ -1,50 +1,44 @@
-# Request-CSPToken
+# Invoke-PcaDeployment
 
 ## Synopsis
 
-Request authorization token from VMware Cloud Service
+End-to-end Deployment of Private Cloud Automation
 
 ## Syntax
 
 ```powershell
-Request-CSPToken [-environment] <String> [-apiToken] <String> [[-extensibilityProxy] <String>]
+Invoke-PcaDeployment [-jsonFile] <String> [-certificates] <String> [-binaries] <String> [-useContentLibrary]
  [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-CSPToken` cmdlet connects to the VMware Cloud Service and obtains an authorization token.
-It is required once per session before running all other cmdlets.
+The `Invoke-PcaDeployment` cmdlet is a single function to implement the configuration of the Private Cloud Automation
+for VMware Cloud Foundation validated solution.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Request-CSPToken -environment production -apiToken <string>
-This example shows how to connect to the production VMware Cloud Service and obtain an authorization token.
+Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
 ```
+
+This example configures Private Cloud Automation using JSON spec supplied
 
 ### Example 2
 
 ```powershell
-Request-CSPToken -environment staging -apiToken <string>
-This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token.
+Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
 ```
 
-### Example 3
-
-```powershell
-Request-CSPToken -environment staging -apiToken <string> -extensibilityProxy sfo-vmc-cep01.sfo.rainpole.io
-This example shows how to connect to the staging VMware Cloud Service and obtain an authorization token and set
-set the fqdn for the Cloud Extensibility Proxy for VMware Aria Automation Orchestrator configuration.
-```
+This example configures Private Cloud Automation using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
 
 ## Parameters
 
-### -environment
+### -jsonFile
 
-Connect to the production or staging VMware Cloud Service.
+The path to the JSON specification file to be created.
 
 ```yaml
 Type: String
@@ -58,9 +52,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -apiToken
+### -certificates
 
-The API Token for the VMware Cloud Service.
+The path to the directory containing the certificates to be used.
 
 ```yaml
 Type: String
@@ -74,18 +68,34 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -extensibilityProxy
+### -binaries
 
-The fqdn of the Cloud Extensibility Proxy for VMware Aria Automation Orchestrator configuration.
+The fully qualified path to the binaries directory.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: False
+Required: True
 Position: 3
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -useContentLibrary
+
+Use a vSphere Content Library to store the binaries.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

@@ -54,7 +54,7 @@ Function Export-IamJsonSpec {
         This example creates a JSON specification for Identity and Access Management using the Planning and Preparation workbook.
 
         .PARAMETER workbook
-        The path to the Planning and Preparation workbook (.xlsx) file.
+        The path to the Planning and Preparation Workbook (.xlsx) file.
 
         .PARAMETER jsonFile
         The path to the JSON specification file to be created.
@@ -134,6 +134,12 @@ Function Invoke-IamDeployment {
         .EXAMPLE
         Invoke-IamDeployment -jsonFile .\iamDeploySpec.json -certificates ".\certificates\"
         This example configures Identity and Access Management for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be used.
+
+        .PARAMETER certificates
+        The path to the directory containing the certificates to be used.
     #>
 
     Param (
@@ -287,6 +293,9 @@ Function Invoke-UndoIamDeployment {
         .EXAMPLE
         Invoke-UndoIamDeployment -jsonFile .\iamDeploySpec.json
         This example removes the Identity and Access Management for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be used.
     #>
 
     Param (
@@ -10109,7 +10118,7 @@ Function Export-IlaJsonSpec {
         This example creates a JSON specification Intelligent Logging and Analytics using the Planning and Preparation Workbook.
 
         .PARAMETER workbook
-        The path to the Planning and Preparation workbook (.xlsx) file.
+        The path to the Planning and Preparation Workbook (.xlsx) file.
 
         .PARAMETER jsonFile
         The path to the JSON specification file to be created.
@@ -10235,6 +10244,21 @@ Function Invoke-IlaDeployment {
         .EXAMPLE
         Invoke-IlaDeployment -jsonFile .\ilaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary -contentLibrary Operations
         This example configures Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied deploying the OVA using a vSphere Content Library
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+
+        .PARAMETER certificates
+        The folder containing the certificates.
+
+        .PARAMETER binaries
+        The folder containing the binaries.
+
+        .PARAMETER useContentLibrary
+        Use a vSphere Content Library to deploy the OVA.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to use.
     #>  
 
     Param (
@@ -10452,6 +10476,9 @@ Function Invoke-UndoIlaDeployment {
         .EXAMPLE
         Invoke-UndoIlaDeployment -jsonFile .\ilaDeploySpec.json
         This example removes the configuration of Intelligent Logging and Analytics for VMware Cloud Foundation using JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
     #>
 
     Param (
@@ -13596,7 +13623,7 @@ Function Export-IomJsonSpec {
         This example creates a JSON specification Intelligent Operations Management using the Planning and Preparation Workbook.
 
         .PARAMETER workbook
-        The path to the Planning and Preparation workbook (.xlsx) file.
+        The path to the Planning and Preparation Workbook (.xlsx) file.
 
         .PARAMETER jsonFile
         The path to the JSON specification file to be created.
@@ -13749,6 +13776,21 @@ Function Invoke-IomDeployment {
         .EXAMPLE
         Invoke-IomDeployment -jsonFile .\iomDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
         This example configures Intelligent Operations and Management for VMware Cloud Foundation using the JSON spec supplied
+
+        .PARAMETER jsonFile
+        The fully qualified path to the JSON specification file (.json).
+
+        .PARAMETER certificates
+        The fully qualified path to the certificates directory.
+
+        .PARAMETER binaries
+        The fully qualified path to the binaries directory.
+
+        .PARAMETER useContentLibrary
+        Use a vSphere Content Library to store the binaries.
+
+        .PARAMETER nested
+        Deploy Intelligent Operations and Management for VMware Cloud Foundation in a nested configuration.
     #>  
 
     Param (
@@ -13756,7 +13798,6 @@ Function Invoke-IomDeployment {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
         [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$nested
     )
 
@@ -14068,6 +14109,9 @@ Function Invoke-UndoIomDeployment {
         .EXAMPLE
         Invoke-UndoIomDeployment -jsonFile .\iomDeploySpec.json
         This example removes the configuration of Intelligent Operations and Management for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON specification file for the Intelligent Operations and Management for VMware Cloud Foundation validated solution.
     #>  
 
     Param (
@@ -17406,7 +17450,7 @@ Function Export-PcaJsonSpec {
         This example creates a JSON specification Private Cloud Automation using the Planning and Preparation Workbook.
 
         .PARAMETER workbook
-        The path to the Planning and Preparation workbook (.xlsx) file.
+        The path to the Planning and Preparation Workbook (.xlsx) file.
 
         .PARAMETER jsonFile
         The path to the JSON specification file to be created.
@@ -17561,6 +17605,18 @@ Function Invoke-PcaDeployment {
         .EXAMPLE
         Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
         This example configures Private Cloud Automation using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file.
+
+        .PARAMETER certificates
+        The path to the certificates folder.
+
+        .PARAMETER binaries
+        The path to the binaries folder.
+
+        .PARAMETER useContentLibrary
+        Switch to indicate that a content library is being used for VMware Aria Suite Lifecycle.
     #>
 
     Param (
@@ -17886,6 +17942,9 @@ Function Invoke-UndoPcaDeployment {
         .EXAMPLE
         Invoke-UndoPcaDeployment -jsonFile .\pcaDeploySpec.json
         This example removal Private Cloud Automation using JSON spec supplied
+
+        .PARAMETER jsonFile
+        The JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution
     #>
 
     Param (
@@ -18047,6 +18106,30 @@ Function Export-vRAJsonSpec {
         .EXAMPLE
         Export-vRAJsonSpec -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -outputPath .\myJsons
         This example creates a JSON deployment specification in the folder defined for VMware Aria Automation using the Private Cloud Automation JSON specification
+
+        .PARAMETER server
+        The fully qualified domain name of the VMware Cloud Foundation SDDC Manager
+
+        .PARAMETER user
+        The username of the VMware Cloud Foundation SDDC Manager
+
+        .PARAMETER pass
+        The password of the VMware Cloud Foundation SDDC Manager
+
+        .PARAMETER jsonFile
+        The JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution
+
+        .PARAMETER outputPath
+        The folder path to store the JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution
+
+        .PARAMETER customVersion
+        The version of the Private Cloud Automation for VMware Cloud Foundation validated solution to deploy
+
+        .PARAMETER useContentLibrary
+        Use a Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA
+
+        .PARAMETER contentLibrary
+        The name of the Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA
     #>
 
     Param (
@@ -19969,7 +20052,7 @@ Function Export-vRSLCMJsonSpec {
         This example creates a JSON specification VMware Aria Suite Lifecycleusing the Planning and Preparation Workbook.
 
         .PARAMETER workbook
-        The path to the Planning and Preparation workbook (.xlsx) file.
+        The path to the Planning and Preparation Workbook (.xlsx) file.
 
         .PARAMETER jsonFile
         The path to the JSON specification file to be created.
@@ -21047,6 +21130,12 @@ Function Export-GlobalWsaJsonSpec {
         .EXAMPLE
         Export-GlobalWsaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\wsaDeploySpec.json
         This example creates a JSON specification for Global Workspace ONE Access using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The fully qualified path to the JSON specification file.
     #>
 
     Param (
@@ -21153,6 +21242,24 @@ Function Invoke-GlobalWsaDeployment {
         .EXAMPLE
         Invoke-GlobalWsaDeployment -jsonFile .\wsaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
         This example deploys and configures Global Workspace ONE Access using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+
+        .PARAMETER jsonFile
+        The fully qualified path to the JSON specification file.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER certificates
+        The fully qualified path to the certificates folder.
+
+        .PARAMETER binaries
+        The fully qualified path to the binaries folder.
+
+        .PARAMETER useContentLibrary
+        Use a content library for VMware Aria Suite Lifecycle
+
+        .PARAMETER standard
+        Deploy Global Workspace ONE Access in standard mode
     #>
 
     Param (
@@ -21353,6 +21460,9 @@ Function Invoke-UndoGlobalWsaDeployment {
         .EXAMPLE
         Invoke-UndoGlobalWsaDeployment -jsonFile .\wsaDeploySpec.json
         This example removes Global Workspace ONE Access using JSON spec supplied
+
+        .PARAMETER jsonFile
+        The fully qualified path to the JSON specification file.
     #>
 
     Param (
@@ -21481,7 +21591,7 @@ Function Export-WsaJsonSpec {
         The password of the VMware Aria Suite Lifecycle instance.
 
         .PARAMETER workbook
-        The path to the Planning and Preparation Workbook (.xlsx).
+        The path to the Planning and Preparation Workbook (.xlsx) file.
 
         .PARAMETER standard
         Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
@@ -35410,6 +35520,12 @@ Function Get-vRSLCMLoadbalancer {
         .EXAMPLE
         Get-vRSLCMLoadbalancer -type NSX_T
         This example gets all load balancers in VMware Aria Suite Lifecycle with a type of NSX_T.
+
+        .PARAMETER type
+        The type of load balancer.
+
+        .PARAMETER available
+        Switch to get only available load balancers.
     #>
 
     Param (
@@ -35437,6 +35553,15 @@ Function New-vRSLCMLoadbalancer {
         .EXAMPLE
         New-vRSLCMLoadbalancer -type NSX_T -loadBalancerIp 192.168.11.60 -loadBalancerFqdn xint-wsa01.rainpole.io
         This example adds load balancers in VMware Aria Suite Lifecycle with a type of NSX_T.
+
+        .PARAMETER type
+        The type of load balancer.
+
+        .PARAMETER loadBalancerIp
+        The IP address of the load balancer.
+
+        .PARAMETER loadBalancerFqdn
+        The fully qualified domain name of the load balancer.
     #>
 
     Param (
@@ -35477,6 +35602,12 @@ Function Remove-vRSLCMLoadbalancer {
         .EXAMPLE
         Remove-vRSLCMLoadbalancer -type NSX_T -loadBalancerFqdn xint-wsa01.rainpole.io
         This example deletes the load balancer from VMware Aria Suite Lifecycle.
+
+        .PARAMETER type
+        The type of load balancer.
+
+        .PARAMETER loadBalancerFqdn
+        The fully qualified domain name of the load balancer.
     #>
 
     Param (
@@ -42497,6 +42628,9 @@ Function Remove-vRLIContentPack {
         .EXAMPLE
         Remove-vRLIContentPack -namespace 'com.vmware.vidm'
         This example removes the Workspace ONE Access content pack
+
+        .PARAMETER namespace
+        The namespace of the content pack to remove.
     #>
 
     Param (

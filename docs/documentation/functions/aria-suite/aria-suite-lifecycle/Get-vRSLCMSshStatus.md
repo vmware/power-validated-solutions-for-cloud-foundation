@@ -14,7 +14,7 @@ Get-vRSLCMSshStatus
 
 The `Get-vRSLCMSshStatus` cmdlet gets the status of the SSH Server in VMware Aria Suite Lifecycle
 
-## EXAMPLES
+## Examples
 
 ### Example 1
 

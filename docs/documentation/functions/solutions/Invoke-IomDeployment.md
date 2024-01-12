@@ -1,41 +1,36 @@
-# Undo-NsxtLdapRole
+# Invoke-IomDeployment
 
 ## Synopsis
 
-Remove an LDAP user/group role-based access control from NSX Manager.
+End-to-end Deployment of Intelligent Operations and Management.
 
 ## Syntax
 
 ```powershell
-Undo-NsxtLdapRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-IomDeployment -jsonFile <String> -certificates <String> -binaries <String> [-useContentLibrary]
+ [-contentLibrary <String>] [-nested] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-NsxtLdapRole` cmdlet removes role assignments in NSX Manager for LDAP users/groups.
-The cmdlet connects
-to SDDC Manager using the -server, -user, and -password values:
-
-- Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to NSX Manager
-- Removes user or group's from NSX Manager roles based on the -principal
+The `Invoke-IomDeployment` cmdlet is a single function to implement the configuration of the Intelligent
+Operations and Management for VMware Cloud Foundation validated solution.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Undo-NsxtLdapRole -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principal "gg-nsx-enterprise-admins@sfo.rainpole.io"
+Invoke-IomDeployment -jsonFile .\iomDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
 ```
 
-This example removes the group <gg-nsx-enterprise-admins@sfo.rainpole.io> from NSX Manager.
+This example configures Intelligent Operations and Management for VMware Cloud Foundation using the JSON spec supplied
 
 ## Parameters
 
-### -server
+### -jsonFile
 
-The fully qualified domain name of the SDDC Manager.
+The path to the JSON specification file to be used.
 
 ```yaml
 Type: String
@@ -43,15 +38,15 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 1
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -user
+### -certificates
 
-The username to authenticate to the SDDC Manager.
+The fully qualified path to the certificates directory.
 
 ```yaml
 Type: String
@@ -59,15 +54,15 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 2
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -pass
+### -binaries
 
-The password to authenticate to the SDDC Manager.
+The fully qualified path to the binaries directory.
 
 ```yaml
 Type: String
@@ -75,40 +70,40 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 3
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -domain
+### -useContentLibrary
 
-The name of the Management Domain.
+Use a vSphere Content Library to store the binaries.
 
 ```yaml
-Type: String
+Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
 
-Required: True
-Position: 4
-Default value: None
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -principal
+### -nested
 
-The principal to remove the role from.
+Deploy Intelligent Operations and Management for VMware Cloud Foundation in a nested configuration.
 
 ```yaml
-Type: String
+Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
 
-Required: True
-Position: 5
-Default value: None
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
