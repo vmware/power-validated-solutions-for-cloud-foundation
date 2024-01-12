@@ -70,7 +70,6 @@ plugins:
     jinja_options:
       variable_start_string: "${{"
       variable_end_string: "}}"
-- git-authors
 - git-revision-date-localized:
     enabled: !ENV [CI, false]
     enable_creation_date: false
@@ -145,6 +144,7 @@ nav:
       - documentation/functions/aria-suite/aria-automation/Export-vRAJsonSpec.md
       - documentation/functions/aria-suite/aria-automation/Get-CloudProxy.md
       - documentation/functions/aria-suite/aria-automation/Get-CloudProxyOtk.md
+      - documentation/functions/aria-suite/aria-automation/Get-vRAAPIVersion.md
       - documentation/functions/aria-suite/aria-automation/Get-vRACloudAccount.md
       - documentation/functions/aria-suite/aria-automation/Get-vRACloudZone.md
       - documentation/functions/aria-suite/aria-automation/Get-vRAGroup.md
@@ -175,6 +175,7 @@ nav:
       - documentation/functions/aria-suite/aria-automation/Remove-vRAUserOrgRole.md
       - documentation/functions/aria-suite/aria-automation/Remove-vRAUserServiceRole.md
       - documentation/functions/aria-suite/aria-automation/Remove-vRAvRLIConfig.md
+      - documentation/functions/aria-suite/aria-automation/Request-vRAToken.md
       - documentation/functions/aria-suite/aria-automation/Set-vRADnsConfig.md
       - documentation/functions/aria-suite/aria-automation/Set-vRAGroupOrgRole.md
       - documentation/functions/aria-suite/aria-automation/Set-vRAGroupServiceRole.md
@@ -409,12 +410,14 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLockerPassword.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMMyVmwareAccount.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMProductNtpServer.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMRequest.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Request-vRSLCMProductBinary.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Request-vRSLCMToken.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Resume-vRSLCMRequest.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Set-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Set-vRSLCMDnsConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Start-vRSLCMProductNode.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Stop-vRSLCMProductNode.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Test-vRSLCMAuthentication.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Test-vRSLCMConnection.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDatacenter.md
@@ -446,6 +449,7 @@ nav:
       - documentation/functions/nsx/Get-NsxtBackupHistory.md
       - documentation/functions/nsx/Get-NsxtCertificate.md
       - documentation/functions/nsx/Get-NsxtComputeManager.md
+      - documentation/functions/nsx/Get-NsxtComputeManagerStatus.md
       - documentation/functions/nsx/Get-NsxtEdgeCluster.md
       - documentation/functions/nsx/Get-NsxtEdgeNode.md
       - documentation/functions/nsx/Get-NsxtEdgeNodeAuthPolicy.md
@@ -510,6 +514,7 @@ nav:
       - documentation/functions/nsx/Remove-NsxtSecurityPolicy.md
       - documentation/functions/nsx/Remove-NsxtSegment.md
       - documentation/functions/nsx/Remove-NsxtSyslogExporter.md
+      - documentation/functions/nsx/Request-NsxtToken.md
       - documentation/functions/nsx/Set-NsxtApplianceUserExpirationPolicy.md
       - documentation/functions/nsx/Set-NsxtApplianceUserPassword.md
       - documentation/functions/nsx/Set-NsxtCertificate.md
@@ -529,6 +534,7 @@ nav:
       - documentation/functions/nsx/Undo-NsxtIdentitySource.md
       - documentation/functions/nsx/Undo-NsxtLdapRole.md
       - documentation/functions/nsx/Undo-NsxtNodeProfileSyslogExporter.md
+      - documentation/functions/nsx/Undo-RouteMap.md
       - documentation/functions/nsx/Undo-NsxtVidmRole.md
       - documentation/functions/nsx/Undo-PrefixList.md
     - SDDC Manager:
@@ -610,6 +616,7 @@ nav:
       - documentation/functions/vsphere/Get-VMOvfProperty.md
       - documentation/functions/vsphere/Get-VMvAppConfig.md
       - documentation/functions/vsphere/Get-VsanHealthTest.md
+      - documentation/functions/vsphere/Install-VamiCertificate.md
       - documentation/functions/vsphere/Invoke-VcenterCommand.md
       - documentation/functions/vsphere/Move-VMtoFolder.md
       - documentation/functions/vsphere/New-VcLicense.md
@@ -669,6 +676,7 @@ nav:
       - documentation/functions/vsphere-replication/Get-VrmsTask.md
       - documentation/functions/vsphere-replication/Get-VrmsVamiCertificate.md
       - documentation/functions/vsphere-replication/Install-vSphereReplicationManager.md
+      - documentation/functions/vsphere-replication/Remove-VrmsConfiguration.md
       - documentation/functions/vsphere-replication/Request-VrmsToken.md
       - documentation/functions/vsphere-replication/Set-VrmsApplianceState.md
       - documentation/functions/vsphere-replication/Set-VrmsConfiguration.md
@@ -698,6 +706,7 @@ nav:
       - documentation/functions/vsphere-tanzu/Get-TanzuKubernetesCluster.md
       - documentation/functions/vsphere-tanzu/Get-SubscribedLibrary.md
       - documentation/functions/vsphere-tanzu/Get-VMClass.md
+      - documentation/functions/vsphere-tanzu/Get-WMLicenseStatus.md
       - documentation/functions/vsphere-tanzu/Get-WMRegistry.md
       - documentation/functions/vsphere-tanzu/Get-WMRegistryHealth.md
       - documentation/functions/vsphere-tanzu/Install-SupervisorClusterCertificate.md
@@ -707,6 +716,8 @@ nav:
       - documentation/functions/vsphere-tanzu/Remove-WMRegistry.md
       - documentation/functions/vsphere-tanzu/Request-WMClusterCSR.md
       - documentation/functions/vsphere-tanzu/Test-WMSubnetInput.md
+      - documentation/functions/vsphere-tanzu/Undo-Namespace.md
+      - documentation/functions/vsphere-tanzu/Undo-NamespacePermission.md
       - documentation/functions/vsphere-tanzu/Undo-Registry.md
       - documentation/functions/vsphere-tanzu/Undo-SupervisorCluster.md
       - documentation/functions/vsphere-tanzu/Undo-TanzuKubernetesCluster.md
@@ -740,6 +751,7 @@ nav:
       - documentation/functions/workspace-one-access/Get-WSAUser.md
       - documentation/functions/workspace-one-access/Initialize-WorkspaceOne.md
       - documentation/functions/workspace-one-access/Install-WorkspaceOne.md
+      - documentation/functions/workspace-one-access/Install-WorkspaceOneCertificate.md
       - documentation/functions/workspace-one-access/Request-WSAToken.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneApplianceNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneDnsConfig.md
