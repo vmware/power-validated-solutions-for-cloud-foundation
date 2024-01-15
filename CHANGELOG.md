@@ -80,6 +80,8 @@
 - Added `Get-SrmProtectionGroup` cmdlet to retrieve a Protection Group from Site Recovery Manager.
 - Added `Add-SrmProtectionGroup` cmdlet to add a Protection Group to Site Recovery Manager.
 - Added `Remove-SrmProtectionGroup` cmdlet to remove a Protection Group from Site Recovery Manager.
+- Added `Connect-AslcmUpgradeIso` cmdlet to connect an upgrade ISO on VMware Aria Suite Lifecycle.
+- Added `Disconnect-AslcmUpgradeIso` cmdlet to disconnect an upgrade ISO from VMware Aria Suite Lifecycle.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
