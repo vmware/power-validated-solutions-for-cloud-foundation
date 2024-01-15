@@ -2226,7 +2226,7 @@ Function Add-NsxtIdentitySource {
                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
                     if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
                         if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                            iF{
+                            if (!(Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain })) {
                                 if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
                                     if ($protocol -eq "ldaps") {
                                         New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAPS -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass -certificate $certificate | Out-Null
@@ -20902,7 +20902,6 @@ Function Connect-AslcmUpgradeIso {
                                                     } else {
                                                         Write-Error "Attaching Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))): POST_VALIDATION_FAILED"
                                                     }
-
                                                 } else {
                                                     Write-Warning "Attaching Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))), already connected: SKIPPED"
                                                 }
