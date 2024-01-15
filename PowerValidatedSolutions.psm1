@@ -2226,7 +2226,7 @@ Function Add-NsxtIdentitySource {
                 if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
                     if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
                         if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                            if (!(Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain })) {
+                            iF{
                                 if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
                                     if ($protocol -eq "ldaps") {
                                         New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAPS -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass -certificate $certificate | Out-Null
@@ -20844,6 +20844,155 @@ Function Install-AslcmCertificate {
 }
 Export-ModuleMember -Function Install-AslcmCertificate
 
+Function Connect-AslcmUpgradeIso {
+    <#
+        .SYNOPSIS
+        Connects the upgrade ISO to VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Connect-AslcmUpgradeIso cmdlet connects the upgrade ISO to VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Connect-AslcmUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-8.14.0.4-22630472-updaterepo"
+        This example connects the upgrade ISO to VMware Aria Suite Lifecycle
+
+        .PARAMETER server
+        The SDDC Manager FQDN.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere content library.
+
+        .PARAMETER libraryItem
+        The name of the ISO file in the vSphere content library.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$contentLibrary,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$libraryItem
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                                if ($contentLibraryDetail = Get-ContentLibrary -Name $contentLibrary -Server $($($vcfVcenterDetails.fqdn)) -ErrorAction SilentlyContinue) {
+                                    if ($isoName = (Get-ContentLibraryItem -ContentLibrary $contentLibrary -Name $libraryItem -ErrorAction SilentlyContinue).Name) { 
+                                        $datastore = Get-Datastore -Name $contentLibraryDetail.Datastore
+                                        New-PSDrive -Name TempDrive -PSProvider VimDatastore -Root '\' -Location $datastore | Out-Null
+                                        $isoPath = Get-ChildItem -Path "TempDrive:" -Recurse -Filter "$libraryItem*" | Select-Object -ExpandProperty DatastoreFullPath
+                                        Remove-PSDrive -Name TempDrive -Confirm:$false | Out-Null
+                                        if ($isoPath) {
+                                            if (Get-VM -Name $vcfVrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn) {
+                                                if (!((Get-CDDrive -VM ($vcfVrslcmDetails.fqdn).Split('.')[-0]).IsoPath)) {
+                                                    Get-VM -Name $vcfVrslcmDetails.hostname | Get-CDDrive | Set-CDDrive -Connected $true -IsoPath $isoPath -Confirm:$False | Out-Null
+                                                    if ((Get-CDDrive -VM ($vcfVrslcmDetails.fqdn).Split('.')[-0]).IsoPath) {
+                                                        Write-Output "Attaching Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Attaching Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))): POST_VALIDATION_FAILED"
+                                                    }
+
+                                                } else {
+                                                    Write-Warning "Attaching Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))), already connected: SKIPPED"
+                                                }
+                                            } else {
+                                                Write-Error "Unable to locate Virtual Machine ($($vcfVrslcmDetails.hostname)) in vCenter Server ($($($vcfVcenterDetails.fqdn))): PRE_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "Unable to establish the full ISO path in Content Library ($contentLibrary): PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Error "Unable to locate file ($libraryItem) in Content Library ($contentLibrary): PRE_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to find Content Library ($contentLibrary) in vCenter Server ($($($vcfVcenterDetails.fqdn))): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Connect-AslcmUpgradeIso
+
+Function Disconnect-AslcmUpgradeIso {
+    <#
+        .SYNOPSIS
+        Disconnects the ISO from VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Disconnect-AslcmUpgradeIso cmdlet disconnects the ISO from VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Disconnect-AslcmUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        This example disconnects the ISO from VMware Aria Suite Lifecycle
+
+        .PARAMETER server
+        The SDDC Manager FQDN.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Get-VM -Name $vcfVrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn) {
+                                    if ((Get-CDDrive -VM ($vcfVrslcmDetails.fqdn).Split('.')[-0]).IsoPath) {
+                                        $scriptCommand = "eject"
+                                        Invoke-VMScript -VM $vcfVrslcmDetails.hostname -ScriptText $scriptCommand -GuestUser $vcfVcenterDetails.root -GuestPassword $vcfVcenterDetails.rootPass | Out-Null
+                                        Get-VM -Name $vcfVrslcmDetails.hostname | Get-CDDrive | Set-CDDrive -NoMedia -Confirm:$False | Out-Null
+                                        if (!((Get-CDDrive -VM ($vcfVrslcmDetails.fqdn).Split('.')[-0]).IsoPath)) {
+                                            Write-Output "Disconnecting Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Disconnecting Upgrade ISO to VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))): POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Disconnecting Upgrade ISO from VMware Aria Suite Lifecycle instance ($(($vcfVrslcmDetails.fqdn))), not connected: SKIPPED"
+                                    }
+                                } else {
+                                    Write-Error "Unable to locate Virtual Machine ($($vcfVrslcmDetails.hostname)) in vCenter Server ($($($vcfVcenterDetails.fqdn))): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Disconnect-AslcmUpgradeIso
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -24782,7 +24931,7 @@ Function Import-ContentLibraryItem {
         .DESCRIPTION
         The Import-ContentLibraryItem cmdlet imports an item into the content library
         .EXAMPLE
-        Import-ContentLibraryItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -contentLibrary Operations -file 
+        Import-ContentLibraryItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -contentLibrary Operations -file <file_name>
         This example configures Private Cloud Automation using JSON spec supplied
     #>
 
@@ -24801,7 +24950,7 @@ Function Import-ContentLibraryItem {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $templateName = (Get-ChildItem -file $file).name
+                            $templateName = (Get-ChildItem -file $file).basename
                             if (Get-ContentLibrary -Name $contentLibrary -ErrorAction SilentlyContinue -WarningAction SilentlyContinue) {
                                 if (!(Get-ContentLibraryItem | Where-Object {$_.ContentLibrary -match $contentLibrary -and $_.Name -eq $templateName})) {
                                     New-ContentLibraryItem -ContentLibrary $contentLibrary -Name $templateName -Files $file | Out-Null
@@ -25348,6 +25497,7 @@ Function Get-vRSLCMServerDetail {
                     $vRSLCMCreds = Get-VCFCredential -resourceName $vRSLCMFQDN.fqdn
                     $vrslcmDetails = New-Object -TypeName PSCustomObject
                     $vrslcmDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vRSLCMFQDN.fqdn
+                    $vrslcmDetails | Add-Member -notepropertyname 'hostname' -notepropertyvalue $vRSLCMFQDN.fqdn.Split('.')[0]
                     $vrslcmDetails | Add-Member -notepropertyname 'adminUser' -notepropertyvalue ($vRSLCMCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM") }).username
                     $vrslcmDetails | Add-Member -notepropertyname 'adminPass' -notepropertyvalue ($vRSLCMCreds | Where-Object { ($_.credentialType -eq "API" -and $_.accountType -eq "SYSTEM") }).password
                     $vrslcmDetails | Add-Member -notepropertyname 'rootUser' -notepropertyvalue ($vRSLCMCreds | Where-Object { ($_.credentialType -eq "SSH" -and $_.accountType -eq "SYSTEM") }).username
