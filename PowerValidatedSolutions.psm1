@@ -52,6 +52,12 @@ Function Export-IamJsonSpec {
         .EXAMPLE
         Export-IamJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\iamDeploySpec.json
         This example creates a JSON specification for Identity and Access Management using the Planning and Preparation workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
     #>
 
     Param (
@@ -10103,10 +10109,10 @@ Function Export-IlaJsonSpec {
         This example creates a JSON specification Intelligent Logging and Analytics using the Planning and Preparation Workbook.
 
         .PARAMETER workbook
-        The Planning and Preparation Workbook (.xlsx) file.
+        The path to the Planning and Preparation workbook (.xlsx) file.
 
         .PARAMETER jsonFile
-        The JSON (.json) file created.
+        The path to the JSON specification file to be created.
     #>
 
     Param (
@@ -13588,6 +13594,12 @@ Function Export-IomJsonSpec {
         .EXAMPLE
         Export-IomJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\iomDeploySpec.json
         This example creates a JSON specification Intelligent Operations Management using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
     #>
 
     Param (
@@ -17392,6 +17404,12 @@ Function Export-PcaJsonSpec {
         .EXAMPLE
         Export-PcaJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\pcaDeploySpec.json
         This example creates a JSON specification Private Cloud Automation using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
     #>
 
     Param (
@@ -19935,20 +19953,26 @@ Export-ModuleMember -Function Undo-vRAvROPsIntegrationItem
 #######################################################################################################################
 #Region                 V M W A R E  A R I A  S U I T E  L I F E C Y C L E  F U N C T I O N S               ###########
 
-Function Export-AslcmJsonSpec {
+Function Export-vRSLCMJsonSpec {
     <#
         .SYNOPSIS
         Create JSON specification for VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Export-AslcmJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
+        The Export-vRSLCMJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
         to deploy the VMware Aria Suite Lifecycle:
         - Validates that the Planning and Preparation is available
         - Generates the JSON specification file using the Planning and Preparation workbook
 
         .EXAMPLE
-        Export-AslcmJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\aslcmDeploySpec.json
+        Export-vRSLCMJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\vrslcmDeploySpec.json
         This example creates a JSON specification VMware Aria Suite Lifecycleusing the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
     #>
 
     Param (
@@ -19985,7 +20009,7 @@ Function Export-AslcmJsonSpec {
                 'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
                 'organizationUnit'                  = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
                 'state'                             = $pnpWorkbook.Workbook.Names["ca_state"].Value
-                'psPack'                            = $pnpWorkbook.Workbook.Names["xreg_vrslcm_pspack   "].Value
+                'psPack'                            = $pnpWorkbook.Workbook.Names["xreg_vrslcm_pspack"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
@@ -20007,18 +20031,18 @@ Function Export-AslcmJsonSpec {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Export-AslcmJsonSpec
+Export-ModuleMember -Function Export-vRSLCMJsonSpec
 
-Function Invoke-AslcmDeployment {
+Function Invoke-vRSLCMDeployment {
     <#
         .SYNOPSIS
         End-to-end Deployment of VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Invoke-AslcmDeployment cmdlet is a single function to deploy and configure VMware Aria Suite Lifecycle.
+        The Invoke-vRSLCMDeployment cmdlet is a single function to deploy and configure VMware Aria Suite Lifecycle.
 
         .EXAMPLE
-        Invoke-AslcmDeployment -jsonFile .\aslcmDeploySpec.json
+        Invoke-vRSLCMDeployment -jsonFile .\vrslcmDeploySpec.json
         This example deploies and configures VMware Aria Suite Lifecycle
     #>
 
@@ -20040,14 +20064,14 @@ Function Invoke-AslcmDeployment {
                     
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Downloading $lcmProductName Install Bundle in SDDC Manager"
-                        $StatusMsg = Request-AslcmBundle -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $StatusMsg = Request-vRSLCMBundle -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                     }
 
                     if (!$failureDetected) { 
                         Show-PowerValidatedSolutionsOutput -message "Deploying $lcmProductName using SDDC Manager"
-                        $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
-                        $StatusMsg = New-AslcmDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmDeploymentSpec.json")
+                        $StatusMsg = New-vRSLCMDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                     }
 
@@ -20060,7 +20084,7 @@ Function Invoke-AslcmDeployment {
                     if (Get-VCFvRSLCM) {
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Replacing the Certificate of the $lcmProductName Instance using SDDC Manager"
-                            $StatusMsg = Install-AslcmCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            $StatusMsg = Install-vRSLCMCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                         }
 
@@ -20118,7 +20142,7 @@ Function Invoke-AslcmDeployment {
         Debug-CatchWriter -object $_
     }
 }
-Export-ModuleMember -Function Invoke-AslcmDeployment
+Export-ModuleMember -Function Invoke-vRSLCMDeployment
 
 Function Add-vRSLCMMyVMwareAccount {
     <#
@@ -20546,17 +20570,17 @@ Function Update-vRSLCMPSPack {
 }
 Export-ModuleMember -Function Update-vRSLCMPSPack
 
-Function Request-AslcmBundle {
+Function Request-vRSLCMBundle {
     <#
         .SYNOPSIS
         Request the download of the VMware Aria Suite Lifecycle bundle
 
         .DESCRIPTION
-        The Request-AslcmBundle cmdlet requests the download of the VMware Aria Suite Lifecycle bundle in SDDC
+        The Request-vRSLCMBundle cmdlet requests the download of the VMware Aria Suite Lifecycle bundle in SDDC
         Manager.
 
         .EXAMPLE
-        Request-AslcmBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        Request-vRSLCMBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager
     #>
 
@@ -20589,22 +20613,22 @@ Function Request-AslcmBundle {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Request-AslcmBundle
+Export-ModuleMember -Function Request-vRSLCMBundle
 
-Function New-AslcmDeployment {
+Function New-vRSLCMDeployment {
     <#
         .SYNOPSIS
         Deploy VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-AslcmDeployment cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager. The cmdlet
+        The New-vRSLCMDeployment cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that VMware Aria Suite Lifecycle has not been deployed
         - Requests a new deployment of VMware Aria Suite Lifecycle
 
         .EXAMPLE
-        New-AslcmDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
+        New-vRSLCMDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
         This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle
     #>
 
@@ -20623,9 +20647,9 @@ Function New-AslcmDeployment {
                 if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                     if (!((Get-VCFVrslcm).fqdn -eq $jsonInput.aslcmFqdn)) {
                         if ($PsBoundParameters.ContainsKey("outputPath")) {
-                            $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                            $jsonSpecFileName = $outputPath + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmDeploymentSpec.json")
                         } else {
-                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmDeploymentSpec.json")
+                            $jsonSpecFileName = (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmDeploymentSpec.json")
                         }
                         $deployVrslcmObject = @()
                         $deployVrslcmObject += [pscustomobject]@{
@@ -20661,15 +20685,15 @@ Function New-AslcmDeployment {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function New-AslcmDeployment
+Export-ModuleMember -Function New-vRSLCMDeployment
 
-Function Undo-AslcmDeployment {
+Function Undo-vRSLCMDeployment {
     <#
         .SYNOPSIS
         Remove VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Undo-AslcmDeployment cmdlet removes VMware Aria Suite Lifecycle from SDDC Manager. The cmdlet connects to
+        The Undo-vRSLCMDeployment cmdlet removes VMware Aria Suite Lifecycle from SDDC Manager. The cmdlet connects to
         SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
@@ -20677,7 +20701,7 @@ Function Undo-AslcmDeployment {
         - Requests a deletion of VMware Aria Suite Lifecycle
 
         .EXAMPLE
-        Undo-AslcmDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        Undo-vRSLCMDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example starts the removal of VMware Aria Suite Lifecycle from SDDC Manager.
 
         .PARAMETER server
@@ -20726,22 +20750,22 @@ Function Undo-AslcmDeployment {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Undo-AslcmDeployment
+Export-ModuleMember -Function Undo-vRSLCMDeployment
 
-Function Install-AslcmCertificate {
+Function Install-vRSLCMCertificate {
     <#
         .SYNOPSIS
         Install a signed certificate on VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Install-AslcmCertificate cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
+        The Install-vRSLCMCertificate cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
         Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
         - Install a signed certificate on VMware Aria Suite Lifecycle
 
         .EXAMPLE
-        Install-AslcmCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\aslcmDeploySpec.json
+        Install-vRSLCMCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
         This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle
     #>
 
@@ -20780,7 +20804,7 @@ Function Install-AslcmCertificate {
                                         }
                                     ]
                                 }'
-                            $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
+                            $csrGenerationSpecJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmRequestCsrSpec.json")
                             $caTypeJson = '{
                                 "caType": "Microsoft",
                                     "resources":  [
@@ -20792,7 +20816,7 @@ Function Install-AslcmCertificate {
                                         }
                                     ]
                                 }'
-                            $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
+                            $caTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmRequestCertificateSpec.json")
                             $operationTypeJson = '{
                                 "operationType": "INSTALL",
                                     "resources":  [
@@ -20804,20 +20828,20 @@ Function Install-AslcmCertificate {
                                         }
                                     ]
                                 }'
-                            $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
-                            $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCsrSpec.json")
+                            $operationTypeJson | Out-File ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmUpdateCertificateSpec.json")
+                            $newRequest = Request-VCFCertificateCSR -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmRequestCsrSpec.json")
                             Start-Sleep 3
                             Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
                                 if ($request.status -eq "FAILED") {
                                     Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate CSR: POST_VALIDATED_FAILED"
                                 } else {
-                                    $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmRequestCertificateSpec.json")
+                                    $newRequest = Request-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmRequestCertificateSpec.json")
                                     Start-Sleep 3
                                     Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "IN_PROGRESS")
                                     if ($request.status -eq "FAILED") {
                                         Write-Error "Generating VMware Aria Suite Lifecyle ($($jsonInput.aslcmFqdn)) Certifcate: POST_VALIDATED_FAILED"
                                     } else {
-                                        $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "aslcmUpdateCertificateSpec.json")
+                                        $newRequest = Set-VCFCertificate -domainName (Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name -json ($outputPath + ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmUpdateCertificateSpec.json")
                                         Start-Sleep 3
                                         Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
                                         if ($request.status -eq "FAILED") {
@@ -20842,18 +20866,23 @@ Function Install-AslcmCertificate {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Install-AslcmCertificate
+Export-ModuleMember -Function Install-vRSLCMCertificate
 
-Function Connect-AslcmUpgradeIso {
+Function Connect-vRSLCMUpgradeIso {
     <#
         .SYNOPSIS
         Connects the upgrade ISO to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Connect-AslcmUpgradeIso cmdlet connects the upgrade ISO to VMware Aria Suite Lifecycle
+        The Connect-vRSLCMUpgradeIso cmdlet connects the upgrade ISO to VMware Aria Suite Lifecycle. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Validated the content library and ISO file are present
+        - Connects the ISO to the VMware Aria Suite Lifecycle appliance
 
         .EXAMPLE
-        Connect-AslcmUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-8.14.0.4-22630472-updaterepo"
+        Connect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-8.14.0.4-22630472-updaterepo"
         This example connects the upgrade ISO to VMware Aria Suite Lifecycle
 
         .PARAMETER server
@@ -20919,6 +20948,7 @@ Function Connect-AslcmUpgradeIso {
                                 }
                             }
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -20927,18 +20957,22 @@ Function Connect-AslcmUpgradeIso {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Connect-AslcmUpgradeIso
+Export-ModuleMember -Function Connect-vRSLCMUpgradeIso
 
-Function Disconnect-AslcmUpgradeIso {
+Function Disconnect-vRSLCMUpgradeIso {
     <#
         .SYNOPSIS
         Disconnects the ISO from VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The Disconnect-AslcmUpgradeIso cmdlet disconnects the ISO from VMware Aria Suite Lifecycle
+        The Disconnect-vRSLCMUpgradeIso cmdlet disconnects the ISO from VMware Aria Suite Lifecycle. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Disconnects an ISO file from the VMware Aria Suite Lifecycle appliance
 
         .EXAMPLE
-        Disconnect-AslcmUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
+        Disconnect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example disconnects the ISO from VMware Aria Suite Lifecycle
 
         .PARAMETER server
@@ -20982,6 +21016,7 @@ Function Disconnect-AslcmUpgradeIso {
                                 }
                             }
                         }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -20990,7 +21025,7 @@ Function Disconnect-AslcmUpgradeIso {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Disconnect-AslcmUpgradeIso
+Export-ModuleMember -Function Disconnect-vRSLCMUpgradeIso
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -21112,11 +21147,11 @@ Function Invoke-GlobalWsaDeployment {
         The Invoke-GlobalWsaDeployment cmdlet is a single function to deploy and configure Global Workspace ONE Access.
 
         .EXAMPLE
-        Invoke-GlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
+        Invoke-GlobalWsaDeployment -jsonFile .\wsaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
         This example deploys and configures Global Workspace ONE Access using JSON spec supplied
 
         .EXAMPLE
-        Invoke-GlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
+        Invoke-GlobalWsaDeployment -jsonFile .\wsaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
         This example deploys and configures Global Workspace ONE Access using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
     #>
 
@@ -21316,7 +21351,7 @@ Function Invoke-UndoGlobalWsaDeployment {
         The Invoke-UndoGlobalWsaDeployment cmdlet is a single function to remove Global Workspace ONE Access.
 
         .EXAMPLE
-        Invoke-UndoGlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json
+        Invoke-UndoGlobalWsaDeployment -jsonFile .\wsaDeploySpec.json
         This example removes Global Workspace ONE Access using JSON spec supplied
     #>
 
@@ -34515,7 +34550,7 @@ Function Request-vRSLCMToken {
         authorization token. It is required once per session before running all other cmdlets.
 
         .EXAMPLE
-        Request-vRSLCMToken -fqdn xreg-vrslcm.rainpole.io -username admin@local -password VMware1!
+        Request-vRSLCMToken -fqdn xint-vrslcm01.rainpole.io -username vcfadmin@local -password VMw@re1!
         This example shows how to connect to the VMware Aria Suite Lifecycle appliance.
 
         .PARAMETER fqdn
@@ -36353,7 +36388,7 @@ Function Request-vRSLCMProductBinary {
     Try {
         if ($vrslcmAppliance) {
             $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/settings/my-vmware/product-binaries/download"
-            $Global:body = '{
+            $body = '{
                 "productId": "'+ $productId + '",
                 "productVersion": "'+ $version + '",
                 "productName": "'+ $productName + '",
@@ -36466,6 +36501,129 @@ Function Start-vRSLCMSnapshot {
     }
 }
 Export-ModuleMember -Function Start-vRSLCMSnapshot
+
+Function Get-vRSLCMUpgradeStatus {
+    <#
+        .SYNOPSIS
+        Check an upgrade status for VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Get-vRSLCMUpgradeStatus cmdlet checks the upgrade status for VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMUpgradeStatus
+        This example retrieves the upgrade status for VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Get-vRSLCMUpgradeStatus -history
+        This example retrieves the upgrade history for VMware Aria Suite Lifecycle
+
+        .PARAMETER history
+        Displays the upgrade history.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$history
+    )
+
+    Try {
+        if ($PsBoundParameters.ContainsKey("history")) {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-upgrade/history"
+        } else {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/upgradeLcmVa"
+        }
+        Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Get-vRSLCMUpgradeStatus
+
+Function Start-vRSLCMUpgrade {
+    <#
+        .SYNOPSIS
+        Perform upgrade operations on VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Start-vRSLCMUpgrade cmdlet performs a number of upgrade related operations on VMware Aria Suite Lifecycle.
+        These include checking for upgrade binares, performing pre-validaion and starting the upgrade.
+
+        .EXAMPLE
+        Start-vRSLCMUpgrade -type CDROM -userName vcfadmin@local -password VMw@re1! -action check
+        This example checks the CDROM for an upgrade package
+
+        .EXAMPLE
+        Start-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action prevalidate
+        This example starts an upgrade precheck
+
+        .EXAMPLE
+        Start-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action upgrade
+        This example starts the upgrade
+
+        .PARAMETER type
+        The location for the upgrade ISO file (Options are CDROM, URL).
+
+        .PARAMETER username
+        The VMware Aria Suite Lifecycle administrative user (e.g. vcfadmin@local).
+
+        .PARAMETER password
+        The VMware Aria Suite Lifecycle administrative user.
+
+        .PARAMETER action
+        The operation to perform (Options are check, upgrade, prevalidate or prepare).
+
+        .PARAMETER url
+        The url of the upgrade ISO if type is url.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet('CDROM','URL')] [String]$type,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$username,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$password,
+        [Parameter (Mandatory = $true)] [ValidateSet('check','upgrade','prevalidate','prepare')] [String]$action,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$url
+    )
+
+    Try {
+        if ($action -eq "prevalidate") {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-upgrade/prevalidate"
+            $body = '{
+                "repositoryType": "'+ $type + '",
+                "repositoryUrl": "'+ $url + '",
+                "repositoryUserName": "'+ $userName + '",
+                "repositoryPassword": "'+ $password + '",
+                "actionType": "'+ $action + '"
+            }'
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        } elseif ($action -eq "check") {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/upgradeLcmVa"
+            $body = '{
+                "repositoryType": "'+ $type + '",
+                "repositoryUrl": "'+ $url + '",
+                "repositoryUserName": "'+ $userName + '",
+                "repositoryPassword": "'+ $password + '",
+                "actionType": "'+ $action + '"
+            }'
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        } elseif ($action -eq "upgrade") {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/upgradeLcmVa"
+            $body = '{
+                "repositoryType": "'+ $type + '",
+                "repositoryUrl": "'+ $url + '",
+                "repositoryUserName": "'+ $userName + '",
+                "repositoryPassword": "'+ $password + '",
+                "actionType": "'+ $action + '"
+            }'
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+        } elseif ($action -eq "prepare") {
+            $uri = "https://$vrslcmAppliance/lcm/lcops/api/v2/system-upgrade/prepare"
+            Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Start-vRSLCMUpgrade
 
 #EndRegion  End VMware Aria Suite Lifecycle Functions                        ######
 ###################################################################################
