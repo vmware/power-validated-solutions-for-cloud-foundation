@@ -14,7 +14,7 @@ Export-vRAJsonSpec -server <String> -user <String> -pass <String> [-workbook <St
 
 ## Description
 
-The `Export-vRAJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook
+The `Export-vRAJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
 to deploy VMware Aria Automation using VMware Aria Suite Lifecycle:
 
 - Validates that the Planning and Preparation is available

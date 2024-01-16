@@ -60,17 +60,17 @@
 - Added `Import-ContentLibraryItem` cmdlet to support adding files to a vSphere Content Library.
 - Added `Export-PcaJsonSpec` cmdlet to generate a JSON specification file for Private Cloud Automation.
 - Added `Invoke-PcaDeployment` cmdlet to perform an end-to-end deployment of Private Cloud Automation.
-- Added `Request-vRSLCMBundle` cmdlet to download the VMware Aria Suite Lifecycle bundle in SDDC Manager.
-- Added `New-vRSLCMDeployment` cmdlet to perform the deployment of VMware Aria Suite Lifecycle using SDDC Manager.
-- Added `Install-vRSLCMCertificate` cmdlet to install a signed certificate for VMware Aria Suite Lifecycle using SDDC Manager.
+- Added `Request-VrslcmBundle` cmdlet to download the VMware Aria Suite Lifecycle bundle in SDDC Manager.
+- Added `New-VrslcmDeployment` cmdlet to perform the deployment of VMware Aria Suite Lifecycle using SDDC Manager.
+- Added `Install-VrslcmCertificate` cmdlet to install a signed certificate for VMware Aria Suite Lifecycle using SDDC Manager.
 - Added `Invoke-UndoPcaDeployment` cmldet to perform an end-to-end removal of Private Cloud Automation.
 - Added `Export-GlobalWsaJsonSpec` cmdlet to generate a JSON specification file for Workspace ONE Access.
 - Added `Invoke-GlobalWsaDeployment` cmdlet to perform an end-to-end install of Workspace ONE Access.
 - Added `Invoke-UndoGlobalWsaDeployment` cmdlet to perform an end-to-end removal of Workspace ONE Access.
 - Added `Undo-WSADeployment` cmdlet to remove Workspace ONE Access from VMware Aria Suite Lifecycle.
-- Added `Undo-vRSLCMDeployment` cmdlet to remove VMware Aria Suite Lifecycle from SDDC Manager.
-- Added `Export-vRSLCMJsonSpec` cmdlet to generate a JSON specification file for VMware Aria Suite Lifecycle.
-- Added `Invoke-vRSLCMDeployment` cmdlet to perform an end-to-end install of VMware Aria Suite Lifecycle.
+- Added `Undo-VrslcmDeployment` cmdlet to remove VMware Aria Suite Lifecycle from SDDC Manager.
+- Added `Export-VrslcmJsonSpec` cmdlet to generate a JSON specification file for VMware Aria Suite Lifecycle.
+- Added `Invoke-VrslcmDeployment` cmdlet to perform an end-to-end install of VMware Aria Suite Lifecycle.
 - Added `Add-NsxtPrincipalIdentity` cmdlet to add a certificate based principal identity to NSX Manager.
 - Added `Undo-NsxtPrincipalIdentity` cmdlet to remove a certificate based principal identity from NSX Manager.
 - Added `Remove-vRLIContentPack` cmdlet to support the removal of a content pack from VMware Aria Operations for Logs.
@@ -120,8 +120,8 @@
 - Enhanced `Export-vROPSJsonSpec` cmdlet:
   - to generate the JSON specification file using the Intelligent Operations Management JSON specification file.
   - to support a custom output folder for the JSON specification file.
-- Enhanced `Test-SrmAuthenticationREST` cmdlet to improve output. 
-- Enhanced `Test-VrmsAuthenticationREST` cmdlet to improve output. 
+- Enhanced `Test-SrmAuthenticationREST` cmdlet to improve output.
+- Enhanced `Test-VrmsAuthenticationREST` cmdlet to improve output.
 - Enhanced `Update-vRSLCMPSPack` cmdlet to perform a snapshot as part of the workflow and improved status checks.
 - Enhanced `Add-vCenterGlobalPermission` cmdlet to check for the existence of the vCenter Server role.
 - Removed `ilaDeployAriaOperationsLogs.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-IlaDeployment` cmdlet.
@@ -479,9 +479,9 @@ Deprecation
 - Added `Start-PasswordPolicyConfig` cmdlet to perform the configuration of password policy across a VMware Cloud Foundation instance.
 - Added `Publish-WsaDirectoryPasswordPolicy` cmdlet to retrieve password policies for Workspace ONE Access Local Directory Users and output the details.
 - Added `Publish-WsaLocalPasswordPolicy` cmdlet to retrieve password policies for Workspace ONE Access Local Users and output the details.
-- Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.  
-- Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.  
-- Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.  
+- Renamed `Get-VCPasswordPolicy` to `Get-VcenterPasswordExpiration` to support better naming for password expiration.
+- Renamed `Set-VCPasswordPolicy` to `Set-VcenterPasswordExpiration` to support better naming for password expiration.
+- Renamed `Get-VCRootPasswordExpiry` to `Get-VcenterRootPasswordExpiration` to support better naming for password expiration.
 - Renamed `Set-VCPasswordExpiry` to `Set-VcenterRootPasswordExpiration` to support better naming for password expiration.
 - Renamed `Get-WSAPasswordLockout` to Get-WsaAccountLockout to support better naming for account lockout.
 - Renamed `Set-WSAPasswordLockout` to Set-WsaAccountLockout to support better naming for account lockout.

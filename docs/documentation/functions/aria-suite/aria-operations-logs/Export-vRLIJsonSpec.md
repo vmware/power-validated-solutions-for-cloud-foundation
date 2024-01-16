@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Create VMware Aria Operations for Logs Deployment JSON specification using the Planning and Preparation workbook
+Create VMware Aria Operations for Logs Deployment JSON specification using the Planning and Preparation Workbook
 
 ## Syntax
 
@@ -14,7 +14,7 @@ Export-vRLIJsonSpec -server <String> -user <String> -pass <String> [-workbook <S
 
 ## Description
 
-The `Export-vRLIJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook
+The `Export-vRLIJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
 to deploy VMware Aria Operations for Logs using VMware Aria Suite Lifecycle.
 The cmdlet connects to SDDC Manager
 using the -server, -user, and -password values.
@@ -25,7 +25,7 @@ using the -server, -user, and -password values.
 - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
 - Validates that the License, Certificate and Password in the Planning and Prep Preparation workbook have been
 created in VMware Aria Suite Lifecycle locker
-- Generates the deployment JSON specification file using the Planning and Preparation workbook and details
+- Generates the deployment JSON specification file using the Planning and Preparation Workbook and details
 from VMware Aria Suite Lifecycle named '\<management_domain_name\>-vrliDeploymentSpec.json'.
 
 ## Examples

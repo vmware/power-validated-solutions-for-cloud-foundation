@@ -130,7 +130,24 @@ nav:
   - License: license.md
 - Reference:
   - documentation/index.md
-  - Functions:
+  - Solutions Functions:
+    - Identity and Access Management:
+      - documentation/functions/solutions/Export-IamJsonSpec.md
+      - documentation/functions/solutions/Invoke-IamDeployment.md
+      - documentation/functions/solutions/Invoke-UndoIamDeployment.md
+    - Intelligent Logging and Analytics:
+      - documentation/functions/solutions/Export-IlaJsonSpec.md
+      - documentation/functions/solutions/Invoke-IlaDeployment.md
+      - documentation/functions/solutions/Invoke-UndoIlaDeployment.md
+    - Intelligent Operations Management:
+      - documentation/functions/solutions/Export-IomJsonSpec.md
+      - documentation/functions/solutions/Invoke-IomDeployment.md
+      - documentation/functions/solutions/Invoke-UndoIomDeployment.md
+    - Private Cloud Automation:
+      - documentation/functions/solutions/Export-PcaJsonSpec.md
+      - documentation/functions/solutions/Invoke-PcaDeployment.md
+      - documentation/functions/solutions/Invoke-UndoPcaDeployment.md
+  - Component Functions:
     - Active Directory:
       - documentation/functions/active-directory/Get-ADPrincipalGuid.md
       - documentation/functions/active-directory/Test-ADAuthentication.md
@@ -381,6 +398,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenterVcenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMEnvironment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMHealth.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLockerPassword.md
@@ -399,12 +417,14 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMAdapterOperation.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenterVcenter.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMLockerPassword.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMMyVmwareAccount.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Register-vRSLCMProductBinary.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMEnvironment.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMLockerPassword.md
@@ -731,6 +751,7 @@ nav:
       - documentation/functions/workspace-one-access/Add-WSAConnector.md
       - documentation/functions/workspace-one-access/Add-WSALdapDirectory.md
       - documentation/functions/workspace-one-access/Add-WSARoleAssociation.md
+      - documentation/functions/workspace-one-access/Export-GlobalWsaJsonSpec.md
       - documentation/functions/workspace-one-access/Export-WsaJsonSpec.md
       - documentation/functions/workspace-one-access/Get-WsaAccountLockout.md
       - documentation/functions/workspace-one-access/Get-WSAActiveDirectoryGroupDetail.md
@@ -752,6 +773,8 @@ nav:
       - documentation/functions/workspace-one-access/Initialize-WorkspaceOne.md
       - documentation/functions/workspace-one-access/Install-WorkspaceOne.md
       - documentation/functions/workspace-one-access/Install-WorkspaceOneCertificate.md
+      - documentation/functions/workspace-one-access/Invoke-GlobalWsaDeployment.md
+      - documentation/functions/workspace-one-access/Invoke-UndoGlobalWsaDeployment.md
       - documentation/functions/workspace-one-access/Request-WSAToken.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneApplianceNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneDnsConfig.md
@@ -772,15 +795,17 @@ nav:
       - documentation/functions/workspace-one-access/Undo-WorkspaceOneDirectoryGroup.md
       - documentation/functions/workspace-one-access/Undo-WorkspaceOneDnsConfig.md
       - documentation/functions/workspace-one-access/Undo-WorkspaceOneNsxtIntegration.md
-    - Supporting Functions:
-      - documentation/functions/supporting/Request-CSPToken.md
-      - documentation/functions/supporting/Show-PowerValidatedSolutionsOutput.md
+      - documentation/functions/workspace-one-access/Undo-WSADeployment.md
+  - Supporting Functions:
+    - Tests:
       - documentation/functions/supporting/Test-DnsServers.md
       - documentation/functions/supporting/Test-EndpointConnection.md
       - documentation/functions/supporting/Test-IpAddress.md
       - documentation/functions/supporting/Test-IPaddressArray.md
       - documentation/functions/supporting/Test-NtpServer.md
       - documentation/functions/supporting/Test-PowerValidatedSolutionsPrereq.md
+    - Output:
+      - documentation/functions/supporting/Show-PowerValidatedSolutionsOutput.md
 - Community:
   - community/index.md
   - Contributing: community/contributing.md

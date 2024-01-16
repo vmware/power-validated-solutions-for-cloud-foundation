@@ -14,7 +14,7 @@ Export-WsaJsonSpec -server <String> -user <String> -pass <String> [-workbook <St
 
 ## Description
 
-The `Export-WsaJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation workbook
+The `Export-WsaJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
 to deploy Workspace ONE Access using VMware Aria Suite Lifecycle:
 
 - Validates that the Planning and Preparation is available
@@ -108,7 +108,7 @@ Accept wildcard characters: False
 
 ### -workbook
 
-The path to the Planning and Preparation Workbook (.xlsx).
+The path to the Planning and Preparation Workbook (.xlsx) file.
 
 ```yaml
 Type: String
