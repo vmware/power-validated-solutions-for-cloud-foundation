@@ -60,17 +60,17 @@
 - Added `Import-ContentLibraryItem` cmdlet to support adding files to a vSphere Content Library.
 - Added `Export-PcaJsonSpec` cmdlet to generate a JSON specification file for Private Cloud Automation.
 - Added `Invoke-PcaDeployment` cmdlet to perform an end-to-end deployment of Private Cloud Automation.
-- Added `Request-AslcmBundle` cmdlet to download the VMware Aria Suite Lifecycle bundle in SDDC Manager.
-- Added `New-AslcmDeployment` cmdlet to perform the deployment of VMware Aria Suite Lifecycle using SDDC Manager.
-- Added `Install-AslcmCertificate` cmdlet to install a signed certificate for VMware Aria Suite Lifecycle using SDDC Manager.
+- Added `Request-vRSLCMBundle` cmdlet to download the VMware Aria Suite Lifecycle bundle in SDDC Manager.
+- Added `New-vRSLCMDeployment` cmdlet to perform the deployment of VMware Aria Suite Lifecycle using SDDC Manager.
+- Added `Install-vRSLCMCertificate` cmdlet to install a signed certificate for VMware Aria Suite Lifecycle using SDDC Manager.
 - Added `Invoke-UndoPcaDeployment` cmldet to perform an end-to-end removal of Private Cloud Automation.
 - Added `Export-GlobalWsaJsonSpec` cmdlet to generate a JSON specification file for Workspace ONE Access.
 - Added `Invoke-GlobalWsaDeployment` cmdlet to perform an end-to-end install of Workspace ONE Access.
 - Added `Invoke-UndoGlobalWsaDeployment` cmdlet to perform an end-to-end removal of Workspace ONE Access.
 - Added `Undo-WSADeployment` cmdlet to remove Workspace ONE Access from VMware Aria Suite Lifecycle.
-- Added `Undo-AslcmDeployment` cmdlet to remove VMware Aria Suite Lifecycle from SDDC Manager.
-- Added `Export-AslcmJsonSpec` cmdlet to generate a JSON specification file for VMware Aria Suite Lifecycle.
-- Added `Invoke-AslcmDeployment` cmdlet to perform an end-to-end install of VMware Aria Suite Lifecycle.
+- Added `Undo-vRSLCMDeployment` cmdlet to remove VMware Aria Suite Lifecycle from SDDC Manager.
+- Added `Export-vRSLCMJsonSpec` cmdlet to generate a JSON specification file for VMware Aria Suite Lifecycle.
+- Added `Invoke-vRSLCMDeployment` cmdlet to perform an end-to-end install of VMware Aria Suite Lifecycle.
 - Added `Add-NsxtPrincipalIdentity` cmdlet to add a certificate based principal identity to NSX Manager.
 - Added `Undo-NsxtPrincipalIdentity` cmdlet to remove a certificate based principal identity from NSX Manager.
 - Added `Remove-vRLIContentPack` cmdlet to support the removal of a content pack from VMware Aria Operations for Logs.
@@ -80,8 +80,10 @@
 - Added `Get-SrmProtectionGroup` cmdlet to retrieve a Protection Group from Site Recovery Manager.
 - Added `Add-SrmProtectionGroup` cmdlet to add a Protection Group to Site Recovery Manager.
 - Added `Remove-SrmProtectionGroup` cmdlet to remove a Protection Group from Site Recovery Manager.
-- Added `Connect-AslcmUpgradeIso` cmdlet to connect an upgrade ISO on VMware Aria Suite Lifecycle.
-- Added `Disconnect-AslcmUpgradeIso` cmdlet to disconnect an upgrade ISO from VMware Aria Suite Lifecycle.
+- Added `Connect-vRSLCMpgradeIso` cmdlet to connect an upgrade ISO on VMware Aria Suite Lifecycle.
+- Added `Disconnect-vRSLCMUpgradeIso` cmdlet to disconnect an upgrade ISO from VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMUpgradeStatus` cmdlet to retrieve the status of an upgrade of VMware Aria Suite Lifecycle.
+- Added `Start-vRSLCMUpgrade` cmdlet to start check, prepare, pre-validate and upgrade operations on VMware Aria Suite Lifecycle.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
