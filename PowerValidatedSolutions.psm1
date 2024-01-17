@@ -20450,6 +20450,152 @@ Export-ModuleMember -Function Undo-vRAvROPsIntegrationItem
 #######################################################################################################################
 
 #######################################################################################################################
+#Region            H E A L T H  R E P O R T I N G  A N D  M O N I T O R I N G  F U N C T I O N S            ###########
+
+Function Deploy-PhotonAppliance {
+    <#
+		.SYNOPSIS
+        Deploy a Photon appliance
+
+        .DESCRIPTION
+        The Deploy-PhotonAppliance cmdlet deploys the Photon appliance to a vSphere Cluster of a workload Domain.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to the vCenter Server
+        - Deploys the Photon Appliance into a vSphere Cluster
+
+        .EXAMPLE
+        Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -rootPassword VMw@re1! -enableSsh True -enableDebug False -portGroup sfo-m01-cl01-vds01-mgmt -folder sfo-m01-fd-hrm -ovaPath .\vvs_appliance_v0.0.1.ova
+        This example deploys the Photon appliance named sfo-m01-hrm01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$hostname,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$domain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ipAddress,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$netmask,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$gateway,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$dnsServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPassword,
+        [Parameter (Mandatory = $true)] [ValidateSet('True', 'False')] [String]$enableSsh,
+        [Parameter (Mandatory = $true)] [ValidateSet('True', 'False')] [String]$enableDebug,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$portgroup,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$folder,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ovaPath
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("ovaPath")) {
+            $ovaPath = Get-ExternalFileName -title "Select the OVA file (.ova)" -fileType "ova" -location "default"
+        }
+        if (Test-Path -Path $ovaPath) {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (!(Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore)) {
+                                    $ovfConfiguration = Get-OvfConfiguration $ovaPath
+                                    $ovfConfiguration.Common.guestinfo.hostname.Value = ($hostname + "." + $domain)
+                                    $ovfConfiguration.Common.guestinfo.ipaddress.Value = $ipaddress
+                                    $ovfConfiguration.Common.guestinfo.netmask.Value = $netmask
+                                    $ovfConfiguration.Common.guestinfo.gateway.Value = $gateway
+                                    $ovfConfiguration.Common.guestinfo.dns.Value = $dnsServer
+                                    $ovfConfiguration.Common.guestinfo.domain.Value = $domain
+                                    $ovfConfiguration.Common.guestinfo.ntp.Value = $ntpServer
+                                    $ovfConfiguration.Common.guestinfo.root_password.Value = $rootPassword
+                                    $ovfConfiguration.Common.guestinfo.enable_ssh.Value = $enableSsh
+                                    $ovfConfiguration.Common.guestinfo.debug.Value = $enableDebug
+                                    $ovfConfiguration.NetworkMapping.DHCP.Value = $portgroup
+                                    Import-vApp -Source $ovaPath -OvfConfiguration $ovfConfiguration -Name $hostname -VMHost (Get-VMHost -Server $vcfVcenterDetails.fqdn).Name[-1] -Location (Get-Cluster -Server $vcfVcenterDetails.fqdn).Name -InventoryLocation $folder -Datastore (Get-Datastore -Server $vcfVcenterDetails.fqdn).Name -DiskStorageFormat Thin -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force | Out-Null
+                                    Start-VM -VM $hostname -Server ($vcfVcenterDetails.fqdn).Name | Out-Null
+                                    if ((Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name).PowerState -eq "PoweredOn") {
+                                        Write-Output "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
+                                }
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }
+                    }
+                }
+            }
+        } else {
+            Write-Error  "Unable to locate Photon OVA ($ovaPath), File Not Found: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Deploy-PhotonAppliance
+
+Function Remove-PhotonAppliance {
+    <#
+		.SYNOPSIS
+        Remove the Photon appliance
+
+        .DESCRIPTION
+        The Remove-PhotonAppliance cmdlet deploys the Photon appliance to a vSphere Cluster of a workload Domain.
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to the vCenter Server
+        - Deploys the Photon Appliance into a vSphere Cluster
+
+        .EXAMPLE        
+        Remove-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -vmName sfo-m01-hrm01
+        This example removes the Photon appliance named sfo-m01-hrm01
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcDomain,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-VM -name $vmName -ErrorAction SilentlyContinue ) {
+                                Get-VM -name $vmName | Stop-VM -RunAsync -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                Do {$powerState = (Get-VM -name $vmName | Select-Object PowerState).PowerState } Until ($powerState -eq "PoweredOff")
+                                Get-VM -name $vmName | Remove-VM -DeletePermanently -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+                                if (!(Get-VM -name $vmName -ErrorAction SilentlyContinue)) {
+                                    Write-Output "Deleting the Host Virtual Machine ($vmName) from vCenter Server ($server): SUCCESSFUL"
+                                } else {
+                                    Write-Error "Deleting the Host Virtual Machine ($vmName) from vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATIO_FAILED"
+                                }
+                            } else {
+                                Write-Warning "Deleting the Host Virtual Machine ($vmName) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
+                            }
+                        }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Remove-PhotonAppliance
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
 #Region                 V M W A R E  A R I A  S U I T E  L I F E C Y C L E  F U N C T I O N S               ###########
 
 Function Export-vRSLCMJsonSpec {

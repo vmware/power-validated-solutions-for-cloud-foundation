@@ -93,6 +93,8 @@
 - Added `Add-SrmRecoveryPlanCalloutStep` cmdlet to add a callout step to a Recovery Plan in Site Recovery Manager.
 - Added `Get-SrmRecoveryPlanVm` cmdlet to retrieve a virtual machine from a Recovery Plan in Site Recovery Manager.
 - Added `Set-SrmRecvoeryPlanVmPriority` cmdlet to set the restart priority of a virtual machine from a Recovery Plan in Site Recovery Manager.
+- Added `Deploy-PhotonAppliance` cmdlet to deploy the Photon appliance for the Health Reporting and Monitoring validated solution.
+- Added `Remove-PhotonAppliance` cmdlet to remove the Photon appliance for the Health Reporting and Monitoring validated solution.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.
