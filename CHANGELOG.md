@@ -76,7 +76,7 @@
 - Added `Remove-vRLIContentPack` cmdlet to support the removal of a content pack from VMware Aria Operations for Logs.
 - Added `Uninstall-vRLIContentPack` cmdlet to remove a content pack from VMware Aria Operations for Logs.
 - Added `Add-ProtectionGroup` cmdlet to add Protection Groups to Site Recovery Manager.
-- Added `Undo-ProtectionGroup` cmdlet to remove Protection Groups to Site Recovery Manager.
+- Added `Undo-ProtectionGroup` cmdlet to remove Protection Groups from Site Recovery Manager.
 - Added `Get-SrmProtectionGroup` cmdlet to retrieve a Protection Group from Site Recovery Manager.
 - Added `Add-SrmProtectionGroup` cmdlet to add a Protection Group to Site Recovery Manager.
 - Added `Remove-SrmProtectionGroup` cmdlet to remove a Protection Group from Site Recovery Manager.
@@ -84,6 +84,15 @@
 - Added `Disconnect-vRSLCMUpgradeIso` cmdlet to disconnect an upgrade ISO from VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMUpgradeStatus` cmdlet to retrieve the status of an upgrade of VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMUpgrade` cmdlet to start check, prepare, pre-validate and upgrade operations on VMware Aria Suite Lifecycle.
+- Added `Add-RecoveryPlan` cmdlet to add a Recovery Plan to Site Recovery Manager.
+- Added `Set-RecoveryPlan` cmdlet to configure a Recovery Plan in Site Recovery Manager.
+- Added `Undo-RecoveryPlan` cmdlet to remove a Recovery Plan from Site Recovery Manager.
+- Added `Add-SrmRecoveryPlan` cmdlet to add a Recovery Plan to Site Recovery Manager.
+- Added `Remove-SrmRecoveryPlan` cmdlet to remove a Recovery Plan from Site Recovery Manager.
+- Added `Get-SrmRecoveryPlanStep` cmdlet to retrieve steps from a Recovery Plan in Site Recovery Manager.
+- Added `Add-SrmRecoveryPlanCalloutStep` cmdlet to add a callout step to a Recovery Plan in Site Recovery Manager.
+- Added `Get-SrmRecoveryPlanVm` cmdlet to retrieve a virtual machine from a Recovery Plan in Site Recovery Manager.
+- Added `Set-SrmRecvoeryPlanVmPriority` cmdlet to set the restart priority of a virtual machine from a Recovery Plan in Site Recovery Manager.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
 - Fixed `Undo-WorkspaceOneNsxtIntegration` cmdlet for a typo in the post validation message.
 - Fixed `Undo-NsxtVimRole` cmdlet where a blank line is returned due to no API response data.

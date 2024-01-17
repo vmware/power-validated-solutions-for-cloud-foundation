@@ -11,7 +11,7 @@
     RootModule = 'PowerValidatedSolutions.psm1'
     
     # Version number of this module.
-    ModuleVersion = '2.8.0.1043'
+    ModuleVersion = '2.8.0.1044'
     
     # Supported PSEditions
     # CompatiblePSEditions = @()
