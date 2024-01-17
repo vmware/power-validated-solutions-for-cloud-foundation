@@ -175,6 +175,16 @@ Function Invoke-IamDeployment {
                         }
 
                         if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message  "Defining a Custom Role in vSphere for the NSX Service Accounts"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                    $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -template $nsxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+                            }
+                        }
+
+                        if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Configuring an LDAP Identity Source in NSX Manager"
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $StatusMsg = Add-NsxtIdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserNsx -domainBindPass $jsonInput.domainBindPassNsx -dcMachineName $jsonInput.domainControllerMachineName -baseDn $jsonInput.baseDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -212,16 +222,6 @@ Function Invoke-IamDeployment {
                             if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                             $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere $jsonInput.vcfViewerGroup -role VIEWER -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                             if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                        }
-
-                        if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message  "Defining a Custom Role in vSphere for the NSX Service Accounts"
-                            foreach ($sddcDomain in $allWorkloadDomains) {
-                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                    $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -template $nsxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                                }
-                            }
                         }
 
                         if (!$failureDetected) {
@@ -22853,7 +22853,7 @@ Function Add-vCenterGlobalPermission {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if (Get-VIRole -Name $role -ErrorAction SilentlyContinue ) {
+                            if (Get-VIRole -Name $role -ErrorAction Ignore ) {
                                 Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
                                 $roleAssigned = (Get-GlobalPermission | Where-Object {$_.Principal -match $principal})
                                 if (!($roleAssigned | Where-Object {$_.Role -eq $role})) {
