@@ -6753,9 +6753,9 @@ Function Add-vSphereReplication {
         .DESCRIPTION
         The Add-vSphereReplication cmdlet adds vSphere Replication for a specified virtual machine. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the vSphere Replication instance
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the vSphere Replication instance.
         - Adds a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
@@ -6763,28 +6763,28 @@ Function Add-vSphereReplication {
         This example adds vSphere Replication for VM xint-vrslcm01 from the protected VCF instance to the recovery VCF instance.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER vmName
-        The name of the virtual machine to target
+        The name of the virtual machine to target.
 
         .PARAMETER recoveryPointObjective
-        The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication
+        The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication.
     #>
 
     Param (
@@ -6888,35 +6888,35 @@ Function Undo-vSphereReplication {
         .DESCRIPTION
         The Undo-vSphereReplication cmdlet adds vSphere Replication for a specified virtual machine. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the vSphere Replication instance
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the vSphere Replication instance.
         - Removes a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
         Undo-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 
-        This example removes the vSphere Replication for VM xint-vrslcm01
+        This example removes the vSphere Replication for VM xint-vrslcm01.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER vmName
-        The name of the virtual machine to target
+        The name of the virtual machine to target.
     #>
 
     Param (
@@ -7014,9 +7014,9 @@ Function Add-ProtectionGroup {
         .DESCRIPTION
         The Add-ProtectionGroup cmdlet adds a Site Recovery Manager Protection Group. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
         - Adds a Site Recovery Manager Protection Group
 
         .EXAMPLE
@@ -7024,25 +7024,25 @@ Function Add-ProtectionGroup {
         This example adds a Protection Group xint-vrops01-pg containing virtual machines xint-vrops01a, xint-vrops01b, and xint-vrops01c to Site Recovery Manager in the protected VCF instance.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER pgName
-        The name of the new Protection Group
+        The name of the new Protection Group.
 
         .PARAMETER vmName
         The name of the virtual machine(s) to target. Must be presented as an array.
@@ -7157,35 +7157,35 @@ Function Undo-ProtectionGroup {
         .DESCRIPTION
         The Undo-ProtectionGroup cmdlet removes a Site Recovery Manager Protection Group. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
-        - Removes a Site Recovery Manager Protection Group
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
+        - Removes a Site Recovery Manager Protection Group.
 
         .EXAMPLE
         Undo-ProtectionGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -pgName xint-vrops01-pg
         This example removes Protection Group xint-vrops01-pg from Site Recovery Manager in the protected VCF instance.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER pgName
-        The name of the new Protection Group
+        The name of the new Protection Group.
     #>
 
     Param (
@@ -7278,38 +7278,38 @@ Function Add-RecoveryPlan {
         .DESCRIPTION
         The Add-RecoveryPlan cmdlet adds a Site Recovery Manager Recovery Plan. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
-        - Adds a Site Recovery Manager Recovery Plan
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
+        - Adds a Site Recovery Manager Recovery Plan.
 
         .EXAMPLE
         Add-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp -pgName xint-vrops01-pg
         This example adds Recovery Plan xint-vrops01-rp with Protection Group xint-vrops01-pg to Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER rpName
-        The name of the new Recovery Plan
+        The name of the new Recovery Plan.
 
         .PARAMETER pgName
-        The name of the Protection Group to add to the new Recovery Plan
+        The name of the Protection Group to add to the new Recovery Plan.
     #>
 
     Param (
@@ -7413,10 +7413,10 @@ Function Set-RecoveryPlan {
         .DESCRIPTION
         The Set-RecoveryPlan cmdlet configures a Site Recovery Manager Recovery Plan. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
-        - Configures a Site Recovery Manager Recovery Plan
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
+        - Configures a Site Recovery Manager Recovery Plan.
 
         .EXAMPLE
         Set-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp -setVmPriority $true -vmName @("xint-vrops01a","xint-vrops01b","xint-vrops01c") -priority P1 -addCallout $false
@@ -7427,28 +7427,28 @@ Function Set-RecoveryPlan {
         This example adds a callout step before "Power on priority 3 VMs" in Recovery Plan xint-vrops01-rp in Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER rpName
-        The name of the new Recovery Plan
+        The name of the new Recovery Plan.
 
         .PARAMETER setVmPriority
-        To change the VM restart priority for a virtual machine or set of virtual machines (boolean)
+        To change the VM restart priority for a virtual machine or set of virtual machines (boolean).
 
         .PARAMETER vmName
         The name of the virtual machine(s) to target. Must be presented as an array. Only applicable if setVmPriority is set to $true.
@@ -7457,7 +7457,7 @@ Function Set-RecoveryPlan {
         The restart priority (P1 - P5) of the targeted virtual machine(s). Only applicable if setVmPriority is set to $true.
 
         .PARAMETER addCallout
-        To add a callout to the Recovery Plan (boolean)
+        To add a callout to the Recovery Plan (boolean).
 
         .PARAMETER calloutType
         The type of callout to be added (PROMPT, RUN_ON_VM, RUN_ON_SRM_SERVER). Only applicable if addCallout is set to $true.
@@ -7473,7 +7473,6 @@ Function Set-RecoveryPlan {
 
         .PARAMETER calloutTimeoutSeconds
         The number of seconds the callout appears before it times out. Only applicable if addCallout is set to $true and calloutType is either RUN_ON_VM or RUN_ON_SRM_SERVER.
-
         #>
 
     Param (
@@ -7575,35 +7574,35 @@ Function Undo-RecoveryPlan {
         .DESCRIPTION
         The Undo-RecoveryPlan cmdlet adds a Site Recovery Manager Recovery Plan. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
-        - Validates that network connectivity and authentication is possible to the SDDC Manager instance
-        - Validates that network connectivity and authentication is possible to the vCenter Server instance
-        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance
-        - Removes a Site Recovery Manager Recovery Plan
+        - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
+        - Validates that network connectivity and authentication is possible to the vCenter Server instance.
+        - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
+        - Removes a Site Recovery Manager Recovery Plan.
 
         .EXAMPLE
         Undo-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp
         This example removes Recovery Plan xint-vrops01-rp from Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site
+        The fully-qualified domain name of the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site
+        The username to authenticate to the SDDC Manager server in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site
+        The password to authenticate to the SDDC Manager server in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site
+        The fully-qualified domain name of the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site
+        The username to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site
+        The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER rpName
-        The name of the Recovery Plan to be removed
+        The name of the Recovery Plan to be removed.
     #>
 
     Param (
@@ -45701,7 +45700,8 @@ Export-ModuleMember -Function Set-SrmVamiCertificate
 Function Request-SrmTokenREST {
     <#
         .SYNOPSIS
-        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token using the REST API
+        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token using the REST
+        API.
 
         .DESCRIPTION
         The Request-SrmToken cmdlet connects to the specified Site Recovery Manager and obtains an authorization
@@ -45713,13 +45713,13 @@ Function Request-SrmTokenREST {
         This example shows how to connect to the Site Recovery Manager REST API using a vCenter Server SSO user.
 
         .PARAMETER fqdn
-        The fully-qualified domain name of the Site Recovery Manager REST API server
+        The fully-qualified domain name of the Site Recovery Manager REST API server.
 
         .PARAMETER username
-        The username to authenticate to the Site Recovery Manager REST API server
+        The username to authenticate to the Site Recovery Manager REST API server.
 
         .PARAMETER password
-        The password to authenticate to the Site Recovery Manager REST API server
+        The password to authenticate to the Site Recovery Manager REST API server.
     #>
 
     Param (
@@ -45762,21 +45762,21 @@ Export-ModuleMember -Function Request-SrmTokenREST
 Function Connect-SrmRemoteSession {
     <#
         .SYNOPSIS
-        Instantiates a connection to the remote Site Recovery Manager server via the REST API
+        Instantiates a connection to the remote Site Recovery Manager server via the REST API.
 
         .DESCRIPTION
         The Connect-SrmRemoteSession cmdlet instantiates a connection to the remote Site Recovery Manager server via 
-        the REST API
+        the REST API.
 
         .EXAMPLE
         Connect-SrmRemoteSession -username administrator@vsphere.local -password VMw@re1!
-        This example instantiates a connection to the remote Site Recovery Manager server via REST API
+        This example instantiates a connection to the remote Site Recovery Manager server via REST API.
 
         .PARAMETER username
-        The username to authenticate to the remote Site Recovery Manager server
+        The username to authenticate to the remote Site Recovery Manager server.
 
         .PARAMETER password
-        The password to authenticate to the remote Site Recovery Manager server
+        The password to authenticate to the remote Site Recovery Manager server.
     #>
 
     Param (
@@ -45811,7 +45811,7 @@ Export-ModuleMember -Function Connect-SrmRemoteSession
 Function Get-SrmSitePairing {
     <#
         .SYNOPSIS
-        Retrieve site pairing information from a Site Recovery Manager server via the REST API
+        Retrieve site pairing information from a Site Recovery Manager server via the REST API.
 
         .DESCRIPTION
         The Get-SrmSitePairing cmdlet retrieves site pairing information from a Site Recovery Manager server via
@@ -45819,7 +45819,7 @@ Function Get-SrmSitePairing {
 
         .EXAMPLE
         Get-SrmSitePairing
-        This example retrieves site pairings from the Site Recovery Manager server via REST API
+        This example retrieves site pairings from the Site Recovery Manager server via REST API.
     #>
 
     Try {
@@ -45836,18 +45836,18 @@ Function Get-SrmProtectionGroup {
     <#
         .SYNOPSIS
         Retrieves either a named Protection Group or all Protection Groups from a Site Recovery Manager server via the
-        REST API
+        REST API.
 
         .DESCRIPTION
         The Get-SrmProtectionGroup cmdlet retrieves either a named Protection Group or all Protection Groups from a 
-        Site Recovery Manager server via the REST API
+        Site Recovery Manager server via the REST API.
 
         .EXAMPLE
         Get-SrmProtectionGroup
-        This example retrieves all Protection Groups from a Site Recovery Manager server via REST API
+        This example retrieves all Protection Groups from a Site Recovery Manager server via REST API.
 
         .PARAMETER pgName
-        The name of the Protection Group to retrieve from the Site Recovery Manager server
+        The name of the Protection Group to retrieve from the Site Recovery Manager server.
     #>
 
     Param (
@@ -45873,18 +45873,18 @@ Export-ModuleMember -Function Get-SrmProtectionGroup
 Function Add-SrmProtectionGroup {
     <#
         .SYNOPSIS
-        Adds a Protection Group to a Site Recovery Manager server via the REST API
+        Adds a Protection Group to a Site Recovery Manager server via the REST API.
 
         .DESCRIPTION
         The Add-SrmProtectionGroup cmdlet Retrieves either a named Protection Group or all Protection Groups from a 
-        Site Recovery Manager server via the REST API
+        Site Recovery Manager server via the REST API.
 
         .EXAMPLE
         Add-SrmProtectionGroup
-        This example adds a ProtectionGroup to the Site Recovery Manager server via REST API
+        This example adds a ProtectionGroup to the Site Recovery Manager server via REST API.
 
         .PARAMETER pgName
-        The name of the Protection Group to add to the Site Recovery Manager server
+        The name of the Protection Group to add to the Site Recovery Manager server.
 
         .PARAMETER vmName
         The name of the virtual machine(s) to add to the Protection Group. Must be presented as an array.
@@ -45931,18 +45931,18 @@ Export-ModuleMember -Function Add-SrmProtectionGroup
 Function Remove-SrmProtectionGroup {
     <#
         .SYNOPSIS
-        Removes a named Protection Group from a Site Recovery Manager server via the REST API
+        Removes a named Protection Group from a Site Recovery Manager server via the REST API.
 
         .DESCRIPTION
         The Remove-SrmProtectionGroup cmdlet removes a named Protection Group from a Site Recovery Manager server via 
-        the REST API
+        the REST API.
 
         .EXAMPLE
         Remove-SrmProtectionGroup -pgName xint-vrops01
-        This example removes the Protection Group xint-vrops01 from the Site Recovery Manager server via REST API
+        This example removes the Protection Group xint-vrops01 from the Site Recovery Manager server via REST API.
 
         .PARAMETER pgName
-        The name of the Protection Group to remove from the Site Recovery Manager server
+        The name of the Protection Group to remove from the Site Recovery Manager server.
     #>
 
     Param (
@@ -45974,18 +45974,18 @@ Function Get-SrmRecoveryPlan {
     <#
         .SYNOPSIS
         Retrieves either a named Recovery Plan or all Recovery Plans from a Site Recovery Manager server via the
-        REST API
+        REST API.
   
         .DESCRIPTION
         The Get-SrmRecoveryPlan cmdlet retrieves either a named Recovery Plan or all Recovery Plans from a 
-        Site Recovery Manager server via the REST API
+        Site Recovery Manager server via the REST API.
   
         .EXAMPLE
         Get-SrmRecoveryPlan
-        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API
+        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API.
   
         .PARAMETER rpName
-        The name of the Recovery Plan to retrieve from the Site Recovery Manager server
+        The name of the Recovery Plan to retrieve from the Site Recovery Manager server.
     #>
   
     Param (
@@ -46011,17 +46011,17 @@ Function Get-SrmRecoveryPlan {
   Function Add-SrmRecoveryPlan {
     <#
         .SYNOPSIS
-        Adds a Recovery Plan to a Site Recovery Manager server via the REST API
+        Adds a Recovery Plan to a Site Recovery Manager server via the REST API.
   
         .DESCRIPTION
-        The Add-SrmRecoveryPlan cmdlet adds a Recovery Plan to a Site Recovery Manager server via the REST API
+        The Add-SrmRecoveryPlan cmdlet adds a Recovery Plan to a Site Recovery Manager server via the REST API.
   
         .EXAMPLE
         Add-SrmRecoveryPlan
-        This example adds Recovery Plan xint-vrops01-rp to a Site Recovery Manager server via REST API
+        This example adds Recovery Plan xint-vrops01-rp to a Site Recovery Manager server via REST API.
   
         .PARAMETER rpName
-        The name of the Recovery Plan to retrieve from the Site Recovery Manager server
+        The name of the Recovery Plan to retrieve from the Site Recovery Manager server.
   
         .PARAMETER pgName
         The name of the Protection Group(s) to add to the Recovery Plan. Must be presented as an array.
@@ -46079,18 +46079,18 @@ $rpBody = @"
   Function Remove-SrmRecoveryPlan {
     <#
         .SYNOPSIS
-        Removes a named Recovery Plan from a Site Recovery Manager server via the REST API
+        Removes a named Recovery Plan from a Site Recovery Manager server via the REST API.
   
         .DESCRIPTION
         The Remove-SrmRecoveryPlan cmdlet removes a named Recovery Plan from a Site Recovery Manager server via the 
-        REST API
+        REST API.
   
         .EXAMPLE
         Remove-SrmRecoveryPlan -rpName xint-vrops01-rp
-        This example removes the Recovery Plan xint-vrops01-rp from the Site Recovery Manager server via REST API
+        This example removes the Recovery Plan xint-vrops01-rp from the Site Recovery Manager server via REST API.
   
         .PARAMETER rpName
-        The name of the Recovery Plan to remove from the Site Recovery Manager server
+        The name of the Recovery Plan to remove from the Site Recovery Manager server.
     #>
   
     Param (
@@ -46121,18 +46121,18 @@ $rpBody = @"
   Function Get-SrmRecoveryPlanStep {
     <#
         .SYNOPSIS
-        Retrieves steps in a named Recovery Plan from a Site Recovery Manager server via the REST API
+        Retrieves steps in a named Recovery Plan from a Site Recovery Manager server via the REST API.
   
         .DESCRIPTION
         The Get-SrmRecoveryPlanStep cmdlet retrieves steps in a named Recovery Plan from a Site Recovery Manager
-        server via the REST API
+        server via the REST API.
   
         .EXAMPLE
-        Get-SrmRecoveryPlanStep -rpName xint-vrops01-rp
+        Get-SrmRecoveryPlanStep -rpName xint-vrops01-rp.
         This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API
   
         .PARAMETER rpName
-        The name of the Recovery Plan to retrieve steps from the Site Recovery Manager server
+        The name of the Recovery Plan to retrieve steps from the Site Recovery Manager server.
     #>
   
     Param (
@@ -46155,33 +46155,33 @@ $rpBody = @"
   Function Add-SrmRecoveryPlanCalloutStep {
     <#
         .SYNOPSIS
-        Adds a callout step in a named Recovery Plan from a Site Recovery Manager server via the REST API
+        Adds a callout step in a named Recovery Plan from a Site Recovery Manager server via the REST API.
   
         .DESCRIPTION
         The Add-SrmRecoveryPlanCalloutStep cmdlet adds steps in a named Recovery Plan from a Site Recovery Manager
-        server via the REST API
+        server via the REST API.
   
         .EXAMPLE
         Add-SrmRecoveryPlanCalloutStep -rpName xint-vrops01-rp -calloutType PROMPT -calloutName "Power on the VMware Aria Operations cloud proxies" -content "Power on the VMware Aria Operations cloud proxies" -position 15 -timeoutSeconds 30
-        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API
+        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API.
   
         .PARAMETER rpName
-        The name of the Recovery Plan to modify
+        The name of the Recovery Plan to modify.
   
         .PARAMETER calloutType
-        The type of callout to add (prompt, runOnVM, runOnSRMServer)
+        The type of callout to add (prompt, runOnVM, runOnSRMServer).
   
         .PARAMETER calloutName
-        The name of the callout
+        The name of the callout.
   
         .PARAMETER content
-        The message to be displayed in the callout
+        The message to be displayed in the callout.
   
         .PARAMETER position
-        The position in the current recovery steps list
+        The position in the current recovery steps list.
   
         .PARAMETER timeoutSeconds
-        Time in seconds to wait until the command completes. Only applicable when the parameter calloutType is set to runOnVM or runOnSRMServer
+        Time in seconds to wait until the command completes. Only applicable when the parameter calloutType is set to runOnVM or runOnSRMServer.
     #>
   
     Param (
@@ -46234,15 +46234,15 @@ $body = @"
     <#
         .SYNOPSIS
         Change the startup priority for virtual machines in a named Recovery Plan from a Site Recovery Manager server
-        via the REST API
+        via the REST API.
   
         .DESCRIPTION
         The Get-SrmRecoveryPlanVm cmdlet changes the startup priority for virtual machines in a named Recovery 
-        Plan from a Site Recovery Manager server via the REST API
+        Plan from a Site Recovery Manager server via the REST API.
   
         .EXAMPLE
         Get-SrmRecoveryPlanVm -rpName xint-vrops01-rp -vmName xint-vrops01a
-        This example sets virtual machine xint-vrops01a in Recovery Plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager server via REST API
+        This example sets virtual machine xint-vrops01a in Recovery Plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager server via REST API.
   
         .PARAMETER rpName
         The name of the Recovery Plan to modify.
@@ -46284,15 +46284,15 @@ $body = @"
     <#
         .SYNOPSIS
         Change the startup priority for virtual machines in a named Recovery Plan from a Site Recovery Manager server
-        via the REST API
+        via the REST API.
   
         .DESCRIPTION
         The Set-SrmRecoveryPlanVMPriority cmdlet changes the startup priority for virtual machines in a named Recovery 
-        Plan from a Site Recovery Manager server via the REST API
+        Plan from a Site Recovery Manager server via the REST API.
   
         .EXAMPLE
         Set-SrmRecoveryPlanVMPriority -rpName xint-vrops01-rp -vmName xint-vrops01a -priority P3
-        This example sets virtual machine xint-vrops01a in Recovery Plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager server via REST API
+        This example sets virtual machine xint-vrops01a in Recovery Plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager server via REST API.
   
         .PARAMETER rpName
         The name of the Recovery Plan to modify.
