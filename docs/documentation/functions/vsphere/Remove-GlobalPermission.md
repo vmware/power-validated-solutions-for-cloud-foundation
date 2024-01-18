@@ -7,8 +7,7 @@ Remove a vSphere Global Permission
 ## Syntax
 
 ```powershell
-Remove-GlobalPermission [-principal] <String> [-type] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-GlobalPermission [-principal] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

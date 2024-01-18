@@ -7,8 +7,7 @@ Installs a Certificate in NSX
 ## Syntax
 
 ```powershell
-Set-NsxtCertificate [-certificateName] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-NsxtCertificate [-certificateName] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

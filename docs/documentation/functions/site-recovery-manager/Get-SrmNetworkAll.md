@@ -22,4 +22,4 @@ The `Get-SrmNetworkAll` cmdlet retrieves all the network configuration of a Site
 Get-SrmNetworkAll
 ```
 
-This example retrieves all network configuration of the Site Recovery Manager appliance
+This example retrieves all network configuration of the Site Recovery Manager appliance.

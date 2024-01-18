@@ -8,8 +8,7 @@ Create a VMkernel port on ESXi hosts
 
 ```powershell
 Add-EsxiVrmsVMkernelPort [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-portgroup] <String> [-netmask] <String> [-ipAddresses] <Array> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-portgroup] <String> [-netmask] <String> [-ipAddresses] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

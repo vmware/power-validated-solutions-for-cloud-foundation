@@ -7,8 +7,7 @@ Check network connectivity to a vSphere Replication instance VAMI.
 ## Syntax
 
 ```powershell
-Test-VrmsVamiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-VrmsVamiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Delete a load balancer from VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-Remove-vRSLCMLoadbalancer [-type] <String> [-loadBalancerFqdn] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-vRSLCMLoadbalancer [-type] <String> [-loadBalancerFqdn] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

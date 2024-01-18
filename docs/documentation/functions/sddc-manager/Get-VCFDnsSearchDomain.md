@@ -2,13 +2,12 @@
 
 ## Synopsis
 
-Get the search domains configured in an SDDC Manager appliance
+Get the search domains configured in an SDDC Manager appliance.
 
 ## Syntax
 
 ```powershell
-Get-VCFDnsSearchDomain [[-sddcManagerVmName] <String>] [[-sddcManagerRootPass] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-VCFDnsSearchDomain [[-sddcManagerVmName] <String>] [[-sddcManagerRootPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

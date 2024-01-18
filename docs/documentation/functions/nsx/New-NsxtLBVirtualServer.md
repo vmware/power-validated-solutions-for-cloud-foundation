@@ -7,8 +7,7 @@ Creates a Load Balancer Virtual Server
 ## Syntax
 
 ```powershell
-New-NsxtLBVirtualServer [-virtualServerName] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-NsxtLBVirtualServer [-virtualServerName] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -8,15 +8,13 @@ Deploy Aria Operations to VMware Aria Suite Lifecycle
 
 ```powershell
 New-vROPSDeployment -server <String> -user <String> -pass <String> [-workbook <String>] [-monitor] [-nested]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `New-vROPSDeployment` cmdlet deploys VMware Aria Operations via VMware Aria Suite Lifecycle.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Suite Lifecycle has been deployed in VCF-aware mode and retrieves its details

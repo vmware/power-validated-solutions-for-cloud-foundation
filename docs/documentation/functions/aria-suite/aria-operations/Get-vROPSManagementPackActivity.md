@@ -7,8 +7,7 @@ Get current activity
 ## Syntax
 
 ```powershell
-Get-vROPSManagementPackActivity [-server] <String> [-username] <String> [-password] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROPSManagementPackActivity [-server] <String> [-username] <String> [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

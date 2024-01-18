@@ -22,7 +22,7 @@ The `Get-SrmTask` cmdlet retrieves the tasks for a Site Recovery Manager applian
 Get-SrmTask
 ```
 
-This example retrieves all the tasks from the Site Recovery Manager appliance
+This example retrieves all the tasks from the Site Recovery Manager appliance.
 
 ### Example 2
 

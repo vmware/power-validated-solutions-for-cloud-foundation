@@ -7,8 +7,7 @@ Import user group from an authentication source
 ## Syntax
 
 ```powershell
-Add-vROPSUserGroup [-sourceId] <String> [-userGroup] <String> [-role] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSUserGroup [-sourceId] <String> [-userGroup] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

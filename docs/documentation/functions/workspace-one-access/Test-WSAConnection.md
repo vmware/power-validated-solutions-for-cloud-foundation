@@ -7,8 +7,7 @@ Check network connectivity to a Workspace ONE Access cluster or node.
 ## Syntax
 
 ```powershell
-Test-WSAConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-WSAConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

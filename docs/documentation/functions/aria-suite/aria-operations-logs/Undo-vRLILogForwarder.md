@@ -8,8 +8,7 @@ Removes a log forwarder destination to VMware Aria Operations for Logs
 
 ```powershell
 Undo-vRLILogForwarder [-server] <String> [-user] <String> [-pass] <String> [-name] <String> [-fqdn] <String>
- [-protocol] <String> [-port] <String> [[-transport] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-protocol] <String> [-port] <String> [[-transport] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

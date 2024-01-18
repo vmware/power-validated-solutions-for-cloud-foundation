@@ -8,8 +8,7 @@ Get account lockout policy for local users
 
 ```powershell
 Get-LocalAccountLockout -vmName <String> -guestUser <String> -guestPassword <String> -product <String> [-drift]
- [-version <String>] [-reportPath <String>] [-policyFile <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-version <String>] [-reportPath <String>] [-policyFile <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

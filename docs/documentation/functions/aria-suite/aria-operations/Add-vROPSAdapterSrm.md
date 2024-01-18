@@ -8,15 +8,13 @@ Adds a Site Recovery Manager Adapter to VMware Aria Operations
 
 ```powershell
 Add-vROPSAdapterSrm [-server] <String> [-user] <String> [-pass] <String> [-srmFqdn] <String>
- [-srmUser] <String> [-srmPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-srmUser] <String> [-srmPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-vROPSAdapterSrm` cmdlet adds an Site Recovery Manager Adapter to VMware Aria Operations.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details

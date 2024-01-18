@@ -7,8 +7,7 @@ Sets the Environment Transport setting for OVF properties
 ## Syntax
 
 ```powershell
-Set-VMOvfEnvTransport [-vm] <PSObject> [-transport] <PSObject> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-VMOvfEnvTransport [-vm] <PSObject> [-transport] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

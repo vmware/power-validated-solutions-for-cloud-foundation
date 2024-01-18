@@ -7,8 +7,7 @@ Check Authentication to an SDDC Manager instance.
 ## Syntax
 
 ```powershell
-Test-VCFAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-VCFAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

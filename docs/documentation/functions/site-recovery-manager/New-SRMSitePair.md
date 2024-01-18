@@ -1,4 +1,4 @@
-# New-SRMSitePair
+# New-SrmSitePair
 
 ## Synopsis
 
@@ -7,14 +7,13 @@ Create a site pair between Site Recovery Manager instances
 ## Syntax
 
 ```powershell
-New-SRMSitePair [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-SrmSitePair [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
+ [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `New-SRMSitePair` cmdlet creates a site pair between Site Recovery Manager instances.
+The `New-SrmSitePair` cmdlet creates a site pair between Site Recovery Manager instances.
 The cmdlet connects to
 SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser,
 -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
@@ -30,7 +29,7 @@ Server instances.
 ### Example 1
 
 ```powershell
-New-SRMSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+New-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
 ```
 
 This example creates a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.

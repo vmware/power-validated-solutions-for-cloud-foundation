@@ -7,8 +7,7 @@ Remove Role-Based Access Control from NSX Manager
 ## Syntax
 
 ```powershell
-Undo-NsxtVidmRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NsxtVidmRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

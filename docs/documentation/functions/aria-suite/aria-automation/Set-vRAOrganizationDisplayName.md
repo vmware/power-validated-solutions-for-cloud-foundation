@@ -7,8 +7,7 @@ Configures the organization display name
 ## Syntax
 
 ```powershell
-Set-vRAOrganizationDisplayName [-orgId] <String> [-displayName] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-vRAOrganizationDisplayName [-orgId] <String> [-displayName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

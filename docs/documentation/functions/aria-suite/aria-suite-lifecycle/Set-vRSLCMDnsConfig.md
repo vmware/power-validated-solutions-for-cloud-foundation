@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Configure DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle appliance
+Configure DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle appliance.
 
 ## Syntax
 

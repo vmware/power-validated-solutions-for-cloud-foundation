@@ -7,8 +7,7 @@ Check Authentication to a VMware Aria Operations for Logs cluster or node.
 ## Syntax
 
 ```powershell
-Test-vRLIAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vRLIAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

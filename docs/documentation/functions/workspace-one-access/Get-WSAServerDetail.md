@@ -7,8 +7,7 @@ Get Workspace ONE Access details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-WSAServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-WSAServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

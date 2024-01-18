@@ -7,8 +7,7 @@ Check Authentication to vSphere API
 ## Syntax
 
 ```powershell
-Test-vSphereApiAuthentication [-server] <String> [-user] <String> [-pass] <String> [-admin]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vSphereApiAuthentication [-server] <String> [-user] <String> [-pass] <String> [-admin] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Deletes a datacenter from VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Undo-vRSLCMDatacenter [-server] <String> [-user] <String> [-pass] <String> [-datacenterName] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRSLCMDatacenter [-server] <String> [-user] <String> [-pass] <String> [-datacenterName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -8,8 +8,7 @@ Creates vSphere and NSX Cloud Accounts
 
 ```powershell
 New-vRACloudAccount [-server] <String> [-user] <String> [-pass] <String> [[-domain] <String>]
- [[-vraUser] <String>] [[-vraPass] <String>] [[-capabilityTab] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-vraUser] <String>] [[-vraPass] <String>] [[-capabilityTab] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

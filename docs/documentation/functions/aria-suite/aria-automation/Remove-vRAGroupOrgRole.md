@@ -7,8 +7,7 @@ Remove the group organization role.
 ## Syntax
 
 ```powershell
-Remove-vRAGroupOrgRole [-groupId] <String> [-orgId] <String> [-orgRole] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRAGroupOrgRole [-groupId] <String> [-orgId] <String> [-orgRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

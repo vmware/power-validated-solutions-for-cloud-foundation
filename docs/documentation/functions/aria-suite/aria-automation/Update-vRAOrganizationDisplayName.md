@@ -8,8 +8,7 @@ Configures the organization name
 
 ```powershell
 Update-vRAOrganizationDisplayName [-server] <String> [-user] <String> [-pass] <String>
- [[-displayName] <String>] [[-vraUser] <String>] [[-vraPass] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-displayName] <String>] [[-vraUser] <String>] [[-vraPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

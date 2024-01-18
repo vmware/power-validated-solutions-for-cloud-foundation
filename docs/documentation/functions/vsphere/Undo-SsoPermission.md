@@ -8,15 +8,13 @@ Remove user/group from vCenter Single Sign-On Group
 
 ```powershell
 Undo-SsoPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-principal] <String> [-ssoGroup] <String> [-type] <String> [-source] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-domain] <String> [-principal] <String> [-ssoGroup] <String> [-type] <String> [-source] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-SsoPermission` cmdlet removes the user or group provided from vCenter Single Sign-On Role.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

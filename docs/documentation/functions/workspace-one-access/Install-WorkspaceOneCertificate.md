@@ -15,8 +15,7 @@ Install-WorkspaceOneCertificate [-server] <String> [-user] <String> [-pass] <Str
 ## Description
 
 The `Install-WorkspaceOneCertificate`cmdlet replaces the certificate on the Workspace ONE Access.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to Management Domain vCenter Server

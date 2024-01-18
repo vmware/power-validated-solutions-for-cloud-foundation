@@ -7,8 +7,7 @@ Adds a role to a user/group
 ## Syntax
 
 ```powershell
-Set-NsxtRole [-principal] <String> [-type] <String> [-role] <String> [-identitySource] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtRole [-principal] <String> [-type] <String> [-role] <String> [-identitySource] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

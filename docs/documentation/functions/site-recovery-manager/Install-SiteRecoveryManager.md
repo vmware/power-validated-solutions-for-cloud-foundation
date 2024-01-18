@@ -11,15 +11,13 @@ Install-SiteRecoveryManager [-server] <String> [-user] <String> [-pass] <String>
  [-srmFqdn] <String> [-srmIpAddress] <String> [-srmGateway] <String> [-srmNetPrefix] <String>
  [-srmNetworkSearchPath] <String> [-srmFolder] <String> [-srmVaRootPassword] <String>
  [-srmVaAdminPassword] <String> [-srmDbPassword] <String> [[-srmOvfPath] <String>]
- [[-deploymentOption] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-deploymentOption] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Install-SiteRecoveryManager` cmdlet deploys the Site Recovery Manager Virtual Appliance OVA.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the management domain
 vCenter Server details from its inventory and then:
 
 - Gathers vSphere configuration from vCenter Server

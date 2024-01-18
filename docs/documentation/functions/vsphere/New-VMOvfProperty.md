@@ -7,8 +7,7 @@ Create a single OVF Property on a standard VM.
 ## Syntax
 
 ```powershell
-New-VMOvfProperty [-vm] <PSObject> [-property] <PSObject> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-VMOvfProperty [-vm] <PSObject> [-property] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

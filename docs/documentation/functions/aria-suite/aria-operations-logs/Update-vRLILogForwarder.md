@@ -7,8 +7,7 @@ Updates a log forwarder.
 ## Syntax
 
 ```powershell
-Update-vRLILogForwarder [-id] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Update-vRLILogForwarder [-id] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

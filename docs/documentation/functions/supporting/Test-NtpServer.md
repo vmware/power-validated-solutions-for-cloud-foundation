@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Checks the status of an NTP server
+Checks the status of an NTP server.
 
 ## Syntax
 

@@ -10,8 +10,7 @@ Certificate Signing Request (CSR) file.
 ```powershell
 Request-SignedCertificate [-mscaComputerName] <String> [-mscaName] <String> [-domainUsername] <String>
  [-domainPassword] <String> [[-certificateTemplate] <String>] [-certificateRequestFile] <String>
- [-certificateFile] <String> [-SkipValidation] [-ValidateOnly] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-certificateFile] <String> [-SkipValidation] [-ValidateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

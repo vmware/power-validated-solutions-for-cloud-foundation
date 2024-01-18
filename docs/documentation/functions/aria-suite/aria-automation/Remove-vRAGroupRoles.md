@@ -7,8 +7,7 @@ Remove the group roles.
 ## Syntax
 
 ```powershell
-Remove-vRAGroupRoles [-groupId] <String> [-orgId] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-vRAGroupRoles [-groupId] <String> [-orgId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

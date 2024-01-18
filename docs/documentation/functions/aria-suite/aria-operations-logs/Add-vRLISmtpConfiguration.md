@@ -8,8 +8,7 @@ Configure SMTP settings in VMware Aria Operations for Logs
 
 ```powershell
 Add-vRLISmtpConfiguration [-server] <String> [-user] <String> [-pass] <String> [-smtpServer] <String>
- [-port] <String> [-sender] <String> [[-smtpUser] <String>] [[-smtpPass] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-port] <String> [-sender] <String> [[-smtpUser] <String>] [[-smtpPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

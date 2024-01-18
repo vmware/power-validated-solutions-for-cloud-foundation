@@ -7,14 +7,13 @@ Create JSON specification for Intelligent Operations Management.
 ## Syntax
 
 ```powershell
-Export-IomJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Export-IomJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Export-IomJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
-to deploy the Intelligent Operations Management for VMWare Cloud Foundation validated solution:
+to deploy the Intelligent Operations Management for VMware Cloud Foundation validated solution:
 
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook

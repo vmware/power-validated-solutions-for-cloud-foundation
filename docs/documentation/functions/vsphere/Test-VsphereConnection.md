@@ -7,8 +7,7 @@ Check network connectivity to a vCenter Server instance.
 ## Syntax
 
 ```powershell
-Test-VsphereConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-VsphereConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

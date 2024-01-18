@@ -8,13 +8,12 @@ Configure DNS Server and/or DNS search domains on VMware Aria Automation applian
 
 ```powershell
 Set-vRADnsConfig [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-environmentName] <String> [[-dnsServers] <String>] [[-dnsSearchDomains] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-environmentName] <String> [[-dnsServers] <String>] [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vRADnsConfig` cmdlet configures the DNS server and search domain details of all VMWare Aria Automation
+The `Set-vRADnsConfig` cmdlet configures the DNS server and search domain details of all VMware Aria Automation
 appliances to the values passed as parameters.
 The cmdlet connects to SDDC Manager using the -server, -user,
 and -password values:

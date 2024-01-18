@@ -7,8 +7,7 @@ Remove a certificate from the VMware Aria Suite Lifecycle locker
 ## Syntax
 
 ```powershell
-Undo-vRSLCMLockerCertificate [-server] <String> [-user] <String> [-pass] <String> [-certificateAlias] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRSLCMLockerCertificate [-server] <String> [-user] <String> [-pass] <String> [-certificateAlias] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

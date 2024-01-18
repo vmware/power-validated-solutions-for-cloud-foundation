@@ -7,8 +7,7 @@ Creates a new license in the locker
 ## Syntax
 
 ```powershell
-Add-vRSLCMLockerLicense [-alias] <String> [-license] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-vRSLCMLockerLicense [-alias] <String> [-license] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

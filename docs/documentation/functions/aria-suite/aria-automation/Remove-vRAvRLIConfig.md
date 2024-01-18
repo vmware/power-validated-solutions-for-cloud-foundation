@@ -7,8 +7,7 @@ Removes the VMware Aria Operations for Logs logging configuration (CFAPI) on VMw
 ## Syntax
 
 ```powershell
-Remove-vRAvRLIConfig [-server] <String> [-user] <String> [-pass] <String> [-rootPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRAvRLIConfig [-server] <String> [-user] <String> [-pass] <String> [-rootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Sets the DNS Server and/or DNS search domains on Workspace ONE Access to match S
 ## Syntax
 
 ```powershell
-Undo-WorkspaceOneDnsConfig [-server] <String> [-user] <String> [-pass] <String> [-sddcManagerRootPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-WorkspaceOneDnsConfig [-server] <String> [-user] <String> [-pass] <String> [-sddcManagerRootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

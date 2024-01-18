@@ -7,8 +7,7 @@ Get VMware Aria Suite Lifecycle details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-vRSLCMServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRSLCMServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

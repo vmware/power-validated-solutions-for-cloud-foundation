@@ -7,8 +7,7 @@ Check Authentication to a Site Recovery Manager instance VAMI.
 ## Syntax
 
 ```powershell
-Test-SrmVamiAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-SrmVamiAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

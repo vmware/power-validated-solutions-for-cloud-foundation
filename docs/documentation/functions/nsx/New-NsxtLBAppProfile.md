@@ -7,8 +7,7 @@ Creates a Load Balancer Application Profile
 ## Syntax
 
 ```powershell
-New-NsxtLBAppProfile [-appProfileName] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-NsxtLBAppProfile [-appProfileName] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

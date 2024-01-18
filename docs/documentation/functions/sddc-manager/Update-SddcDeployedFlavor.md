@@ -7,8 +7,7 @@ Add a Validated Solution tag
 ## Syntax
 
 ```powershell
-Update-SddcDeployedFlavor [-server] <String> [-user] <String> [-pass] <String> [-vvsTag] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-SddcDeployedFlavor [-server] <String> [-user] <String> [-pass] <String> [-vvsTag] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

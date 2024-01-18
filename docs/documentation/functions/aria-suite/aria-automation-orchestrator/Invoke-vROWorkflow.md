@@ -9,22 +9,19 @@ Invoke a VMware Aria Automation Orchestrator workflow
 ### A (Default)
 
 ```powershell
-Invoke-vROWorkflow -id <String> [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-vROWorkflow -id <String> [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### B
 
 ```powershell
-Invoke-vROWorkflow -id <String> [-parameters <PSObject[]>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Invoke-vROWorkflow -id <String> [-parameters <PSObject[]>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### C
 
 ```powershell
-Invoke-vROWorkflow [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-vROWorkflow [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### D

@@ -7,8 +7,7 @@ Connects to the specified VMware Aria Operations and obtains authorization token
 ## Syntax
 
 ```powershell
-Request-vROPSToken [-fqdn] <String> [-username] <String> [-password] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-vROPSToken [-fqdn] <String> [-username] <String> [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

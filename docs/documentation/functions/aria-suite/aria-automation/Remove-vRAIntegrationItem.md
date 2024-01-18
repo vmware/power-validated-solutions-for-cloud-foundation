@@ -7,8 +7,7 @@ Remove an Integration Item from VMware Aria Automation
 ## Syntax
 
 ```powershell
-Remove-vRAIntegrationItem [-integrationType] <String> [[-integrationId] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRAIntegrationItem [-integrationType] <String> [[-integrationId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

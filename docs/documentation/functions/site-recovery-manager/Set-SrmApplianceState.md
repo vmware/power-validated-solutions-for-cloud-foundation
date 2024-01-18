@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Restart or shutdown the appliance
+Restart or shutdown the appliance.
 
 ## Syntax
 
@@ -22,7 +22,7 @@ The `Set-SrmApplianceState` cmdlet allows you to restart or shutdown the Site Re
 Set-SrmApplianceState -action restart
 ```
 
-This example restarts the Site Recovery Manager appliance
+This example restarts the Site Recovery Manager appliance.
 
 ### Example 2
 

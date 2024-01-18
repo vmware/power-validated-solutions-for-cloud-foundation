@@ -7,8 +7,7 @@ Configure the global password expiration policy
 ## Syntax
 
 ```powershell
-Set-VcenterPasswordExpiration [-maxDays] <Int32> [[-minDays] <Int32>] [[-warnDays] <Int32>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-VcenterPasswordExpiration [-maxDays] <Int32> [[-minDays] <Int32>] [[-warnDays] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

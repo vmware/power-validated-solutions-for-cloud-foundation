@@ -7,8 +7,7 @@ Sets the DNS Server and/or DNS search domains on VMware Aria Suite Lifecycle to 
 ## Syntax
 
 ```powershell
-Undo-vRSLCMDnsConfig [-server] <String> [-user] <String> [-pass] <String> [-sddcManagerRootPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRSLCMDnsConfig [-server] <String> [-user] <String> [-pass] <String> [-sddcManagerRootPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

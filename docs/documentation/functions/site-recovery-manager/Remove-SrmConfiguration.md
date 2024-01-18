@@ -7,8 +7,7 @@ Remove the configuration
 ## Syntax
 
 ```powershell
-Remove-SrmConfiguration [-ssoUser] <String> [-ssoPassword] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-SrmConfiguration [-ssoUser] <String> [-ssoPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

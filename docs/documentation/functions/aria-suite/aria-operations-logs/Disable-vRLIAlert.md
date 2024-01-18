@@ -7,8 +7,7 @@ Disables alerts in VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Disable-vRLIAlert [-server] <String> [-user] <String> [-pass] <String> [[-alertDefinition] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Disable-vRLIAlert [-server] <String> [-user] <String> [-pass] <String> [[-alertDefinition] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

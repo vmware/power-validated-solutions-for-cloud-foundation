@@ -7,8 +7,7 @@ Removes alerts from VMware Aria Operations for Logs
 ## Syntax
 
 ```powershell
-Undo-vRLIAlert [-server] <String> [-user] <String> [-pass] <String> [-name] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRLIAlert [-server] <String> [-user] <String> [-pass] <String> [-name] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

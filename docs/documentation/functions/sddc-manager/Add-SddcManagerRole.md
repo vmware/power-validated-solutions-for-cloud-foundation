@@ -8,8 +8,7 @@ Assign SDDC Manager roles to a user/group
 
 ```powershell
 Add-SddcManagerRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-domainBindUser] <String> [-domainBindPass] <String> [-principal] <String> [-role] <String> [-type] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-domainBindUser] <String> [-domainBindPass] <String> [-principal] <String> [-role] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

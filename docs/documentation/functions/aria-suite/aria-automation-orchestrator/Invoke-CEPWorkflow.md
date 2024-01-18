@@ -9,22 +9,19 @@ Invoke a VMware Aria Automation Orchestrator workflow
 ### A (Default)
 
 ```powershell
-Invoke-CEPWorkflow -id <String> [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-CEPWorkflow -id <String> [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### B
 
 ```powershell
-Invoke-CEPWorkflow -id <String> [-parameters <PSObject[]>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Invoke-CEPWorkflow -id <String> [-parameters <PSObject[]>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### C
 
 ```powershell
-Invoke-CEPWorkflow [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-CEPWorkflow [-parameterName <String>] [-parameterValue <String>] [-parameterType <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### D

@@ -7,8 +7,7 @@ Check Authentication to a VMware Aria Operations cluster or analytics node.
 ## Syntax
 
 ```powershell
-Test-vROPSAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vROPSAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

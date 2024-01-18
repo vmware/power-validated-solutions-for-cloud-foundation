@@ -8,8 +8,7 @@ Adds user access in an organization.
 
 ```powershell
 Add-vRAUser [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-email] <String> [-orgRole] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-email] <String> [-orgRole] <String> [-serviceRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

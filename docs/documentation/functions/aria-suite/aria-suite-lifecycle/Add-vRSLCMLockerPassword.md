@@ -7,8 +7,7 @@ Creates a new Password in the locker
 ## Syntax
 
 ```powershell
-Add-vRSLCMLockerPassword [-userName] <String> [-alias] <String> [-password] <String> [[-description] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRSLCMLockerPassword [-userName] <String> [-alias] <String> [-password] <String> [[-description] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

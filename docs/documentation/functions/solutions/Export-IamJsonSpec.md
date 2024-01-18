@@ -7,14 +7,14 @@ Create JSON specification for Identity and Access Management.
 ## Syntax
 
 ```powershell
-Export-IamJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Export-IamJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Export-IamJsonSpec` cmdlet creates the JSON specification file using the Planning and Preparation Workbook
-to deploy the Identity and Access Management for VMWare Cloud Foundation validated solution:
+to deploy the Identity and Access Management for VMware Cloud Foundation validated solution:
+
 - Validates that the Planning and Preparation is available
 - Generates the JSON specification file using the Planning and Preparation workbook
 

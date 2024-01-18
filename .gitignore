@@ -3,5 +3,9 @@
 **/.DS_Store
 
 # MkDocs
-## Ignore site directory.
+## Ignore .site directory.
 **/.site/**
+
+# Trunk
+## Ignore the .trunk directory.
+**/.trunk/**

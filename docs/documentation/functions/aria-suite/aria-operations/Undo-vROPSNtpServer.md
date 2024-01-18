@@ -7,8 +7,7 @@ Configure NTP settings for all VMware Aria Operations appliances to match SDDC M
 ## Syntax
 
 ```powershell
-Undo-vROPSNtpServer [-server] <String> [-user] <String> [-pass] <String> [-environmentName] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vROPSNtpServer [-server] <String> [-user] <String> [-pass] <String> [-environmentName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

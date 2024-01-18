@@ -7,8 +7,7 @@ Enable/Disable alert plugin
 ## Syntax
 
 ```powershell
-Set-vROPSAlertPluginStatus [-pluginId] <String> [-status] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-vROPSAlertPluginStatus [-pluginId] <String> [-status] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

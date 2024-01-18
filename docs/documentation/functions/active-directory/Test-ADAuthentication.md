@@ -7,8 +7,7 @@ Test authetication against Active Directory
 ## Syntax
 
 ```powershell
-Test-ADAuthentication [-user] <String> [-pass] <String> [[-server] <String>] [[-domain] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-ADAuthentication [-user] <String> [-pass] <String> [[-server] <String>] [[-domain] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

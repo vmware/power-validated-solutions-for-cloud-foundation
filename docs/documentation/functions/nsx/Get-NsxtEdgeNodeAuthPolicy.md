@@ -7,8 +7,7 @@ Get the Authentication Policy for NSX Edge Nodes
 ## Syntax
 
 ```powershell
-Get-NsxtEdgeNodeAuthPolicy [-nsxtManager] <String> [-nsxtEdgeNodeID] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-NsxtEdgeNodeAuthPolicy [-nsxtManager] <String> [-nsxtEdgeNodeID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

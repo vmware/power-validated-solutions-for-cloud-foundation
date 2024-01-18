@@ -7,8 +7,7 @@ Get configured route redistribution
 ## Syntax
 
 ```powershell
-Get-NsxtRoutingConfigRedistributionRule [-logicalRouterId] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-NsxtRoutingConfigRedistributionRule [-logicalRouterId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

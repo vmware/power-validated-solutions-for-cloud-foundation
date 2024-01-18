@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Add an NTP Server for the VMware Aria Suite Lifecycle appliance
+Add an NTP Server for the VMware Aria Suite Lifecycle appliance.
 
 ## Syntax
 

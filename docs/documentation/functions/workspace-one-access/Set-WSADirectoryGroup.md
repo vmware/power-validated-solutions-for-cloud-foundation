@@ -7,8 +7,7 @@ Add groups to directory
 ## Syntax
 
 ```powershell
-Set-WSADirectoryGroup [-directoryId] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-WSADirectoryGroup [-directoryId] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

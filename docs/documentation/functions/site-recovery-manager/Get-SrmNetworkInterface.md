@@ -22,4 +22,4 @@ The `Get-SrmNetworkInterface` cmdlet retrieves network interface configuration o
 Get-SrmNetworkInterface
 ```
 
-This example retrieves information about the network interface configuration of the Site Recovery Manager appliance
+This example retrieves information about the network interface configuration of the Site Recovery Manager appliance.

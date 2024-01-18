@@ -7,8 +7,7 @@ Remove a vSphere VM to VM Group
 ## Syntax
 
 ```powershell
-Remove-DrsVmToVmGroup [-name] <String> [-cluster] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-DrsVmToVmGroup [-name] <String> [-cluster] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

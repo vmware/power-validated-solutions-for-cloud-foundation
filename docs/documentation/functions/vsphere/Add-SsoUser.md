@@ -7,8 +7,7 @@ Assign vCenter Single Sign-On Group to user/group
 ## Syntax
 
 ```powershell
-Add-SsoUser [-server] <String> [-user] <String> [-pass] <String> [-ssoUser] <String> [-ssoPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-SsoUser [-server] <String> [-user] <String> [-pass] <String> [-ssoUser] <String> [-ssoPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

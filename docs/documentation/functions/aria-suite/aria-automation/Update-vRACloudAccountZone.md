@@ -9,8 +9,7 @@ Update Cloud Zone Configuration
 ```powershell
 Update-vRACloudAccountZone [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
  [-vraUser] <String> [-vraPass] <String> [[-tagKey] <String>] [[-tagValue] <String>] [[-folder] <String>]
- [[-resourcePool] <String>] [[-placementPolicy] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-resourcePool] <String>] [[-placementPolicy] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

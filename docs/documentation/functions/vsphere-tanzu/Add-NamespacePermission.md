@@ -9,8 +9,7 @@ Adds permissions to a Namespace
 ```powershell
 Add-NamespacePermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
  [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-namespace] <String>
- [-principal] <String> [-role] <String> [-type] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-principal] <String> [-role] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

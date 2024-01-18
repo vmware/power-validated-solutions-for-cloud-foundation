@@ -2,13 +2,12 @@
 
 ## Synopsis
 
-Sets OVF properties on a virtual appliance
+Sets OVF properties on a virtual appliance.
 
 ## Syntax
 
 ```powershell
-Set-VMOvfProperty [-vm] <PSObject> [-properties] <Hashtable> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-VMOvfProperty [-vm] <PSObject> [-properties] <Hashtable> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

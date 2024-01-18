@@ -7,8 +7,7 @@ Request One Time Key (OTK) for Cloud Proxies from VMware Cloud Service
 ## Syntax
 
 ```powershell
-Get-CloudProxyOtk [-environment] <String> [-type] <String> [[-region] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-CloudProxyOtk [-environment] <String> [-type] <String> [[-region] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Set the replication server settings
 ## Syntax
 
 ```powershell
-Set-VrmsReplication [-filterIp] <String> [-managementIp] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-VrmsReplication [-filterIp] <String> [-managementIp] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

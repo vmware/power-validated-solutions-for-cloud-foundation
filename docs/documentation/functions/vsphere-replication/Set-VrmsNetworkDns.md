@@ -7,8 +7,7 @@ Set DNS configuration
 ## Syntax
 
 ```powershell
-Set-VrmsNetworkDns [-vrmsHostname] <String> [-dnsServers] <Array> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-VrmsNetworkDns [-vrmsHostname] <String> [-dnsServers] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

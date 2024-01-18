@@ -7,8 +7,7 @@ Get VMware Aria Automation details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-vRAServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRAServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Creates a Load Balancer
 ## Syntax
 
 ```powershell
-New-NsxtLoadBalancer [-lbName] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-NsxtLoadBalancer [-lbName] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

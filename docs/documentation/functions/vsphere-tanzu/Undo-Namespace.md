@@ -7,13 +7,12 @@ Remove a Namespace
 ## Syntax
 
 ```powershell
-Undo-Namespace [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-namespace] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-Namespace [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-namespace] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-Namespace` cmdlet removes a Namespace from the Supervisor Cluster..
+The `Undo-Namespace` cmdlet removes a Namespace from the Supervisor Cluster.
 The cmdlet connects to SDDC Manager
 using the -server, -user, and -password values:
 

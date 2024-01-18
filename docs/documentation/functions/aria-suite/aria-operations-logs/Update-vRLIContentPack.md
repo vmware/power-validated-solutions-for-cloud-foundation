@@ -7,8 +7,7 @@ Updates the VMware Aria Operations for Logs content pack from the marketplace.
 ## Syntax
 
 ```powershell
-Update-vRLIContentPack [-server] <String> [-user] <String> [-pass] <String> [-contentPack] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vRLIContentPack [-server] <String> [-user] <String> [-pass] <String> [-contentPack] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

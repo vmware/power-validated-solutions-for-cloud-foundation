@@ -7,8 +7,7 @@ Set network interface configuration
 ## Syntax
 
 ```powershell
-Set-VrmsNetworkInterface [-interface] <String> [-ipAddress] <String> [-gateway] <String> [-prefix] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-VrmsNetworkInterface [-interface] <String> [-ipAddress] <String> [-gateway] <String> [-prefix] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Upload a management pack
 ## Syntax
 
 ```powershell
-Import-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-pak] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-pak] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

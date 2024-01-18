@@ -9,15 +9,13 @@ Request Cloud Proxies from VMware Cloud Service
 ### download
 
 ```powershell
-Get-CloudProxy -environment <String> [-region <String>] -type <String> [-download] [-path <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-CloudProxy -environment <String> [-region <String>] -type <String> [-download] [-path <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### ovaUrl
 
 ```powershell
-Get-CloudProxy -environment <String> [-region <String>] -type <String> [-ovaUrl]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-CloudProxy -environment <String> [-region <String>] -type <String> [-ovaUrl] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

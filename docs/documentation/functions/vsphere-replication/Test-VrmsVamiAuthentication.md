@@ -7,8 +7,7 @@ Check Authentication to a VMware Replication Manager node.
 ## Syntax
 
 ```powershell
-Test-VrmsVamiAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-VrmsVamiAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

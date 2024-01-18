@@ -7,8 +7,7 @@ Create a parameter definition for use with a VMware Aria Automation Orchestrator
 ## Syntax
 
 ```powershell
-New-vROParameterDefinition [-name] <String> [-value] <String> [-type] <String> [[-scope] <String>]
- [-ProgressAction <ActionPreference>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-vROParameterDefinition [-name] <String> [-value] <String> [-type] <String> [[-scope] <String>] [-ProgressAction <ActionPreference>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## Description

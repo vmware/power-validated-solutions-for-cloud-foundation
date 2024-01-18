@@ -7,8 +7,7 @@ Connects to the specified VMware Aria Operations for Logs instance and obtains a
 ## Syntax
 
 ```powershell
-Request-vRLIToken [-fqdn] <String> [-username] <String> [-password] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-vRLIToken [-fqdn] <String> [-username] <String> [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

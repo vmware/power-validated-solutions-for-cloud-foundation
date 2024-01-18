@@ -7,8 +7,7 @@ Add a VMware Aria Operations adapter via VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-New-vRSLCMAdapterOperation [-json] <String> [-environmentId] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-vRSLCMAdapterOperation [-json] <String> [-environmentId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

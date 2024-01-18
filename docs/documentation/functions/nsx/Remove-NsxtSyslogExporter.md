@@ -9,15 +9,13 @@ Delete Syslog exporters
 ### node
 
 ```powershell
-Remove-NsxtSyslogExporter [-node] -exporterName <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-NsxtSyslogExporter [-node] -exporterName <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### transport
 
 ```powershell
-Remove-NsxtSyslogExporter [-transport] -id <String> -exporterName <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-NsxtSyslogExporter [-transport] -id <String> -exporterName <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

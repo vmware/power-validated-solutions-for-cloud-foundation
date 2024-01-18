@@ -7,8 +7,7 @@ Get a list of Tier 1 Gateways
 ## Syntax
 
 ```powershell
-Get-NsxtTier1Gateway [[-name] <String>] [[-id] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-NsxtTier1Gateway [[-name] <String>] [[-id] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Remove an IP Prefix List from a Tier-0 Gateway
 ## Syntax
 
 ```powershell
-Remove-NsxtPrefixList [[-name] <String>] [[-tier0Gateway] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-NsxtPrefixList [[-name] <String>] [[-tier0Gateway] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

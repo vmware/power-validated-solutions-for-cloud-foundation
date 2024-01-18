@@ -7,8 +7,7 @@ Remove a group by authentication provider
 ## Syntax
 
 ```powershell
-Remove-vRLIGroup [-authProvider] <String> [-domain] <String> [-group] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRLIGroup [-authProvider] <String> [-domain] <String> [-group] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

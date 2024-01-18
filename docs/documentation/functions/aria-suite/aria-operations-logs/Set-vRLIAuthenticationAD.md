@@ -8,8 +8,7 @@ Configure Active Directory as an authentication provider.
 
 ```powershell
 Set-vRLIAuthenticationAD [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String>
- [-domainServers] <Array> [[-connectionType] <String>] [[-requireSsl] <Boolean>] [[-port] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-domainServers] <Array> [[-connectionType] <String>] [[-requireSsl] <Boolean>] [[-port] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Gets the nodes in the VMware Aria Suite Lifecycle inventory for a specified envi
 ## Syntax
 
 ```powershell
-Get-vRSLCMProductNode [-environmentName] <String> [-product] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMProductNode [-environmentName] <String> [-product] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Tests whether an array of DNS servers can resolve given domain name.
 ## Syntax
 
 ```powershell
-Test-DnsServers [-dnsServers] <Array> [[-domainName] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-DnsServers [-dnsServers] <Array> [[-domainName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -54,7 +53,7 @@ Accept wildcard characters: False
 
 ### -domainName
 
-The domain name to resolve..
+The domain name to resolve.
 
 ```yaml
 Type: String

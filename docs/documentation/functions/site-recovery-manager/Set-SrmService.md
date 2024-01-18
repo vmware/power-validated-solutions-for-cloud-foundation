@@ -2,18 +2,17 @@
 
 ## Synopsis
 
-Get information about Site Recovery Manager appliance services
+Get information about Site Recovery Manager appliance services.
 
 ## Syntax
 
 ```powershell
-Set-SrmService [-serviceId] <String> [-state] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-SrmService [-serviceId] <String> [-state] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-SrmService` cmdlet retrieves information about the Site Recovery Manager appliance services.
+The `Set-SrmService` cmdlet retrieves information about the Site Recovery Manager appliance. services.
 
 ## Examples
 
@@ -23,7 +22,7 @@ The `Set-SrmService` cmdlet retrieves information about the Site Recovery Manage
 Set-SrmService -serviceId srm -state stop
 ```
 
-This example stops the hms service on the Site Recovery Manager appliance
+This example stops the hms service on the Site Recovery Manager appliance.
 
 ### Example 2
 
@@ -31,7 +30,7 @@ This example stops the hms service on the Site Recovery Manager appliance
 Set-SrmService -serviceId srm -state start
 ```
 
-This example starts the hms service on the Site Recovery Manager appliance
+This example starts the hms service on the Site Recovery Manager appliance.
 
 ### Example 3
 

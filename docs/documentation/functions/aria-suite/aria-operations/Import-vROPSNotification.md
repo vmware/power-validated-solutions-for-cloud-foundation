@@ -7,8 +7,7 @@ Adds notifications to VMware Aria Operations
 ## Syntax
 
 ```powershell
-Import-vROPSNotification [-server] <String> [-user] <String> [-pass] <String> [[-csvPath] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-vROPSNotification [-server] <String> [-user] <String> [-pass] <String> [[-csvPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

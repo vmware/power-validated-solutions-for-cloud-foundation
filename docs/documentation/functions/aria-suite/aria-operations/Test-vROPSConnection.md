@@ -7,8 +7,7 @@ Check network connectivity to a VMware Aria Operations cluster or analytics node
 ## Syntax
 
 ```powershell
-Test-vROPSConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-vROPSConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

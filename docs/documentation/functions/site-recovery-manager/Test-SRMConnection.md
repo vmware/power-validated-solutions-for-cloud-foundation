@@ -1,4 +1,4 @@
-# Test-SRMConnection
+# Test-SrmConnection
 
 ## Synopsis
 
@@ -7,13 +7,12 @@ Check network connectivity to a Site Recovery Manager instance.
 ## Syntax
 
 ```powershell
-Test-SRMConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-SrmConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Test-SRMConnection` cmdlet checks the network connectivity to a Site Recovery Manager instance.
+The `Test-SrmConnection` cmdlet checks the network connectivity to a Site Recovery Manager instance.
 Supports testing a connection on ports 443 (HTTPS) and 22 (SSH).
 Default: 443 (HTTPS).
 
@@ -22,7 +21,7 @@ Default: 443 (HTTPS).
 ### Example 1
 
 ```powershell
-Test-SRMConnection -server sfo-srm01.sfo.rainpole.io
+Test-SrmConnection -server sfo-srm01.sfo.rainpole.io
 ```
 
 This example checks network connectivity with a Site Recovery Manager instance on default port, 443 (HTTPS).
@@ -30,7 +29,7 @@ This example checks network connectivity with a Site Recovery Manager instance o
 ### Example 2
 
 ```powershell
-Test-SRMConnection -server sfo-srm01.sfo.rainpole.io -port 443
+Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 443
 ```
 
 This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
@@ -38,7 +37,7 @@ This example checks network connectivity with a Site Recovery Manager instance o
 ### Example 3
 
 ```powershell
-Test-SRMConnection -server sfo-srm01.sfo.rainpole.io -port 22
+Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 22
 ```
 
 This example checks network connectivity with a Site Recovery Manager instance on port 22 (SSH).

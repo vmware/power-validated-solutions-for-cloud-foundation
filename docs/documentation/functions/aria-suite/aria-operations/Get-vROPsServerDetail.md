@@ -7,8 +7,7 @@ Get VMware Aria Operations details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-vROPsServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROPsServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

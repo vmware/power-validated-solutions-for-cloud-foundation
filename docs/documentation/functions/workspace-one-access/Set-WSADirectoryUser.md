@@ -7,8 +7,7 @@ Add users to directory
 ## Syntax
 
 ```powershell
-Set-WSADirectoryUser [-directoryId] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-WSADirectoryUser [-directoryId] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

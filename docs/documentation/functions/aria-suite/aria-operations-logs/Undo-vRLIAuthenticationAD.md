@@ -7,8 +7,7 @@ Disable Active Directory as an authentication source for VMware Aria Operations 
 ## Syntax
 
 ```powershell
-Undo-vRLIAuthenticationAD [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRLIAuthenticationAD [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

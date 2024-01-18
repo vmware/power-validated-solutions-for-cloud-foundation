@@ -7,8 +7,7 @@ Check network connectivity to an ESXi host.
 ## Syntax
 
 ```powershell
-Test-EsxiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-EsxiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Check Authentication to a vCenter Single Sign-On endpoint.
 ## Syntax
 
 ```powershell
-Test-SSOAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-SSOAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

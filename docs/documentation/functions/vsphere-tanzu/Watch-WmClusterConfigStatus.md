@@ -7,8 +7,7 @@ Poll request
 ## Syntax
 
 ```powershell
-Watch-WmClusterConfigStatus [-wmClusterName] <String> [[-retriesCount] <Int32>] [[-sleepTime] <Int32>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Watch-WmClusterConfigStatus [-wmClusterName] <String> [[-retriesCount] <Int32>] [[-sleepTime] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

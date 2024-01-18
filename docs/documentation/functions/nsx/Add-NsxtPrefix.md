@@ -8,8 +8,7 @@ Add a single entry to an existing NSX IP Prefix List
 
 ```powershell
 Add-NsxtPrefix [[-prefixListName] <String>] [[-tier0Gateway] <String>] [[-subnetCIDR] <String>]
- [[-GE] <String>] [[-LE] <String>] [[-action] <String>] [[-inputObject] <PSObject>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [[-GE] <String>] [[-LE] <String>] [[-action] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

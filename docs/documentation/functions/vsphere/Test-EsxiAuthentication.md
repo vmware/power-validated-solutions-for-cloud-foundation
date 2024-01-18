@@ -7,8 +7,7 @@ Check authentication to an ESXi host.
 ## Syntax
 
 ```powershell
-Test-EsxiAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-EsxiAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

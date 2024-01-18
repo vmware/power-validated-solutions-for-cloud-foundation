@@ -8,8 +8,7 @@ Adds Active Directory Group to sync in Workspace ONE Access Appliance
 
 ```powershell
 Add-WorkspaceOneDirectoryGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-bindUser] <String> [-bindPass] <String> [-baseDnGroup] <String> [-adGroups] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Set account lockout policy
 ## Syntax
 
 ```powershell
-Set-WsaAccountLockout [-numAttempts] <String> [-attemptInterval] <String> [-unlockInterval] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WsaAccountLockout [-numAttempts] <String> [-attemptInterval] <String> [-unlockInterval] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

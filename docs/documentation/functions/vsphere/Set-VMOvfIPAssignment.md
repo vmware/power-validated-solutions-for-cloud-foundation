@@ -7,8 +7,7 @@ Sets the IP Assignment OVF Setting
 ## Syntax
 
 ```powershell
-Set-VMOvfIPAssignment [-vm] <PSObject> [-assignment] <PSObject> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-VMOvfIPAssignment [-vm] <PSObject> [-assignment] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

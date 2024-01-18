@@ -7,8 +7,7 @@ Retrieves a Tanzu Kubernetes Cluster
 ## Syntax
 
 ```powershell
-Get-TanzuKubernetesCluster [[-namespace] <String>] [[-tkc] <String>] [-detail]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-TanzuKubernetesCluster [[-namespace] <String>] [[-tkc] <String>] [-detail] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

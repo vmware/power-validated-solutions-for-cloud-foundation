@@ -7,8 +7,7 @@ Shuts down nodes in a VMware Aria Suite Lifecycle-managed product
 ## Syntax
 
 ```powershell
-Stop-vRSLCMProductNode [-environment] <String> [-product] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Stop-vRSLCMProductNode [-environment] <String> [-product] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

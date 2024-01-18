@@ -10,8 +10,7 @@ Set password complexity and expiration policies
 Set-WsaPasswordPolicy [-minLen] <String> [-minLower] <String> [-minUpper] <String> [-minDigit] <String>
  [-minSpecial] <String> [-history] <String> [-maxConsecutiveIdenticalCharacters] <String>
  [-maxPreviousPasswordCharactersReused] <String> [-tempPasswordTtlInHrs] <String> [-passwordTtlInDays] <String>
- [-notificationThresholdInDays] <String> [-notificationIntervalInDays] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-notificationThresholdInDays] <String> [-notificationIntervalInDays] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

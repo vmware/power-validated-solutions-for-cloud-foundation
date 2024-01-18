@@ -14,8 +14,7 @@ Add-VmStartupRule [-server] <String> [-user] <String> [-pass] <String> [-domain]
 ## Description
 
 The `Add-VmStartupRule` cmdlet creates a vSphere DRS Virtual Machine to Virtual Machine startup rule.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

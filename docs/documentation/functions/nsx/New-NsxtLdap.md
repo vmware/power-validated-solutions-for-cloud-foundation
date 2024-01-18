@@ -8,8 +8,7 @@ Add an LDAP identity source
 
 ```powershell
 New-NsxtLdap [-dcMachineName] <String> [-protocol] <String> [-startTtls] <String> [-domain] <String>
- [-baseDn] <String> [-bindUser] <String> [-bindPassword] <String> [[-certificate] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-baseDn] <String> [-bindUser] <String> [-bindPassword] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

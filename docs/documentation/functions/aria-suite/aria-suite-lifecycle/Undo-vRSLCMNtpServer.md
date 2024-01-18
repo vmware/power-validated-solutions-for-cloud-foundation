@@ -7,8 +7,7 @@ Set the NTP Server configuration of VMware Aria Suite Lifecycle to match SDDC Ma
 ## Syntax
 
 ```powershell
-Undo-vRSLCMNtpServer [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Undo-vRSLCMNtpServer [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

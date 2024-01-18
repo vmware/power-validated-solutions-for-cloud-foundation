@@ -8,8 +8,7 @@ Adds a vCenter Server instance to an embedded VMware Aria Automation Orchestrato
 
 ```powershell
 Add-vROvCenterServer [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-vraUser] <String> [-vraPass] <String> [-vcUser] <String> [-vcPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-vraUser] <String> [-vraPass] <String> [-vcUser] <String> [-vcPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

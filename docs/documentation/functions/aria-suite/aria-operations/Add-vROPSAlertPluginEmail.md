@@ -9,8 +9,7 @@ Adds an Email based Alert Plugin
 ```powershell
 Add-vROPSAlertPluginEmail [-server] <String> [-user] <String> [-pass] <String> [-pluginName] <String>
  [-smtpServer] <String> [-smtpPort] <String> [-senderAddress] <String> [-secureConnection] <String>
- [[-protocol] <String>] [-authentication] <String> [[-authUser] <String>] [[-authPass] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [[-protocol] <String>] [-authentication] <String> [[-authUser] <String>] [[-authPass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -8,8 +8,7 @@ Create a new NSX Segment
 
 ```powershell
 New-NsxtSegment [-Name] <String> [[-ConnectedGateway] <String>] [[-Cidr] <String>] [-TransportZone] <String>
- [[-GatewayType] <String>] [-SegmentType] <String> [[-VlanId] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-GatewayType] <String>] [-SegmentType] <String> [[-VlanId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

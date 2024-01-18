@@ -7,8 +7,7 @@ Check Authentication to a VMware Aria Automation cluster or node.
 ## Syntax
 
 ```powershell
-Test-vRAAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vRAAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

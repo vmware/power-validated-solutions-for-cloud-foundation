@@ -7,8 +7,7 @@ Set SMTP configuration
 ## Syntax
 
 ```powershell
-Set-WSASmtpConfiguration [-fqdn] <String> [-port] <String> [-user] <String> [[-pass] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WSASmtpConfiguration [-fqdn] <String> [-port] <String> [-user] <String> [[-pass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

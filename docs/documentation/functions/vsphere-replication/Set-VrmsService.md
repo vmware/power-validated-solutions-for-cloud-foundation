@@ -7,8 +7,7 @@ Get information about vSphere Replication appliance services
 ## Syntax
 
 ```powershell
-Set-VrmsService [-serviceId] <String> [-state] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-VrmsService [-serviceId] <String> [-state] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

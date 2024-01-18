@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server
+Sets the appliance NTP configuration in VMware Aria Suite Lifecycle to use only a specified NTP server.
 
 ## Syntax
 

@@ -8,8 +8,7 @@ Create Workspace ONE Access JSON specification
 
 ```powershell
 Export-WsaJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>] [-standard]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

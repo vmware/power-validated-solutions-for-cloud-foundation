@@ -7,8 +7,7 @@ Restore-VMOvfProperties
 ## Syntax
 
 ```powershell
-Restore-VMOvfProperties [-server] <String> [-user] <String> [-pass] <String> [[-fileDir] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Restore-VMOvfProperties [-server] <String> [-user] <String> [-pass] <String> [[-fileDir] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

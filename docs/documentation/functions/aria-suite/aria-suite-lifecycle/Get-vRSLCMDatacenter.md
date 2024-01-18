@@ -7,8 +7,7 @@ Get paginated list of datacenters in VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Get-vRSLCMDatacenter [[-vmid] <String>] [[-datacenterName] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMDatacenter [[-vmid] <String>] [[-datacenterName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

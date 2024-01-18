@@ -7,8 +7,7 @@ A wrapper for Invoke-RestMethod for use with VMware Aria Automation Orchestrator
 ## Syntax
 
 ```powershell
-Invoke-vRORestMethod [-method] <String> [-uri] <String> [[-body] <Object>] [[-outFile] <String>] [-webRequest]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-vRORestMethod [-method] <String> [-uri] <String> [[-body] <Object>] [[-outFile] <String>] [-webRequest] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

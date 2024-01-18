@@ -7,8 +7,7 @@ Creates a Load Balancer Persistence Application Profile
 ## Syntax
 
 ```powershell
-New-NsxtLBPersistenceAppProfile [-appProfileName] <String> [-json] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtLBPersistenceAppProfile [-appProfileName] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

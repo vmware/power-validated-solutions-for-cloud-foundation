@@ -7,8 +7,7 @@ Creates Service Interface on Tier 1 Gateway
 ## Syntax
 
 ```powershell
-New-NsxtTier1ServiceInterface [-tier1Gateway] <String> [-interfaceId] <String> [-json] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtTier1ServiceInterface [-tier1Gateway] <String> [-interfaceId] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

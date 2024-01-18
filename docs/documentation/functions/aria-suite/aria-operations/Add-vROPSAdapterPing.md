@@ -8,8 +8,7 @@ Adds a Ping Adapter to VMware Aria Operations
 
 ```powershell
 Add-vROPSAdapterPing [-server] <String> [-user] <String> [-pass] <String> [-addressList] <String>
- [-adapterName] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-adapterName] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

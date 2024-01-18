@@ -7,8 +7,7 @@ Add a client
 ## Syntax
 
 ```powershell
-Add-WSAClient [[-clientId] <String>] [[-sharedSecret] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-WSAClient [[-clientId] <String>] [[-sharedSecret] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

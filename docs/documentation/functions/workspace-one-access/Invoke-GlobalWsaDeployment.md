@@ -8,8 +8,7 @@ End-to-end Deployment of Global Workspace ONE Access
 
 ```powershell
 Invoke-GlobalWsaDeployment [-jsonFile] <String> [-workbook] <String> [-certificates] <String>
- [-binaries] <String> [-useContentLibrary] [-standard] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-binaries] <String> [-useContentLibrary] [-standard] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +23,7 @@ The `Invoke-GlobalWsaDeployment` cmdlet is a single function to deploy and confi
 Invoke-GlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
 ```
 
-This example deploys and configures Global Workspace ONE Access using JSON spec supplied
+This example deploys and configures Global Workspace ONE Access using the JSON specification provided.
 
 ### Example 2
 
@@ -32,7 +31,7 @@ This example deploys and configures Global Workspace ONE Access using JSON spec 
 Invoke-GlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
 ```
 
-This example deploys and configures Global Workspace ONE Access using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+This example deploys and configures Global Workspace ONE Access using the JSON specification provided. and using a content library for VMware Aria Suite Lifecycle
 
 ## Parameters
 

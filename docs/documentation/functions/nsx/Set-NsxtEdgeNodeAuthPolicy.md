@@ -8,8 +8,7 @@ Set the Authentication Policy for NSX Edge Nodes
 
 ```powershell
 Set-NsxtEdgeNodeAuthPolicy [-nsxtManager] <String> [-nsxtEdgeNodeID] <String> [[-cli_lockout_period] <Int32>]
- [[-cli_max_attempt] <Int32>] [[-min_passwd_length] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-cli_max_attempt] <Int32>] [[-min_passwd_length] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

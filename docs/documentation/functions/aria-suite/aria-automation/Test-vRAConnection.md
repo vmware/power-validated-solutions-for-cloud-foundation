@@ -7,8 +7,7 @@ Check network connectivity to a VMware Aria Automation cluster or node.
 ## Syntax
 
 ```powershell
-Test-vRAConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-vRAConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

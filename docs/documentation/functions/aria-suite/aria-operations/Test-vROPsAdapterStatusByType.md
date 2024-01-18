@@ -7,8 +7,7 @@ Validates the integration status of VMware Aria Operations Adapters.
 ## Syntax
 
 ```powershell
-Test-vROPsAdapterStatusByType [-server] <String> [-user] <String> [-pass] <String> [-adapterKind] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vROPsAdapterStatusByType [-server] <String> [-user] <String> [-pass] <String> [-adapterKind] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Add a compute resource tag
 ## Syntax
 
 ```powershell
-Add-vRAResourceComputeTag [[-id] <String>] [[-tagKey] <String>] [[-tagValue] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRAResourceComputeTag [[-id] <String>] [[-tagKey] <String>] [[-tagValue] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

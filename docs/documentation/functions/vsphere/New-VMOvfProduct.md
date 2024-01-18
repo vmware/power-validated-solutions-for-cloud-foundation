@@ -7,8 +7,7 @@ Create a single OVF Product on a standard VM.
 ## Syntax
 
 ```powershell
-New-VMOvfProduct [-vm] <PSObject> [-product] <PSObject> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-VMOvfProduct [-vm] <PSObject> [-product] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

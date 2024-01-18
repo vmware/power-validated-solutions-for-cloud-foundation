@@ -7,8 +7,7 @@ Show PowerValidatedSolutions Output.
 ## Syntax
 
 ```powershell
-Show-PowerValidatedSolutionsOutput [-message] <String> [[-type] <String>] [-skipnewline]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Show-PowerValidatedSolutionsOutput [-message] <String> [[-type] <String>] [-skipnewline] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

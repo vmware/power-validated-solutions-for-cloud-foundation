@@ -7,8 +7,7 @@ Disable the embedded Harbor Registry on a Supervisor Cluster
 ## Syntax
 
 ```powershell
-Remove-WMRegistry [-cluster] <String> [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-WMRegistry [-cluster] <String> [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

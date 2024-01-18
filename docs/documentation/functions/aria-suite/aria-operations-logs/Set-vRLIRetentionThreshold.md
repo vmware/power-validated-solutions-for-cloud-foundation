@@ -7,8 +7,7 @@ Configuer the retention threshold settings
 ## Syntax
 
 ```powershell
-Set-vRLIRetentionThreshold [-enable] <String> [-interval] <Int32> [-intervalUnit] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRLIRetentionThreshold [-enable] <String> [-interval] <Int32> [-intervalUnit] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

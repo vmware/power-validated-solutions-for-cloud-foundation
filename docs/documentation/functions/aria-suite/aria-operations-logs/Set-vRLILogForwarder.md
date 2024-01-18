@@ -8,8 +8,7 @@ Adds a log forwarder destination.
 
 ```powershell
 Set-vRLILogForwarder [-name] <String> [-server] <String> [-protocol] <String> [-port] <String>
- [[-transport] <String>] [-acceptCert] <String> [-sslEnabled] <String> [-testConnection] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [[-transport] <String>] [-acceptCert] <String> [-sslEnabled] <String> [-testConnection] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

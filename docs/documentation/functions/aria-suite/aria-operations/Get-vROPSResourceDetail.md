@@ -7,8 +7,7 @@ Get resource detail
 ## Syntax
 
 ```powershell
-Get-vROPSResourceDetail [-adapter] <String> [-resource] <String> [-objectname] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROPSResourceDetail [-adapter] <String> [-resource] <String> [-objectname] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

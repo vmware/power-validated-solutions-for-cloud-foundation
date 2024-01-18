@@ -8,8 +8,7 @@ Configure account lockoput for local users
 
 ```powershell
 Set-LocalAccountLockout [-vmName] <String> [-guestUser] <String> [-guestPassword] <String> [-failures] <Int32>
- [[-unlockInterval] <Int32>] [[-rootUnlockInterval] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-unlockInterval] <Int32>] [[-rootUnlockInterval] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

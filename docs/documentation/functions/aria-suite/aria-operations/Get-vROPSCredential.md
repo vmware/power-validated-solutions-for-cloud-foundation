@@ -7,8 +7,7 @@ Get credentials
 ## Syntax
 
 ```powershell
-Get-vROPSCredential [[-credentialId] <String>] [-adapter] [-resource] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vROPSCredential [[-credentialId] <String>] [-adapter] [-resource] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

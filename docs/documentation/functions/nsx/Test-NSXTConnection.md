@@ -7,8 +7,7 @@ Check network connectivity to an NSX Manager.
 ## Syntax
 
 ```powershell
-Test-NSXTConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-NSXTConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

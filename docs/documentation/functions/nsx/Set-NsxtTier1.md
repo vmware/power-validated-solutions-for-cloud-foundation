@@ -7,8 +7,7 @@ Configures Tier 1 Gateway
 ## Syntax
 
 ```powershell
-Set-NsxtTier1 [-tier1Gateway] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-NsxtTier1 [-tier1Gateway] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

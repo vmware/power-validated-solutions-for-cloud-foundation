@@ -7,8 +7,7 @@ Create an LDAP directory
 ## Syntax
 
 ```powershell
-Add-WSALdapDirectory [-domainName] <String> [-baseDn] <String> [-bindDn] <String> [[-certificate] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-WSALdapDirectory [-domainName] <String> [-baseDn] <String> [-bindDn] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

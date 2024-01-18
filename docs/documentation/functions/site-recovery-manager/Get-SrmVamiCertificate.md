@@ -22,4 +22,4 @@ The `Get-SrmVamiCertificate` cmdlet retrieves the certificate of the VAMI interf
 Get-SrmVamiCertificate
 ```
 
-This example retrieves the registration configuration for the Site Recovery Manager appliance
+This example retrieves the registration configuration for the Site Recovery Manager appliance.
