@@ -2341,8 +2341,6 @@ Function Undo-NsxtIdentitySource {
 }
 Export-ModuleMember -Function Undo-NsxtIdentitySource
 
-
-
 #EndRegion                                  E N D  O F  F U N C T I O N S                                   ########### 
 #######################################################################################################################
 
@@ -7688,6 +7686,184 @@ Function Undo-RecoveryPlan {
     }
 }
 Export-ModuleMember -Function Undo-RecoveryPlan
+
+Function Copy-vRealizeLoadBalancer {
+    <#
+        .SYNOPSIS
+        Creates a Load Balancer for VMware Aria component failover.
+
+        .DESCRIPTION
+        Creates a new loadbalancer in a secondary VMware Cloud Foundation instance by duplicating the settings of the
+        existing load balancer in the instance where the VMware Aria components are currently running.
+
+        .EXAMPLE
+        Copy-vRealizeLoadBalancer -sddcManagerAFQDN sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPassword VMw@re1! -sddcManagerBFQDN lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPassword VMw@re1! -serviceInterfaceIP 192.168.11.3 -wsaCertName xint-wsa01
+        This example copies settings from Load Balancer in the Primary SDDC to a new Load Balancer in Recovery SDDC.
+
+        .PARAMETER sddcManagerAFQDN
+        The fully qualified domain name of the SDDC Manager instance where the VMware Aria components are currently running.
+
+        .PARAMETER sddcManagerAUser
+        The username of the SDDC Manager instance where the VMware Aria components are currently running.
+
+        .PARAMETER sddcManagerAPassword
+        The password of the SDDC Manager instance where the VMware Aria components are currently running.
+
+        .PARAMETER sddcManagerBFQDN
+        The fully qualified domain name of the SDDC Manager instance where the VMware Aria components will be running after failover.
+
+        .PARAMETER sddcManagerBUser
+        The username of the SDDC Manager instance where the VMware Aria components will be running after failover.
+
+        .PARAMETER sddcManagerBPassword
+        The password of the SDDC Manager instance where the VMware Aria components will be running after failover.
+
+        .PARAMETER serviceInterfaceIP
+        The IP address of the Service Interface on the new Load Balancer.
+
+        .PARAMETER wsaCertName
+        The name of the certificate to be used by the new Load Balancer.
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [String]$sddcManagerAFqdn,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerAUser,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerAPassword,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerBFqdn,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerBUser,
+        [Parameter (Mandatory = $true)] [String]$sddcManagerBPassword,
+        [Parameter (Mandatory = $true)] [String]$serviceInterfaceIp,
+        [Parameter (Mandatory = $true)] [String]$wsaCertName
+    )
+
+    Try {
+        # Setup Parameters
+        $t1Name = "recovery-t1-gw01"
+        $siName = "recovery-t1-gw01-si01"
+        $lbName = "recovery-lb01"
+
+        #Retrieve Edge Cluster Details from SDDC Manager B
+        Request-VCFToken -fqdn $sddcManagerBFqdn -Username $sddcManagerBUser -Password $sddcManagerBPassword | Out-Null
+        $mgmtNsxtClusterID = (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "Management" }).nsxtCluster.id
+        $edgeClusterName = (Get-VCFEdgeCluster | Where-Object { $_.nsxtCluster.id -eq $mgmtNsxtClusterID }).Name
+        
+        #Retrieve Segment, WSA, VRA and vROPS  Details from SDDC Manager A
+        Request-VCFToken -fqdn $sddcManagerAFqdn -Username $sddcManagerAUser -Password $sddcManagerAPassword | Out-Null
+        $xintSegmentDetails = Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "X_REGION" }
+        $wsaDetailsObject = Get-WSAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
+        $vraDetailsObject = Get-vRAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
+        $vropsDetailsObject = Get-vROPsServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
+
+        #Add Cert to NSX
+        $nsxManager = Get-NsxtServerDetail -fqdn $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPassword -domainType MANAGEMENT
+        Request-NsxToken -fqdn $nsxManager.fqdn -username $nsxManager.adminUser -password $nsxManager.adminPass | Out-Null
+
+        #Get xint segment ID from NSX LM on recovery site
+        $segmentID = Get-NsxtGlobalSegmentID -segmentName $xintSegmentDetails.name
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+    
+    Try {
+        if ((!$edgeClusterName) -OR (!$xintSegmentDetails) -OR (!$wsaDetailsObject) -OR ((!$vraDetailsObject) -AND (!$vropsDetailsObject))) {
+            Write-Output "Requirements for Copying Load Balancer not Met".
+            if (!$wsaDetailsObject) { Write-Output "Clustered Workspace ONE Access was not discovered in the source SDDC Manager instance" }
+            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) { Write-Output "Neither VMware Aria Automation nor VMware Aria Operations was discovered in the source SDDC Manager instance" }
+            if (!$xintSegmentDetails) { Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance" }
+            if (!$edgeClusterName) { Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance" }
+        } else {    
+            #Create a Load Balancer Spec
+            if (!$vraDetailsObject) {
+                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
+            } elseif (!$vropsDetailsObject) {
+                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
+            } else {
+                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
+            }
+
+            $wsaCertPresent = Add-CertToNsxCertificateStore -certName $wsaCertName
+        
+            if ($wsaCertPresent -eq $true) {
+                $ConfigJson = $lbCustomObject.t1_spec.gw | ConvertTo-Json
+                New-NsxtTier1 -tier1Gateway $t1Name -json $ConfigJson
+                $edgeClusterID = (Get-NsxtEdgeCluster -name $edgeClusterName).id
+                $ConfigJson = '{"edge_cluster_path": "/infra/sites/default/enforcement-points/default/edge-clusters/' + $edgeClusterID + '"}'
+                Set-NsxtTier1 -tier1Gateway $t1name -json $ConfigJson
+                $ConfigJson = '{
+                    "segment_path": "'+ $lbCustomObject.t1_spec.service_interface.segment_path + '",
+                    "subnets": [
+                    {
+                        "ip_addresses": [ "'+ $lbCustomObject.t1_spec.service_interface.subnets.ip_addresses + '" ],
+                        "prefix_len": "'+ $lbCustomObject.t1_spec.service_interface.subnets.prefix_len + '"
+                    }
+                    ]
+                    }'
+                New-NsxtTier1ServiceInterface -tier1Gateway $t1name -interfaceId $lbCustomObject.t1_spec.service_interface.id -json $ConfigJson
+                $ConfigJson = '{
+                    "network": "'+ $lbCustomObject.t1_spec.static_routes.network + '",
+                    "next_hops": [
+                        {
+                            "ip_address": "'+ $lbCustomObject.t1_spec.static_routes.next_hops.ip_address + '",
+                            "admin_distance": '+ $lbCustomObject.t1_spec.static_routes.next_hops.admin_distance + ',
+                            "scope": [
+                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope + '"                    
+                            ]
+                        }
+                    ],
+                    "display_name": "'+ $lbCustomObject.t1_spec.static_routes.display_name + '"
+                    }'
+                New-NsxtTier1StaticRoute -tier1Gateway $t1name -segment $xintSegmentDetails.name -json $ConfigJson
+                $ConfigJson = $lbCustomObject.lb_spec.lb_service | ConvertTo-Json
+                New-NsxtLoadBalancer -lbName $lbName -json $ConfigJson
+                Foreach ($monitor in $lbCustomObject.lb_spec.service_monitors) {
+                    Try {
+                        $ConfigJson = $monitor | ConvertTo-Json -Depth 10
+                        New-NsxtLBServiceMonitor -monitorName $monitor.display_name -json $ConfigJson
+                    } Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($profile in $lbCustomObject.lb_spec.app_profiles) {
+                    Try {
+                        $ConfigJson = $profile | ConvertTo-Json
+                        New-NsxtLBAppProfile -appProfileName $profile.display_name -json $ConfigJson
+                    } Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($profile in $lbCustomObject.lb_spec.persistence_profiles) {
+                    Try {
+                        $ConfigJson = $profile | ConvertTo-Json
+                        New-NsxtLBPersistenceAppProfile -appProfileName $profile.display_name -json $ConfigJson
+                    } Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($pool in $lbCustomObject.lb_spec.pools) {
+                    Try {
+                        $ConfigJson = $pool | ConvertTo-Json
+                        New-NsxtLBPool -poolName $pool.display_name -json $ConfigJson
+                    } Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+                Foreach ($virtualServer in $lbCustomObject.lb_spec.virtual_Servers) {
+                    Try {
+                        $ConfigJson = $virtualServer | ConvertTo-Json -Depth 10
+                        New-NsxtLBVirtualServer -virtualServerName $virtualServer.display_name -json $ConfigJson
+                    } Catch {
+                        Debug-ExceptionWriter -object $_
+                    }
+                }
+            } else {
+                Write-Error "Aborting remainder of NSX Load Balancer configuration until certificate files present"
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Copy-vRealizeLoadBalancer
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -29809,6 +29985,56 @@ Function Set-WsaPasswordPolicy {
 }
 Export-ModuleMember -Function Set-WsaPasswordPolicy
 
+Function Set-WorkspaceOneApplianceNtpConfig {
+    <#
+        .SYNOPSIS
+        Configure Workspace ONE Access appliance NTP servers.
+
+        .DESCRIPTION
+        The Set-WorkspaceOneApplianceNtpConfig cmdlet configures Workspace ONE Access appliance NTP servers
+
+        .EXAMPLE
+        Set-WorkspaceOneApplianceNtpConfig -vmName sfo-wsa01 -rootPass VMw@re1! -ntpServer "ntp.sfo.rainpole.io,ntp.lax.rainpole.io"
+        This example sets the NTP servers for Workspace ONE Access node sfo-wsa01 to ntp.sfo.rainpole.io and ntp.lax.rainpole.io.
+        
+        .PARAMETER vmName
+        The name of the Workspace ONE Access node.
+
+        .PARAMETER rootPass
+        The root password of the Workspace ONE Access node.
+
+        .PARAMETER ntpServer
+        The NTP server to set on the Workspace ONE Access node.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
+    )
+
+    Try {
+        $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
+        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+        if ($output.ScriptOutput -match "^server=$ntpServer$") {
+            Write-Warning "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer), already performed: SKIPPED"
+        } else {
+            $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --set ' + $ntpServer
+            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+            $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
+            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
+            if ($output.ScriptOutput -match "^server=$ntpServer$") {
+                Write-Output "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): SUCCESSFUL"
+            } else {
+                Write-Error "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): POST_VALIDATION_FAILED"
+            }
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Set-WorkspaceOneApplianceNtpConfig
+
 #EndRegion  End Workspace ONE Access Functions                               ######
 ###################################################################################
 
@@ -32253,184 +32479,6 @@ Function Remove-NsxtSyslogExporter {
     }
 }
 Export-ModuleMember -Function Remove-NsxtSyslogExporter
-
-Function Copy-vRealizeLoadBalancer {
-    <#
-        .SYNOPSIS
-        Creates a Load Balancer for VMware Aria component failover.
-
-        .DESCRIPTION
-        Creates a new loadbalancer in a secondary VMware Cloud Foundation instance by duplicating the settings of the
-        existing load balancer in the instance where the VMware Aria components are currently running.
-
-        .EXAMPLE
-        Copy-vRealizeLoadBalancer -sddcManagerAFQDN sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPassword VMw@re1! -sddcManagerBFQDN lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPassword VMw@re1! -serviceInterfaceIP 192.168.11.3 -wsaCertName xint-wsa01
-        This example copies settings from Load Balancer in the Primary SDDC to a new Load Balancer in Recovery SDDC.
-
-        .PARAMETER sddcManagerAFQDN
-        The fully qualified domain name of the SDDC Manager instance where the VMware Aria components are currently running.
-
-        .PARAMETER sddcManagerAUser
-        The username of the SDDC Manager instance where the VMware Aria components are currently running.
-
-        .PARAMETER sddcManagerAPassword
-        The password of the SDDC Manager instance where the VMware Aria components are currently running.
-
-        .PARAMETER sddcManagerBFQDN
-        The fully qualified domain name of the SDDC Manager instance where the VMware Aria components will be running after failover.
-
-        .PARAMETER sddcManagerBUser
-        The username of the SDDC Manager instance where the VMware Aria components will be running after failover.
-
-        .PARAMETER sddcManagerBPassword
-        The password of the SDDC Manager instance where the VMware Aria components will be running after failover.
-
-        .PARAMETER serviceInterfaceIP
-        The IP address of the Service Interface on the new Load Balancer.
-
-        .PARAMETER wsaCertName
-        The name of the certificate to be used by the new Load Balancer.
-    #>
-    
-    Param (
-        [Parameter (Mandatory = $true)] [String]$sddcManagerAFqdn,
-        [Parameter (Mandatory = $true)] [String]$sddcManagerAUser,
-        [Parameter (Mandatory = $true)] [String]$sddcManagerAPassword,
-        [Parameter (Mandatory = $true)] [String]$sddcManagerBFqdn,
-        [Parameter (Mandatory = $true)] [String]$sddcManagerBUser,
-        [Parameter (Mandatory = $true)] [String]$sddcManagerBPassword,
-        [Parameter (Mandatory = $true)] [String]$serviceInterfaceIp,
-        [Parameter (Mandatory = $true)] [String]$wsaCertName
-    )
-
-    Try {
-        # Setup Parameters
-        $t1Name = "recovery-t1-gw01"
-        $siName = "recovery-t1-gw01-si01"
-        $lbName = "recovery-lb01"
-
-        #Retrieve Edge Cluster Details from SDDC Manager B
-        Request-VCFToken -fqdn $sddcManagerBFqdn -Username $sddcManagerBUser -Password $sddcManagerBPassword | Out-Null
-        $mgmtNsxtClusterID = (Get-VCFWorkloadDomain | Where-Object { $_.type -eq "Management" }).nsxtCluster.id
-        $edgeClusterName = (Get-VCFEdgeCluster | Where-Object { $_.nsxtCluster.id -eq $mgmtNsxtClusterID }).Name
-        
-        #Retrieve Segment, WSA, VRA and vROPS  Details from SDDC Manager A
-        Request-VCFToken -fqdn $sddcManagerAFqdn -Username $sddcManagerAUser -Password $sddcManagerAPassword | Out-Null
-        $xintSegmentDetails = Get-VCFApplicationVirtualNetwork | Where-Object { $_.regionType -eq "X_REGION" }
-        $wsaDetailsObject = Get-WSAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
-        $vraDetailsObject = Get-vRAServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
-        $vropsDetailsObject = Get-vROPsServerDetail -fqdn $sddcManagerAFqdn -username $sddcManagerAUser -password $sddcManagerAPassword
-
-        #Add Cert to NSX
-        $nsxManager = Get-NsxtServerDetail -fqdn $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPassword -domainType MANAGEMENT
-        Request-NsxToken -fqdn $nsxManager.fqdn -username $nsxManager.adminUser -password $nsxManager.adminPass | Out-Null
-
-        #Get xint segment ID from NSX LM on recovery site
-        $segmentID = Get-NsxtGlobalSegmentID -segmentName $xintSegmentDetails.name
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-    
-    Try {
-        if ((!$edgeClusterName) -OR (!$xintSegmentDetails) -OR (!$wsaDetailsObject) -OR ((!$vraDetailsObject) -AND (!$vropsDetailsObject))) {
-            Write-Output "Requirements for Copying Load Balancer not Met".
-            if (!$wsaDetailsObject) { Write-Output "Clustered Workspace ONE Access was not discovered in the source SDDC Manager instance" }
-            if ((!$vraDetailsObject) -AND (!$vropsDetailsObject)) { Write-Output "Neither VMware Aria Automation nor VMware Aria Operations was discovered in the source SDDC Manager instance" }
-            if (!$xintSegmentDetails) { Write-Output "Cross-Region Segment was discovered in the target SDDC Manager instance" }
-            if (!$edgeClusterName) { Write-Output "Management Edge Cluster was not discovered in the target SDDC Manager instance" }
-        } else {    
-            #Create a Load Balancer Spec
-            if (!$vraDetailsObject) {
-                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
-            } elseif (!$vropsDetailsObject) {
-                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
-            } else {
-                $lbCustomObject = New-vRealizeLoadBalancerSpec -xintSegmentDetails $xintSegmentDetails -serviceInterfaceIp $serviceInterfaceIp -wsaDetailsObject $wsaDetailsObject -vraDetailsObject $vraDetailsObject -vropsDetailsObject $vropsDetailsObject -wsaCertName $wsaCertName -t1Name $t1Name -lbName $lbName -siName $siName -segmentID $segmentID
-            }
-
-            $wsaCertPresent = Add-CertToNsxCertificateStore -certName $wsaCertName
-        
-            if ($wsaCertPresent -eq $true) {
-                $ConfigJson = $lbCustomObject.t1_spec.gw | ConvertTo-Json
-                New-NsxtTier1 -tier1Gateway $t1Name -json $ConfigJson
-                $edgeClusterID = (Get-NsxtEdgeCluster -name $edgeClusterName).id
-                $ConfigJson = '{"edge_cluster_path": "/infra/sites/default/enforcement-points/default/edge-clusters/' + $edgeClusterID + '"}'
-                Set-NsxtTier1 -tier1Gateway $t1name -json $ConfigJson
-                $ConfigJson = '{
-                    "segment_path": "'+ $lbCustomObject.t1_spec.service_interface.segment_path + '",
-                    "subnets": [
-                    {
-                        "ip_addresses": [ "'+ $lbCustomObject.t1_spec.service_interface.subnets.ip_addresses + '" ],
-                        "prefix_len": "'+ $lbCustomObject.t1_spec.service_interface.subnets.prefix_len + '"
-                    }
-                    ]
-                    }'
-                New-NsxtTier1ServiceInterface -tier1Gateway $t1name -interfaceId $lbCustomObject.t1_spec.service_interface.id -json $ConfigJson
-                $ConfigJson = '{
-                    "network": "'+ $lbCustomObject.t1_spec.static_routes.network + '",
-                    "next_hops": [
-                        {
-                            "ip_address": "'+ $lbCustomObject.t1_spec.static_routes.next_hops.ip_address + '",
-                            "admin_distance": '+ $lbCustomObject.t1_spec.static_routes.next_hops.admin_distance + ',
-                            "scope": [
-                                "'+ $lbCustomObject.t1_spec.static_routes.next_hops.scope + '"                    
-                            ]
-                        }
-                    ],
-                    "display_name": "'+ $lbCustomObject.t1_spec.static_routes.display_name + '"
-                    }'
-                New-NsxtTier1StaticRoute -tier1Gateway $t1name -segment $xintSegmentDetails.name -json $ConfigJson
-                $ConfigJson = $lbCustomObject.lb_spec.lb_service | ConvertTo-Json
-                New-NsxtLoadBalancer -lbName $lbName -json $ConfigJson
-                Foreach ($monitor in $lbCustomObject.lb_spec.service_monitors) {
-                    Try {
-                        $ConfigJson = $monitor | ConvertTo-Json -Depth 10
-                        New-NsxtLBServiceMonitor -monitorName $monitor.display_name -json $ConfigJson
-                    } Catch {
-                        Debug-ExceptionWriter -object $_
-                    }
-                }
-                Foreach ($profile in $lbCustomObject.lb_spec.app_profiles) {
-                    Try {
-                        $ConfigJson = $profile | ConvertTo-Json
-                        New-NsxtLBAppProfile -appProfileName $profile.display_name -json $ConfigJson
-                    } Catch {
-                        Debug-ExceptionWriter -object $_
-                    }
-                }
-                Foreach ($profile in $lbCustomObject.lb_spec.persistence_profiles) {
-                    Try {
-                        $ConfigJson = $profile | ConvertTo-Json
-                        New-NsxtLBPersistenceAppProfile -appProfileName $profile.display_name -json $ConfigJson
-                    } Catch {
-                        Debug-ExceptionWriter -object $_
-                    }
-                }
-                Foreach ($pool in $lbCustomObject.lb_spec.pools) {
-                    Try {
-                        $ConfigJson = $pool | ConvertTo-Json
-                        New-NsxtLBPool -poolName $pool.display_name -json $ConfigJson
-                    } Catch {
-                        Debug-ExceptionWriter -object $_
-                    }
-                }
-                Foreach ($virtualServer in $lbCustomObject.lb_spec.virtual_Servers) {
-                    Try {
-                        $ConfigJson = $virtualServer | ConvertTo-Json -Depth 10
-                        New-NsxtLBVirtualServer -virtualServerName $virtualServer.display_name -json $ConfigJson
-                    } Catch {
-                        Debug-ExceptionWriter -object $_
-                    }
-                }
-            } else {
-                Write-Error "Aborting remainder of NSX Load Balancer configuration until certificate files present"
-            }
-        }
-    } Catch {
-        Debug-ExceptionWriter -object $_
-    }
-}
-Export-ModuleMember -Function Copy-vRealizeLoadBalancer
 
 Function New-vRealizeLoadBalancerSpec {
     Param (
@@ -36471,56 +36519,6 @@ Function Resume-vRSLCMRequest {
     }
 }
 Export-ModuleMember -Function Resume-vRSLCMRequest
-
-Function Set-WorkspaceOneApplianceNtpConfig {
-    <#
-        .SYNOPSIS
-        Configure Workspace ONE Access appliance NTP servers.
-
-        .DESCRIPTION
-        The Set-WorkspaceOneApplianceNtpConfig cmdlet configures Workspace ONE Access appliance NTP servers
-
-        .EXAMPLE
-        Set-WorkspaceOneApplianceNtpConfig -vmName sfo-wsa01 -rootPass VMw@re1! -ntpServer "ntp.sfo.rainpole.io,ntp.lax.rainpole.io"
-        This example sets the NTP servers for Workspace ONE Access node sfo-wsa01 to ntp.sfo.rainpole.io and ntp.lax.rainpole.io.
-        
-        .PARAMETER vmName
-        The name of the Workspace ONE Access node.
-
-        .PARAMETER rootPass
-        The root password of the Workspace ONE Access node.
-
-        .PARAMETER ntpServer
-        The NTP server to set on the Workspace ONE Access node.
-    #>
-
-    Param (
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rootPass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServer
-    )
-
-    Try {
-        $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
-        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
-        if ($output.ScriptOutput -match "^server=$ntpServer$") {
-            Write-Warning "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer), already performed: SKIPPED"
-        } else {
-            $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --set ' + $ntpServer
-            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
-            $scriptCommand = '/usr/local/horizon/scripts/ntpServer.hzn --get'
-            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass -Server $vcfVcenterDetails.fqdn
-            if ($output.ScriptOutput -match "^server=$ntpServer$") {
-                Write-Output "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): SUCCESSFUL"
-            } else {
-                Write-Error "Configuring NTP on Workspace ONE Access Instance ($vmName) to NTP Server ($ntpServer): POST_VALIDATION_FAILED"
-            }
-        }
-    } Catch {
-        Write-Error $_.Exception.Message
-    }
-}
-Export-ModuleMember -Function Set-WorkspaceOneApplianceNtpConfig
 
 Function New-vRSLCMAdapterOperation {
     <#
