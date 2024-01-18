@@ -7,8 +7,7 @@ Add the AD group to the WSA role
 ## Syntax
 
 ```powershell
-Add-WSARoleAssociation [-roleId] <String> [-groupId] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-WSARoleAssociation [-roleId] <String> [-groupId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

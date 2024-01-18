@@ -13,7 +13,7 @@ Add-Namespace [-server] <String> [-user] <String> [-pass] <String> [-domain] <St
 
 ## Description
 
-The `Add-Namespace` cmdlet creates a Namespace and applies its configuration..
+The `Add-Namespace` cmdlet creates a Namespace and applies its configuration.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager

@@ -1,26 +1,26 @@
-# Test-SRMAuthentication
+# Test-SrmAuthentication
 
 ## Synopsis
 
-Check Authentication to a Site Recovery Manager instance.
+Check authentication to a Site Recovery Manager instance.
 
 ## Syntax
 
 ```powershell
-Test-SRMAuthentication [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>]
+Test-SrmAuthentication [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>]
  [[-remotePass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Test-SRMAuthentication` cmdlet checks Authentication to a Site Recovery Manager instance.
+The `Test-SrmAuthentication` cmdlet checks Authentication to a Site Recovery Manager instance.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Test-SRMAuthentication [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>]
+Test-SrmAuthentication [-server] <String> [-user] <String> [-pass] <String> [[-remoteUser] <String>]
 ```
 
 ## Parameters

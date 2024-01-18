@@ -12,8 +12,7 @@ Set-NsxtManagerAuthPolicy [-nsxtManagerNode] <String> [[-api_lockout_period] <In
  [[-cli_max_attempt] <Int32>] [[-min_passwd_length] <Int32>] [[-maximum_password_length] <Int32>]
  [[-digits] <Int32>] [[-lower_chars] <Int32>] [[-upper_chars] <Int32>] [[-special_chars] <Int32>]
  [[-max_repeats] <Int32>] [[-max_sequence] <Int32>] [[-minimum_unique_chars] <Int32>]
- [[-hash_algorithm] <String>] [[-password_remembrance] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-hash_algorithm] <String>] [[-password_remembrance] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

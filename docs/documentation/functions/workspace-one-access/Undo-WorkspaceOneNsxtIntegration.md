@@ -8,8 +8,7 @@ Disables the integrate between NSX Manager with Workspace ONE Access
 
 ```powershell
 Undo-WorkspaceOneNsxtIntegration [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-wsaFqdn] <String> [-wsaUser] <String> [-wsaPass] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-wsaFqdn] <String> [-wsaUser] <String> [-wsaPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

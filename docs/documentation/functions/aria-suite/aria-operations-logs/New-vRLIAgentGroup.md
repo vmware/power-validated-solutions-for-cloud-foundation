@@ -7,8 +7,7 @@ Create a new agent group
 ## Syntax
 
 ```powershell
-New-vRLIAgentGroup [-agentGroupType] <String> [-agentGroupName] <String> [-criteria] <Array>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRLIAgentGroup [-agentGroupType] <String> [-agentGroupName] <String> [-criteria] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -53,7 +52,7 @@ Accept wildcard characters: False
 
 ### -agentGroupName
 
-The name of the agent group to create. If not specified, the name is automatically generated..
+The name of the agent group to create. If not specified, the name is automatically generated.
 
 ```yaml
 Type: String

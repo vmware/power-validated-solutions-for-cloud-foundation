@@ -23,7 +23,7 @@ for VMware Cloud Foundation validated solution.
 Invoke-UndoPcaDeployment -jsonFile .\pcaDeploySpec.json
 ```
 
-This example removal Private Cloud Automation using JSON spec supplied
+This example removal Private Cloud Automation using the JSON specification provided.
 
 ## Parameters
 

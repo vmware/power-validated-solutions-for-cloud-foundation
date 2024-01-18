@@ -7,8 +7,7 @@ Get the route redistribution policy from a Tier-0 Gateway
 ## Syntax
 
 ```powershell
-Get-NsxtRouteRedistributionPolicy [[-tier0Gateway] <String>] [[-inputObject] <PSObject>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-NsxtRouteRedistributionPolicy [[-tier0Gateway] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

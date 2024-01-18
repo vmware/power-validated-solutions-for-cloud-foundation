@@ -7,8 +7,7 @@ Check Authentication to an NSX Manager.
 ## Syntax
 
 ```powershell
-Test-NSXTAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-NSXTAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

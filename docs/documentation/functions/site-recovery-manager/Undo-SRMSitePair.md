@@ -1,4 +1,4 @@
-# Undo-SRMSitePair
+# Undo-SrmSitePair
 
 ## Synopsis
 
@@ -7,16 +7,14 @@ Removes an existing site pair between Site Recovery Manager instances
 ## Syntax
 
 ```powershell
-Undo-SRMSitePair [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SrmSitePair [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
+ [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-SRMSitePair` cmdlet removes an existing site pair between Site Recovery Manager instances.
-The cmdlet
-connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn,
+The `Undo-SrmSitePair` cmdlet removes an existing site pair between Site Recovery Manager instances.
+The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn,
 -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
 
 - Validates that network connectivity and authentication is possible to both SDDC Manager instances
@@ -30,7 +28,7 @@ vCenter Server instances.
 ### Example 1
 
 ```powershell
-Undo-SRMSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+Undo-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
 ```
 
 This example removes a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.

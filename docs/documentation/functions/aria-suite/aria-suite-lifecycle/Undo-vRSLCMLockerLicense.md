@@ -7,8 +7,7 @@ Remove a license to the VMware Aria Suite Lifecycle locker
 ## Syntax
 
 ```powershell
-Undo-vRSLCMLockerLicense [-server] <String> [-user] <String> [-pass] <String> [-alias] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRSLCMLockerLicense [-server] <String> [-user] <String> [-pass] <String> [-alias] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ End-to-end Deployment of Private Cloud Automation
 ## Syntax
 
 ```powershell
-Invoke-PcaDeployment [-jsonFile] <String> [-certificates] <String> [-binaries] <String> [-useContentLibrary]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Invoke-PcaDeployment [-jsonFile] <String> [-certificates] <String> [-binaries] <String> [-useContentLibrary] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +23,7 @@ for VMware Cloud Foundation validated solution.
 Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
 ```
 
-This example configures Private Cloud Automation using JSON spec supplied
+This example configures Private Cloud Automation using the JSON specification provided.
 
 ### Example 2
 
@@ -32,7 +31,7 @@ This example configures Private Cloud Automation using JSON spec supplied
 Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
 ```
 
-This example configures Private Cloud Automation using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+This example configures Private Cloud Automation using the JSON specification provided. and using a content library for VMware Aria Suite Lifecycle
 
 ## Parameters
 

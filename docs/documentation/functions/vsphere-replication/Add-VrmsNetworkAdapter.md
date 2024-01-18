@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Adds a second ethernet adapter and configures the required routing for vSphere Replication appliance
+Adds a second ethernet adapter and configures the required routing for vSphere Replication appliance.
 
 ## Syntax
 
@@ -10,8 +10,7 @@ Adds a second ethernet adapter and configures the required routing for vSphere R
 Add-VrmsNetworkAdapter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
  [-vrmsFqdn] <String> [-vrmsRootPass] <String> [-vrmsAdminPass] <String> [-vrmsIpAddress] <String>
  [-replicationSubnet] <String> [-replicationIpAddress] <String> [-replicationGateway] <String>
- [-replicationPortgroup] <String> [-replicationRemoteNetwork] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-replicationPortgroup] <String> [-replicationRemoteNetwork] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

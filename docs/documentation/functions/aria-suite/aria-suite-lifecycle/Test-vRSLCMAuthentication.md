@@ -7,8 +7,7 @@ Check Authentication to a VMware Aria Suite Lifecycle instance.
 ## Syntax
 
 ```powershell
-Test-vRSLCMAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vRSLCMAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

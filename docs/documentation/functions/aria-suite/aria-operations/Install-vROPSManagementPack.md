@@ -7,8 +7,7 @@ Install a management pack
 ## Syntax
 
 ```powershell
-Install-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-pakId] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Install-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-pakId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

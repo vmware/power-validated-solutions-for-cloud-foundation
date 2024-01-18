@@ -9,8 +9,7 @@ Add Active Directory over LDAP/LDAPS as an Identity Provider to vCenter Server
 ```powershell
 Add-IdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
  [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-dcMachineName] <String>
- [-baseGroupDn] <String> [-baseUserDn] <String> [-protocol] <String> [[-certificate] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-baseGroupDn] <String> [-baseUserDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

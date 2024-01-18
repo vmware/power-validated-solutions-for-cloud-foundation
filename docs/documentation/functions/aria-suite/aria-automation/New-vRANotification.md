@@ -8,8 +8,7 @@ Add notification configuration
 
 ```powershell
 New-vRANotification -name <String> -serverName <String> -emailAddress <String> -sender <String>
- -trustCert <String> -connection <String> -authentication <String> [-userName <String>] [-password <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ -trustCert <String> -connection <String> -authentication <String> [-userName <String>] [-password <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

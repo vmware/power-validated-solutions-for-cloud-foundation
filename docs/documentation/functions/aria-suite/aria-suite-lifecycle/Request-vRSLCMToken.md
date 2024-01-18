@@ -7,13 +7,12 @@ Connects to the specified VMware Aria Suite Lifecycle and obtains authorization 
 ## Syntax
 
 ```powershell
-Request-vRSLCMToken [-fqdn] <String> [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-vRSLCMToken [-fqdn] <String> [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-vRSLCMToken` cmdlet connects to the specified VMWare Aria Suite Lifecycle and obtains an
+The `Request-vRSLCMToken` cmdlet connects to the specified VMware Aria Suite Lifecycle and obtains an
 authorization token.
 It is required once per session before running all other cmdlets.
 

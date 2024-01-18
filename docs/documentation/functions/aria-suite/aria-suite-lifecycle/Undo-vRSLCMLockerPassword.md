@@ -7,8 +7,7 @@ Remove a password from the VMware Aria Suite Lifecycle locker
 ## Syntax
 
 ```powershell
-Undo-vRSLCMLockerPassword [-server] <String> [-user] <String> [-pass] <String> [-alias] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRSLCMLockerPassword [-server] <String> [-user] <String> [-pass] <String> [-alias] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

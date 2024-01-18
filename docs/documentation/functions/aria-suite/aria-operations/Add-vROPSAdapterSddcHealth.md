@@ -7,8 +7,7 @@ Adds an SDDC Health Adapters for Collectors
 ## Syntax
 
 ```powershell
-Add-vROPSAdapterSddcHealth [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSAdapterSddcHealth [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

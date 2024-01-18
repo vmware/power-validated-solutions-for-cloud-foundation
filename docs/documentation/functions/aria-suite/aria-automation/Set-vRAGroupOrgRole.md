@@ -7,8 +7,7 @@ Set the group organization role.
 ## Syntax
 
 ```powershell
-Set-vRAGroupOrgRole [-groupId] <String> [-orgId] <String> [-orgRole] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRAGroupOrgRole [-groupId] <String> [-orgId] <String> [-orgRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

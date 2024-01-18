@@ -30,7 +30,7 @@ The `Get-SrmConfiguration` cmdlet retrieves registration configuration for a Sit
 Get-SrmConfiguration
 ```
 
-This example retrieves the registration configuration for the Site Recovery Manager appliance
+This example retrieves the registration configuration for the Site Recovery Manager appliance.
 
 ### Example 2
 

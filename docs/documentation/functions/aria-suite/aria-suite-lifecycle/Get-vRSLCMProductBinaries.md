@@ -7,8 +7,7 @@ Get list of product binaries
 ## Syntax
 
 ```powershell
-Get-vRSLCMProductBinaries [-sourceLocation] <String> [-sourceType] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRSLCMProductBinaries [-sourceLocation] <String> [-sourceType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

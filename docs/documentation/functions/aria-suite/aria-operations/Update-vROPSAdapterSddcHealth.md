@@ -7,8 +7,7 @@ Updates the SDDC Health Adapters names in VMware Aria Operations
 ## Syntax
 
 ```powershell
-Update-vROPSAdapterSddcHealth [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vROPSAdapterSddcHealth [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

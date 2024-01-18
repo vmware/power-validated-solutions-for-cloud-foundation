@@ -7,8 +7,7 @@ Tests whether an IPv4 subnet is sized correctly for Developer Ready Infrastructu
 ## Syntax
 
 ```powershell
-Test-WMSubnetInput [-Subnet] <String> [-SubnetType] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-WMSubnetInput [-Subnet] <String> [-SubnetType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -8,8 +8,7 @@ Adds a group in an organization.
 
 ```powershell
 Add-vRAGroup [-server] <String> [-user] <String> [-pass] <String> [-vraUser] <String> [-vraPass] <String>
- [-displayName] <String> [-orgRole] <String> [[-serviceRole] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-displayName] <String> [-orgRole] <String> [[-serviceRole] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

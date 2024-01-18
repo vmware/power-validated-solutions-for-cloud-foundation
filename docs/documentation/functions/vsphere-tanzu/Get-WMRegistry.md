@@ -7,8 +7,7 @@ Retrieves the embedded Harbor Registry on a Supervisor Cluster
 ## Syntax
 
 ```powershell
-Get-WMRegistry [[-cluster] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-WMRegistry [[-cluster] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

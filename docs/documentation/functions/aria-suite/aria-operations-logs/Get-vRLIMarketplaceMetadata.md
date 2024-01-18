@@ -7,8 +7,7 @@ Returns metadate for available items in the Content Pack Marketplace.
 ## Syntax
 
 ```powershell
-Get-vRLIMarketplaceMetadata [-index] [-token] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRLIMarketplaceMetadata [-index] [-token] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Retrieves the embedded Harbor Registry Health
 ## Syntax
 
 ```powershell
-Get-WMRegistryHealth [[-registry] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-WMRegistryHealth [[-registry] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

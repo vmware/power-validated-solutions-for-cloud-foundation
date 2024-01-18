@@ -7,8 +7,7 @@ Check network connectivity to an SDDC Manager instance.
 ## Syntax
 
 ```powershell
-Test-VCFConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-VCFConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

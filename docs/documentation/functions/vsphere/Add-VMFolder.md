@@ -7,8 +7,7 @@ Create a VM Folder
 ## Syntax
 
 ```powershell
-Add-VMFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-folderName] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-VMFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-folderName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

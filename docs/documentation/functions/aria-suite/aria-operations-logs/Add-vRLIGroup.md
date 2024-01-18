@@ -7,8 +7,7 @@ Add a group by authentication provider
 ## Syntax
 
 ```powershell
-Add-vRLIGroup [-authProvider] <String> [-domain] <String> [-group] <String> [-role] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRLIGroup [-authProvider] <String> [-domain] <String> [-group] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

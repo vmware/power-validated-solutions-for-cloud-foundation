@@ -7,8 +7,7 @@ Add a load balancer to VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-New-vRSLCMLoadbalancer [-type] <String> [-loadBalancerIp] <String> [-loadBalancerFqdn] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRSLCMLoadbalancer [-type] <String> [-loadBalancerIp] <String> [-loadBalancerFqdn] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

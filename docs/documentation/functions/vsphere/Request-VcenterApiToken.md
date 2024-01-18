@@ -7,8 +7,7 @@ Request an authentication token for the vCenter Server REST API
 ## Syntax
 
 ```powershell
-Request-VcenterApiToken [-fqdn] <String> [-username] <String> [-password] <String> [-skipCertificateCheck]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-VcenterApiToken [-fqdn] <String> [-username] <String> [-password] <String> [-skipCertificateCheck] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

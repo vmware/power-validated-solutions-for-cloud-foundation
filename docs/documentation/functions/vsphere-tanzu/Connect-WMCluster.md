@@ -7,8 +7,7 @@ Connect to the Supervisor Cluster
 ## Syntax
 
 ```powershell
-Connect-WMCluster [-cluster] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Connect-WMCluster [-cluster] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Remove the user organization role.
 ## Syntax
 
 ```powershell
-Remove-vRAUserOrgRole [-userId] <String> [-orgId] <String> [-orgRole] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-vRAUserOrgRole [-userId] <String> [-orgId] <String> [-orgRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

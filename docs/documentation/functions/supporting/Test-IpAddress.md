@@ -7,8 +7,7 @@ Tests whether an IPv4 address is in a specified subnet.
 ## Syntax
 
 ```powershell
-Test-IpAddress [-ipAddress] <String> [-Subnet] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-IpAddress [-ipAddress] <String> [-Subnet] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

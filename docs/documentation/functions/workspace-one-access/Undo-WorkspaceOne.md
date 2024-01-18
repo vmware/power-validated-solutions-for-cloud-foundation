@@ -7,8 +7,7 @@ Remove Workspace ONE Access Virtual Appliance
 ## Syntax
 
 ```powershell
-Undo-WorkspaceOne [-server] <String> [-user] <String> [-pass] <String> [-wsaHostname] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-WorkspaceOne [-server] <String> [-user] <String> [-pass] <String> [-wsaHostname] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

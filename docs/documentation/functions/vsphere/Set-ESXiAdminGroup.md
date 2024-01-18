@@ -7,8 +7,7 @@ Configure Config.HostAgent.plugins.hostsvc.esxAdminsGroup on ESXi host
 ## Syntax
 
 ```powershell
-Set-ESXiAdminGroup [-esxiHost] <String> [-groupName] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-ESXiAdminGroup [-esxiHost] <String> [-groupName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Gets the VMware Aria Operations log forwarding configuration.
 ## Syntax
 
 ```powershell
-Get-vROpsLogForwardingConfig [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROpsLogForwardingConfig [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

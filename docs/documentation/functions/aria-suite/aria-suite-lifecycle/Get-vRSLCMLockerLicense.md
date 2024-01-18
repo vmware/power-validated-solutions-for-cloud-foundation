@@ -7,8 +7,7 @@ Get paginated list of licenses available in the locker.
 ## Syntax
 
 ```powershell
-Get-vRSLCMLockerLicense [[-vmid] <String>] [[-alias] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMLockerLicense [[-vmid] <String>] [[-alias] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

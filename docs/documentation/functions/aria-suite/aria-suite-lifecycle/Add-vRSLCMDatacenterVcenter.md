@@ -7,8 +7,7 @@ Add a vCenter Server to a Datacenter in VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Add-vRSLCMDatacenterVcenter [-datacenterVmid] <String> [-vcenterFqdn] <String> [-userLockerAlias] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRSLCMDatacenterVcenter [-datacenterVmid] <String> [-vcenterFqdn] <String> [-userLockerAlias] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

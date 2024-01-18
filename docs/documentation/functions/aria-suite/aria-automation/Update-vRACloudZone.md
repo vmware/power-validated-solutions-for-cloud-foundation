@@ -15,15 +15,13 @@ Update-vRACloudZone -id <String> [-folder <String>] [-ProgressAction <ActionPref
 ### tag
 
 ```powershell
-Update-vRACloudZone -id <String> [-tagKey <String>] [-tagValue <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Update-vRACloudZone -id <String> [-tagKey <String>] [-tagValue <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### placementPolicy
 
 ```powershell
-Update-vRACloudZone -id <String> [-placementPolicy <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Update-vRACloudZone -id <String> [-placementPolicy <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

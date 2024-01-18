@@ -7,8 +7,7 @@ Add connector to identity providor
 ## Syntax
 
 ```powershell
-Add-WSAConnector [-wsaNode] <String> [-domain] <String> [-bindUserPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-WSAConnector [-wsaNode] <String> [-domain] <String> [-bindUserPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

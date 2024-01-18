@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get information about the Site Recovery Manager Appliance
+Get information about the Site Recovery Manager appliance.
 
 ## Syntax
 
@@ -12,7 +12,7 @@ Get-SrmApplianceDetail
 
 ## Description
 
-The `Get-SrmApplianceDetail` cmdlet retrieves information about the Site Recovery Manager Appliance.
+The `Get-SrmApplianceDetail` cmdlet retrieves information about the Site Recovery Manager appliance.
 
 ## Examples
 
@@ -22,4 +22,4 @@ The `Get-SrmApplianceDetail` cmdlet retrieves information about the Site Recover
 Get-SrmApplianceDetail
 ```
 
-This example retrieves information about the Site Recovery Manager Appliance
+This example retrieves information about the Site Recovery Manager appliance.

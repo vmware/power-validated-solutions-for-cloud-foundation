@@ -17,8 +17,7 @@ Add-vROPSNsxCredential -server <String> -user <String> -pass <String> -domain <S
 
 ```powershell
 Add-vROPSNsxCredential -server <String> -user <String> -pass <String> -domain <String> [-certificate]
- [-certificateData <String>] [-certificateKey <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-certificateData <String>] [-certificateKey <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

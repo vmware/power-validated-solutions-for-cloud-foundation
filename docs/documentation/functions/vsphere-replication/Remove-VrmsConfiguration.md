@@ -7,8 +7,7 @@ Remove the configuration
 ## Syntax
 
 ```powershell
-Remove-VrmsConfiguration [-ssoUser] <String> [-ssoPassword] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Remove-VrmsConfiguration [-ssoUser] <String> [-ssoPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

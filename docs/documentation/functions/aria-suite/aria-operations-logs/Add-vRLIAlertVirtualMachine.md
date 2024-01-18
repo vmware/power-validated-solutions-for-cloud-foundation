@@ -8,8 +8,7 @@ Adds virtual machine based alerts in VMware Aria Operations for Logs
 
 ```powershell
 Add-vRLIAlertVirtualMachine [-server] <String> [-user] <String> [-pass] <String> [-sddcDomainName] <String>
- [-vmName] <String> [-email] <String> [-alertTemplate] <String> [-vropsIntegration]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-vmName] <String> [-email] <String> [-alertTemplate] <String> [-vropsIntegration] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ End-to-end Deployment of Identity and Access Management
 ## Syntax
 
 ```powershell
-Invoke-IamDeployment [-jsonFile] <String> [-certificates] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Invoke-IamDeployment [-jsonFile] <String> [-certificates] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

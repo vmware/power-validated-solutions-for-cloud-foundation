@@ -7,8 +7,7 @@ Get Tier-0 Gateway IP Prefix Lists
 ## Syntax
 
 ```powershell
-Get-NsxtPrefixList [[-tier0Gateway] <String>] [[-name] <String>] [[-inputObject] <PSObject>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-NsxtPrefixList [[-tier0Gateway] <String>] [[-name] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -10,8 +10,7 @@ Deploy vSphere Replication Manager Virtual Appliance
 Install-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
  [-vrmsFqdn] <String> [-vrmsIpAddress] <String> [-vrmsGateway] <String> [-vrmsNetPrefix] <String>
  [-vrmsNetworkSearchPath] <String> [-vrmsFolder] <String> [-vrmsVaRootPassword] <String>
- [-vrmsVaAdminPassword] <String> [[-vrmsOvfPath] <String>] [[-vmwareOvfToolPath] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-vrmsVaAdminPassword] <String> [[-vrmsOvfPath] <String>] [[-vmwareOvfToolPath] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

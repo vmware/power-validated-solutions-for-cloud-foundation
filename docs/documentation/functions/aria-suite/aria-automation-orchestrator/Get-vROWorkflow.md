@@ -15,8 +15,7 @@ Get-vROWorkflow [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ### categoryName
 
 ```powershell
-Get-vROWorkflow [-categoryName <String>] [-tag <String[]>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vROWorkflow [-categoryName <String>] [-tag <String[]>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### categoryId

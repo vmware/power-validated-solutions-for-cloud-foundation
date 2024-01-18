@@ -7,8 +7,7 @@ Check network connectivity to a VMware Aria Suite Lifecycle instance.
 ## Syntax
 
 ```powershell
-Test-vRSLCMConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-vRSLCMConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

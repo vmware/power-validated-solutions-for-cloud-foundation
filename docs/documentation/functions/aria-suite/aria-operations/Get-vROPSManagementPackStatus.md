@@ -7,8 +7,7 @@ Get install status of management pack
 ## Syntax
 
 ```powershell
-Get-vROPSManagementPackStatus [-server] <String> [-username] <String> [-password] <String> [-pakId] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROPSManagementPackStatus [-server] <String> [-username] <String> [-password] <String> [-pakId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

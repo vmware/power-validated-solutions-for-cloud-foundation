@@ -7,8 +7,7 @@ Create an LDAP directory
 ## Syntax
 
 ```powershell
-Set-WSABindPassword [-directoryId] <String> [-connectorId] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WSABindPassword [-directoryId] <String> [-connectorId] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

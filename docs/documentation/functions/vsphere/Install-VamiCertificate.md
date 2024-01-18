@@ -16,8 +16,8 @@ Install-VamiCertificate [-server] <String> [-user] <String> [-pass] <String> [[-
 The `Install-VamiCertificate` cmdlet allows you to replace the certificate of a VAMI interface.
 Supports:
 
-- vSphere Replication Appliance
-- Site Recovery Manager Appliance.
+- vSphere Replication appliance
+- Site Recovery Manager appliance
 
 ## Examples
 

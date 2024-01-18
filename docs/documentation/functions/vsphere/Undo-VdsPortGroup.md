@@ -7,8 +7,7 @@ Removes vSphere Distributed port group
 ## Syntax
 
 ```powershell
-Undo-VdsPortGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-portgroup] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-VdsPortGroup [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-portgroup] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

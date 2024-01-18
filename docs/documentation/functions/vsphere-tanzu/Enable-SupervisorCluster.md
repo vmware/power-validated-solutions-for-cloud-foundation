@@ -16,8 +16,7 @@ Enable-SupervisorCluster [-server] <String> [-user] <String> [-pass] <String> [-
  [-imageStoragePolicy] <String> [-masterStoragePolicy] <String> [-nsxEdgeCluster] <String>
  [-distributedSwitch] <String> [-podCIDRs] <String> [-serviceCIDR] <String> [-externalIngressCIDRs] <String>
  [-externalEgressCIDRs] <String> [-masterDnsSearchDomain] <String> [-workerDnsServers] <Array>
- [[-ConfigurationTimeoutSeconds] <Object>] [-skipValidation] [-validateOnly]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [[-ConfigurationTimeoutSeconds] <Object>] [-skipValidation] [-validateOnly] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

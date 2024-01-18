@@ -7,8 +7,7 @@ Check network connectivity to a vCenter Single Sign-On endpoint.
 ## Syntax
 
 ```powershell
-Test-SSOConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-SSOConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

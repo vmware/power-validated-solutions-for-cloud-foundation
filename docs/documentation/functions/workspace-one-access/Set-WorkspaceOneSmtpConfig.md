@@ -8,8 +8,7 @@ Configure SMTP Server on Workspace ONE Access Appliance
 
 ```powershell
 Set-WorkspaceOneSmtpConfig [-server] <String> [-user] <String> [-pass] <String> [-smtpFqdn] <String>
- [-smtpPort] <String> [-smtpEmail] <String> [[-smtpEmailPassword] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-smtpPort] <String> [-smtpEmail] <String> [[-smtpEmailPassword] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

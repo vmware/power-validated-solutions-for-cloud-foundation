@@ -14,8 +14,7 @@ Add-vROPSAdapterVr [-server] <String> [-user] <String> [-pass] <String> [-vrFqdn
 ## Description
 
 The `Add-vROPSAdapterVr` cmdlet adds an vSphere Replication Adapter to VMware Aria Operations.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details

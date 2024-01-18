@@ -7,8 +7,7 @@ Backup-VMOvfProperties
 ## Syntax
 
 ```powershell
-Backup-VMOvfProperties [-server] <String> [-user] <String> [-pass] <String> [[-fileDir] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Backup-VMOvfProperties [-server] <String> [-user] <String> [-pass] <String> [[-fileDir] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

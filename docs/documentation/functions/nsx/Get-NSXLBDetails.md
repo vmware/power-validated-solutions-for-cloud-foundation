@@ -7,8 +7,7 @@ Get-NSXLBDetails
 ## Syntax
 
 ```powershell
-Get-NSXLBDetails [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-NSXLBDetails [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

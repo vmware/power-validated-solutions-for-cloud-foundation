@@ -7,8 +7,7 @@ Search for a user group in the source
 ## Syntax
 
 ```powershell
-Search-vROPSUserGroup [[-sourceId] <String>] [[-domain] <String>] [[-groupName] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Search-vROPSUserGroup [[-sourceId] <String>] [[-domain] <String>] [[-groupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

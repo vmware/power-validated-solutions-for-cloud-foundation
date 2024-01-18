@@ -8,8 +8,7 @@ Create a static route on ESXi hosts for vSphere Replication traffic
 
 ```powershell
 Add-EsxiVrmsStaticRoute [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-subnet] <String> [-gateway] <IPAddress> [-portgroup] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-subnet] <String> [-gateway] <IPAddress> [-portgroup] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Initalize Workspace ONE Access Virtual Appliance
 ## Syntax
 
 ```powershell
-Initialize-WorkspaceOne [-wsaFqdn] <String> [-adminPass] <String> [-rootPass] <String> [-sshUserPass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Initialize-WorkspaceOne [-wsaFqdn] <String> [-adminPass] <String> [-rootPass] <String> [-sshUserPass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

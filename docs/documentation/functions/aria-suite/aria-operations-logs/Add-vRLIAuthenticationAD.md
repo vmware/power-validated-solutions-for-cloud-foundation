@@ -8,8 +8,7 @@ Configure Active Directory as an authentication source for VMware Aria Operation
 
 ```powershell
 Add-vRLIAuthenticationAD [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-domainBindUser] <String> [-domainBindPass] <String> [-domainServers] <Array>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-domainBindUser] <String> [-domainBindPass] <String> [-domainServers] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

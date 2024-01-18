@@ -7,8 +7,7 @@ Retrieves information on a Virtual Machine class
 ## Syntax
 
 ```powershell
-Add-VMClass [[-namespace] <String>] [[-vmClass] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-VMClass [[-namespace] <String>] [[-vmClass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

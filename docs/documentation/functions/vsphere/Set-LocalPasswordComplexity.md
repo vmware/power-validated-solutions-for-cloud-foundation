@@ -9,8 +9,7 @@ Configure password complexity for local users
 ```powershell
 Set-LocalPasswordComplexity [-vmName] <String> [-guestUser] <String> [-guestPassword] <String>
  [-minLength] <Int32> [[-uppercase] <Int32>] [[-lowercase] <Int32>] [[-numerical] <Int32>] [[-special] <Int32>]
- [[-unique] <Int32>] [[-history] <Int32>] [[-retry] <Int32>] [[-class] <Int32>] [[-sequence] <Int32>] [-nsx]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [[-unique] <Int32>] [[-history] <Int32>] [[-retry] <Int32>] [[-class] <Int32>] [[-sequence] <Int32>] [-nsx] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

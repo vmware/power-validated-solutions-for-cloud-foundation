@@ -8,8 +8,7 @@ Removes a Global Permission to a user or group
 
 ```powershell
 Undo-vCenterGlobalPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
- [-domain] <String> [-principal] <String> [-type] <String> [-localDomain] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-domain] <String> [-principal] <String> [-type] <String> [-localDomain] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

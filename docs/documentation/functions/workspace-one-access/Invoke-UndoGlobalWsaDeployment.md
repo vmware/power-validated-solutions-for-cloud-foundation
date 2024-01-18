@@ -22,7 +22,7 @@ The `Invoke-UndoGlobalWsaDeployment` cmdlet is a single function to remove Globa
 Invoke-UndoGlobalWsaDeployment -jsonFile .\aslcmDeploySpec.json
 ```
 
-This example removes Global Workspace ONE Access using JSON spec supplied
+This example removes Global Workspace ONE Access using the JSON specification provided.
 
 ## Parameters
 

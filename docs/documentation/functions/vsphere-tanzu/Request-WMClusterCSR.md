@@ -9,8 +9,7 @@ Request Certificate Signing Request filr
 ```powershell
 Request-WMClusterCSR [-cluster] <String> [-commonName] <String> [-organization] <String>
  [-organizationalUnit] <String> [-country] <String> [-stateOrProvince] <String> [-locality] <String>
- [-adminEmailAddress] <String> [[-keySize] <String>] [-filePath] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-adminEmailAddress] <String> [[-keySize] <String>] [-filePath] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

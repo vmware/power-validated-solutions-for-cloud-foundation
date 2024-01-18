@@ -7,8 +7,7 @@ Connects to the specified Workspace ONE Access instance to obtain a session toke
 ## Syntax
 
 ```powershell
-Request-WSAToken [-fqdn] <String> [[-user] <String>] [[-pass] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Request-WSAToken [-fqdn] <String> [[-user] <String>] [[-pass] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

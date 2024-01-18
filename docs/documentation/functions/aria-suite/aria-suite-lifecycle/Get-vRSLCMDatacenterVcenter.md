@@ -7,8 +7,7 @@ Get list of vCenter Servers in VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Get-vRSLCMDatacenterVcenter [-datacenterVmid] <String> [[-vcenterName] <String>] [-environments]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRSLCMDatacenterVcenter [-datacenterVmid] <String> [[-vcenterName] <String>] [-environments] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

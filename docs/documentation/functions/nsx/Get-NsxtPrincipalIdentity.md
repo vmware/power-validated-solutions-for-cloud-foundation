@@ -7,8 +7,7 @@ Get list of NSX Principal Identities
 ## Syntax
 
 ```powershell
-Get-NsxtPrincipalIdentity [[-principalId] <String>] [[-name] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-NsxtPrincipalIdentity [[-principalId] <String>] [[-name] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

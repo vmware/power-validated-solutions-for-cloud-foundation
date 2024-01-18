@@ -7,8 +7,7 @@ Configure Workspace ONE Access appliance NTP servers
 ## Syntax
 
 ```powershell
-Set-WorkspaceOneApplianceNtpConfig [-vmName] <String> [-rootPass] <String> [[-ntpServer] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-WorkspaceOneApplianceNtpConfig [-vmName] <String> [-rootPass] <String> [[-ntpServer] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

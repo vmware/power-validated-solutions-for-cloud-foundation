@@ -8,8 +8,7 @@ Create VMware Aria Operations Deployment JSON specification
 
 ```powershell
 Export-vROPsJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>] [-nested]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

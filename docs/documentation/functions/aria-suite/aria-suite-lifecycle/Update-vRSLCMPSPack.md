@@ -7,8 +7,7 @@ Refresh Product Support Packs and Install
 ## Syntax
 
 ```powershell
-Update-vRSLCMPSPack [-server] <String> [-user] <String> [-pass] <String> [[-psPack] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vRSLCMPSPack [-server] <String> [-user] <String> [-pass] <String> [[-psPack] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

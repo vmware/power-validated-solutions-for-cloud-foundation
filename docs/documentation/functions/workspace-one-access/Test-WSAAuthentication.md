@@ -7,8 +7,7 @@ Check Authentication to WSA
 ## Syntax
 
 ```powershell
-Test-WSAAuthentication [-server] <String> [-user] <String> [-pass] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-WSAAuthentication [-server] <String> [-user] <String> [-pass] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

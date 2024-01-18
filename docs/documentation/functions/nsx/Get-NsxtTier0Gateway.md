@@ -7,8 +7,7 @@ Get a list of Tier 0 Gateways
 ## Syntax
 
 ```powershell
-Get-NsxtTier0Gateway [[-name] <String>] [[-id] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-NsxtTier0Gateway [[-name] <String>] [[-id] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

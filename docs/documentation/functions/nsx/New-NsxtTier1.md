@@ -7,8 +7,7 @@ Creates a Tier 1 Gateway
 ## Syntax
 
 ```powershell
-New-NsxtTier1 [-tier1Gateway] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-NsxtTier1 [-tier1Gateway] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

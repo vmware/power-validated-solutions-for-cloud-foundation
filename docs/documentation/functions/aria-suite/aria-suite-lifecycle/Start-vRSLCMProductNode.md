@@ -7,8 +7,7 @@ Starts nodes in a VMware Aria Suite Lifecycle-managed product
 ## Syntax
 
 ```powershell
-Start-vRSLCMProductNode [-environment] <String> [-product] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Start-vRSLCMProductNode [-environment] <String> [-product] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

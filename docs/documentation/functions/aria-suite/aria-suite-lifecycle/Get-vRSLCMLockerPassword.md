@@ -7,8 +7,7 @@ Get paginated list of Passwords available in the Store
 ## Syntax
 
 ```powershell
-Get-vRSLCMLockerPassword [[-vmid] <String>] [[-alias] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMLockerPassword [[-vmid] <String>] [[-alias] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Creates a Load Balancer Service Monitor
 ## Syntax
 
 ```powershell
-New-NsxtLBServiceMonitor [-monitorName] <String> [-json] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+New-NsxtLBServiceMonitor [-monitorName] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

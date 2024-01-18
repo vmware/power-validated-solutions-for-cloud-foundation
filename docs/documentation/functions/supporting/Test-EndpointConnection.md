@@ -7,8 +7,7 @@ Test the connection to an endpoint on a specific port.
 ## Syntax
 
 ```powershell
-Test-EndpointConnection [-server] <String> [-port] <Int32> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-EndpointConnection [-server] <String> [-port] <Int32> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Returns the list of users configued to log in to the NSX appliance.
 ## Syntax
 
 ```powershell
-Get-NsxtApplianceUser [[-transportNodeId] <String>] [[-clusterNodeId] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-NsxtApplianceUser [[-transportNodeId] <String>] [[-clusterNodeId] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

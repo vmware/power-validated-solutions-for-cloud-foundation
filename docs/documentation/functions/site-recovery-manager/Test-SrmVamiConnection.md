@@ -7,8 +7,7 @@ Check network connectivity to a Site Recovery Manager instance VAMI.
 ## Syntax
 
 ```powershell
-Test-SrmVamiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-SrmVamiConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

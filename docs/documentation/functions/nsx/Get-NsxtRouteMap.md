@@ -7,8 +7,7 @@ Get Tier-0 Gateway Route Maps
 ## Syntax
 
 ```powershell
-Get-NsxtRouteMap [-tier0Gateway] <String> [[-name] <String>] [[-inputObject] <PSObject>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-NsxtRouteMap [-tier0Gateway] <String> [[-name] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

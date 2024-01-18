@@ -7,8 +7,7 @@ Assign Active Directory Groups to Roles in the Workspace ONE Access
 ## Syntax
 
 ```powershell
-Add-WorkspaceOneRole [-server] <String> [-user] <String> [-pass] <String> [-group] <String> [-role] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-WorkspaceOneRole [-server] <String> [-user] <String> [-pass] <String> [-group] <String> [-role] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -9,8 +9,7 @@ Configure Active Directory LDAP Directory in Workspace ONE Access Appliance
 ```powershell
 Add-WorkspaceOneDirectory [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
  [-baseDnUser] <String> [-baseDnGroup] <String> [-bindUserDn] <String> [-bindUserPass] <String>
- [-adGroups] <Array> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-adGroups] <Array> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Install a Signed Certificate for the VAMI Appliance interface
 ## Syntax
 
 ```powershell
-Set-VrmsVamiCertificate [[-pkcs12CertFile] <String>] [-certPassword] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-VrmsVamiCertificate [[-pkcs12CertFile] <String>] [-certPassword] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

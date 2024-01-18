@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Restart or shutdown the appliance
+Restart or shutdown the appliance.
 
 ## Syntax
 

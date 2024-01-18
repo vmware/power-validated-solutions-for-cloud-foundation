@@ -8,8 +8,7 @@ Adds datacenter based alerts in VMware Aria Operations for Logs
 
 ```powershell
 Add-vRLIAlertDatacenter [-server] <String> [-user] <String> [-pass] <String> [-sddcDomainName] <String>
- [-datacenterName] <String> [-email] <String> [-alertTemplate] <String> [-vropsIntegration]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-datacenterName] <String> [-email] <String> [-alertTemplate] <String> [-vropsIntegration] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

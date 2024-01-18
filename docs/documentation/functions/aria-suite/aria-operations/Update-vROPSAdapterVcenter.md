@@ -7,8 +7,7 @@ Updates the assigned collector group for vCenter Adapter
 ## Syntax
 
 ```powershell
-Update-vROPSAdapterVcenter [-server] <String> [-user] <String> [-pass] <String> [-collectorGroupName] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Update-vROPSAdapterVcenter [-server] <String> [-user] <String> [-pass] <String> [-collectorGroupName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

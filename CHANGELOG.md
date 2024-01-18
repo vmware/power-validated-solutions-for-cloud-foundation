@@ -45,8 +45,8 @@
 - Added `Request-SrmTokenREST` cmdlet to connect to the Site Recovery Manager REST API and retrieve an authentication token.
 - Added `Get-SrmSitePairing` cmdlet to retrieve the site pairing information from a Site Recovery Manager server.
 - Added `Connect-SrmRemoteSession` cmdlet to instantiate a connection with the remote Site Recovery Manager server.
-- Added `Test-SrmAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted Site Recovery Manager server via REST API.
-- Added `Test-VrmsAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted vSphere Replication server via REST API.
+- Added `Test-SrmAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted Site Recovery Manager server.
+- Added `Test-VrmsAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted vSphere Replication server.
 - Added `Remove-DefaultAdapters` cmdlet to support removing the default vCenter Server and vSAN adapters from VMware Aria Operations.
 - Added `Undo-vROPSDeployment` cmdlet to support removing VMware Aria Operations from VMware Aria Suite Lifecycle.
 - Added `Get-NsxtLdapStatus` cmdlet to retrieve the configuration status of an identity source in NSX.
@@ -75,24 +75,24 @@
 - Added `Undo-NsxtPrincipalIdentity` cmdlet to remove a certificate based principal identity from NSX Manager.
 - Added `Remove-vRLIContentPack` cmdlet to support the removal of a content pack from VMware Aria Operations for Logs.
 - Added `Uninstall-vRLIContentPack` cmdlet to remove a content pack from VMware Aria Operations for Logs.
-- Added `Add-ProtectionGroup` cmdlet to add Protection Groups to Site Recovery Manager.
-- Added `Undo-ProtectionGroup` cmdlet to remove Protection Groups from Site Recovery Manager.
-- Added `Get-SrmProtectionGroup` cmdlet to retrieve a Protection Group from Site Recovery Manager.
-- Added `Add-SrmProtectionGroup` cmdlet to add a Protection Group to Site Recovery Manager.
-- Added `Remove-SrmProtectionGroup` cmdlet to remove a Protection Group from Site Recovery Manager.
+- Added `Add-ProtectionGroup` cmdlet to add protection groups to Site Recovery Manager.
+- Added `Undo-ProtectionGroup` cmdlet to remove protection groups from Site Recovery Manager.
+- Added `Get-SrmProtectionGroup` cmdlet to retrieve a protection group from Site Recovery Manager.
+- Added `Add-SrmProtectionGroup` cmdlet to add a protection group to Site Recovery Manager.
+- Added `Remove-SrmProtectionGroup` cmdlet to remove a protection group from Site Recovery Manager.
 - Added `Connect-vRSLCMpgradeIso` cmdlet to connect an upgrade ISO on VMware Aria Suite Lifecycle.
 - Added `Disconnect-vRSLCMUpgradeIso` cmdlet to disconnect an upgrade ISO from VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMUpgradeStatus` cmdlet to retrieve the status of an upgrade of VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMUpgrade` cmdlet to start check, prepare, pre-validate and upgrade operations on VMware Aria Suite Lifecycle.
-- Added `Add-RecoveryPlan` cmdlet to add a Recovery Plan to Site Recovery Manager.
-- Added `Set-RecoveryPlan` cmdlet to configure a Recovery Plan in Site Recovery Manager.
-- Added `Undo-RecoveryPlan` cmdlet to remove a Recovery Plan from Site Recovery Manager.
-- Added `Add-SrmRecoveryPlan` cmdlet to add a Recovery Plan to Site Recovery Manager.
-- Added `Remove-SrmRecoveryPlan` cmdlet to remove a Recovery Plan from Site Recovery Manager.
-- Added `Get-SrmRecoveryPlanStep` cmdlet to retrieve steps from a Recovery Plan in Site Recovery Manager.
-- Added `Add-SrmRecoveryPlanCalloutStep` cmdlet to add a callout step to a Recovery Plan in Site Recovery Manager.
-- Added `Get-SrmRecoveryPlanVm` cmdlet to retrieve a virtual machine from a Recovery Plan in Site Recovery Manager.
-- Added `Set-SrmRecvoeryPlanVmPriority` cmdlet to set the restart priority of a virtual machine from a Recovery Plan in Site Recovery Manager.
+- Added `Add-RecoveryPlan` cmdlet to add a recovery plan to Site Recovery Manager.
+- Added `Set-RecoveryPlan` cmdlet to configure a recovery plan in Site Recovery Manager.
+- Added `Undo-RecoveryPlan` cmdlet to remove a recovery plan from Site Recovery Manager.
+- Added `Add-SrmRecoveryPlan` cmdlet to add a recovery plan to Site Recovery Manager.
+- Added `Remove-SrmRecoveryPlan` cmdlet to remove a recovery plan from Site Recovery Manager.
+- Added `Get-SrmRecoveryPlanStep` cmdlet to retrieve steps from a recovery plan in Site Recovery Manager.
+- Added `Add-SrmRecoveryPlanCalloutStep` cmdlet to add a callout step to a recovery plan in Site Recovery Manager.
+- Added `Get-SrmRecoveryPlanVm` cmdlet to retrieve a virtual machine from a recovery plan in Site Recovery Manager.
+- Added `Set-SrmRecvoeryPlanVmPriority` cmdlet to set the restart priority of a virtual machine from a recovery plan in Site Recovery Manager.
 - Added `Deploy-PhotonAppliance` cmdlet to deploy the Photon appliance for the Health Reporting and Monitoring validated solution.
 - Added `Remove-PhotonAppliance` cmdlet to remove the Photon appliance for the Health Reporting and Monitoring validated solution.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
@@ -117,7 +117,7 @@
   - check for the existence of a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vROPSDeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
 - Enhanced `New-vRADeployment` cmdlet to check for the existence of the a load balancer in VMware Aria Suite Lifecycle and if missing create it.
-- Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access instance.
+- Enhanced `Get-WSAServerDetails` cmdlet to include credentials and node count for the VCF-Aware Workspace ONE Access server.
 - Enhanced `Export-vRLIJsonSpec` cmdlet
   - to support automatic creation of anti-affinity rule.
   - to generate the JSON specification file using the Intelligent Logging and Analytics JSON specification file.
@@ -559,23 +559,23 @@ Deprecation
 - Added `Get-VrmsVamiCertificate` cmdlet to retrieve the certificate of the VAMI interface of a vSphere Replication appliance
 - Added `Set-VrmsVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a vSphere Replication appliance.
 - Added `Test-SrmConnection` cmdlet to support checking the Site Recovery Manager appliance is responding.
-- Added `Test-SrmAuthentication` cmdlet to support checking authentication with the Site Recovery Manager appliance.
-- Added `Request-SrmToken` cmdlet to support requesting a session token for a Site Recovery Manager appliance.
-- Added `Get-SrmApplianceDetail` cmdlet to support getting information about a Site Recovery Manager appliance.
-- Added `Set-SrmApplianceState` cmdlet to restart or shutdown a Site Recovery Manager appliance.
-- Added `Get-SrmService` cmdlet to support retrieving the status of services running on the Site Recovery Manager appliance.
-- Added `Set-SrmService` cmdlet to start/stop/restart services running on a Site Recovery Manager appliance.
-- Added `Get-SrmNetworkAll` cmdlet to retrieve all network settings for a Site Recovery Manager appliance.
-- Added `Get-SrmNetworkDns` cmdlet to retrieve the DNS configuration for a Site Recovery Manager appliance.
-- Added `Set-SrmNetworkDns` cmdlet to configure DNS settings for a Site Recovery Manager appliance.
-- Added `Get-SrmNetworkInterface` cmdlet to retrieve the network interface configuration for a Site Recovery Manager appliance.
-- Added `Set-SrmNetworkInterface` cmdlet to configure a network interface for a Site Recovery Manager appliance.
-- Added `Get-SrmConfiguration` cmdlet to retrieve the registration configuration for a Site Recovery Manager appliance.
+- Added `Test-SrmAuthentication` cmdlet to support checking authentication with the Site Recovery Manager appliance
+- Added `Request-SrmToken` cmdlet to support requesting a session token for a Site Recovery Manager appliance
+- Added `Get-SrmApplianceDetail` cmdlet to support getting information about a Site Recovery Manager appliance
+- Added `Set-SrmApplianceState` cmdlet to restart or shutdown a Site Recovery Manager appliance
+- Added `Get-SrmService` cmdlet to support retrieving the status of services running on the Site Recovery Manager appliance
+- Added `Set-SrmService` cmdlet to start/stop/restart services running on a Site Recovery Manager appliance
+- Added `Get-SrmNetworkAll` cmdlet to retrieve all network settings for a Site Recovery Manager appliance
+- Added `Get-SrmNetworkDns` cmdlet to retrieve the DNS configuration for a Site Recovery Manager appliance
+- Added `Set-SrmNetworkDns` cmdlet to configure DNS settings for a Site Recovery Manager appliance
+- Added `Get-SrmNetworkInterface` cmdlet to retrieve the network interface configuration for a Site Recovery Manager appliance
+- Added `Set-SrmNetworkInterface` cmdlet to configure a network interface for a Site Recovery Manager appliance
+- Added `Get-SrmConfiguration` cmdlet to retrieve the registration configuration for a Site Recovery Manager appliance
 - Added `Set-SrmConfiguration` cmdlet to register the Site Recovery Manager appliance with vCenter Server.
-- Added `Remove-SrmConfiguration` cmdlet to remove the vCenter Server registration for a Site Recovery Manager appliance.
-- Added `Get-SrmTask` cmdlet to retrieve tasks from a Site Recovery Manager appliance.
-- Added `Get-SrmVamiCertificate` cmdlet to retrieve the certificate of the VAMI interface of a Site Recovery Manager appliance.
-- Added `Set-SrmVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a Site Recovery Manager appliance.
+- Added `Remove-SrmConfiguration` cmdlet to remove the vCenter Server registration for a Site Recovery Manager appliance
+- Added `Get-SrmTask` cmdlet to retrieve tasks from a Site Recovery Manager appliance
+- Added `Get-SrmVamiCertificate` cmdlet to retrieve the certificate of the VAMI interface of a Site Recovery Manager appliance
+- Added `Set-SrmVamiCertificate` cmdlet to install a new certificate for the VAMI interface of a Site Recovery Manager appliance
 - Added `Undo-SiteRecoveryManager` to remove the Site Recovery Manager virtual appliance.
 - Added `Undo-vSphereReplicationManager` to remove the vSphere Replication virtual appliance.
 - Added `Add-EsxiVMkernelPort` cmdlet to create ESXi VMKernel port for vSphere Replication Traffic flexibility.
@@ -714,12 +714,12 @@ Deprecation
 - Added `Undo-vRADnsConfig` cmdlet to revert the DNS configuration of vRealize Automation to match SDDC Manager.
 - Added `Set-vRANtpConfig` cmdlet to configure the NTP server(s) on vRealize Automation to use custom settings.
 - Added `Undo-vRANtpConfig` cmdlet to revert the NTP configuration of vRealize Automation to match SDDC Manager.
-- Added `Add-SRMMapping` cmdlet to create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
+- Added `Add-SrmMapping` cmdlet to create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
 instances in Site Recovery Manager
-- Added `Undo-SRMMapping` cmdlet to remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
+- Added `Undo-SrmMapping` cmdlet to remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
 instances in Site Recovery Manager
 - Added `New-SRMSitePair` cmdlet to create a site pair between Site Recovery Manager instances
-- Added `Undo-SRMSitePair` cmdlet to remove an existing site pair between Site Recovery Manager instances.
+- Added `Undo-SrmSitePair` cmdlet to remove an existing site pair between Site Recovery Manager instances.
 - Added `New-vSRPortGroup` cmdlet to create port groups for vSphere Replication appliances in the protected and recovery sites.
 - Added `Undo-vSRPortGroup` cmdlet to remove port groups for vSphere Replication appliances in the protected and recovery sites.
 

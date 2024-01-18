@@ -9,15 +9,13 @@ Assign vCenter Single Sign-On Group to user/group
 ```powershell
 Add-SsoPermission [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
  [-domain] <String> [[-domainBindUser] <String>] [[-domainBindPass] <String>] [-principal] <String>
- [-ssoGroup] <String> [-type] <String> [-source] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-ssoGroup] <String> [-type] <String> [-source] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-SsoPermission` cmdlet assigns the vCenter Single Sign-On Role to the user or group provided.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

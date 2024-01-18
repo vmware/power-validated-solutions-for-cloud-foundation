@@ -8,8 +8,7 @@ Add a password to the VMware Aria Suite Lifecycle locker Locker
 
 ```powershell
 New-vRSLCMLockerPassword [-server] <String> [-user] <String> [-pass] <String> [-alias] <String>
- [-password] <String> [[-description] <String>] [-userName] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-password] <String> [[-description] <String>] [-userName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

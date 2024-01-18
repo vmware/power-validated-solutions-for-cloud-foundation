@@ -8,8 +8,7 @@ Get password complexity for local users
 
 ```powershell
 Get-LocalPasswordComplexity -vmName <String> -guestUser <String> -guestPassword <String> [-nsx]
- [-product <String>] [-drift] [-version <String>] [-reportPath <String>] [-policyFile <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-product <String>] [-drift] [-version <String>] [-reportPath <String>] [-policyFile <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

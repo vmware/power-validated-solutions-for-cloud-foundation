@@ -7,8 +7,7 @@ Add a vSphere Global Permission
 ## Syntax
 
 ```powershell
-Add-GlobalPermission [-principal] <String> [-roleId] <String> [-propagate] <String> [-type] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-GlobalPermission [-principal] <String> [-roleId] <String> [-propagate] <String> [-type] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

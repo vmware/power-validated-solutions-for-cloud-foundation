@@ -7,8 +7,7 @@ Get a VMware Aria Automation Orchestrator Workflow execution state
 ## Syntax
 
 ```powershell
-Get-CEPWorkflowExecutionState [-workflowId] <String> [-executionId] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-CEPWorkflowExecutionState [-workflowId] <String> [-executionId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

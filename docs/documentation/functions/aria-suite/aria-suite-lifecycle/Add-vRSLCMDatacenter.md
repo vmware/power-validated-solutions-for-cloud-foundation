@@ -7,8 +7,7 @@ Add a datacenter in VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Add-vRSLCMDatacenter [-datacenterName] <String> [-location] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-vRSLCMDatacenter [-datacenterName] <String> [-location] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

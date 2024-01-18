@@ -2,18 +2,17 @@
 
 ## Synopsis
 
-Connects to the specified vSphere Replication Appliance and obtains an authorization token
+Connects to the specified vSphere Replication appliance and obtains an authorization token
 
 ## Syntax
 
 ```powershell
-Request-VrmsToken [-fqdn] <String> [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-VrmsToken [-fqdn] <String> [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Request-VrmsToken` cmdlet connects to the specified vSphere Replication Appliance and obtains an
+The `Request-VrmsToken` cmdlet connects to the specified vSphere Replication appliance and obtains an
 authorization token. It is required once per session before running all other cmdlets.
 
 ## Examples
@@ -24,13 +23,13 @@ authorization token. It is required once per session before running all other cm
 Request-VrmsToken -fqdn sfo-m01-vrms01.sfo.rainpole.io -username admin -password VMw@re1!
 ```
 
-This example shows how to connect to a vSphere Replication Appliance appliance.
+This example shows how to connect to a vSphere Replication appliance appliance.
 
 ## Parameters
 
 ### -fqdn
 
-The fqdn parameter The fully qualified domain name of the vSphere Replication Appliance.
+The fqdn parameter The fully qualified domain name of the vSphere Replication appliance.
 
 ```yaml
 Type: String
@@ -46,7 +45,7 @@ Accept wildcard characters: False
 
 ### -username
 
-The username parameter The username to be used to connect to the vSphere Replication Appliance.
+The username parameter The username to be used to connect to the vSphere Replication appliance.
 
 ```yaml
 Type: String
@@ -62,7 +61,7 @@ Accept wildcard characters: False
 
 ### -password
 
-The password parameter The password to be used to connect to the vSphere Replication Appliance.
+The password parameter The password to be used to connect to the vSphere Replication appliance.
 
 ```yaml
 Type: String

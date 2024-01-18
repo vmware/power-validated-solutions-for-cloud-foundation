@@ -9,8 +9,7 @@ Create vRealize Load Balancer Spec
 ```powershell
 New-vRealizeLoadBalancerSpec [-xintSegmentDetails] <Array> [-serviceInterfaceIp] <Array>
  [-wsaDetailsObject] <Array> [[-vraDetailsObject] <Array>] [[-vropsDetailsObject] <Array>]
- [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,8 +23,7 @@ The `New-vRealizeLoadBalancerSpec` cmdlet will build the vRealize Load Balancer 
 ```powershell
 New-vRealizeLoadBalancerSpec [-xintSegmentDetails] <Array> [-serviceInterfaceIp] <Array>
  [-wsaDetailsObject] <Array> [[-vraDetailsObject] <Array>] [[-vropsDetailsObject] <Array>]
- [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-wsaCertName] <String> [-t1Name] <String> [-lbName] <String> [-siName] <String> [-segmentID] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Parameters
@@ -161,6 +159,7 @@ Accept wildcard characters: False
 ### -wsaDetailsObject
 
 Provide the x-reg VMware Aria WorkspaceOne virtual machine names.
+
 ```yaml
 Type: Array
 Parameter Sets: (All)

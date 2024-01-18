@@ -7,8 +7,7 @@ Downloads a VMware Aria Suite binary
 ## Syntax
 
 ```powershell
-Request-vRSLCMProductBinary [-version] <String> [[-productId] <String>] [-productDownloadType] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Request-vRSLCMProductBinary [-version] <String> [[-productId] <String>] [-productDownloadType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

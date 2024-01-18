@@ -7,8 +7,7 @@ Test a log forwarder destination endpoint.
 ## Syntax
 
 ```powershell
-Test-vRLILogForwarder [-server] <String> [-port] <String> [-protocol] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Test-vRLILogForwarder [-server] <String> [-port] <String> [-protocol] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

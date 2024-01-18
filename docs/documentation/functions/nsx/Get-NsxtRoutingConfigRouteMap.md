@@ -7,8 +7,7 @@ Get configured route maps
 ## Syntax
 
 ```powershell
-Get-NsxtRoutingConfigRouteMap [-logicalRouterId] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-NsxtRoutingConfigRouteMap [-logicalRouterId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

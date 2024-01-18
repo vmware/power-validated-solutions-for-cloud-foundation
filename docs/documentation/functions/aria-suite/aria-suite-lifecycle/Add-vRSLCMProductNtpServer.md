@@ -7,8 +7,7 @@ Add a server to product NTP configuration in VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Add-vRSLCMProductNtpServer [-ntpServer] <String> [-ntpServerDesc] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Add-vRSLCMProductNtpServer [-ntpServer] <String> [-ntpServerDesc] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

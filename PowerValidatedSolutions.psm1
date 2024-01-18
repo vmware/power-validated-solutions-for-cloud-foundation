@@ -45,7 +45,7 @@ Function Export-IamJsonSpec {
 
         .DESCRIPTION
         The Export-IamJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy the Identity and Access Management for VMWare Cloud Foundation validated solution:
+        to deploy the Identity and Access Management for VMware Cloud Foundation validated solution:
         - Validates that the Planning and Preparation is available
         - Generates the JSON specification file using the Planning and Preparation workbook
 
@@ -3064,8 +3064,8 @@ Function Install-VamiCertificate {
 
         .DESCRIPTION
         The Install-VamiCertificate cmdlet allows you to replace the certificate of a VAMI interface. Supports:
-        - vSphere Replication Appliance
-        - Site Recovery Manager Appliance
+        - vSphere Replication appliance
+        - Site Recovery Manager appliance
 
         .EXAMPLE
         Install-VamiCertificate -server sfo-m01-vrms01.sfo.rainpole.io -user admin -pass VMw@re1! -certFile C:\Certs\sfo-m01-vrms01.4.p12 -certPassword VMw@re1! -solution VRMS
@@ -3116,7 +3116,7 @@ Function Install-VamiCertificate {
             if (Test-VrmsVamiConnection -server $server) {
                 if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
                     Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
-                    Write-Output "Installing Signed Certifcate on vSphere Replication appliance ($server) using ($certFile): SUCCESSFUL"
+                    Write-Output "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($certFile): SUCCESSFUL"
                 }
             
             }
@@ -3124,7 +3124,7 @@ Function Install-VamiCertificate {
             if (Test-SrmVamiConnection -server $server) {
                 if (Test-SrmVamiAuthentication -server $server -user $user -pass $pass) {
                     Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
-                    Write-Output "Installing Signed Certifcate on Site Recovery Manager appliance ($server) using ($certFile): SUCCESSFUL"
+                    Write-Output "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($certFile): SUCCESSFUL"
                 }
             
             }
@@ -3220,7 +3220,7 @@ Function Add-VrmsNetworkAdapter {
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $replicationPortgroup}) {
                                 if (Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass) {
                                     if (((Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | Get-NetworkAdapter).Count) -le 1) {
-                                        # Add the second NIC to the vSphere Replication Appliance and Restart
+                                        # Add the second NIC to the vSphere Replication appliance and Restart
                                         Get-VM -Name $vrmsVmName -Server $vcfVcenterDetails.fqdn | New-NetworkAdapter -Server $vcfVcenterDetails.fqdn -NetworkName $replicationPortgroup -Type vmxnet3 -StartConnected:$true -Confirm:$false -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
                                         Set-VrmsApplianceState -action restart | Out-Null
                                         Do {
@@ -3228,7 +3228,7 @@ Function Add-VrmsNetworkAdapter {
                                             $vmObject = Get-VMGuest -VM $vrmsVmName -Server $vcfVcenterDetails.fqdn-ErrorAction SilentlyContinue
                                             $vamiStatus = Test-VrmsVamiAuthentication -server $vrmsFqdn -user admin -pass $vrmsAdminPass -ErrorAction SilentlyContinue
                                         } Until (($vmObject.IPAddress) -and ($vamiStatus -eq $true))
-                                        # Configure the IP via API and Restart the vSphere Replication Appliance
+                                        # Configure the IP via API and Restart the vSphere Replication appliance
                                         Set-VrmsNetworkInterface -interface eth1 -ipAddress $replicationIPAddress -gateway $replicationGateway -prefix $replicationSubnet.Split("/")[1]  | Out-Null
                                         Set-VrmsApplianceState -action restart | Out-Null
                                         Do {
@@ -4455,7 +4455,7 @@ Function Set-vROPSDnsConfig {
         Configure DNS Server and/or DNS search domains on VMware Aria Operations appliance.
 
         .DESCRIPTION
-        The Set-vROPSDnsConfig cmdlet configures the DNS server and search domain details of all VMWare Aria Operations
+        The Set-vROPSDnsConfig cmdlet configures the DNS server and search domain details of all VMware Aria Operations
         analytics cluster appliances to the values passed as parameters. The cmdlet connects to SDDC Manager 
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -4509,7 +4509,7 @@ Function Set-vROPSDnsConfig {
                                 } Catch [System.Net.WebException] {
                                     $PSCmdlet.ThrowTerminatingError(
                                         [System.Management.Automation.ErrorRecord]::new(
-                                            ([System.Management.Automation.GetValueException]"Retrieving VMWare Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
+                                            ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
                                             'Get-vRSLCMProductNode',
                                             [System.Management.Automation.ErrorCategory]::ReadError,
                                             ""
@@ -4889,7 +4889,7 @@ Function Set-vRADnsConfig {
         Configure DNS Server and/or DNS search domains on VMware Aria Automation appliances.
 
         .DESCRIPTION
-        The Set-vRADnsConfig cmdlet configures the DNS server and search domain details of all VMWare Aria Automation
+        The Set-vRADnsConfig cmdlet configures the DNS server and search domain details of all VMware Aria Automation
         appliances to the values passed as parameters. The cmdlet connects to SDDC Manager using the -server, -user, 
         and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -5439,32 +5439,32 @@ Function Undo-vRANtpConfig {
 }
 Export-ModuleMember -Function Undo-vRANtpConfig
 
-Function Add-SRMMapping {
+Function Add-SrmMapping {
     <#
 		.SYNOPSIS
         Create a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
         instances in Site Recovery Manager.
 
         .DESCRIPTION
-        The Add-SRMMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the 
-        protected and failover VCF instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the 
+        The Add-SrmMapping cmdlet creates a mapping between objects (folder, network, or compute resource) in the 
+        protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the 
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
         - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Create a mapping between objects in the protected and failover VCF instances in Site Recovery Manager as
+        - Create a mapping between objects in the protected and failover instances in Site Recovery Manager as
         defined by the -type, -protected, and -recovery parameters.
 
         .EXAMPLE
-        Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
+        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
         This example creates a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
         
         .EXAMPLE
-        Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
+        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
         This example creates a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
         
         .EXAMPLE
-        Add-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
+        Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
         This example creates a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
@@ -5521,8 +5521,8 @@ Function Add-SRMMapping {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                 $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                                                 $global:DefaultSrmServers = $null
-                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
-                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
+                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
                                                         $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
@@ -5602,7 +5602,7 @@ Function Add-SRMMapping {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
-                                                                        'Add-SRMMapping',
+                                                                        'Add-SrmMapping',
                                                                         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
                                                                         ""
                                                                     )
@@ -5613,7 +5613,7 @@ Function Add-SRMMapping {
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
                                                     }
-                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
+                                                    if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
@@ -5677,7 +5677,7 @@ Function Add-SRMMapping {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
-                                                                        'Add-SRMMapping',
+                                                                        'Add-SrmMapping',
                                                                         [System.Management.Automation.ErrorCategory]::ObjectNotFound,
                                                                         ""
                                                                     )
@@ -5703,34 +5703,34 @@ Function Add-SRMMapping {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Add-SRMMapping
+Export-ModuleMember -Function Add-SrmMapping
 
-Function Undo-SRMMapping {
+Function Undo-SrmMapping {
     <#
 		.SYNOPSIS
         Remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
         instances in Site Recovery Manager.
 
         .DESCRIPTION
-        The Undo-SRMMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the 
-        protected and failover VCF instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the 
+        The Undo-SrmMapping cmdlet removes a mapping between objects (folder, network, or compute resource) in the 
+        protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the 
         -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
         - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes a mapping between objects in the protected and failover VCF instances in Site Recovery Manager as
+        - Removes a mapping between objects in the protected and failover instances in Site Recovery Manager as
         defined by the -type, -protected, and -recovery parameters.
 
         .EXAMPLE
-        Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
+        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
         This example removes a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
         
         .EXAMPLE
-        Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
+        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
         This example removes a mapping between protected site network xint-m01-seg01 and recovery site network xint-m01-seg01 in Site Recovery Manager.
         
         .EXAMPLE
-        Undo-SRMMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
+        Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
         This example removes a mapping between protected site compute resource vSphere Cluster sfo-m01-cl01 and recovery site compute resource vSphere Cluster lax-m01-cl01 in Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
@@ -5787,8 +5787,8 @@ Function Undo-SRMMapping {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                 $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                                                 $global:DefaultSrmServers = $null
-                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
-                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
+                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
                                                         $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
@@ -5868,7 +5868,7 @@ Function Undo-SRMMapping {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
-                                                                        'Add-SRMMapping',
+                                                                        'Add-SrmMapping',
                                                                         [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                         ""
                                                                     )
@@ -5879,7 +5879,7 @@ Function Undo-SRMMapping {
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
                                                     }
-                                                    if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
+                                                    if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
                                                         $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
@@ -5943,7 +5943,7 @@ Function Undo-SRMMapping {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
-                                                                        'Add-SRMMapping',
+                                                                        'Add-SrmMapping',
                                                                         [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                         ""
                                                                     )
@@ -5969,15 +5969,15 @@ Function Undo-SRMMapping {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Undo-SRMMapping
+Export-ModuleMember -Function Undo-SrmMapping
 
-Function New-SRMSitePair {
+Function New-SrmSitePair {
     <#
 		.SYNOPSIS
         Create a site pair between Site Recovery Manager instances.
 
         .DESCRIPTION
-        The New-SRMSitePair cmdlet creates a site pair between Site Recovery Manager instances. The cmdlet connects to
+        The New-SrmSitePair cmdlet creates a site pair between Site Recovery Manager instances. The cmdlet connects to
         SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, -sddcManagerAUser,
         -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
@@ -5987,7 +5987,7 @@ Function New-SRMSitePair {
         Server instances.
 
         .EXAMPLE
-        New-SRMSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+        New-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
         This example creates a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.
 
         .PARAMETER sddcManagerAFqdn
@@ -6032,9 +6032,9 @@ Function New-SRMSitePair {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                 $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                                                 $global:DefaultSrmServers = $null
-                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
-                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        if (Test-SRMAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
+                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                                                        if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                             Try {
                                                                 $existingSitePair = $null
                                                                 $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
@@ -6071,7 +6071,7 @@ Function New-SRMSitePair {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
                                                                         ([System.Management.Automation.GetValueException]"Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
-                                                                            'New-SRMSitePair',
+                                                                            'New-SrmSitePair',
                                                                             [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                             ""
                                                                         )
@@ -6097,15 +6097,15 @@ Function New-SRMSitePair {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function New-SRMSitePair
+Export-ModuleMember -Function New-SrmSitePair
 
-Function Undo-SRMSitePair {
+Function Undo-SrmSitePair {
     <#
 		.SYNOPSIS
         Removes an existing site pair between Site Recovery Manager instances.
 
         .DESCRIPTION
-        The Undo-SRMSitePair cmdlet removes an existing site pair between Site Recovery Manager instances. The cmdlet 
+        The Undo-SrmSitePair cmdlet removes an existing site pair between Site Recovery Manager instances. The cmdlet 
         connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
         -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
@@ -6115,7 +6115,7 @@ Function Undo-SRMSitePair {
         vCenter Server instances.
 
         .EXAMPLE
-        Undo-SRMSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+        Undo-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
         This example removes a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.
 
         .PARAMETER sddcManagerAFqdn
@@ -6160,8 +6160,8 @@ Function Undo-SRMSitePair {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                 $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                                                 $global:DefaultSrmServers = $null
-                                                if ((Test-SRMConnection -server $srmAFqdn) -and (Test-SRMConnection -server $srmBFqdn)) {
-                                                    if (Test-SRMAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
+                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
+                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
                                                         Try {
                                                             $existingSitePair = $null
                                                             $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
@@ -6188,7 +6188,7 @@ Function Undo-SRMSitePair {
                                                                 $PSCmdlet.ThrowTerminatingError(
                                                                     [System.Management.Automation.ErrorRecord]::new(
                                                                     ([System.Management.Automation.GetValueException]"Remove Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
-                                                                        'New-SRMSitePair',
+                                                                        'New-SrmSitePair',
                                                                         [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                         ""
                                                                     )
@@ -6215,7 +6215,7 @@ Function Undo-SRMSitePair {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Undo-SRMSitePair
+Export-ModuleMember -Function Undo-SrmSitePair
 
 Function Add-EsxiVrmsVMkernelPort {
     <#
@@ -6599,8 +6599,8 @@ Function Add-SrmLicenseKey {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
                                 $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                if (Test-SRMConnection -server $srmFqdn) {
-                                    if (Test-SRMAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-SrmConnection -server $srmFqdn) {
+                                    if (Test-SrmAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance
                                         $licenseManager = Get-View -Server $vcfVcenterDetails.fqdn $serviceInstance.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $vcfVcenterDetails.fqdn}
                                         $licenseAssignmentManager = Get-View -Server $vcfVcenterDetails.fqdn $licenseManager.licenseAssignmentManager
@@ -6698,8 +6698,8 @@ Function Undo-SrmLicenseKey {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if ((((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
                                 $srmFqdn = (((Get-View -server $vcfVcenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                if (Test-SRMConnection -server $srmFqdn) {
-                                    if (Test-SRMAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if (Test-SrmConnection -server $srmFqdn) {
+                                    if (Test-SrmAuthentication -server $srmFqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                                         $serviceInstance = Get-View -Server $vcfVcenterDetails.fqdn ServiceInstance 
                                         $licenseManager = Get-View -Server $vcfVcenterDetails.fqdn $serviceInstance.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $vcfVcenterDetails.fqdn}
                                         $licenseAssignmentManager = Get-View -Server $vcfVcenterDetails.fqdn $licenseManager.licenseAssignmentManager
@@ -6760,25 +6760,25 @@ Function Add-vSphereReplication {
 
         .EXAMPLE
         Add-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
-        This example adds vSphere Replication for VM xint-vrslcm01 from the protected VCF instance to the recovery VCF instance.
+        This example adds vSphere Replication for VM xint-vrslcm01 from the protected instance to the recovery instance.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER vmName
         The name of the virtual machine(s) to target. To target multiple virtual machines, this must be presented as an array.
@@ -6895,22 +6895,22 @@ Function Undo-vSphereReplication {
         This example removes the vSphere Replication for VM xint-vrslcm01.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER vmName
         The name of the virtual machine(s) to target. To target multiple virtual machines, this must be presented as an array.
@@ -7012,40 +7012,40 @@ Export-ModuleMember -Function Undo-vSphereReplication
 Function Add-ProtectionGroup {
     <#
 		.SYNOPSIS
-        Adds a Site Recovery Manager Protection Group.
+        Adds a Site Recovery Manager protection group.
 
         .DESCRIPTION
-        The Add-ProtectionGroup cmdlet adds a Site Recovery Manager Protection Group. The cmdlet
+        The Add-ProtectionGroup cmdlet adds a Site Recovery Manager protection group. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
-        - Adds a Site Recovery Manager Protection Group
+        - Adds a Site Recovery Manager protection group
 
         .EXAMPLE
         Add-ProtectionGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -pgName xint-vrops01-pg -vmName @("xint-vrops01a", "xint-vrops01b", "xint-vrops01c") 
-        This example adds a Protection Group xint-vrops01-pg containing virtual machines xint-vrops01a, xint-vrops01b, and xint-vrops01c to Site Recovery Manager in the protected VCF instance.
+        This example adds a protection group xint-vrops01-pg containing virtual machines xint-vrops01a, xint-vrops01b, and xint-vrops01c to Site Recovery Manager in the protected instance.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER pgName
-        The name of the new Protection Group.
+        The name of the new protection group.
 
         .PARAMETER vmName
         The name of the virtual machine(s) to target. Must be presented as an array.
@@ -7119,7 +7119,7 @@ Function Add-ProtectionGroup {
                                                                         )
                                                                     )
                                                                 } else {
-                                                                    Write-Host "Add Protection Group ($pgName): SUCCESSFUL"
+                                                                    Write-Host "Add protection group ($pgName): SUCCESSFUL"
                                                                 }
                                                             }   
                                                         } else {
@@ -7155,40 +7155,40 @@ Export-ModuleMember -Function Add-ProtectionGroup
 Function Undo-ProtectionGroup {
     <#
 		.SYNOPSIS
-        Removes a Site Recovery Manager Protection Group.
+        Removes a Site Recovery Manager protection group.
 
         .DESCRIPTION
-        The Undo-ProtectionGroup cmdlet removes a Site Recovery Manager Protection Group. The cmdlet
+        The Undo-ProtectionGroup cmdlet removes a Site Recovery Manager protection group. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
-        - Removes a Site Recovery Manager Protection Group.
+        - Removes a Site Recovery Manager protection group.
 
         .EXAMPLE
         Undo-ProtectionGroup -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -pgName xint-vrops01-pg
-        This example removes Protection Group xint-vrops01-pg from Site Recovery Manager in the protected VCF instance.
+        This example removes protection group xint-vrops01-pg from Site Recovery Manager in the protected instance.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER pgName
-        The name of the new Protection Group.
+        The name of the new protection group.
     #>
 
     Param (
@@ -7233,14 +7233,14 @@ Function Undo-ProtectionGroup {
                                                                 if ($removeProtectionGroup -match "Protection Group $pgName was not found") {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Remove Protection Group $pgName failed: POST_VALIDATION_FAILED"),
+                                                                            ([System.Management.Automation.GetValueException]"Remove protection group $pgName failed: POST_VALIDATION_FAILED"),
                                                                             'Undo-ProtectionGroup',
                                                                             [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                             ""
                                                                         )
                                                                     )
                                                                 } else {
-                                                                    Write-Host "Remove Protection Group ($pgName): SUCCESSFUL"
+                                                                    Write-Host "Remove protection group ($pgName): SUCCESSFUL"
                                                                 }
                                                             }   
                                                         } else {
@@ -7276,43 +7276,43 @@ Export-ModuleMember -Function Undo-ProtectionGroup
 Function Add-RecoveryPlan {
     <#
 		.SYNOPSIS
-        Adds a Site Recovery Manager Recovery Plan.
+        Adds a Site Recovery Manager recovery plan.
 
         .DESCRIPTION
-        The Add-RecoveryPlan cmdlet adds a Site Recovery Manager Recovery Plan. The cmdlet
+        The Add-RecoveryPlan cmdlet adds a Site Recovery Manager recovery plan. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
-        - Adds a Site Recovery Manager Recovery Plan.
+        - Adds a Site Recovery Manager recovery plan.
 
         .EXAMPLE
         Add-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp -pgName xint-vrops01-pg
-        This example adds Recovery Plan xint-vrops01-rp with Protection Group xint-vrops01-pg to Site Recovery Manager.
+        This example adds recovery plan xint-vrops01-rp with protection group xint-vrops01-pg to Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER rpName
-        The name of the new Recovery Plan.
+        The name of the new recovery plan.
 
         .PARAMETER pgName
-        The name of the Protection Group to add to the new Recovery Plan.
+        The name of the protection group to add to the new recovery plan.
     #>
 
     Param (
@@ -7376,7 +7376,7 @@ Function Add-RecoveryPlan {
                                                                         )
                                                                     )
                                                                 } else {
-                                                                    Write-Host "Add Recovery Plan ($rpName): SUCCESSFUL"
+                                                                    Write-Host "Add recovery plan ($rpName): SUCCESSFUL"
                                                                 }
                                                             }   
                                                         } else {
@@ -7411,44 +7411,44 @@ Export-ModuleMember -Function Add-RecoveryPlan
 Function Set-RecoveryPlan {
     <#
 		.SYNOPSIS
-        Configures a Site Recovery Manager Recovery Plan.
+        Configures a Site Recovery Manager recovery plan.
 
         .DESCRIPTION
-        The Set-RecoveryPlan cmdlet configures a Site Recovery Manager Recovery Plan. The cmdlet
+        The Set-RecoveryPlan cmdlet configures a Site Recovery Manager recovery plan. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
-        - Configures a Site Recovery Manager Recovery Plan.
+        - Configures a Site Recovery Manager recovery plan.
 
         .EXAMPLE
         Set-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp -setVmPriority $true -vmName @("xint-vrops01a","xint-vrops01b","xint-vrops01c") -priority P1 -addCallout $false
-        This example changes the restart priority for virtual machines xint-vrops01a, xint-vrops01b, and xint-vrops01c to P3 in Recovery Plan xint-vrops01-rp in Site Recovery Manager.
+        This example changes the restart priority for virtual machines xint-vrops01a, xint-vrops01b, and xint-vrops01c to P3 in recovery plan xint-vrops01-rp in Site Recovery Manager.
 
         .EXAMPLE
         Set-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp -setVmPriotiry $false -addCallout $true -calloutType PROMPT -calloutName "Verify the availability of the load balancer for VMware Aria Operations" -calloutContent "Verify the availability of the load balancer for VMware Aria Operations" -calloutPositionBefore P1 -calloutTimeoutSeconds 0
-        This example adds a callout step before "Power on priority 3 VMs" in Recovery Plan xint-vrops01-rp in Site Recovery Manager.
+        This example adds a callout step before "Power on priority 3 VMs" in recovery plan xint-vrops01-rp in Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER rpName
-        The name of the new Recovery Plan.
+        The name of the new recovery plan.
 
         .PARAMETER setVmPriority
         To change the VM restart priority for a virtual machine or set of virtual machines (boolean).
@@ -7460,7 +7460,7 @@ Function Set-RecoveryPlan {
         The restart priority (P1 - P5) of the targeted virtual machine(s). Only applicable if setVmPriority is set to $true.
 
         .PARAMETER addCallout
-        To add a callout to the Recovery Plan (boolean).
+        To add a callout to the recovery plan (boolean).
 
         .PARAMETER calloutType
         The type of callout to be added (PROMPT, RUN_ON_VM, RUN_ON_SRM_SERVER). Only applicable if addCallout is set to $true.
@@ -7520,9 +7520,9 @@ Function Set-RecoveryPlan {
                                                             foreach ($vm in $vmName) {
                                                                 $setPriority = Set-SrmRecoveryPlanVMPriority -rpName $rpName -vmName $vm -priority $priority
                                                                 if (!$setPriority) {
-                                                                    Write-Error "Setting the restart priority for virtual machine $vm in Recovery Plan $rpName failed: POST_VALIDATION_FAILED"
+                                                                    Write-Error "Setting the restart priority for virtual machine $vm in recovery plan $rpName failed: POST_VALIDATION_FAILED"
                                                                 } else {
-                                                                    Write-Output "Set the restart priority for virtual machine $vm in Recovery Plan $rpName to $priority : SUCCESSFUL"
+                                                                    Write-Output "Set the restart priority for virtual machine $vm in recovery plan $rpName to $priority : SUCCESSFUL"
                                                                 }
                                                             }
                                                         }
@@ -7545,9 +7545,9 @@ Function Set-RecoveryPlan {
                                                                 $newCallout = Add-SrmRecoveryPlanCalloutStep -rpName $rpName -calloutType $calloutType -calloutName $calloutName -content $calloutContent -position $findPosition
                                                             }
                                                             if (!$newCallout) {
-                                                                Write-Error "Add new callout step in Recovery Plan $rpName failed: POST_VALIDATION_FAILED"
+                                                                Write-Error "Add new callout step in recovery plan $rpName failed: POST_VALIDATION_FAILED"
                                                             } else {
-                                                                Write-Output "Add new callout step in Recovery Plan $rpName : SUCCESSFUL"
+                                                                Write-Output "Add new callout step in recovery plan $rpName : SUCCESSFUL"
                                                             }
                                                         }
                                                     }
@@ -7572,40 +7572,40 @@ Export-ModuleMember -Function Set-RecoveryPlan
 Function Undo-RecoveryPlan {
     <#
 		.SYNOPSIS
-        Removes a Site Recovery Manager Recovery Plan.
+        Removes a Site Recovery Manager recovery plan.
 
         .DESCRIPTION
-        The Undo-RecoveryPlan cmdlet adds a Site Recovery Manager Recovery Plan. The cmdlet
+        The Undo-RecoveryPlan cmdlet adds a Site Recovery Manager recovery plan. The cmdlet
         connects to SDDC Manager instances in both the protected and recovery sites:
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
         - Validates that network connectivity and authentication is possible to the vCenter Server instance.
         - Validates that network connectivity and authentication are possible to the Site Recovery Manager instance.
-        - Removes a Site Recovery Manager Recovery Plan.
+        - Removes a Site Recovery Manager recovery plan.
 
         .EXAMPLE
         Undo-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp
-        This example removes Recovery Plan xint-vrops01-rp from Site Recovery Manager.
+        This example removes recovery plan xint-vrops01-rp from Site Recovery Manager.
 
         .PARAMETER sddcManagerAFqdn
-        The fully-qualified domain name of the SDDC Manager server in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
-        The username to authenticate to the SDDC Manager server in the protected site.
+        The username to authenticate to the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAPass
-        The password to authenticate to the SDDC Manager server in the protected site.
+        The password to authenticate to the SDDC Manager in the protected site.
         
         .PARAMETER sddcManagerBFqdn
-        The fully-qualified domain name of the SDDC Manager server in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
-        The username to authenticate to the SDDC Manager server in the recovery site.
+        The username to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBPass
-        The password to authenticate to the SDDC Manager server in the recovery site.
+        The password to authenticate to the SDDC Manager in the recovery site.
 
         .PARAMETER rpName
-        The name of the Recovery Plan to be removed.
+        The name of the recovery plan to be removed.
     #>
 
     Param (
@@ -7657,7 +7657,7 @@ Function Undo-RecoveryPlan {
                                                                         )
                                                                     )
                                                                 } else {
-                                                                    Write-Host "Remove Recovery Plan ($rpName): SUCCESSFUL"
+                                                                    Write-Host "Remove recovery plan ($rpName): SUCCESSFUL"
                                                                 }
                                                             }   
                                                         } else {
@@ -9749,7 +9749,7 @@ Function Add-Namespace {
         Creates a Namespace and applies extra configuration to it.
 
         .DESCRIPTION
-        The Add-Namespace cmdlet creates a Namespace and applies its configuration.. The cmdlet connects to SDDC
+        The Add-Namespace cmdlet creates a Namespace and applies its configuration. The cmdlet connects to SDDC
         Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
@@ -9838,7 +9838,7 @@ Function Undo-Namespace {
         Remove a Namespace.
 
         .DESCRIPTION
-        The Undo-Namespace cmdlet removes a Namespace from the Supervisor Cluster.. The cmdlet connects to SDDC Manager
+        The Undo-Namespace cmdlet removes a Namespace from the Supervisor Cluster. The cmdlet connects to SDDC Manager
         using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
@@ -10528,7 +10528,7 @@ Function Export-IlaJsonSpec {
 
         .DESCRIPTION
         The Export-IlaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy the Intelligent Logging and Analytics for VMWare Cloud Foundation validated solution:
+        to deploy the Intelligent Logging and Analytics for VMware Cloud Foundation validated solution:
         - Validates that the Planning and Preparation is available
         - Generates the JSON specification file using the Planning and Preparation workbook
 
@@ -10894,7 +10894,8 @@ Function Invoke-UndoIlaDeployment {
 
         .EXAMPLE
         Invoke-UndoIlaDeployment -jsonFile .\ilaDeploySpec.json
-        This example removes the configuration of Intelligent Logging and Analytics for VMware Cloud Foundation using JSON spec supplied.
+        This example removes the configuration of Intelligent Logging and Analytics for VMware Cloud Foundation using the
+        JSON specification provided.
 
         .PARAMETER jsonFile
         The JSON (.json) file created.
@@ -11057,7 +11058,7 @@ Function Export-vRLIJsonSpec {
         Use a vSphere Content Library to deploy the VMware Aria Operations for Logs OVA.
 
         .PARAMETER contentLibrary
-        The vSphere Content Library name to use to deploy the VMware Aria Operations for Logs OVA
+        The vSphere Content Library name to use to deploy the VMware Aria Operations for Logs OVA.
     #>
 
     Param (
@@ -11530,7 +11531,7 @@ Function Add-vRLISmtpConfiguration {
                                         Write-Error "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Configuring SMTP Server in VMWare Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
+                                    Write-Warning "Configuring SMTP Server in VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)) with SMTP server ($smtpServer), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to communicate with SMTP Server ($smtpServer), check details: PRE_VALIDATION_FAILED"
@@ -13732,7 +13733,7 @@ Function Remove-vRAvRLIConfig {
                                         } elseif (($output.ScriptOutput).Contains('No vRLI integration configured')) {
                                             Write-Warning "VMware Aria Automation integration with VMware Aria Operations for Logs not set: SKIPPED"
                                         } else {
-                                            Write-Warning "Clearing the VMware Aria Automation integration with VMWare Aria Operations for Logs: POST_VALIDATION_FAILED"
+                                            Write-Warning "Clearing the VMware Aria Automation integration with VMware Aria Operations for Logs: POST_VALIDATION_FAILED"
                                         }
                                     } else {
                                         Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"                                        
@@ -14033,7 +14034,7 @@ Function Export-IomJsonSpec {
 
         .DESCRIPTION
         The Export-IomJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy the Intelligent Operations Management for VMWare Cloud Foundation validated solution:
+        to deploy the Intelligent Operations Management for VMware Cloud Foundation validated solution:
         - Validates that the Planning and Preparation is available
         - Generates the JSON specification file using the Planning and Preparation workbook
 
@@ -17860,7 +17861,7 @@ Function Export-PcaJsonSpec {
 
         .DESCRIPTION
         The Export-PcaJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
-        to deploy the Private Cloud Automation for VMWare Cloud Foundation validated solution:
+        to deploy the Private Cloud Automation for VMware Cloud Foundation validated solution:
         - Validates that the Planning and Preparation is available
         - Generates the JSON specification file using the Planning and Preparation workbook
 
@@ -18019,11 +18020,11 @@ Function Invoke-PcaDeployment {
 
         .EXAMPLE
         Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
-        This example configures Private Cloud Automation using JSON spec supplied
+        This example configures Private Cloud Automation using the JSON specification provided.
 
         .EXAMPLE
         Invoke-PcaDeployment -jsonFile .\pcaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
-        This example configures Private Cloud Automation using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+        This example configures Private Cloud Automation using the JSON specification provided. and using a content library for VMware Aria Suite Lifecycle
 
         .PARAMETER jsonFile
         The path to the JSON specification file.
@@ -18360,10 +18361,10 @@ Function Invoke-UndoPcaDeployment {
 
         .EXAMPLE
         Invoke-UndoPcaDeployment -jsonFile .\pcaDeploySpec.json
-        This example removal Private Cloud Automation using JSON spec supplied
+        This example removal Private Cloud Automation using the JSON specification provided.
 
         .PARAMETER jsonFile
-        The JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution
+        The JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution.
     #>
 
     Param (
@@ -18548,7 +18549,7 @@ Function Export-vRAJsonSpec {
         Use a Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA
 
         .PARAMETER contentLibrary
-        The name of the Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA
+        The name of the Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA.
     #>
 
     Param (
@@ -18793,7 +18794,7 @@ Function New-vRADeployment {
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\deplyPcaSpec.json -monitor
-        This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and monitors the request
+        This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and monitors the request.
     #>
 
     Param (
@@ -20469,7 +20470,7 @@ Function Deploy-PhotonAppliance {
 
         .EXAMPLE
         Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -rootPassword VMw@re1! -enableSsh True -enableDebug False -portGroup sfo-m01-cl01-vds01-mgmt -folder sfo-m01-fd-hrm -ovaPath .\vvs_appliance_v0.0.1.ova
-        This example deploys the Photon appliance named sfo-m01-hrm01
+        This example deploys the Photon appliance named sfo-m01-hrm01.
     #>
 
     Param (
@@ -20554,7 +20555,7 @@ Function Remove-PhotonAppliance {
 
         .EXAMPLE        
         Remove-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -vmName sfo-m01-hrm01
-        This example removes the Photon appliance named sfo-m01-hrm01
+        This example removes the Photon appliance named sfo-m01-hrm01.
     #>
 
     Param (
@@ -20691,7 +20692,7 @@ Function Invoke-vRSLCMDeployment {
 
         .EXAMPLE
         Invoke-vRSLCMDeployment -jsonFile .\vrslcmDeploySpec.json
-        This example deploies and configures VMware Aria Suite Lifecycle
+        This example deploies and configures VMware Aria Suite Lifecycle.
     #>
 
     Param (
@@ -21229,7 +21230,7 @@ Function Request-vRSLCMBundle {
 
         .EXAMPLE
         Request-vRSLCMBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager
+        This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager.
     #>
 
     Param (
@@ -21277,7 +21278,7 @@ Function New-vRSLCMDeployment {
 
         .EXAMPLE
         New-vRSLCMDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
-        This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle
+        This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle.
     #>
 
     Param (
@@ -21414,7 +21415,7 @@ Function Install-vRSLCMCertificate {
 
         .EXAMPLE
         Install-vRSLCMCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
-        This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle
+        This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle.
     #>
 
     Param (
@@ -21802,11 +21803,11 @@ Function Invoke-GlobalWsaDeployment {
 
         .EXAMPLE
         Invoke-GlobalWsaDeployment -jsonFile .\wsaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
-        This example deploys and configures Global Workspace ONE Access using JSON spec supplied
+        This example deploys and configures Global Workspace ONE Access using the JSON specification provided.
 
         .EXAMPLE
         Invoke-GlobalWsaDeployment -jsonFile .\wsaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
-        This example deploys and configures Global Workspace ONE Access using JSON spec supplied and using a content library for VMware Aria Suite Lifecycle
+        This example deploys and configures Global Workspace ONE Access using the JSON specification provided. and using a content library for VMware Aria Suite Lifecycle
 
         .PARAMETER jsonFile
         The fully qualified path to the JSON specification file.
@@ -21824,7 +21825,7 @@ Function Invoke-GlobalWsaDeployment {
         Use a content library for VMware Aria Suite Lifecycle
 
         .PARAMETER standard
-        Deploy Global Workspace ONE Access in standard mode
+        Deploy Global Workspace ONE Access in standard mode.
     #>
 
     Param (
@@ -22024,7 +22025,7 @@ Function Invoke-UndoGlobalWsaDeployment {
 
         .EXAMPLE
         Invoke-UndoGlobalWsaDeployment -jsonFile .\wsaDeploySpec.json
-        This example removes Global Workspace ONE Access using JSON spec supplied
+        This example removes Global Workspace ONE Access using the JSON specification provided.
 
         .PARAMETER jsonFile
         The fully qualified path to the JSON specification file.
@@ -25641,7 +25642,7 @@ Function Import-ContentLibraryItem {
         The Import-ContentLibraryItem cmdlet imports an item into the content library
         .EXAMPLE
         Import-ContentLibraryItem -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -contentLibrary Operations -file <file_name>
-        This example configures Private Cloud Automation using JSON spec supplied
+        This example configures Private Cloud Automation using the JSON specification provided.
     #>
 
     Param (
@@ -26437,7 +26438,7 @@ Function Get-vRLIServerDetail {
 
         .EXAMPLE
         Get-vRLIServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
-        This example retrieves the VMWare Aria Operations for Logs details from SDDC Manager.
+        This example retrieves the VMware Aria Operations for Logs details from SDDC Manager.
 
         .PARAMETER fqdn
         The vCenter Server FQDN.
@@ -35221,7 +35222,7 @@ Function Request-vRSLCMToken {
         Connects to the specified VMware Aria Suite Lifecycle and obtains authorization token.
 
         .DESCRIPTION
-        The Request-vRSLCMToken cmdlet connects to the specified VMWare Aria Suite Lifecycle and obtains an
+        The Request-vRSLCMToken cmdlet connects to the specified VMware Aria Suite Lifecycle and obtains an
         authorization token. It is required once per session before running all other cmdlets.
 
         .EXAMPLE
@@ -37168,7 +37169,7 @@ Function Start-vRSLCMSnapshot {
 
         .EXAMPLE
         Start-vRSLCMSnapshot -vcenterFqdn sfo-m01-vc01.sfo.rainpole.io -vcenterName sfo-m01-vc01 -username svc-xint-vrslcm01-sfo-m01-vc01@vsphere.local
-        This example creates a snapshot of the VMware Aria Suite Lifecycle appliance
+        This example creates a snapshot of the VMware Aria Suite Lifecycle appliance.
     #>
 
     Param (
@@ -37357,7 +37358,7 @@ Function Request-vRAToken {
         The tenant to connect to the VMware Aria Automation appliance.
 
         .PARAMETER displayToken
-        Displays the token needed for Terraform
+        Displays the token needed for Terraform.
     #>
 
     Param (
@@ -42085,7 +42086,7 @@ Function Remove-vRLIAuthenticationAD {
 
         .EXAMPLE
         Remove-vRLIAuthenticationAD
-        This example disables Active Directory as an authentication provider in VMware Aria Suite Lifecycle
+        This example disables Active Directory as an authentication provider in VMware Aria Suite Lifecycle.
     #>
 
     Try {
@@ -42146,7 +42147,7 @@ Function New-vRLIAgentGroup {
         The criteria for the agent group. For Workspace ONE Access, this is the hostname of the Workspace ONE Access appliance. For VMware Aria Operations for Logs, this is a comma-separated list of hostnames of the VMware Aria Operations for Logs appliances.
 
         .PARAMETER agentGroupName
-        The name of the agent group to create. If not specified, the name is automatically generated..
+        The name of the agent group to create. If not specified, the name is automatically generated.
     #>
 
     Param (
@@ -44237,24 +44238,24 @@ Export-ModuleMember -Function Add-CEPvCenterServer
 Function Request-VrmsToken {
     <#
         .SYNOPSIS
-        Connects to the specified vSphere Replication Appliance and obtains an authorization token.
+        Connects to the specified vSphere Replication appliance and obtains an authorization token.
 
         .DESCRIPTION
-        The Request-VrmsToken cmdlet connects to the specified vSphere Replication Appliance and obtains an
+        The Request-VrmsToken cmdlet connects to the specified vSphere Replication appliance and obtains an
         authorization token. It is required once per session before running all other cmdlets.
 
         .EXAMPLE
         Request-VrmsToken -fqdn sfo-m01-vrms01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to a vSphere Replication Appliance appliance.
+        This example shows how to connect to a vSphere Replication appliance.
 
         .PARAMETER fqdn
-        The fqdn parameter The fully qualified domain name of the vSphere Replication Appliance.
+        The fqdn parameter The fully qualified domain name of the vSphere Replication appliance.
 
         .PARAMETER username
-        The username parameter The username to be used to connect to the vSphere Replication Appliance.
+        The username parameter The username to be used to connect to the vSphere Replication appliance.
 
         .PARAMETER password
-        The password parameter The password to be used to connect to the vSphere Replication Appliance.
+        The password parameter The password to be used to connect to the vSphere Replication appliance.
     #>
 
     Param (
@@ -44297,14 +44298,14 @@ Export-ModuleMember -Function Request-VrmsToken
 Function Get-VrmsApplianceDetail {
     <#
         .SYNOPSIS
-        Get information about the vSphere Replication Appliance.
+        Get information about the vSphere Replication appliance.
 
         .DESCRIPTION
-        The Get-VrmsApplianceDetail cmdlet retrieves information about the vSphere Replication Appliance.
+        The Get-VrmsApplianceDetail cmdlet retrieves information about the vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsApplianceDetail
-        This example retrieves information about the vSphere Replication Appliance.
+        This example retrieves information about the vSphere Replication appliance.
     #>
 
     Try {
@@ -44326,7 +44327,7 @@ Function Set-VrmsApplianceState {
 
         .EXAMPLE
         Set-VrmsApplianceState -action restart
-        This example restarts the vSphere Replication appliance
+        This example restarts the vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsApplianceState -action stop
@@ -44363,7 +44364,7 @@ Function Get-VrmsTask {
 
         .EXAMPLE
         Get-VrmsTask
-        This example retrieves all the tasks from the vSphere Replication appliance
+        This example retrieves all the tasks from the vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsTask -taskId <task_id>
@@ -44400,7 +44401,7 @@ Function Get-VrmsService {
 
         .EXAMPLE
         Get-VrmsService
-        This example retrieves information about all services on the vSphere Replication appliance
+        This example retrieves information about all services on the vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsService -serviceId hms
@@ -44439,11 +44440,11 @@ Function Set-VrmsService {
 
         .EXAMPLE
         Set-VrmsService -serviceId hms -state stop
-        This example stops the hms service on the vSphere Replication appliance
+        This example stops the hms service on the vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsService -serviceId hms -state start
-        This example starts the hms service on the vSphere Replication appliance
+        This example starts the hms service on the vSphere Replication appliance.
 
         .EXAMPLE
         Set-VrmsService -serviceId hms -state restart
@@ -44632,11 +44633,11 @@ Function Get-VrmsConfiguration {
 
         .EXAMPLE
         Get-VrmsConfiguration
-        This example retrieves the registration configuration for the vSphere Replication appliance
+        This example retrieves the registration configuration for the vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsConfiguration -reconfigure
-        This example retrieves the reconfiguration status for the vSphere Replication appliance
+        This example retrieves the reconfiguration status for the vSphere Replication appliance.
 
         .EXAMPLE
         Get-VrmsConfiguration -replication
@@ -44892,11 +44893,11 @@ Export-ModuleMember -Function Set-VrmsVamiCertificate
 Function Request-VrmsTokenREST {
     <#
         .SYNOPSIS
-        Connects to the specified vSphere Replication Appliance and obtains an authorization token using the REST API
+        Connects to the specified vSphere Replication appliance and obtains an authorization token.
 
         .DESCRIPTION
-        The Request-VrmsToken cmdlet connects to the specified vSphere Replication Appliance and obtains an
-        authorization token using the REST API. It is required once per session before running all other cmdlets. This
+        The Request-VrmsToken cmdlet connects to the specified vSphere Replication appliance and obtains an
+        authorization token. It is required once per session before running all other cmdlets. This
         authorization is separate from the VAMI token acquired using Request-VrmsToken.
 
         .EXAMPLE
@@ -44904,13 +44905,13 @@ Function Request-VrmsTokenREST {
         This example shows how to connect to the vSphere Replication REST API using a vCenter Server SSO user.
 
         .PARAMETER fqdn
-        The fully-qualified domain name of the vSphere Replication REST API server
+        The fully qualified domain name of the vSphere Replication REST API server
 
         .PARAMETER username
         The username to authenticate to the vSphere Replication REST API server
 
         .PARAMETER password
-        The password to authenticate to the vSphere Replication REST API server
+        The password to authenticate to the vSphere Replication REST API server.
     #>
 
     Param (
@@ -44942,7 +44943,7 @@ Function Request-VrmsTokenREST {
             $Global:vrmsHeaderREST = @{"Accept" = "application/json"}
             $vrmsHeaderREST.Add("Content-Type", "application/json")
             $vrmsHeaderREST.Add("x-dr-session", "$(($vrmsResponse.Content | ConvertFrom-Json).session_id)")
-            Write-Output "Successfully connected to the vSphere Replication Appliance: $vrmsAppliance"
+            Write-Output "Successfully connected to the vSphere Replication appliance: $vrmsAppliance"
         }
     } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
@@ -44953,15 +44954,14 @@ Export-ModuleMember -Function Request-VrmsTokenREST
 Function Get-VrmsSitePairing {
     <#
         .SYNOPSIS
-        Retrieve site pairing information from a vSphere Replication server via the REST API
+        Retrieve site pairing information from a vSphere Replication instance.
 
         .DESCRIPTION
-        The Get-VrmsSitePairing cmdlet retrieves site pairing information from a vSphere Replication server via the
-        REST API.
+        The Get-VrmsSitePairing cmdlet retrieves site pairing information from a vSphere Replication.
 
         .EXAMPLE
         Get-VrmsSitePairing
-        This example retrieves site pairings from the vSphere Replication server via REST API
+        This example retrieves site pairings from the vSphere Replication instance.
     #>
 
     Try {
@@ -44977,21 +44977,19 @@ Export-ModuleMember -Function Get-VrmsSitePairing
 Function Connect-VrmsRemoteSession {
     <#
         .SYNOPSIS
-        Instantiates a connection with the remote vSphere Replication server via the REST API
+        Instantiates a connection with the remote vSphere Replication instance.
 
         .DESCRIPTION
-        The Connect-VrmsRemoteSession cmdlet instantiates a connection with the remote vSphere Replication server via 
-        the REST API
+        The Connect-VrmsRemoteSession cmdlet instantiates a connection with the remote vSphere Replication instance.
 
         .EXAMPLE
         Connect-VrmsRemoteSession -username administrator@vsphere.local -password VMw@re1!
-        This example instantiates a connection with the remote vSphere Replication server via the REST API
-
+        This example instantiates a connection with the remote vSphere Replication instance 
         .PARAMETER username
-        The username to authenticate to the remote vSphere Replication server
+        The username to authenticate to the remote vSphere Replication instance
 
         .PARAMETER password
-        The password to authenticate to the remote vSphere Replication server
+        The password to authenticate to the remote vSphere Replication instance.
     #>
 
     Param (
@@ -45026,17 +45024,17 @@ Export-ModuleMember -Function Connect-VrmsRemoteSession
 Function Get-VrmsVm {
     <#
         .SYNOPSIS
-        Retrieves a list of all VMs from a vSphere Replication server via the REST API
+        Retrieves a list of all VMs from a vSphere Replication instance.
 
         .DESCRIPTION
-        The Get-VrmsVm cmdlet retrieves a list of all VMs from a vSphere Replication server via the REST API
+        The Get-VrmsVm cmdlet retrieves a list of all VMs from a vSphere Replication instance. 
 
         .EXAMPLE
         Get-VrmsVm
-        This example retrieves a list of all VMs from the vSphere Replication server via REST API
+        This example retrieves a list of all VMs from the vSphere Replication instance.
 
         .PARAMETER vmName
-        The name of the optional virtual machine to target
+        The name of the optional virtual machine to target.
     #>
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmName
@@ -45062,17 +45060,17 @@ Export-ModuleMember -Function Get-VrmsVm
 Function Get-VrmsDatastore {
     <#
         .SYNOPSIS
-        Retrieves a list of datastores from a vSphere Replication server via the REST API
+        Retrieves a list of datastores from a vSphere Replication instance.
 
         .DESCRIPTION
-        The Get-VrmsDatastore cmdlet retrieves a list of all datastores from a vSphere Replication server via the REST API
+        The Get-VrmsDatastore cmdlet retrieves a list of all datastores from a vSphere Replication instance. 
 
         .EXAMPLE
         Get-VrmsDatastore -site recovery
-        This example retrieves a list of all datastores from the recovery site via vSphere Replication server REST API
+        This example retrieves a list of all datastores from the recovery site via vSphere Replication instance.
 
         .PARAMETER site
-        The site, either recovery or protected, to target
+        The site, either recovery or protected, to target.
     #>
 
     Param (
@@ -45099,17 +45097,17 @@ Export-ModuleMember -Function Get-VrmsDatastore
 Function Get-VrmsReplication {
     <#
         .SYNOPSIS
-        Retrieves a list of replications from a vSphere Replication server via the REST API
+        Retrieves a list of replications from a vSphere Replication instance.
 
         .DESCRIPTION
-        The Get-VrmsReplication cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
+        The Get-VrmsReplications cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
 
         .EXAMPLE
-        Get-VrmsReplication
+        Get-VrmsReplications
         This example retrieves a list of all replications from the vSphere Replication server REST API
 
         .PARAMETER name
-        The name of the replication to target
+        The name of the replication to target.
     #>
 
     Param (
@@ -45141,20 +45139,20 @@ Export-ModuleMember -Function Get-VrmsReplication
 Function Add-VrmsReplication {
     <#
         .SYNOPSIS
-        Adds a vSphere Replication for the specified virtual machine via the REST API
+        Adds a vSphere Replication for the specified virtual machine.
 
         .DESCRIPTION
-        The Add-VrmsReplication cmdlet adds a vSphere Replication for the specified virtual machine via the REST API
+        The Add-VrmsReplication cmdlet adds a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
         Add-VrmsReplication -vmName xint-vrslcm01 -recoveryPointObjective 1440
-        This example adds a vSphere Replication for virtual machine xint-vrslcm01 to the vSphere Replication server REST API
+        This example adds a vSphere Replication for virtual machine xint-vrslcm01 to the vSphere Replication instance.
 
         .PARAMETER vmName
-        The name of the virtual machine to target
+        The name of the virtual machine to target.
 
         .PARAMETER recoveryPointObjective
-        The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication
+        The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication.
     #>
 
     Param (
@@ -45202,18 +45200,17 @@ Export-ModuleMember -Function Add-VrmsReplication
 Function Remove-VrmsReplication {
     <#
         .SYNOPSIS
-        Removes a vSphere Replication for the specified virtual machine via the REST API
+        Removes a vSphere Replication for the specified virtual machine.
 
         .DESCRIPTION
-        The Remove-VrmsReplication cmdlet removes a vSphere Replication for the specified virtual machine via the REST
-        API
+        The Remove-VrmsReplication cmdlet removes a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
         Remove-VrmsReplication -vmName xint-vrslcm01
-        This example removes the replication for virtual machine xint-vrslcm01 from the vSphere Replication server REST API
+        This example removes the replication for virtual machine xint-vrslcm01 from the vSphere Replication instance.
 
         .PARAMETER vmName
-        The name of the virtual machine to target
+        The name of the virtual machine to target.
     #>
 
     Param (
@@ -45242,7 +45239,7 @@ Export-ModuleMember -Function Remove-VrmsReplication
 Function Request-SrmToken {
     <#
         .SYNOPSIS
-        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token.
+        Connects to the specified Site Recovery Manager appliance and obtains an authorization token.
 
         .DESCRIPTION
         The Request-SrmToken cmdlet connects to the specified Site Recovery Manager and obtains an authorization
@@ -45250,16 +45247,16 @@ Function Request-SrmToken {
 
         .EXAMPLE
         Request-SrmToken -fqdn sfo-m01-srm01.sfo.rainpole.io -username admin -password VMw@re1!
-        This example shows how to connect to a Site Recovery Manager Appliance appliance.
+        This example shows how to connect to a Site Recovery Manager appliance.
 
         .PARAMETER fqdn
-        The fqdn parameter The fully qualified domain name of the Site Recovery Manager Appliance.
+        The fqdn parameter The fully qualified domain name of the Site Recovery Manager appliance.
 
         .PARAMETER username
-        The username parameter The username to use to connect to the Site Recovery Manager Appliance.
+        The username parameter The username to use to connect to the Site Recovery Manager appliance.
 
         .PARAMETER password
-        The password parameter The password to use to connect to the Site Recovery Manager Appliance.
+        The password parameter The password to use to connect to the Site Recovery Manager appliance.
     #>
 
     Param (
@@ -45302,14 +45299,14 @@ Export-ModuleMember -Function Request-SrmToken
 Function Get-SrmApplianceDetail {
     <#
         .SYNOPSIS
-        Get information about the Site Recovery Manager Appliance.
+        Get information about the Site Recovery Manager appliance.
 
         .DESCRIPTION
-        The Get-SrmApplianceDetail cmdlet retrieves information about the Site Recovery Manager Appliance.
+        The Get-SrmApplianceDetail cmdlet retrieves information about the Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmApplianceDetail
-        This example retrieves information about the Site Recovery Manager Appliance.
+        This example retrieves information about the Site Recovery Manager appliance.
     #>
 
     Try {
@@ -45331,7 +45328,7 @@ Function Set-SrmApplianceState {
 
         .EXAMPLE
         Set-SrmApplianceState -action restart
-        This example restarts the Site Recovery Manager appliance
+        This example restarts the Site Recovery Manager appliance.
 
         .EXAMPLE
         Set-SrmApplianceState -action stop
@@ -45368,7 +45365,7 @@ Function Get-SrmTask {
 
         .EXAMPLE
         Get-SrmTask
-        This example retrieves all the tasks from the Site Recovery Manager appliance
+        This example retrieves all the tasks from the Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmTask -taskId <task_id>
@@ -45405,7 +45402,7 @@ Function Get-SrmService {
 
         .EXAMPLE
         Get-SrmService
-        This example retrieves information about all services on the Site Recovery Manager appliance
+        This example retrieves information about all services on the Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmService -serviceId hms
@@ -45443,11 +45440,11 @@ Function Set-SrmService {
 
         .EXAMPLE
         Set-SrmService -serviceId srm -state stop
-        This example stops the hms service on the Site Recovery Manager appliance
+        This example stops the hms service on the Site Recovery Manager appliance.
 
         .EXAMPLE
         Set-SrmService -serviceId srm -state start
-        This example starts the hms service on the Site Recovery Manager appliance
+        This example starts the hms service on the Site Recovery Manager appliance.
 
         .EXAMPLE
         Set-SrmService -serviceId srm -state restart
@@ -45636,7 +45633,7 @@ Function Get-SrmConfiguration {
 
         .EXAMPLE
         Get-SrmConfiguration
-        This example retrieves the registration configuration for the Site Recovery Manager appliance
+        This example retrieves the registration configuration for the Site Recovery Manager appliance.
 
         .EXAMPLE
         Get-SrmConfiguration -reconfigure
@@ -45849,12 +45846,11 @@ Export-ModuleMember -Function Set-SrmVamiCertificate
 Function Request-SrmTokenREST {
     <#
         .SYNOPSIS
-        Connects to the specified Site Recovery Manager Appliance and obtains an authorization token using the REST
-        API.
+        Connects to the specified Site Recovery Manager appliance and obtains an authorization token.
 
         .DESCRIPTION
         The Request-SrmToken cmdlet connects to the specified Site Recovery Manager and obtains an authorization
-        token using the REST API. It is required once per session before running all other cmdlets. This
+        token. It is required once per session before running all other cmdlets. This
         authorization is separate from the VAMI token acquired using Request-SrmToken.
 
         .EXAMPLE
@@ -45862,7 +45858,7 @@ Function Request-SrmTokenREST {
         This example shows how to connect to the Site Recovery Manager REST API using a vCenter Server SSO user.
 
         .PARAMETER fqdn
-        The fully-qualified domain name of the Site Recovery Manager REST API server.
+        The fully qualified domain name of the Site Recovery Manager REST API server.
 
         .PARAMETER username
         The username to authenticate to the Site Recovery Manager REST API server.
@@ -45900,7 +45896,7 @@ Function Request-SrmTokenREST {
             $Global:srmHeaderREST = @{"Accept" = "application/json"}
             $srmHeaderREST.Add("Content-Type", "application/json")
             $srmHeaderREST.Add("x-dr-session", "$(($srmResponse.Content | ConvertFrom-Json).session_id)")
-            Write-Output "Successfully connected to the Site Recovery Manager Appliance: $srmAppliance"
+            Write-Output "Successfully connected to the Site Recovery Manager appliance: $srmAppliance"
         }
     } Catch {
         internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
@@ -45911,21 +45907,20 @@ Export-ModuleMember -Function Request-SrmTokenREST
 Function Connect-SrmRemoteSession {
     <#
         .SYNOPSIS
-        Instantiates a connection to the remote Site Recovery Manager server via the REST API.
+        Instantiates a connection to the remote Site Recovery Manager instance.
 
         .DESCRIPTION
-        The Connect-SrmRemoteSession cmdlet instantiates a connection to the remote Site Recovery Manager server via 
-        the REST API.
+        The Connect-SrmRemoteSession cmdlet instantiates a connection to the remote Site Recovery Manager instance.
 
         .EXAMPLE
         Connect-SrmRemoteSession -username administrator@vsphere.local -password VMw@re1!
-        This example instantiates a connection to the remote Site Recovery Manager server via REST API.
+        This example instantiates a connection to the remote Site Recovery Manager instance.
 
         .PARAMETER username
-        The username to authenticate to the remote Site Recovery Manager server.
+        The username to authenticate to the remote Site Recovery Manager instance.
 
         .PARAMETER password
-        The password to authenticate to the remote Site Recovery Manager server.
+        The password to authenticate to the remote Site Recovery Manager instance.
     #>
 
     Param (
@@ -45960,15 +45955,14 @@ Export-ModuleMember -Function Connect-SrmRemoteSession
 Function Get-SrmSitePairing {
     <#
         .SYNOPSIS
-        Retrieve site pairing information from a Site Recovery Manager server via the REST API.
+        Retrieve site pairing information from a Site Recovery Manager instance.
 
         .DESCRIPTION
-        The Get-SrmSitePairing cmdlet retrieves site pairing information from a Site Recovery Manager server via
-        the REST API.
+        The Get-SrmSitePairing cmdlet retrieves site pairing information from a Site Recovery Manager.
 
         .EXAMPLE
         Get-SrmSitePairing
-        This example retrieves site pairings from the Site Recovery Manager server via REST API.
+        This example retrieves site pairings from the Site Recovery Manager instance.
     #>
 
     Try {
@@ -45984,19 +45978,18 @@ Export-ModuleMember -Function Get-SrmSitePairing
 Function Get-SrmProtectionGroup {
     <#
         .SYNOPSIS
-        Retrieves either a named Protection Group or all Protection Groups from a Site Recovery Manager server via the
-        REST API.
+        Retrieves either a named protection group or all protection groups from a Site Recovery Manager.
 
         .DESCRIPTION
-        The Get-SrmProtectionGroup cmdlet retrieves either a named Protection Group or all Protection Groups from a 
-        Site Recovery Manager server via the REST API.
+        The Get-SrmProtectionGroup cmdlet retrieves either a named protection group or all protection groups from a 
+        Site Recovery Manager instance.
 
         .EXAMPLE
         Get-SrmProtectionGroup
-        This example retrieves all Protection Groups from a Site Recovery Manager server via REST API.
+        This example retrieves all protection groups from a Site Recovery Manager instance.
 
         .PARAMETER pgName
-        The name of the Protection Group to retrieve from the Site Recovery Manager server.
+        The name of the protection group to retrieve from the Site Recovery Manager instance.
     #>
 
     Param (
@@ -46022,21 +46015,21 @@ Export-ModuleMember -Function Get-SrmProtectionGroup
 Function Add-SrmProtectionGroup {
     <#
         .SYNOPSIS
-        Adds a Protection Group to a Site Recovery Manager server via the REST API.
+        Adds a protection group to a Site Recovery Manager instance.
 
         .DESCRIPTION
-        The Add-SrmProtectionGroup cmdlet Retrieves either a named Protection Group or all Protection Groups from a 
-        Site Recovery Manager server via the REST API.
+        The Add-SrmProtectionGroup cmdlet Retrieves either a named protection group or all protection groups from a 
+        Site Recovery Manager instance.
 
         .EXAMPLE
         Add-SrmProtectionGroup
-        This example adds a ProtectionGroup to the Site Recovery Manager server via REST API.
+        This example adds a ProtectionGroup to the Site Recovery Manager instance.
 
         .PARAMETER pgName
-        The name of the Protection Group to add to the Site Recovery Manager server.
+        The name of the protection group to add to the Site Recovery Manager instance.
 
         .PARAMETER vmName
-        The name of the virtual machine(s) to add to the Protection Group. Must be presented as an array.
+        The name of the virtual machine(s) to add to the protection group. Must be presented as an array.
     #>
 
     Param (
@@ -46080,18 +46073,17 @@ Export-ModuleMember -Function Add-SrmProtectionGroup
 Function Remove-SrmProtectionGroup {
     <#
         .SYNOPSIS
-        Removes a named Protection Group from a Site Recovery Manager server via the REST API.
+        Removes a protection group from a Site Recovery Manager instance.
 
         .DESCRIPTION
-        The Remove-SrmProtectionGroup cmdlet removes a named Protection Group from a Site Recovery Manager server via 
-        the REST API.
+        The Remove-SrmProtectionGroup cmdlet removes a named protection group from a Site Recovery Manager instance.
 
         .EXAMPLE
         Remove-SrmProtectionGroup -pgName xint-vrops01
-        This example removes the Protection Group xint-vrops01 from the Site Recovery Manager server via REST API.
+        This example removes the protection group xint-vrops01 from the Site Recovery Manager instance.
 
         .PARAMETER pgName
-        The name of the Protection Group to remove from the Site Recovery Manager server.
+        The name of the protection group to remove from the Site Recovery Manager instance.
     #>
 
     Param (
@@ -46122,25 +46114,24 @@ Export-ModuleMember -Function Remove-SrmProtectionGroup
 Function Get-SrmRecoveryPlan {
     <#
         .SYNOPSIS
-        Retrieves either a named Recovery Plan or all Recovery Plans from a Site Recovery Manager server via the
-        REST API.
-  
+        Retrieves either a named recovery plan or all recovery plans from a Site Recovery Manager.
+
         .DESCRIPTION
-        The Get-SrmRecoveryPlan cmdlet retrieves either a named Recovery Plan or all Recovery Plans from a 
-        Site Recovery Manager server via the REST API.
-  
+        The Get-SrmRecoveryPlan cmdlet retrieves either a named recovery plan or all recovery plans from a 
+        Site Recovery Manager instance.
+
         .EXAMPLE
         Get-SrmRecoveryPlan
-        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API.
-  
+        This example retrieves all recovery plans from a Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to retrieve from the Site Recovery Manager server.
+        The name of the recovery plan to retrieve from the Site Recovery Manager instance.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$rpName
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id     
@@ -46155,33 +46146,33 @@ Function Get-SrmRecoveryPlan {
         # Do Nothing
     }
   }
-  Export-ModuleMember -Function Get-SrmRecoveryPlan
-  
-  Function Add-SrmRecoveryPlan {
+Export-ModuleMember -Function Get-SrmRecoveryPlan
+
+Function Add-SrmRecoveryPlan {
     <#
         .SYNOPSIS
-        Adds a Recovery Plan to a Site Recovery Manager server via the REST API.
-  
+        Adds a recovery plan to a Site Recovery Manager instance.
+
         .DESCRIPTION
-        The Add-SrmRecoveryPlan cmdlet adds a Recovery Plan to a Site Recovery Manager server via the REST API.
-  
+        The Add-SrmRecoveryPlan cmdlet adds a recovery plan to a Site Recovery Manager instance.
+
         .EXAMPLE
         Add-SrmRecoveryPlan
-        This example adds Recovery Plan xint-vrops01-rp to a Site Recovery Manager server via REST API.
-  
+        This example adds recovery plan xint-vrops01-rp to a Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to retrieve from the Site Recovery Manager server.
-  
+        The name of the recovery plan to retrieve from the Site Recovery Manager instance.
+
         .PARAMETER pgName
-        The name of the Protection Group(s) to add to the Recovery Plan. Must be presented as an array.
-  
+        The name of the protection group(s) to add to the recovery plan. Must be presented as an array.
+.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$pgName
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id
@@ -46222,30 +46213,30 @@ $rpBody = @"
     } Catch {
         # Do Nothing
     }
-  }
-  Export-ModuleMember -Function Add-SrmRecoveryPlan
-  
-  Function Remove-SrmRecoveryPlan {
+}
+Export-ModuleMember -Function Add-SrmRecoveryPlan
+
+Function Remove-SrmRecoveryPlan {
     <#
         .SYNOPSIS
-        Removes a named Recovery Plan from a Site Recovery Manager server via the REST API.
-  
+        Removes a named recovery plan from a Site Recovery Manager instance.
+
         .DESCRIPTION
-        The Remove-SrmRecoveryPlan cmdlet removes a named Recovery Plan from a Site Recovery Manager server via the 
+        The Remove-SrmRecoveryPlan cmdlet removes a named recovery plan from a Site Recovery Manager instance using the 
         REST API.
-  
+
         .EXAMPLE
         Remove-SrmRecoveryPlan -rpName xint-vrops01-rp
-        This example removes the Recovery Plan xint-vrops01-rp from the Site Recovery Manager server via REST API.
-  
+        This example removes the recovery plan xint-vrops01-rp from the Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to remove from the Site Recovery Manager server.
+        The name of the recovery plan to remove from the Site Recovery Manager instance.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id
@@ -46264,30 +46255,30 @@ $rpBody = @"
     } Catch {
         # Do Nothing
     }
-  }
-  Export-ModuleMember -Function Remove-SrmRecoveryPlan
-  
-  Function Get-SrmRecoveryPlanStep {
+}
+Export-ModuleMember -Function Remove-SrmRecoveryPlan
+
+Function Get-SrmRecoveryPlanStep {
     <#
         .SYNOPSIS
-        Retrieves steps in a named Recovery Plan from a Site Recovery Manager server via the REST API.
-  
+        Retrieves steps in a named recovery plan from a Site Recovery Manager instance.
+
         .DESCRIPTION
-        The Get-SrmRecoveryPlanStep cmdlet retrieves steps in a named Recovery Plan from a Site Recovery Manager
-        server via the REST API.
-  
+        The Get-SrmRecoveryPlanStep cmdlet retrieves steps in a named recovery plan from a Site Recovery Manager
+        server.
+
         .EXAMPLE
         Get-SrmRecoveryPlanStep -rpName xint-vrops01-rp.
-        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API
-  
+        This example retrieves all recovery plans from a Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to retrieve steps from the Site Recovery Manager server.
+        The name of the recovery plan to retrieve steps from the Site Recovery Manager instance.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id
@@ -46298,41 +46289,41 @@ $rpBody = @"
     } Catch {
         # Do Nothing
     }
-  }
-  Export-ModuleMember -Function Get-SrmRecoveryPlanStep
+}
+Export-ModuleMember -Function Get-SrmRecoveryPlanStep
   
-  Function Add-SrmRecoveryPlanCalloutStep {
+Function Add-SrmRecoveryPlanCalloutStep {
     <#
         .SYNOPSIS
-        Adds a callout step in a named Recovery Plan from a Site Recovery Manager server via the REST API.
-  
+        Adds a callout step in a named recovery plan from a Site Recovery Manager instance.
+
         .DESCRIPTION
-        The Add-SrmRecoveryPlanCalloutStep cmdlet adds steps in a named Recovery Plan from a Site Recovery Manager
-        server via the REST API.
-  
+        The Add-SrmRecoveryPlanCalloutStep cmdlet adds steps in a named recovery plan from a Site Recovery Manager
+        server.
+
         .EXAMPLE
         Add-SrmRecoveryPlanCalloutStep -rpName xint-vrops01-rp -calloutType PROMPT -calloutName "Power on the VMware Aria Operations cloud proxies" -content "Power on the VMware Aria Operations cloud proxies" -position 15 -timeoutSeconds 30
-        This example retrieves all Recovery Plans from a Site Recovery Manager server via REST API.
-  
+        This example retrieves all recovery plans from a Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to modify.
-  
+        The name of the recovery plan to modify.
+
         .PARAMETER calloutType
         The type of callout to add (prompt, runOnVM, runOnSRMServer).
-  
+
         .PARAMETER calloutName
         The name of the callout.
-  
+
         .PARAMETER content
         The message to be displayed in the callout.
-  
+
         .PARAMETER position
         The position in the current recovery steps list.
-  
+
         .PARAMETER timeoutSeconds
         Time in seconds to wait until the command completes. Only applicable when the parameter calloutType is set to runOnVM or runOnSRMServer.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName,
         [Parameter (Mandatory = $true)] [ValidateSet("PROMPT","RUN_ON_VM","RUN_ON_SRM_SERVER")] [String]$calloutType,
@@ -46341,7 +46332,7 @@ $rpBody = @"
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Int]$position,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Int]$timeoutSeconds
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id
@@ -46376,35 +46367,34 @@ $body = @"
     } Catch {
         # Do Nothing
     }
-  }
-  Export-ModuleMember -Function Add-SrmRecoveryPlanCalloutStep
+}
+Export-ModuleMember -Function Add-SrmRecoveryPlanCalloutStep
   
-  Function Get-SrmRecoveryPlanVm {
+Function Get-SrmRecoveryPlanVm {
     <#
         .SYNOPSIS
-        Change the startup priority for virtual machines in a named Recovery Plan from a Site Recovery Manager server
-        via the REST API.
-  
+        Change the startup priority for virtual machines in a named recovery plan from a Site Recovery Manager instance.
+
         .DESCRIPTION
         The Get-SrmRecoveryPlanVm cmdlet changes the startup priority for virtual machines in a named Recovery 
-        Plan from a Site Recovery Manager server via the REST API.
-  
+        Plan from a Site Recovery Manager instance.
+
         .EXAMPLE
         Get-SrmRecoveryPlanVm -rpName xint-vrops01-rp -vmName xint-vrops01a
-        This example sets virtual machine xint-vrops01a in Recovery Plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager server via REST API.
-  
+        This example sets virtual machine xint-vrops01a in recovery plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to modify.
-  
+        The name of the recovery plan to modify.
+
         .PARAMETER vmName
         Name of virtual machine(s) to target.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmName
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id
@@ -46417,48 +46407,47 @@ $body = @"
         $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeaderREST
         $evaluateReturn = $return.list[0].id
         if ([string]::IsNullOrEmpty($evaluateReturn) -and ($vmName)) {
-            Write-Output "Virtual machine $vmName was not found in Recovery Plan $rpName"  
+            Write-Output "Virtual machine $vmName was not found in recovery plan $rpName"  
         } elseif ([string]::IsNullOrEmpty($evaluateReturn) -and (!$vmName)) {
-            Write-Output "No virtual machines found in Recovery Plan $rpName"
+            Write-Output "No virtual machines found in recovery plan $rpName"
         } else {
             $return.list
         }
     } Catch {
         # Do Nothing
     }
-  }
-  Export-ModuleMember -Function Get-SrmRecoveryPlanVm
-  
-  Function Set-SrmRecoveryPlanVMPriority {
+}
+Export-ModuleMember -Function Get-SrmRecoveryPlanVm
+
+Function Set-SrmRecoveryPlanVMPriority {
     <#
         .SYNOPSIS
-        Change the startup priority for virtual machines in a named Recovery Plan from a Site Recovery Manager server
-        via the REST API.
-  
+        Change the startup priority for virtual machines in a named recovery plan from a Site Recovery Manager instance.
+
         .DESCRIPTION
         The Set-SrmRecoveryPlanVMPriority cmdlet changes the startup priority for virtual machines in a named Recovery 
-        Plan from a Site Recovery Manager server via the REST API.
-  
+        Plan from a Site Recovery Manager instance.
+
         .EXAMPLE
         Set-SrmRecoveryPlanVMPriority -rpName xint-vrops01-rp -vmName xint-vrops01a -priority P3
-        This example sets virtual machine xint-vrops01a in Recovery Plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager server via REST API.
-  
+        This example sets virtual machine xint-vrops01a in recovery plan xint-vrops01-rp to startup priority 3 from a Site Recovery Manager instance.
+
         .PARAMETER rpName
-        The name of the Recovery Plan to modify.
-  
+        The name of the recovery plan to modify.
+
         .PARAMETER vmName
         Name of virtual machine(s) to target.
-  
+
         .PARAMETER priority
         The priority (1-5) level to set the virtual machine.
     #>
-  
+
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$rpName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
         [Parameter (Mandatory = $true)] [ValidateSet("P1","P2","P3","P4","P5")] [String]$priority
     )
-  
+
     Try {
         $sitePair = Get-SrmSitePairing
         $pairingId = $sitePair.pairing_id
@@ -46479,8 +46468,8 @@ $body = @"
     } Catch {
         # Do Nothing
     }
-  }
-  Export-ModuleMember -Function Set-SrmRecoveryPlanVMPriority
+}
+Export-ModuleMember -Function Set-SrmRecoveryPlanVMPriority
 
 #EndRegion  End of Site Recovery Manager Functions                           ######
 ###################################################################################
@@ -47664,7 +47653,7 @@ Function Test-SrmVamiAuthentication {
 }
 Export-ModuleMember -Function Test-SrmVamiAuthentication
 
-Function Test-SRMConnection {
+Function Test-SrmConnection {
     <#
         .SYNOPSIS
         Check network connectivity to a Site Recovery Manager instance.
@@ -47674,15 +47663,15 @@ Function Test-SRMConnection {
         Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
 
         .EXAMPLE
-        Test-SRMConnection -server sfo-srm01.sfo.rainpole.io
+        Test-SrmConnection -server sfo-srm01.sfo.rainpole.io
         This example checks network connectivity with a Site Recovery Manager instance on default port, 443 (HTTPS).
 
         .EXAMPLE
-        Test-SRMConnection -server sfo-srm01.sfo.rainpole.io -port 443
+        Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 443
         This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
 
         .EXAMPLE
-        Test-SRMConnection -server sfo-srm01.sfo.rainpole.io -port 22
+        Test-SrmConnection -server sfo-srm01.sfo.rainpole.io -port 22
         This example checks network connectivity with a Site Recovery Manager instance on port 22 (SSH).
 
         .PARAMETER server
@@ -47708,9 +47697,9 @@ Function Test-SRMConnection {
         $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Test-SRMConnection
+Export-ModuleMember -Function Test-SrmConnection
 
-Function Test-SRMAuthentication {
+Function Test-SrmAuthentication {
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -47730,7 +47719,7 @@ Function Test-SRMAuthentication {
             $PSCmdlet.ThrowTerminatingError(
                 [System.Management.Automation.ErrorRecord]::new(
                     ([System.Security.Authentication.InvalidCredentialException]"Unable to authenticate with Site Recovery Manager ($server), check credentials: PRE_VALIDATION_FAILED"),
-                    'Test-SRMAuthentication',
+                    'Test-SrmAuthentication',
                     [System.Management.Automation.ErrorCategory]::AuthenticationError,
                     ""
                 )
@@ -47739,7 +47728,7 @@ Function Test-SRMAuthentication {
             $PSCmdlet.ThrowTerminatingError(
                 [System.Management.Automation.ErrorRecord]::new(
                     ([System.Management.Automation.ProviderNotFoundException]"Unable to authenticate with Site Recovery Manager ($server), check server IP address/FQDN: PRE_VALIDATION_FAILED"),
-                    'Test-SRMAuthentication',
+                    'Test-SrmAuthentication',
                     [System.Management.Automation.ErrorCategory]::InvalidArgument,
                     ""
                 )
@@ -47748,7 +47737,7 @@ Function Test-SRMAuthentication {
             $PSCmdlet.ThrowTerminatingError(
                 [System.Management.Automation.ErrorRecord]::new(
                     ([System.Management.Automation.RemoteException]"Unable to authenticate with the remote Site Recovery Manager instance: PRE_VALIDATION_FAILED"),
-                    'Test-SRMAuthentication',
+                    'Test-SrmAuthentication',
                     [System.Management.Automation.ErrorCategory]::ConnectionError,
                     ""
                 )
@@ -47763,9 +47752,9 @@ Function Test-SRMAuthentication {
         Return $srmAuthentication
     }
 }
-Export-ModuleMember -Function Test-SRMAuthentication
+Export-ModuleMember -Function Test-SrmAuthentication
 
-Function Test-SRMAuthenticationREST {
+Function Test-SrmAuthenticationREST {
     Param (
         [Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$server,
 		[Parameter (Mandatory=$true)] [ValidateNotNullOrEmpty()] [String]$user,
@@ -47799,7 +47788,7 @@ Function Test-SRMAuthenticationREST {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Test-SRMAuthenticationREST
+Export-ModuleMember -Function Test-SrmAuthenticationREST
 
 Function Test-VrmsAuthenticationREST {
     Param (
@@ -48056,7 +48045,7 @@ Function Test-DnsServers {
 
     <#
         .SYNOPSIS
-        Tests whether an array of DNS servers can resolve given domain name..
+        Tests whether an array of DNS servers can resolve given domain name.
 
         .DESCRIPTION
         The Test-DnsServers cmdlet tests whether an array of DNS servers can resolve given domain name.

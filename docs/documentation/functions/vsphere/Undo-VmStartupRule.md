@@ -7,15 +7,13 @@ Remove a VM to VM DRS rule
 ## Syntax
 
 ```powershell
-Undo-VmStartupRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ruleName] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-VmStartupRule [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ruleName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Undo-VmStartupRule` cmdlet removes a vSphere DRS Virtual Machine to Virtual Machine startup rule.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

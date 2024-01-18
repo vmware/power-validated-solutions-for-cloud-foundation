@@ -23,7 +23,7 @@ and Analytics for VMware Cloud Foundation validated solution.
 Invoke-UndoIlaDeployment -jsonFile .\ilaDeploySpec.json
 ```
 
-This example removes the configuration of Intelligent Logging and Analytics for VMware Cloud Foundation using JSON spec supplied.
+This example removes the configuration of Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON specification provided.
 
 ## Parameters
 

@@ -7,8 +7,7 @@ Set DNS configuration
 ## Syntax
 
 ```powershell
-Set-SrmNetworkDns [-srmHostname] <String> [-dnsServers] <Array> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-SrmNetworkDns [-srmHostname] <String> [-dnsServers] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

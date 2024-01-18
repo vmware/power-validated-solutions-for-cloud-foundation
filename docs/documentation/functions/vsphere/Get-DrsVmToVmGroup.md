@@ -7,8 +7,7 @@ Gets all vSphere VM to VM Group
 ## Syntax
 
 ```powershell
-Get-DrsVmToVmGroup [[-name] <String>] [-cluster] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-DrsVmToVmGroup [[-name] <String>] [-cluster] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

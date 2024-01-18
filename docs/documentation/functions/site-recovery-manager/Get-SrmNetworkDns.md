@@ -22,4 +22,4 @@ The `Get-SrmNetworkDns` cmdlet retrieves DNS configuration of a Site Recovery Ma
 Get-SrmNetworkDns
 ```
 
-This example retrieves information about the DNS configuration of the Site Recovery Manager appliance
+This example retrieves information about the DNS configuration of the Site Recovery Manager appliance.

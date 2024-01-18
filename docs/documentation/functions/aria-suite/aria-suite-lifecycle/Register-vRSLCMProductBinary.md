@@ -7,8 +7,7 @@ Get list of product binaries
 ## Syntax
 
 ```powershell
-Register-vRSLCMProductBinary [-ovaName] <String> [-ovaPath] <String> [-ovaType] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Register-vRSLCMProductBinary [-ovaName] <String> [-ovaPath] <String> [-ovaType] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

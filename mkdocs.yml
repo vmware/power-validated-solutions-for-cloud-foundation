@@ -565,34 +565,53 @@ nav:
       - documentation/functions/sddc-manager/Undo-SddcManagerRole.md
       - documentation/functions/sddc-manager/Update-SddcDeployedFlavor.md
     - Site Recovery Manager:
+      - documentation/functions/site-recovery-manager/Add-ProtectionGroup.md
+      - documentation/functions/site-recovery-manager/Add-RecoveryPlan.md
       - documentation/functions/site-recovery-manager/Add-SrmLicenseKey.md
-      - documentation/functions/site-recovery-manager/Add-SRMMapping.md
+      - documentation/functions/site-recovery-manager/Add-SrmMapping.md
+      - documentation/functions/site-recovery-manager/Add-SrmProtectionGroup.md
+      - documentation/functions/site-recovery-manager/Add-SrmRecoveryPlan.md
+      - documentation/functions/site-recovery-manager/Add-SrmRecoveryPlanCalloutStep.md
+      - documentation/functions/site-recovery-manager/Connect-SrmRemoteSession.md
       - documentation/functions/site-recovery-manager/Get-SrmApplianceDetail.md
       - documentation/functions/site-recovery-manager/Get-SrmConfiguration.md
       - documentation/functions/site-recovery-manager/Get-SrmNetworkAll.md
       - documentation/functions/site-recovery-manager/Get-SrmNetworkDns.md
       - documentation/functions/site-recovery-manager/Get-SrmNetworkInterface.md
+      - documentation/functions/site-recovery-manager/Get-SrmProtectionGroup.md
+      - documentation/functions/site-recovery-manager/Get-SrmRecoveryPlan.md
+      - documentation/functions/site-recovery-manager/Get-SrmRecoveryPlanStep.md
+      - documentation/functions/site-recovery-manager/Get-SrmRecoveryPlanVm.md
       - documentation/functions/site-recovery-manager/Get-SrmService.md
+      - documentation/functions/site-recovery-manager/Get-SrmSitePairing.md
       - documentation/functions/site-recovery-manager/Get-SrmTask.md
       - documentation/functions/site-recovery-manager/Get-SrmVamiCertificate.md
       - documentation/functions/site-recovery-manager/Install-SiteRecoveryManager.md
-      - documentation/functions/site-recovery-manager/New-SRMSitePair.md
+      - documentation/functions/site-recovery-manager/New-SrmSitePair.md
       - documentation/functions/site-recovery-manager/Remove-SrmConfiguration.md
+      - documentation/functions/site-recovery-manager/Remove-SrmProtectionGroup.md
+      - documentation/functions/site-recovery-manager/Remove-SrmRecoveryPlan.md
       - documentation/functions/site-recovery-manager/Request-SrmToken.md
+      - documentation/functions/site-recovery-manager/Request-SrmTokenREST.md
+      - documentation/functions/site-recovery-manager/Set-RecoveryPlan.md
       - documentation/functions/site-recovery-manager/Set-SrmApplianceState.md
       - documentation/functions/site-recovery-manager/Set-SrmConfiguration.md
       - documentation/functions/site-recovery-manager/Set-SrmNetworkDns.md
       - documentation/functions/site-recovery-manager/Set-SrmNetworkInterface.md
+      - documentation/functions/site-recovery-manager/Set-SrmRecoveryPlanVMPriority.md
       - documentation/functions/site-recovery-manager/Set-SrmService.md
       - documentation/functions/site-recovery-manager/Set-SrmVamiCertificate.md
-      - documentation/functions/site-recovery-manager/Test-SRMAuthentication.md
-      - documentation/functions/site-recovery-manager/Test-SRMConnection.md
+      - documentation/functions/site-recovery-manager/Test-SrmAuthentication.md
+      - documentation/functions/site-recovery-manager/Test-SrmAuthenticationREST.md
+      - documentation/functions/site-recovery-manager/Test-SrmConnection.md
       - documentation/functions/site-recovery-manager/Test-SrmVamiAuthentication.md
       - documentation/functions/site-recovery-manager/Test-SrmVamiConnection.md
+      - documentation/functions/site-recovery-manager/Undo-ProtectionGroup.md
+      - documentation/functions/site-recovery-manager/Undo-RecoveryPlan.md
       - documentation/functions/site-recovery-manager/Undo-SiteRecoveryManager.md
       - documentation/functions/site-recovery-manager/Undo-SrmLicenseKey.md
-      - documentation/functions/site-recovery-manager/Undo-SRMMapping.md
-      - documentation/functions/site-recovery-manager/Undo-SRMSitePair.md
+      - documentation/functions/site-recovery-manager/Undo-SrmMapping.md
+      - documentation/functions/site-recovery-manager/Undo-SrmSitePair.md
     - vSphere:
       - documentation/functions/vsphere/Add-AntiAffinityRule.md
       - documentation/functions/vsphere/Add-ClusterGroup.md
@@ -686,18 +705,27 @@ nav:
       - documentation/functions/vsphere-replication/Add-EsxiVrmsStaticRoute.md
       - documentation/functions/vsphere-replication/Add-EsxiVrmsVMkernelPort.md
       - documentation/functions/vsphere-replication/Add-VrmsNetworkAdapter.md
+      - documentation/functions/vsphere-replication/Add-VrmsReplication.md
+      - documentation/functions/vsphere-replication/Add-vSphereReplication.md
       - documentation/functions/vsphere-replication/Connect-DRSolutionTovCenter.md
+      - documentation/functions/vsphere-replication/Connect-VrmsRemoteSession.md
       - documentation/functions/vsphere-replication/Get-VrmsApplianceDetail.md
       - documentation/functions/vsphere-replication/Get-VrmsConfiguration.md
+      - documentation/functions/vsphere-replication/Get-VrmsDatastore.md
       - documentation/functions/vsphere-replication/Get-VrmsNetworkAll.md
       - documentation/functions/vsphere-replication/Get-VrmsNetworkDns.md
       - documentation/functions/vsphere-replication/Get-VrmsNetworkInterface.md
+      - documentation/functions/vsphere-replication/Get-VrmsReplication.md
       - documentation/functions/vsphere-replication/Get-VrmsService.md
+      - documentation/functions/vsphere-replication/Get-VrmsSitePairing.md
       - documentation/functions/vsphere-replication/Get-VrmsTask.md
       - documentation/functions/vsphere-replication/Get-VrmsVamiCertificate.md
+      - documentation/functions/vsphere-replication/Get-VrmsVm.md
       - documentation/functions/vsphere-replication/Install-vSphereReplicationManager.md
       - documentation/functions/vsphere-replication/Remove-VrmsConfiguration.md
+      - documentation/functions/vsphere-replication/Remove-VrmsReplication.md
       - documentation/functions/vsphere-replication/Request-VrmsToken.md
+      - documentation/functions/vsphere-replication/Request-VrmsTokenREST.md
       - documentation/functions/vsphere-replication/Set-VrmsApplianceState.md
       - documentation/functions/vsphere-replication/Set-VrmsConfiguration.md
       - documentation/functions/vsphere-replication/Set-VrmsNetworkDns.md
@@ -705,12 +733,14 @@ nav:
       - documentation/functions/vsphere-replication/Set-VrmsReplication.md
       - documentation/functions/vsphere-replication/Set-VrmsService.md
       - documentation/functions/vsphere-replication/Set-VrmsVamiCertificate.md
+      - documentation/functions/vsphere-replication/Test-VrmsAuthenticationREST.md
       - documentation/functions/vsphere-replication/Test-VrmsVamiAuthentication.md
       - documentation/functions/vsphere-replication/Test-VrmsVamiConnection.md
+      - documentation/functions/vsphere-replication/Undo-DRSolutionTovCenter.md
       - documentation/functions/vsphere-replication/Undo-EsxiVrmsStaticRoute.md
       - documentation/functions/vsphere-replication/Undo-EsxiVrmsVMkernelPort.md
+      - documentation/functions/vsphere-replication/Undo-vSphereReplication.md
       - documentation/functions/vsphere-replication/Undo-vSphereReplicationManager.md
-      - documentation/functions/vsphere-replication/Undo-DRSolutionTovCenter.md
     - vSphere with Tanzu:
       - documentation/functions/vsphere-tanzu/Add-Namespace.md
       - documentation/functions/vsphere-tanzu/Add-NamespacePermission.md

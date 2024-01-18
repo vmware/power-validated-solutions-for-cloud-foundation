@@ -7,8 +7,7 @@ Get installed management packs
 ## Syntax
 
 ```powershell
-Get-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROPSManagementPack [-server] <String> [-username] <String> [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

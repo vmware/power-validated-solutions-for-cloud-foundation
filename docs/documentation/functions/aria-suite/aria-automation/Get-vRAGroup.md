@@ -7,8 +7,7 @@ Get the group in an organization.
 ## Syntax
 
 ```powershell
-Get-vRAGroup [-orgId] <String> [-displayName] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRAGroup [-orgId] <String> [-displayName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

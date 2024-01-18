@@ -15,8 +15,7 @@ Get-CEPWorkflow [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ### categoryName
 
 ```powershell
-Get-CEPWorkflow [-categoryName <String>] [-tag <String[]>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-CEPWorkflow [-categoryName <String>] [-tag <String[]>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### categoryId

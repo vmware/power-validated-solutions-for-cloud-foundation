@@ -7,8 +7,7 @@ Get the group roles.
 ## Syntax
 
 ```powershell
-Get-vRAGroupRoles [-groupId] <String> [-orgId] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRAGroupRoles [-groupId] <String> [-orgId] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

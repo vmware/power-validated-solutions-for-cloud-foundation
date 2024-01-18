@@ -7,8 +7,7 @@ Disable the embedded Harbor Registry on a Supervisor Cluster
 ## Syntax
 
 ```powershell
-Undo-Registry [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-Registry [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

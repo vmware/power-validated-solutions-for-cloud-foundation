@@ -8,8 +8,7 @@ Remove registration of Site Recovery Manager or vSphere Replication with vCenter
 
 ```powershell
 Undo-DRSolutionTovCenter [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-applianceFqdn] <String> [-vamiAdminPassword] <String> [-solution] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-applianceFqdn] <String> [-vamiAdminPassword] <String> [-solution] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

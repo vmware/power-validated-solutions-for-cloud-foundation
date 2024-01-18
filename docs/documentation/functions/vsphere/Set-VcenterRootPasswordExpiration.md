@@ -9,8 +9,7 @@ Set the vcenter password expiry date
 ### expire
 
 ```powershell
-Set-VcenterRootPasswordExpiration [-email <String>] [-maxDays <String>] [-warnDays <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-VcenterRootPasswordExpiration [-email <String>] [-maxDays <String>] [-warnDays <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### neverexpire

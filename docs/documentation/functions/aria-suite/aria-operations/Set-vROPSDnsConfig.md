@@ -2,19 +2,18 @@
 
 ## Synopsis
 
-Configure DNS Server and/or DNS search domains on VMware Aria Operations appliance
+Configure DNS Server and/or DNS search domains on VMware Aria Operations appliance.
 
 ## Syntax
 
 ```powershell
 Set-vROPSDnsConfig [-server] <String> [-user] <String> [-pass] <String> [-environmentName] <String>
- [[-dnsServers] <String>] [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [[-dnsServers] <String>] [[-dnsSearchDomains] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Set-vROPSDnsConfig` cmdlet configures the DNS server and search domain details of all VMWare Aria Operations
+The `Set-vROPSDnsConfig` cmdlet configures the DNS server and search domain details of all VMware Aria Operations
 analytics cluster appliances to the values passed as parameters.
 The cmdlet connects to SDDC Manager
 using the -server, -user, and -password values:

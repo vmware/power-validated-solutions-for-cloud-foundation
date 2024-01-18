@@ -7,8 +7,7 @@ Get list of local user groups using identifiers or/and names
 ## Syntax
 
 ```powershell
-Get-vROPSUserGroup [[-id] <String>] [[-name] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vROPSUserGroup [[-id] <String>] [[-name] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

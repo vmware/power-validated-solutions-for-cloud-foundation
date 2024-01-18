@@ -8,8 +8,7 @@ Adds an Identity Manager adapter to VMware Aria Operations
 
 ```powershell
 Add-vROPSAdapterIdentityManager [-server] <String> [-user] <String> [-pass] <String> [-wsaFqdn] <String>
- [-wsaUser] <String> [-wsaPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-wsaUser] <String> [-wsaPass] <String> [[-collectorGroupName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

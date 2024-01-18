@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get OVF properties of a virtual appliance
+Get OVF properties of a virtual appliance.
 
 ## Syntax
 

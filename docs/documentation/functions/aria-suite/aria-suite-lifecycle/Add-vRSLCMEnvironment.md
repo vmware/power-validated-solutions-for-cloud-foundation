@@ -7,8 +7,7 @@ Create an environment in VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-Add-vRSLCMEnvironment -json <String> [-environmentId <String>] [-addProduct]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vRSLCMEnvironment -json <String> [-environmentId <String>] [-addProduct] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

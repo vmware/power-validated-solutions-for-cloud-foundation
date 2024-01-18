@@ -7,8 +7,7 @@ Get list of solutions
 ## Syntax
 
 ```powershell
-Get-vROPSSolution [[-solutionId] <String>] [-adapterKind] [-license] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vROPSSolution [[-solutionId] <String>] [-adapterKind] [-license] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

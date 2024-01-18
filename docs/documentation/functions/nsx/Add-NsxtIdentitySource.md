@@ -9,8 +9,7 @@ Add Active Directory over LDAP/LDAPS as an Identity Provider to NSX Manager.
 ```powershell
 Add-NsxtIdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sddcDomain] <String>
  [-domain] <String> [-domainBindUser] <String> [-domainBindPass] <String> [-dcMachineName] <String>
- [-baseDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-baseDn] <String> [-protocol] <String> [[-certificate] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

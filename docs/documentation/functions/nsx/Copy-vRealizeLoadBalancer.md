@@ -9,8 +9,7 @@ Creates a Load Balancer for VMware Aria component failover
 ```powershell
 Copy-vRealizeLoadBalancer [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String>
  [-sddcManagerAPassword] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String>
- [-sddcManagerBPassword] <String> [-serviceInterfaceIp] <String> [-wsaCertName] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-sddcManagerBPassword] <String> [-serviceInterfaceIp] <String> [-wsaCertName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

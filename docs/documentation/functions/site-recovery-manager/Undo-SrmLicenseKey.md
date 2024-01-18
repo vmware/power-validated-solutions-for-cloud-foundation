@@ -14,8 +14,7 @@ Undo-SrmLicenseKey [-server] <String> [-user] <String> [-pass] <String> [-domain
 ## Description
 
 The `Undo-SrmLicenseKey` cmdlet removes a license for Site Recovery Manager from vCenter Server.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the vCenter Server instance

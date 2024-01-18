@@ -7,8 +7,7 @@ Connect to the vSphere Managed Object Browser (MOB)
 ## Syntax
 
 ```powershell
-Connect-vSphereMobServer [-server] <String> [-username] <String> [-password] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Connect-vSphereMobServer [-server] <String> [-username] <String> [-password] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

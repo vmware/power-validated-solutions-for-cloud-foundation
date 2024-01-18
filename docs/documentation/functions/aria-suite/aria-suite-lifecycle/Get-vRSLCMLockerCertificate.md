@@ -7,8 +7,7 @@ Get list of certificates available in the locker
 ## Syntax
 
 ```powershell
-Get-vRSLCMLockerCertificate [[-vmid] <String>] [[-alias] <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMLockerCertificate [[-vmid] <String>] [[-alias] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

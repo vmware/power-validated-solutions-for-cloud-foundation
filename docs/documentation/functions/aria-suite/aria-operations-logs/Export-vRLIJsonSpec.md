@@ -8,8 +8,7 @@ Create VMware Aria Operations for Logs Deployment JSON specification using the P
 
 ```powershell
 Export-vRLIJsonSpec -server <String> -user <String> -pass <String> [-workbook <String>]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

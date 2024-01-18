@@ -8,8 +8,7 @@ Updates the assigned Collector Group for the specified Adapter type
 
 ```powershell
 Update-vROPSAdapterCollecterGroup [-server] <String> [-user] <String> [-pass] <String>
- [[-collectorGroupName] <String>] [-adapterType] <String> [[-adapterName] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [[-collectorGroupName] <String>] [-adapterType] <String> [[-adapterName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

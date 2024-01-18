@@ -7,8 +7,7 @@ Get paginated list of load balancers from VMware Aria Suite Lifecycle.
 ## Syntax
 
 ```powershell
-Get-vRSLCMLoadbalancer [-type] <String> [[-available] <Boolean>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMLoadbalancer [-type] <String> [[-available] <Boolean>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

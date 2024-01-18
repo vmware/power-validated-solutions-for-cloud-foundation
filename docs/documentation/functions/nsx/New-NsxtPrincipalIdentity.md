@@ -7,8 +7,7 @@ Add an NSX Principal Identity
 ## Syntax
 
 ```powershell
-New-NsxtPrincipalIdentity [-name] <String> [-nodeId] <String> [-role] <String> [-certificateData] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtPrincipalIdentity [-name] <String> [-nodeId] <String> [-role] <String> [-certificateData] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

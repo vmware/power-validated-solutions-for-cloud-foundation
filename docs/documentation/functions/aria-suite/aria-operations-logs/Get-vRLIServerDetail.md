@@ -7,8 +7,7 @@ Get VMware Aria Operations for Logs details from SDDC Manager
 ## Syntax
 
 ```powershell
-Get-vRLIServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRLIServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -24,7 +23,7 @@ Aria Operations for Logs from SDDC Manager.
 Get-vRLIServerDetail -fqdn sfo-vcf01.sfo.rainpole.io -username admin@local -password VMw@re1!VMw@re1!
 ```
 
-This example retrieves the VMWare Aria Operations for Logs details from SDDC Manager.
+This example retrieves the VMware Aria Operations for Logs details from SDDC Manager.
 
 ## Parameters
 

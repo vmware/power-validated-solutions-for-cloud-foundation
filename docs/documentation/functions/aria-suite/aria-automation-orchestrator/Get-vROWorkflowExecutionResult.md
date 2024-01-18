@@ -7,8 +7,7 @@ Get VMware Aria Automation Orchestrator workflow execution result
 ## Syntax
 
 ```powershell
-Get-vROWorkflowExecutionResult [-executionRef] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vROWorkflowExecutionResult [-executionRef] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

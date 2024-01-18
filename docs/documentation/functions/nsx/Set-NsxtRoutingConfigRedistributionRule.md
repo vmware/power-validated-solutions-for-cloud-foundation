@@ -7,8 +7,7 @@ Set redistribution rule
 ## Syntax
 
 ```powershell
-Set-NsxtRoutingConfigRedistributionRule [-logicalRouterId] <String> [-json] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-NsxtRoutingConfigRedistributionRule [-logicalRouterId] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

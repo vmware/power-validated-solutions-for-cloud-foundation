@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get information about Site Recovery Manager appliance services
+Get information about Site Recovery Manager appliance services.
 
 ## Syntax
 
@@ -12,7 +12,7 @@ Get-SrmService [[-serviceId] <String>] [-ProgressAction <ActionPreference>] [<Co
 
 ## Description
 
-The `Get-SrmService` cmdlet retrieves information about the Site Recovery Manager appliance services.
+The `Get-SrmService` cmdlet retrieves information about the Site Recovery Manager appliance. services.
 
 ## Examples
 
@@ -22,7 +22,7 @@ The `Get-SrmService` cmdlet retrieves information about the Site Recovery Manage
 Get-SrmService
 ```
 
-This example retrieves information about all services on the Site Recovery Manager appliance
+This example retrieves information about all services on the Site Recovery Manager appliance.
 
 ### Example 2
 
@@ -30,7 +30,7 @@ This example retrieves information about all services on the Site Recovery Manag
 Get-SrmService -serviceId hms
 ```
 
-This example retrieves information about hms service on the Site Recovery Manager appliance.
+This example retrieves information about hms service on .
 
 ## Parameters
 

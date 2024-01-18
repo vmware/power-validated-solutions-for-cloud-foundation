@@ -14,8 +14,7 @@ Undo-vSphereReplicationManager [-server] <String> [-user] <String> [-pass] <Stri
 ## Description
 
 The `Undo-vSphereReplicationManager` cmdlet removes the vSphere Replication Virtual Appliance.
-The cmdlet
-connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Validates that network connectivity and authentication is possible to vCenter Server

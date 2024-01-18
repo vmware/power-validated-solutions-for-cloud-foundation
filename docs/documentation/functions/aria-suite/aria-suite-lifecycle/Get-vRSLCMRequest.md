@@ -7,8 +7,7 @@ Get all Requests
 ## Syntax
 
 ```powershell
-Get-vRSLCMRequest [[-requestId] <String>] [-errorCauses] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Get-vRSLCMRequest [[-requestId] <String>] [-errorCauses] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

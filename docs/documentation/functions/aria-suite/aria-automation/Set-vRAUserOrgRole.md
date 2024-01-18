@@ -7,8 +7,7 @@ Set the user organization role.
 ## Syntax
 
 ```powershell
-Set-vRAUserOrgRole [-userId] <String> [-orgId] <String> [-orgRole] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Set-vRAUserOrgRole [-userId] <String> [-orgId] <String> [-orgRole] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

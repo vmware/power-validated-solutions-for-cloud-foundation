@@ -7,8 +7,7 @@ Remove an LDAP user/group role-based access control from NSX Manager.
 ## Syntax
 
 ```powershell
-Undo-NsxtLdapRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-NsxtLdapRole [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-principal] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

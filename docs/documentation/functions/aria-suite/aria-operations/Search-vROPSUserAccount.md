@@ -7,8 +7,7 @@ Search for a user account in the source.
 ## Syntax
 
 ```powershell
-Search-vROPSUserAccount [[-sourceId] <String>] [[-domain] <String>] [[-userName] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Search-vROPSUserAccount [[-sourceId] <String>] [[-domain] <String>] [[-userName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

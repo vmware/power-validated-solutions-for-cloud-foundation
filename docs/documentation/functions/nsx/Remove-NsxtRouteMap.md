@@ -7,8 +7,7 @@ Remove a Route Map from a specified Tier-0 Gateway
 ## Syntax
 
 ```powershell
-Remove-NsxtRouteMap [[-name] <String>] [[-tier0Gateway] <String>] [[-inputObject] <PSObject>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Remove-NsxtRouteMap [[-name] <String>] [[-tier0Gateway] <String>] [[-inputObject] <PSObject>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Creates Static Route on Tier 1 Gateway
 ## Syntax
 
 ```powershell
-New-NsxtTier1StaticRoute [-tier1Gateway] <String> [-segment] <String> [-json] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-NsxtTier1StaticRoute [-tier1Gateway] <String> [-segment] <String> [-json] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

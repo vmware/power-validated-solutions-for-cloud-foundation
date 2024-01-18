@@ -7,8 +7,7 @@ Check network connectivity to a VMware Aria Operations for Logs cluster or node.
 ## Syntax
 
 ```powershell
-Test-vRLIConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Test-vRLIConnection [-server] <String> [[-port] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

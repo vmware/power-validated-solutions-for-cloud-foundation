@@ -7,8 +7,7 @@ Add a collector group
 ## Syntax
 
 ```powershell
-Add-vROPSCollectorGroup [-name] <String> [[-description] <String>] [[-collectorIds] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSCollectorGroup [-name] <String> [[-description] <String>] [[-collectorIds] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

@@ -7,8 +7,7 @@ Create JSON specification for Global Workspace ONE Access
 ## Syntax
 
 ```powershell
-Export-GlobalWsaJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Export-GlobalWsaJsonSpec [-workbook] <String> [-jsonFile] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

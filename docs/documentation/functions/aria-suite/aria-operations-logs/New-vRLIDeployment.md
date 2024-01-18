@@ -8,8 +8,7 @@ Deploy VMware Aria Operations for Logs Cluster via VMware Aria Suite Lifecycle
 
 ```powershell
 New-vRLIDeployment -server <String> -user <String> -pass <String> [-workbook <String>] [-monitor]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

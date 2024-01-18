@@ -7,8 +7,7 @@ Configure a set of parameters on a compute manager
 ## Syntax
 
 ```powershell
-Set-NsxtComputeManager [-EnableTrust] <Boolean> [-inputObject] <PSObject> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+Set-NsxtComputeManager [-EnableTrust] <Boolean> [-inputObject] <PSObject> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

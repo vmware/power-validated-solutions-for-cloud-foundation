@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Get information about the vSphere Replication Appliance
+Get information about the vSphere Replication appliance.
 
 ## Syntax
 
@@ -12,7 +12,7 @@ Get-VrmsApplianceDetail
 
 ## Description
 
-The `Get-VrmsApplianceDetail` cmdlet retrieves information about the vSphere Replication Appliance.
+The `Get-VrmsApplianceDetail` cmdlet retrieves information about the vSphere Replication appliance.
 
 ## Examples
 
@@ -22,4 +22,4 @@ The `Get-VrmsApplianceDetail` cmdlet retrieves information about the vSphere Rep
 Get-VrmsApplianceDetail
 ```
 
-This example retrieves information about the vSphere Replication Appliance
+This example retrieves information about the vSphere Replication appliance

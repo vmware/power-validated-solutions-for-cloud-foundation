@@ -7,8 +7,7 @@ Get principal GUID details
 ## Syntax
 
 ```powershell
-Get-ADPrincipalGuid [-domain] <String> [-user] <String> [-pass] <String> [-principal] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-ADPrincipalGuid [-domain] <String> [-user] <String> [-pass] <String> [-principal] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

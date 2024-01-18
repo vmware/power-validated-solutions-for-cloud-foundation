@@ -7,8 +7,7 @@ Get list of local user accounts using identifiers or/and names.
 ## Syntax
 
 ```powershell
-Get-vROPSUserAccount [[-id] <String>] [[-username] <String>] [[-roleName] <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vROPSUserAccount [[-id] <String>] [[-username] <String>] [[-roleName] <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

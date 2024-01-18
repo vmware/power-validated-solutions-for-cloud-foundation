@@ -7,8 +7,7 @@ Configures the currency in VMware Aria Operations
 ## Syntax
 
 ```powershell
-Add-vROPSCurrency [-server] <String> [-user] <String> [-pass] <String> [-currency] <String>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vROPSCurrency [-server] <String> [-user] <String> [-pass] <String> [-currency] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

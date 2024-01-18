@@ -13,8 +13,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 
 ```powershell
 Add-RouteMap [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-tier0Gateway] <String>
- [-routeMapName] <String> [-prefixListName] <String> [-action] <String> [-applyPolicy] <Boolean>
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-routeMapName] <String> [-prefixListName] <String> [-action] <String> [-applyPolicy] <Boolean> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description

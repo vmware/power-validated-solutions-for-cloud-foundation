@@ -8,8 +8,7 @@ Sets the DNS Server and/or DNS search domains on VMware Aria Automation applianc
 
 ```powershell
 Undo-vRADnsConfig [-server] <String> [-user] <String> [-pass] <String> [-sddcManagerRootPass] <String>
- [-vraUser] <String> [-vraPass] <String> [-environmentName] <String> [-ProgressAction <ActionPreference>]
- [<CommonParameters>]
+ [-vraUser] <String> [-vraPass] <String> [-environmentName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
