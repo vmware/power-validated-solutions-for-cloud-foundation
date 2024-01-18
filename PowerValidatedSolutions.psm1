@@ -6759,7 +6759,7 @@ Function Add-vSphereReplication {
         - Adds a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
-        Add-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 
+        Add-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
         This example adds vSphere Replication for VM xint-vrslcm01 from the protected VCF instance to the recovery VCF instance.
 
         .PARAMETER sddcManagerAFqdn
@@ -6781,7 +6781,7 @@ Function Add-vSphereReplication {
         The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER vmName
-        The name of the virtual machine to target.
+        The name of the virtual machine(s) to target. To target multiple virtual machines, this must be presented as an array.
 
         .PARAMETER recoveryPointObjective
         The number of minutes, within a range of 5 to 1440 (one day), to define the RPO for the new replication.
@@ -6794,7 +6794,7 @@ Function Add-vSphereReplication {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$vmName,
         [Parameter (Mandatory = $true)] [ValidateRange(5,1440)] [Int]$recoveryPointObjective
     )
 
@@ -6814,52 +6814,50 @@ Function Add-vSphereReplication {
                                                 if (Test-SrmConnection -server $vrmsAFqdn) {
                                                     if (Test-SrmConnection -server $vrmsBFqdn) {
                                                         $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
-                                                        if ($vrmsAuth -eq $true) {
-                                                            $vrmsVm = Get-VrmsVm -vmName $vmName
-                                                            if (!$vrmsVm) {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Virtual machine $vmName does not exist: PRE_VALIDATION_FAILED"),
-                                                                        'Add-vSphereReplication',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                            $vrmsReplications = Get-VrmsReplications
-                                                            $skip = $false
-                                                            foreach ($vrmsReplication in $vrmsReplications) {
-                                                                if ($vmName -eq $vrmsReplication.name) {
-                                                                    Write-Warning "Replication for virtual machine $vmName already exists: SKIPPING"
-                                                                    $skip = $true
-                                                                    break
+                                                        if (($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
+                                                            $vmsToCheckReplication = @()
+                                                            foreach ($vm in $vmName) {
+                                                                $getVm = Get-VrmsVm -vmName $vm
+                                                                if (!$getVm) {
+                                                                    Write-Warning "Virtual machine ($vm) does not exist: PRE_VALIDATION_FAILED"
+                                                                } else {
+                                                                    $vmsToCheckReplication += $vm
                                                                 }
                                                             }
-                                                            if ($skip -eq $false) {
-                                                                $newReplication = Add-VrmsReplication -vmName $vmName -recoveryPointObjective $recoveryPointObjective
+                                                            $vmsToReplicate = @()
+                                                            foreach ($vm in $vmsToCheckReplication) {
+                                                                $getVmReplication = Get-VrmsReplication -vmName $vm
+                                                                if ($getVmReplication -match "was not found") {
+                                                                    $vmsToReplicate += $vm
+                                                                } else {
+                                                                    Write-Warning "Replication for virtual machine ($vm) already exists: SKIPPING"
+                                                                }
+                                                            }
+                                                            foreach ($vm in $vmsToReplicate) {
+                                                                $newReplication = Add-VrmsReplication -vmName $vm -recoveryPointObjective $recoveryPointObjective
                                                                 if (!$newReplication) {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Replication for virtual machine $vmName failed: POST_VALIDATION_FAILED"),
+                                                                            ([System.Management.Automation.GetValueException]"Replication for virtual machine ($vm) failed: POST_VALIDATION_FAILED"),
                                                                             'Add-vSphereReplication',
                                                                             [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                             ""
                                                                         )
                                                                     )
                                                                 } else {
-                                                                    Write-Host "Add vSphere Replication for virtual machine ($vmName): SUCCESSFUL"
+                                                                    Write-Output "Add vSphere Replication for virtual machine ($vm): SUCCESSFUL"
                                                                 }
-                                                            }   
-                                                        } else {
-                                                            $PSCmdlet.ThrowTerminatingError(
-                                                                [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication servers: PRE_VALIDATION_FAILED"),
-                                                                    'Add-vSphereReplication',
-                                                                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                    ""
-                                                                )
+                                                            }    
+                                                        }   
+                                                    } else {
+                                                        $PSCmdlet.ThrowTerminatingError(
+                                                            [System.Management.Automation.ErrorRecord]::new(
+                                                                ([System.Management.Automation.GetValueException]"Unable to authenticate with vSphere Replication servers: PRE_VALIDATION_FAILED"),
+                                                                'Add-vSphereReplication',
+                                                                [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                ""
                                                             )
-                                                        }
+                                                        )
                                                     }
                                                 }
                                             }
@@ -6876,7 +6874,6 @@ Function Add-vSphereReplication {
     } Catch {
         Debug-ExceptionWriter -object $_
     }
-
 }
 Export-ModuleMember -Function Add-vSphereReplication
 
@@ -6916,7 +6913,7 @@ Function Undo-vSphereReplication {
         The password to authenticate to the SDDC Manager server in the recovery site.
 
         .PARAMETER vmName
-        The name of the virtual machine to target.
+        The name of the virtual machine(s) to target. To target multiple virtual machines, this must be presented as an array.
     #>
 
     Param (
@@ -6926,7 +6923,7 @@ Function Undo-vSphereReplication {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBFqdn,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBUser,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$sddcManagerBPass,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vmName
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$vmName
     )
 
     Try {
@@ -6945,36 +6942,42 @@ Function Undo-vSphereReplication {
                                                 if (Test-SrmConnection -server $vrmsAFqdn) {
                                                     if (Test-SrmConnection -server $vrmsBFqdn) {
                                                         $vrmsAuth = Test-VrmsAuthenticationREST -server $vrmsAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass
-                                                        if ($vrmsAuth -eq $true) {
-                                                            $vrmsVm = Get-VrmsVm -vmName $vmName
-                                                            if (!$vrmsVm) {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Virtual machine $vmName does not exist: PRE_VALIDATION_FAILED"),
-                                                                        'Undo-vSphereReplication',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
+                                                        if (($vrmsAuth.vrmsAuthentication -eq $true) -and ($vrmsAuth.vrmsRemoteAuthentication -eq $true)) {
+                                                            foreach ($vm in $vmName){
+                                                                $vrmsVm = Get-VrmsVm -vmName $vm
+                                                                if (!$vrmsVm) {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Virtual machine $vm does not exist: PRE_VALIDATION_FAILED"),
+                                                                            'Undo-vSphereReplication',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
                                                                     )
-                                                                )
+                                                                }
                                                             }
-                                                            $vrmsReplications = Get-VrmsReplications
-                                                            $checkReplicationExists = $vrmsReplications | Where-Object {$_.name -eq $vmName}
-                                                            if (!$checkReplicationExists) {
-                                                                Write-Warning "Replication for virtual machine $vmName does not exist: SKIPPING"
-                                                                break
-                                                            } else {
-                                                                $unconfigureReplication = Remove-VrmsReplication -vmName $vmName
+                                                            $replicationsToRemove = @()
+                                                            foreach ($vm in $vmName) {
+                                                                $getVmReplication = Get-VrmsReplication -vmName $vm
+                                                                if ($getVmReplication -match "was not found") {
+                                                                    Write-Warning "Replication for virtual machine $vm does not exist: SKIPPING"
+                                                                } else {
+                                                                    $replicationsToRemove += $vm
+                                                                }
+                                                            }
+                                                            foreach ($vm in $replicationsToRemove) {
+                                                            $unconfigureReplication = Remove-VrmsReplication -vmName $vm
                                                                 if (!$unconfigureReplication) {
                                                                     $PSCmdlet.ThrowTerminatingError(
                                                                         [System.Management.Automation.ErrorRecord]::new(
-                                                                            ([System.Management.Automation.GetValueException]"Replication for virtual machine $vmName failed: POST_VALIDATION_FAILED"),
+                                                                            ([System.Management.Automation.GetValueException]"Replication for virtual machine $vm failed: POST_VALIDATION_FAILED"),
                                                                             'Undo-vSphereReplication',
                                                                             [System.Management.Automation.ErrorCategory]::InvalidOperation,
                                                                             ""
                                                                         )
                                                                     )
                                                                 } else {
-                                                                    Write-Host "Remove vSphere Replication for virtual machine ($vmName): SUCCESSFUL"
+                                                                    Write-Host "Remove vSphere Replication for virtual machine ($vm): SUCCESSFUL"
                                                                 }
                                                             }
                                                         } else {
@@ -45099,10 +45102,10 @@ Function Get-VrmsReplication {
         Retrieves a list of replications from a vSphere Replication server via the REST API
 
         .DESCRIPTION
-        The Get-VrmsReplications cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
+        The Get-VrmsReplication cmdlet retrieves a list of all replications from a vSphere Replication server via the REST API
 
         .EXAMPLE
-        Get-VrmsReplications
+        Get-VrmsReplication
         This example retrieves a list of all replications from the vSphere Replication server REST API
 
         .PARAMETER name
@@ -45110,21 +45113,21 @@ Function Get-VrmsReplication {
     #>
 
     Param (
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$name
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmName
     )
 
     Try {
         $pairing_id = (Get-VrmsSitePairing).pairing_id
-        if ($name) {
-            $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications?filter_property=name&filter=$name"
+        if ($vmName) {
+            $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications?filter_property=name&filter=$vmName"
         } else {
             $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/replications"
         }
         $return = Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeaderREST
-        $global:evaluateReturn = $return.list
-        if ([string]::IsNullOrEmpty($evaluateReturn) -and ($name)) {
-            Write-Output "vSphere Replication $name was not found"  
-        } elseif ([string]::IsNullOrEmpty($evaluateReturn) -and (!$name)) {
+        $evaluateReturn = $return.list[0].id
+        if ([string]::IsNullOrEmpty($evaluateReturn) -and ($vmName)) {
+            Write-Output "vSphere Replication $vmName was not found"  
+        } elseif ([string]::IsNullOrEmpty($evaluateReturn) -and (!$vmName)) {
             Write-Output "No vSphere Replications found"
         } else {
             $return.list
