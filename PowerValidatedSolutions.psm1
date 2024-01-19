@@ -7884,7 +7884,7 @@ Function Add-NetworkSegment {
         The Add-NetworkSegment cmdlet creates an NSX Segment
 
         .EXAMPLE
-        Add-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-kub-seg01 -gatewayType Tier1 -connectedGateway sfo-w01-ec01-t1-gw01 -cidr 192.168.31.1/24 -transportZone overlay-tz-sfo-w01-nsx01.sfo.rainpole.io -segmentType Overlay
+        Add-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-seg01-tanzu -gatewayType Tier1 -connectedGateway sfo-w01-ec01-t1-gw01 -cidr 192.168.31.1/24 -transportZone overlay-tz-sfo-w01-nsx01.sfo.rainpole.io -segmentType Overlay
         This example creates an overlay-backed NSX segment in the workload domain sfo-w01.
 
         .PARAMETER server
@@ -7987,7 +7987,7 @@ Function Undo-NetworkSegment {
         The Undo-NetworkSegment cmdlet removes an NSX Segment from NSX Manager
 
         .EXAMPLE
-        Undo-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-kub-seg01
+        Undo-NetworkSegment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -segmentName sfo-w01-seg01-tanzu
         This example removes an NSX segment from the NSX Manager of Workload Domain sfo-w01.
 
         .PARAMETER server
@@ -8057,7 +8057,7 @@ Function Add-PrefixList {
         The Add-PrefixList cmdlet creates an NSX Prefix List
 
         .EXAMPLE
-        Add-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -subnetCIDR 192.168.20.0/24 -ingressSubnetCidr "192.168.21.0/24" -egressSubnetCidr "192.168.22.0/24" -GE "28" -LE "32" -action PERMIT
+        Add-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-prefixlist -subnetCIDR 192.168.20.0/24 -ingressSubnetCidr "192.168.21.0/24" -egressSubnetCidr "192.168.22.0/24" -GE "28" -LE "32" -action PERMIT
         This example creates an NSX Prefix List in the workload domain NSX Manager cluster.
 
         .PARAMETER server
@@ -8158,7 +8158,7 @@ Function Undo-PrefixList {
         The Undo-PrefixList cmdlet removes an NSX Prefix List
 
         .EXAMPLE
-        Undo-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist
+        Undo-PrefixList -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -prefixListName sfo-w01-ec01-t0-gw01-prefixlist
         This example removes an NSX Prefix List in the Workload Domain NSX Manager cluster.
 
         .PARAMETER server
@@ -8233,7 +8233,7 @@ Function Add-RouteMap {
         The Add-RouteMap cmdlet creates an NSX Route Map
 
         .EXAMPLE
-        Add-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap -prefixListName sfo-w01-ec01-t0-gw01-mgmt-prefixlist -action PERMIT -applyPolicy:$true
+        Add-RouteMap -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01 -tier0Gateway sfo-w01-ec01-t0-gw01 -routeMapName sfo-w01-ec01-t0-gw01-routemap -prefixListName sfo-w01-ec01-t0-gw01-prefixlist -action PERMIT -applyPolicy:$true
         This example creates an NSX Route Map in workload domain sfo-w01.
 
         .PARAMETER server
