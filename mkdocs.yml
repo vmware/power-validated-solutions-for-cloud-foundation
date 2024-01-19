@@ -86,6 +86,11 @@ extra:
   version:
     default: latest
     provider: mike
+  social:
+    - icon: fontawesome/solid/book
+      link: https://docs.vmware.com/en/VMware-Cloud-Foundation/index.html
+    - icon: fontawesome/solid/code
+      link: https://www.powershellgallery.com/packages/PowerValidatedSolutions
 extra_css:
   - assets/stylesheets/extra.css
 
@@ -130,23 +135,31 @@ nav:
   - License: license.md
 - Reference:
   - documentation/index.md
-  - Solutions Functions:
-    - Identity and Access Management:
-      - documentation/functions/solutions/Export-IamJsonSpec.md
-      - documentation/functions/solutions/Invoke-IamDeployment.md
-      - documentation/functions/solutions/Invoke-UndoIamDeployment.md
-    - Intelligent Logging and Analytics:
-      - documentation/functions/solutions/Export-IlaJsonSpec.md
-      - documentation/functions/solutions/Invoke-IlaDeployment.md
-      - documentation/functions/solutions/Invoke-UndoIlaDeployment.md
-    - Intelligent Operations Management:
-      - documentation/functions/solutions/Export-IomJsonSpec.md
-      - documentation/functions/solutions/Invoke-IomDeployment.md
-      - documentation/functions/solutions/Invoke-UndoIomDeployment.md
-    - Private Cloud Automation:
-      - documentation/functions/solutions/Export-PcaJsonSpec.md
-      - documentation/functions/solutions/Invoke-PcaDeployment.md
-      - documentation/functions/solutions/Invoke-UndoPcaDeployment.md
+  - Solutions:
+    - On-Premises:
+      - Identity and Access Management:
+        - documentation/functions/solutions/iam/index.md
+      - Developer Ready Infrastructure:
+        - documentation/functions/solutions/dri/index.md
+      - Intelligent Logging and Analytics:
+        - documentation/functions/solutions/ila/index.md
+      - Intelligent Operations Management:
+        - documentation/functions/solutions/iom/index.md
+      - Intelligent Network Visibility:
+        - documentation/functions/solutions/inv/index.md
+      - Private Cloud Automation:
+        - documentation/functions/solutions/pca/index.md
+      - Site Protection and Disaster Recovery:
+        - documentation/functions/solutions/pdr/index.md
+      - Health Reporting and Monitoring:
+        - documentation/functions/solutions/hrm/index.md
+    - Hybrid Cloud:
+      - Cloud-Based Workload Protection:
+        - documentation/functions/solutions/cwp/index.md
+      - Cloud-Based Ransomware Recovery:
+        - documentation/functions/solutions/crr/index.md
+      - Cross Cloud Mobility:
+        - documentation/functions/solutions/ccm/index.md
   - Component Functions:
     - Active Directory:
       - documentation/functions/active-directory/Get-ADPrincipalGuid.md
@@ -205,6 +218,7 @@ nav:
       - documentation/functions/aria-suite/aria-automation/Test-vRAConnection.md
       - documentation/functions/aria-suite/aria-automation/Test-vRAIntegrationItem.md
       - documentation/functions/aria-suite/aria-automation/Undo-vRACloudAccount.md
+      - documentation/functions/aria-suite/aria-automation/Undo-vRADeployment.md
       - documentation/functions/aria-suite/aria-automation/Undo-vRADnsConfig.md
       - documentation/functions/aria-suite/aria-automation/Undo-vRAGroup.md
       - documentation/functions/aria-suite/aria-automation/Undo-vRANtpConfig.md
@@ -284,6 +298,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations/New-vROPSNotification.md
       - documentation/functions/aria-suite/aria-operations/Register-vROPSManagementPack.md
       - documentation/functions/aria-suite/aria-operations/Register-vROPSWorkloadDomain.md
+      - documentation/functions/aria-suite/aria-operations/Remove-OperationsDefaultAdapter.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSAdapter.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSAlertPlugin.md
       - documentation/functions/aria-suite/aria-operations/Remove-vROPSCollectorGroup.md
@@ -309,6 +324,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations/Test-vROPSConnection.md
       - documentation/functions/aria-suite/aria-operations/Undo-vROPSAdapter.md
       - documentation/functions/aria-suite/aria-operations/Undo-vROPSCredential.md
+      - documentation/functions/aria-suite/aria-operations/Undo-vROPSDeployment.md
       - documentation/functions/aria-suite/aria-operations/Undo-vROPSDnsConfig.md
       - documentation/functions/aria-suite/aria-operations/Undo-vROPSNtpServer.md
       - documentation/functions/aria-suite/aria-operations/Update-vROPSAdapterCollecterGroup.md
@@ -457,6 +473,7 @@ nav:
       - documentation/functions/nsx/Add-NsxtLdapRole.md
       - documentation/functions/nsx/Add-NsxtNodeProfileSyslogExporter.md
       - documentation/functions/nsx/Add-NsxtPrefix.md
+      - documentation/functions/nsx/Add-NsxtPrincipalIdentity.md
       - documentation/functions/nsx/Add-NsxtVidmRole.md
       - documentation/functions/nsx/Add-PrefixList.md
       - documentation/functions/nsx/Add-RouteMap.md
@@ -555,6 +572,7 @@ nav:
       - documentation/functions/nsx/Undo-NsxtLdapRole.md
       - documentation/functions/nsx/Undo-NsxtNodeProfileSyslogExporter.md
       - documentation/functions/nsx/Undo-RouteMap.md
+      - documentation/functions/nsx/Undo-NsxtPrincipalIdentity.md
       - documentation/functions/nsx/Undo-NsxtVidmRole.md
       - documentation/functions/nsx/Undo-PrefixList.md
     - SDDC Manager:
@@ -808,6 +826,7 @@ nav:
       - documentation/functions/workspace-one-access/Request-WSAToken.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneApplianceNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneDnsConfig.md
+      - documentation/functions/workspace-one-access/Set-WorkspaceOneNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneNsxtIntegration.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneSmtpConfig.md
       - documentation/functions/workspace-one-access/Set-WsaAccountLockout.md
@@ -827,6 +846,26 @@ nav:
       - documentation/functions/workspace-one-access/Undo-WorkspaceOneNsxtIntegration.md
       - documentation/functions/workspace-one-access/Undo-WSADeployment.md
   - Supporting Functions:
+    - Deployment:
+      - Identity and Access Management:
+        - documentation/functions/solutions/iam/Export-IamJsonSpec.md
+        - documentation/functions/solutions/iam/Invoke-IamDeployment.md
+        - documentation/functions/solutions/iam/Invoke-UndoIamDeployment.md
+      - Intelligent Logging and Analytics:
+        - documentation/functions/solutions/ila/Export-IlaJsonSpec.md
+        - documentation/functions/solutions/ila/Invoke-IlaDeployment.md
+        - documentation/functions/solutions/ila/Invoke-UndoIlaDeployment.md
+      - Intelligent Operations Management:
+        - documentation/functions/solutions/iom/Export-IomJsonSpec.md
+        - documentation/functions/solutions/iom/Invoke-IomDeployment.md
+        - documentation/functions/solutions/iom/Invoke-UndoIomDeployment.md
+      - Private Cloud Automation:
+        - documentation/functions/solutions/pca/Export-PcaJsonSpec.md
+        - documentation/functions/solutions/pca/Invoke-PcaDeployment.md
+        - documentation/functions/solutions/pca/Invoke-UndoPcaDeployment.md
+      - Health Reporting and Monitoring:
+        - documentation/functions/solutions/hrm/Deploy-PhotonAppliance.md
+        - documentation/functions/solutions/hrm/Remove-PhotonAppliance.md
     - Tests:
       - documentation/functions/supporting/Test-DnsServers.md
       - documentation/functions/supporting/Test-EndpointConnection.md

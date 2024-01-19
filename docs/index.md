@@ -4,7 +4,7 @@
 
 # PowerShell Module for VMware Validated Solutions
 
-[:material-powershell: &nbsp; PowerShell Gallery][psgallery-module-pvs]{ .md-button .md-button--primary } &nbsp; &nbsp; [:simple-blueprint: &nbsp; VMware Validated Solutions][vvs]{ .md-button .md-button--primary }
+[:material-powershell: &nbsp; PowerShell Gallery][psgallery-module-pvs]{ .md-button .md-button--primary } &nbsp; &nbsp; [:material-cloud-check: &nbsp; VMware Validated Solutions][vvs]{ .md-button .md-button--primary }
 
 `PowerValidatedSolutions` is an open source PowerShell module that supports the automation of many procedures associated with the implementation of the [VMware Validated Solutions][vvs] for [VMware Cloud Foundation][docs-vmware-cloud-foundation].
 
@@ -49,9 +49,9 @@ The following table lists the required PowerShell module dependencies for this m
 
 PowerShell Module                                    | Version   | Publisher     | Reference
 -----------------------------------------------------|-----------|---------------|---------------------------------------------------------------------------
-[VMware.PowerCLI][psgallery-module-powercli]         | >= 13.1.0 | Broadcome     | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
-[VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | Broadcome     | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
-[PowerVCF][psgallery-module-powervcf]                | >= 2.4.0  | Broadcome     | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
+[VMware.PowerCLI][psgallery-module-powercli]         | >= 13.1.0 | Broadcom     | :fontawesome-solid-book: &nbsp; [Documentation][developer-module-powercli]
+[VMware.vSphere.SsoAdmin][psgallery-module-ssoadmin] | >= 1.3.9  | Broadcom     | :fontawesome-brands-github: &nbsp; [GitHub][github-module-ssoadmin]
+[PowerVCF][psgallery-module-powervcf]                | >= 2.4.0  | Broadcom     | :fontawesome-solid-book: &nbsp; [Documentation][docs-module-powervcf]
 [ImportExcel][psgallery-module-importexcel]          | >= 7.8.5  | Douglas Finke | :fontawesome-brands-github: &nbsp; [GitHub][github-module-importexcel]
 
 ## Related Projects

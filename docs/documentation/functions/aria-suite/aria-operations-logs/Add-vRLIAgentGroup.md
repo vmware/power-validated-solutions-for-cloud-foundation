@@ -59,7 +59,7 @@ Accept wildcard characters: False
 
 ### -user
 
-The SDDC Manager vSphere SSO username.
+The username to authenticate to the SDDC Manager.
 
 ```yaml
 Type: String
@@ -75,7 +75,7 @@ Accept wildcard characters: False
 
 ### -pass
 
-The SDDC Manager vSphere SSO password.
+The password to authenticate to the SDDC Manager.
 
 ```yaml
 Type: String

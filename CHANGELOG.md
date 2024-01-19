@@ -47,7 +47,7 @@
 - Added `Connect-SrmRemoteSession` cmdlet to instantiate a connection with the remote Site Recovery Manager server.
 - Added `Test-SrmAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted Site Recovery Manager server.
 - Added `Test-VrmsAuthenticationREST` cmdlet to test authentication with provided credentials to a targeted vSphere Replication server.
-- Added `Remove-DefaultAdapters` cmdlet to support removing the default vCenter Server and vSAN adapters from VMware Aria Operations.
+- Added `Remove-OperationsDefaultAdapter` cmdlet to support removing the default vCenter Server and vSAN adapters from VMware Aria Operations.
 - Added `Undo-vROPSDeployment` cmdlet to support removing VMware Aria Operations from VMware Aria Suite Lifecycle.
 - Added `Get-NsxtLdapStatus` cmdlet to retrieve the configuration status of an identity source in NSX.
 - Added `Export-IomJsonSpec` cmdlet to generate a JSON specification file for Intelligent Operations Management.
