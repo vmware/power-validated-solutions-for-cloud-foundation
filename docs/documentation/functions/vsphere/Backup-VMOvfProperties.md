@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Backup-VMOvfProperties
+Backup the OVF properties for each provided virtual machine.
 
 ## Syntax
 
@@ -13,9 +13,10 @@ Backup-VMOvfProperties [-server] <String> [-user] <String> [-pass] <String> [[-f
 ## Description
 
 The `Backup-VMOvfProperties` cmdlet creates a backup of the OVF properties for each supplied VM.
-The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
 
-- Creates a backup of the VM OVF environment.
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the DR protected VMs from its inventory and then:
+
+- Creates a backup of the VM OVF properties.
 
 ## Examples
 

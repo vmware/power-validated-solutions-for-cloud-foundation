@@ -3274,7 +3274,7 @@ Function Backup-VMOvfProperties {
 
         .DESCRIPTION
         The Backup-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the DR protected VMs from its inventory and then:
         - Creates a backup of the VM OVF environment
 
         .EXAMPLE
@@ -3383,7 +3383,7 @@ Function Restore-VMOvfProperties {
 
         .DESCRIPTION
         The Restore-VMOvfProperties cmdlet creates a backup of the OVF properties for each supplied VM. 
-        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrive the DR protected VMs from its inventory and then:
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values to retrieve the DR protected VMs from its inventory and then:
         - Creates a restore of the VM OVF environment
 
         .EXAMPLE
@@ -10049,10 +10049,10 @@ Function Undo-NamespacePermission {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER sddcDomain
         The name of the workload domain to run against.
@@ -10129,10 +10129,10 @@ Function Enable-Registry {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -10213,10 +10213,10 @@ Function Undo-Registry {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -10289,10 +10289,10 @@ Function Add-NamespaceVmClass {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -10370,10 +10370,10 @@ Function Add-TanzuKubernetesCluster {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -10449,10 +10449,10 @@ Function Undo-TanzuKubernetesCluster {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -11290,10 +11290,10 @@ Function New-vRLIDeployment {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER jsonFile
         The JSON (.json) file for Intelligent Logging and Analytics.
@@ -11400,10 +11400,10 @@ Function Undo-vRLIDeployment {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER environmentName
         The VMware Aria Operations for Logs Environment Name.
@@ -11483,10 +11483,10 @@ Function Add-vRLISmtpConfiguration {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER smtpServer
         The SMTP server FQDN or IP Address.
@@ -11569,10 +11569,10 @@ Function Add-vRLIAuthenticationWSA {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER wsaFqdn
         The Workspace ONE Access FQDN or IP Address.
@@ -11825,10 +11825,10 @@ Function Install-vRLIPhotonAgent {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER vmName
         The Virtual Machine name.
@@ -11932,10 +11932,10 @@ Function Undo-vRLIPhotonAgent {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER vmName
         The Virtual Machine name.
@@ -12014,10 +12014,10 @@ Function Add-vRLIAgentGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER agentGroupName
         The Agent Group Name.
@@ -12087,10 +12087,10 @@ Function Undo-vRLIAgentGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER agentGroupName
         The Agent Group Name.
@@ -15183,10 +15183,10 @@ Function Undo-vROPSDeployment {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER environmentName
         The VMware Aria Operations Environment Name.
@@ -18897,10 +18897,10 @@ Function Undo-vRADeployment {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER environmentName
         The VMware Aria Automation Environment Name.
@@ -20459,7 +20459,7 @@ Export-ModuleMember -Function Undo-vRAvROPsIntegrationItem
 Function Deploy-PhotonAppliance {
     <#
 		.SYNOPSIS
-        Deploy a Photon appliance
+        Deploy a Photon appliance.
 
         .DESCRIPTION
         The Deploy-PhotonAppliance cmdlet deploys the Photon appliance to a vSphere Cluster of a workload Domain.
@@ -20471,6 +20471,57 @@ Function Deploy-PhotonAppliance {
         .EXAMPLE
         Deploy-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -hostname sfo-m01-hrm01 -ipAddress 172.18.95.50 -netmask "24 (255.255.255.0)" -gateway 172.18.95.1 -domain sfo.rainpole.io -dnsServer "172.18.95.4 172.18.95.5" -ntpServer ntp.sfo.rainpole.io -rootPassword VMw@re1! -enableSsh True -enableDebug False -portGroup sfo-m01-cl01-vds01-mgmt -folder sfo-m01-fd-hrm -ovaPath .\vvs_appliance_v0.0.1.ova
         This example deploys the Photon appliance named sfo-m01-hrm01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER password
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain to deploy the Photon appliance.
+
+        .PARAMETER hostname
+        The hostname of the Photon appliance.
+
+        .PARAMETER domain
+        The domain namespace for the Photon appliance.
+
+        .PARAMETER ipAddress
+        The IP address of the Photon appliance.
+
+        .PARAMETER netmask
+        The netmask of the Photon appliance.
+
+        .PARAMETER gateway
+        The gateway of the Photon appliance.
+
+        .PARAMETER dnsServer
+        The DNS servers for the Photon appliance.
+
+        .PARAMETER ntpServer
+        The NTP servers for the Photon appliance.
+
+        .PARAMETER rootPassword
+        The root password for the Photon appliance.
+
+        .PARAMETER enableSsh
+        Enable SSH on the Photon appliance.
+
+        .PARAMETER enableDebug
+        Enable debug mode on the Photon appliance.
+
+        .PARAMETER portgroup
+        The portgroup to place the Photon appliance on.
+
+        .PARAMETER folder
+        The virtual machine folder to place the Photon appliance in.
+
+        .PARAMETER ovaPath
+        The path to the Photon appliance OVA file.
     #>
 
     Param (
@@ -20544,7 +20595,7 @@ Export-ModuleMember -Function Deploy-PhotonAppliance
 Function Remove-PhotonAppliance {
     <#
 		.SYNOPSIS
-        Remove the Photon appliance
+        Remove the Photon appliance.
 
         .DESCRIPTION
         The Remove-PhotonAppliance cmdlet deploys the Photon appliance to a vSphere Cluster of a workload Domain.
@@ -20556,6 +20607,21 @@ Function Remove-PhotonAppliance {
         .EXAMPLE        
         Remove-PhotonAppliance -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-w01 -vmName sfo-m01-hrm01
         This example removes the Photon appliance named sfo-m01-hrm01.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER password
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER sddcDomain
+        The name of the workload domain the Photon appliance is deployed to.
+
+        .PARAMETER vmName
+        The name of the virtual machine for the Photon appliance.
     #>
 
     Param (
@@ -21357,10 +21423,10 @@ Function Undo-vRSLCMDeployment {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -22551,10 +22617,10 @@ Function Undo-WSADeployment {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager vSphere SSO username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager vSphere SSO password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER environmentName
         The Workspace ONE Access Environment Name.
@@ -26165,7 +26231,7 @@ Function Get-vRSLCMServerDetail {
         Get VMware Aria Suite Lifecycle details from SDDC Manager.
 
         .DESCRIPTION
-        The Get-WSAServerDetail cmdlet retrieves the FQDN, root and admin credentials of VMware Aria Suite Lifecycle
+        The Get-vRSLCMServerDetai cmdlet retrieves the FQDN, root and admin credentials of VMware Aria Suite Lifecycle
         Manager from SDDC Manager.
 
         .EXAMPLE

@@ -12,8 +12,7 @@ Get-vRSLCMServerDetail [[-fqdn] <String>] [[-username] <String>] [[-password] <S
 
 ## Description
 
-The `Get-WSAServerDetail` cmdlet retrieves the FQDN, root and admin credentials of VMware Aria Suite Lifecycle
-Manager from SDDC Manager.
+The `Get-vRSLCMServerDetail` cmdlet retrieves the FQDN, root and admin credentials of VMware Aria Suite Lifecycle Manager from SDDC Manager.
 
 ## Examples
 

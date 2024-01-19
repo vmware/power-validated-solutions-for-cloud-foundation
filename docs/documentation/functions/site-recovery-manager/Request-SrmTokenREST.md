@@ -81,7 +81,7 @@ Accept wildcard characters: False
 
 ### -ProgressAction
 
-{{ Fill ProgressAction Description }}
+Progress Action
 
 ```yaml
 Type: ActionPreference

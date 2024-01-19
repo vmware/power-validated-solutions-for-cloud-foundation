@@ -1,34 +1,36 @@
-# Undo-Registry
+# Add-NsxtPrincipalIdentity
 
 ## Synopsis
 
-Disable the embedded Harbor Registry on a Supervisor Cluster
+Add a principal identity to NSX Manager.
 
 ## Syntax
 
 ```powershell
-Undo-Registry [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-NsxtPrincipalIdentity [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
+ [-principalId] <String> [-role] <String> [[-outputPath] <String>] [-ProgressAction <ActionPreference>]
+ [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-Registry` cmdlet disables the embedded Harbor Registry on a Supervisor Cluster.
-The cmdlet connects to
-SDDC Manager using the -server, -user, and -password values:
+The `Add-NsxtPrincipalIdentity` cmdlet adds a principal identity to NSX Manager.
+
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to vCenter Server
-- Disables the Harbour Registry on the Supervisor Cluster.
+- Validates that network connectivity and authentication is possible to NSX Manager
+- Adds a principal identity to NSX Manager.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Undo-Registry -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
+Add-NsxtPrincipalIdentity -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -principalId svc-iom-sfo-m01-nsx01 -role enterprise_admin
 ```
 
-This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy.
+This example adds a principal identity to NSX Manager
 
 ## Parameters
 
@@ -82,7 +84,7 @@ Accept wildcard characters: False
 
 ### -domain
 
-The name of the workload domain to run against.
+The name of the workload Domain.
 
 ```yaml
 Type: String
@@ -91,6 +93,54 @@ Aliases:
 
 Required: True
 Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -principalId
+
+The name of the principal identity to create.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 5
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -role
+
+The role to assign to the principal identity.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 6
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -outputPath
+
+The location where the certificate files should be created.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 7
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

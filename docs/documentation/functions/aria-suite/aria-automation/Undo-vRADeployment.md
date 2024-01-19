@@ -1,34 +1,36 @@
-# Undo-Registry
+# Undo-vRADeployment
 
 ## Synopsis
 
-Disable the embedded Harbor Registry on a Supervisor Cluster
+Remove the VMware Aria Automation from VMware Aria Suite Lifecycle.
 
 ## Syntax
 
 ```powershell
-Undo-Registry [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-vRADeployment [-server] <String> [-user] <String> [-pass] <String> [[-environmentName] <String>]
+ [-monitor] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-Registry` cmdlet disables the embedded Harbor Registry on a Supervisor Cluster.
-The cmdlet connects to
-SDDC Manager using the -server, -user, and -password values:
+The `Undo-vRADeployment` cmdlet removes VMware Aria Automation from VMware Aria Suite Lifecycle.
+
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values.
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
-- Validates that network connectivity and authentication is possible to vCenter Server
-- Disables the Harbour Registry on the Supervisor Cluster.
+- Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+- Validates that the environment exist in VMware Aria Suite Lifecycle
+- Requests a the deletion of VMware Aria Automation from VMware Aria Suite Lifecycle
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Undo-Registry -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-w01
+Undo-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -environmentName xint-env
 ```
 
-This example disables the embedded Harbor Registry on Supervisor Cluster sfo-w01-cl01 with vSPhere Storage Policy vsphere-with-tanzu-policy.
+This example starts a removal of VMware Aria Automation from VMware Aria Suite Lifecycle.
 
 ## Parameters
 
@@ -80,18 +82,34 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -domain
+### -environmentName
 
-The name of the workload domain to run against.
+The VMware Aria Automation Environment Name.
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: 4
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -monitor
+
+Monitor the VMware Aria Suite Lifecycle request.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
