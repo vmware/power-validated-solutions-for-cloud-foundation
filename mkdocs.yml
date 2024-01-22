@@ -136,6 +136,9 @@ nav:
 - Reference:
   - documentation/index.md
   - Solutions:
+    - Prerequisites:
+      - documentation/functions/solutions/lcm.md
+      - documentation/functions/solutions/wsa.md
     - On-Premises:
       - Identity and Access Management:
         - documentation/functions/solutions/iam/index.md
@@ -407,8 +410,12 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMLockerPassword.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMMyVMwareAccount.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMNtpServer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Add-vRSLCMProductNtpServer.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Connect-vRSLCMUpgradeIso.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Disconnect-vRSLCMUpgradeIso.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Export-vRSLCMJsonSpec.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMApplianceNtpConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenterVcenter.md
@@ -429,10 +436,13 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMServerDetail.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMSshStatus.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Import-vRSLCMLockerCertificate.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Install-vRSLCMPSPack.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Invoke-vRSLCMDeployment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMAdapterOperation.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDatacenterVcenter.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMDeployment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/New-vRSLCMLockerPassword.md
@@ -448,6 +458,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMProductNtpServer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Remove-vRSLCMRequest.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Request-vRSLCMProductBinary.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Request-vRSLCMBundle.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Request-vRSLCMToken.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Resume-vRSLCMRequest.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Set-vRSLCMApplianceNtpConfig.md
@@ -457,10 +468,12 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Test-vRSLCMAuthentication.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Test-vRSLCMConnection.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDatacenter.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDeployment.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMDnsConfig.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerCertificate.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerLicense.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMLockerPassword.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMMyVMwareAccount.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Undo-vRSLCMNtpServer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Watch-vRSLCMRequest.md
@@ -823,6 +836,7 @@ nav:
       - documentation/functions/workspace-one-access/Install-WorkspaceOneCertificate.md
       - documentation/functions/workspace-one-access/Invoke-GlobalWsaDeployment.md
       - documentation/functions/workspace-one-access/Invoke-UndoGlobalWsaDeployment.md
+      - documentation/functions/workspace-one-access/New-WSADeployment.md
       - documentation/functions/workspace-one-access/Request-WSAToken.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneApplianceNtpConfig.md
       - documentation/functions/workspace-one-access/Set-WorkspaceOneDnsConfig.md

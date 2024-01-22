@@ -2,6 +2,14 @@
 
 [:material-cloud-check: &nbsp; Documentation][solution]{ .md-button }
 
+!!! note "Solution Prerequisites"
+
+    The following are prerequisites for this solution:
+
+    - [VMware Aria Suite Lifecycle](./../lcm.md)
+    - [Workspace ONE Access (Global)](./../wsa.md)
+    - [Intelligent Operations Management](./../iom/index.md)
+
 Select an option for the solution.
 
 === ":material-location-enter: &nbsp; Solution Deployment"

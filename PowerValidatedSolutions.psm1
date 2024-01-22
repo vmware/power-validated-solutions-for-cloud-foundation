@@ -3989,7 +3989,7 @@ Function Set-vRSLCMDnsConfig {
         This example configures the VMware Aria Suite Lifecycle appliance managed by SDDC Manager sfo-vcf01.sfo.rainpole.io to use 172.16.11.4, 172.16.11.5, 172.17.11.4, and 172.17.11.5 as its DNS servers and rainpole.io, sfo.rainpole.io, and lax.rainpole.io as its DNS search domains.
 
         .PARAMETER server
-        The SDDC Manager hostname or IP address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username used to connect to the SDDC Manager.
@@ -4607,7 +4607,7 @@ Function Undo-vROPSDnsConfig {
         The password used to authenticate to SDDC Manager.
 
         .PARAMETER sddcManagerRootPass
-        The SDDC Manager root password to connect with.
+        The root password to authenticate to SDDC Manager appliance. to connect with.
 
         .PARAMETER environmentName
         The SDDC Manager environment name to connect with.
@@ -5130,7 +5130,7 @@ Function Undo-vRADnsConfig {
         The password used to authenticate to SDDC Manager.
 
         .PARAMETER sddcManagerRootPass
-        The SDDC Manager root password to connect with.
+        The root password to authenticate to SDDC Manager appliance. to connect with.
 
         .PARAMETER vraUser
         The VMware Aria Automation appliance user to connect with.
@@ -5383,10 +5383,10 @@ Function Undo-vRANtpConfig {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account used to connect to the SDDC Manager API.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user account password used to connect to the SDDC Manager API.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER vraUser
         The VMware Aria Automation user account used to connect to the VMware Aria Automation API.
@@ -9763,10 +9763,10 @@ Function Add-Namespace {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The Active Directory domain.
@@ -9852,10 +9852,10 @@ Function Undo-Namespace {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The Active Directory domain.
@@ -9924,10 +9924,10 @@ Function Add-NamespacePermission {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER sddcDomain
         The SDDC Manager domain.
@@ -12156,10 +12156,10 @@ Function Register-vRLIWorkloadDomain {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -12232,10 +12232,10 @@ Function Set-vRLISyslogEdgeCluster {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -12309,10 +12309,10 @@ Function Undo-vRLISyslogEdgeCluster {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -12382,10 +12382,10 @@ Function Add-vRLILogArchive {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER emailAddress
         The email address to send notifications to.
@@ -12463,10 +12463,10 @@ Function Add-vRLIAuthenticationGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The domain name.
@@ -12621,10 +12621,10 @@ Function Add-vRLIAlertDatacenter {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER sddcDomainName
         The name of the workload domain to run against.
@@ -17265,13 +17265,13 @@ Function Import-vROPSNotification {
         This example adds notifications based on the comma seperated value file provided to VMware Aria Operations.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER csvPath
         The path to the .csv file.
@@ -17337,13 +17337,13 @@ Function Test-vROPsAdapterStatusByType {
         This example validates the integration status between VMware Aria Operations and VMware Aria Automation adapter.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER adapterKind
         The adapter kind.
@@ -17408,13 +17408,13 @@ Function Update-vROPSvRAAdapterCredential {
         This example update the credential of VMware Aria Automation adapter with name "VMware Aria Automation Credentials" in VMware Aria Operations.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER credential_displayname
         The credential display name.
@@ -18977,13 +18977,13 @@ Function Update-vRAOrganizationDisplayName {
         This example configures the organization display name as 'Rainpole'.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER displayName
         The organization display name.
@@ -19051,13 +19051,13 @@ Function New-vRACloudAccount {
         This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -19171,13 +19171,13 @@ Function Undo-vRACloudAccount {
         This example creates vSphere and NSX Cloud Accounts in VMware Aria Automation.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -19270,13 +19270,13 @@ Function Update-vRACloudAccountZone {
         This example updates the placement policy for the Cloud Zone to ADVANCED in VMware Aria Automation.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -19379,13 +19379,13 @@ Function Add-vROvCenterServer {
         This example adds the vCenter Server instance from the "sfo-w01" workload domain from the embedded VMware Aria Automation Orchestrator catalog.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -19596,13 +19596,13 @@ Function Remove-vROvCenterServer {
         This example removes the vCenter Server instance from the "sfo-w01" workload domain from the embedded VMware Aria Automation Orchestrator catalog.
 
         .PARAMETER server
-        The SDDC Manager FQDN or IP Address.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
         The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The name of the workload domain to run against.
@@ -19706,10 +19706,10 @@ Function Add-vROTrustedCertificate {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account to use for authentication.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user password to use for authentication.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER vraUser
         The VMware Aria Automation user account to use for authentication.
@@ -19813,10 +19813,10 @@ Function Add-vRANotification {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account to use for authentication.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user password to use for authentication.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER vraUser
         The VMware Aria Automation user account to use for authentication.
@@ -19895,10 +19895,10 @@ Function Add-vRAUser {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager user account to use for authentication.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager user password to use for authentication.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER vraUser
         The VMware Aria Automation user account to use for authentication.
@@ -20671,7 +20671,7 @@ Export-ModuleMember -Function Remove-PhotonAppliance
 Function Export-vRSLCMJsonSpec {
     <#
         .SYNOPSIS
-        Create JSON specification for VMware Aria Suite Lifecycle
+        Create JSON specification for VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Export-vRSLCMJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation workbook
@@ -20751,14 +20751,20 @@ Export-ModuleMember -Function Export-vRSLCMJsonSpec
 Function Invoke-vRSLCMDeployment {
     <#
         .SYNOPSIS
-        End-to-end Deployment of VMware Aria Suite Lifecycle
+        End-to-end deployment of VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Invoke-vRSLCMDeployment cmdlet is a single function to deploy and configure VMware Aria Suite Lifecycle.
 
         .EXAMPLE
-        Invoke-vRSLCMDeployment -jsonFile .\vrslcmDeploySpec.json
-        This example deploies and configures VMware Aria Suite Lifecycle.
+        Invoke-vRSLCMDeployment -jsonFile .\vrslcmDeploySpec.json -binaries .\binaries
+        This example deploys and configures VMware Aria Suite Lifecycle.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be used.
+
+        .PARAMETER binaries
+        The path to the product binaries.
     #>
 
     Param (
@@ -20862,29 +20868,29 @@ Export-ModuleMember -Function Invoke-vRSLCMDeployment
 Function Add-vRSLCMMyVMwareAccount {
     <#
         .SYNOPSIS
-        Add a Customer Connection Account to the VMware Aria Suite Lifecycle.
+        Add a VMware Customer Connect account to the VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
-        The Add-vRSLCMMyVMwareAccount cmdlet adds a Customer Connection Account to VMware Aria Suite Lifecycle based on
+        The Add-vRSLCMMyVMwareAccount cmdlet adds a VMware Customer Connect Account to VMware Aria Suite Lifecycle based on
         credentials added to the VMware Aria Suite Lifecycle locker. The cmdlet connects to SDDC Manager using the
         -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Verifies that the account is not present in VMware Aria Suite Lifecycle
-        - Adds the Customer Connection Account to VMware Aria Suite Lifecycle
+        - Adds the VMware Customer Connect Account to VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Add-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
-        This example adds an account to Customer Connection Account using an alias of 'myVmwareAccount' to VMware Aria Suite Lifecycle.
+        This example adds a VMware Customer Connect account using an alias of 'myVmwareAccount' to VMware Aria Suite Lifecycle.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER alias
         The alias of the password credential in the VMware Aria Suite Lifecycle locker.
@@ -20907,12 +20913,12 @@ Function Add-vRSLCMMyVMwareAccount {
                                 if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
                                     New-vRSLCMMyVmwareAccount -alias $alias | Out-Null
                                     if ((Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
-                                        Write-Output "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
+                                        Write-Output "Adding VMware Customer Connect Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
+                                        Write-Error "Adding VMware Customer Connect Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Adding Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), already exists: SKIPPED"
+                                    Write-Warning "Adding VMware Customer Connect Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), already exists: SKIPPED"
                                 }
                             } else {
                                 Write-Error "Unable to locate the password with alias ($alias) in VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -20931,28 +20937,28 @@ Export-ModuleMember -Function Add-vRSLCMMyVMwareAccount
 Function Undo-vRSLCMMyVMwareAccount {
     <#
         .SYNOPSIS
-        Remove a Customer Connection Account from VMware Aria Suite Lifecycle.
+        Remove a VMware Customer Connect Account from VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
-        The Undo-vRSLCMMyVMwareAccount cmdlet removes a Customer Connection Account from VMware Aria Suite Lifecycle.
+        The Undo-vRSLCMMyVMwareAccount cmdlet removes a VMware Customer Connect Account from VMware Aria Suite Lifecycle.
         The cmdlet connects to SDDC Manager using the -server, -user, and -password values then:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
         - Verifies that the account is present in VMware Aria Suite Lifecycle
-        - Removes the Customer Connection Account from VMware Aria Suite Lifecycle
+        - Removes the VMware Customer Connect Account from VMware Aria Suite Lifecycle
 
         .EXAMPLE
         Undo-vRSLCMMyVMwareAccount -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -alias myVmwareAccount
-        This example removes the Customer Connection Account 'myVmwareAccount' from VMware Aria Suite Lifecycle.
+        This example removes the VMware Customer Connect Account 'myVmwareAccount' from VMware Aria Suite Lifecycle.
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER alias
         The alias of the password credential in the VMware Aria Suite Lifecycle locker.
@@ -20974,12 +20980,12 @@ Function Undo-vRSLCMMyVMwareAccount {
                             if (Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias}) {
                                 Remove-vRSLCMMyVmwareAccount -alias $alias | Out-Null
                                 if (!(Get-vRSLCMMyVmwareAccount | Where-Object {$_.userName -match $alias})) {
-                                    Write-Output "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
+                                    Write-Output "Removing VMware Customer Connect Account from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): SUCCESSFUL"
                                 } else {
-                                    Write-Error "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
+                                    Write-Error "Removing VMware Customer Connect Account from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias): POST_VALIDATION_FAILED"
                                 }
                             } else {
-                                Write-Warning "Removing Customer Connection Account to the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), does not exist: SKIPPED"
+                                Write-Warning "Removing VMware Customer Connect Account from the VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.fqdn)) with alias ($alias), does not exist: SKIPPED"
                             }
                         }
                     }
@@ -21013,10 +21019,10 @@ Function New-vRSLCMDatacenter {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER datacenterName
         The name of the datacenter to add to the inventory.
@@ -21081,10 +21087,10 @@ Function New-vRSLCMDatacenterVcenter {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER datacenterName
         The name of the datacenter to add the vCenter Server to.
@@ -21162,10 +21168,10 @@ Function Undo-vRSLCMDatacenter {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER datacenterName
         The name of the datacenter to delete.
@@ -21227,10 +21233,10 @@ Function Update-vRSLCMPSPack {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER psPack
         The Product Support Pack to install.
@@ -21288,7 +21294,7 @@ Export-ModuleMember -Function Update-vRSLCMPSPack
 Function Request-vRSLCMBundle {
     <#
         .SYNOPSIS
-        Request the download of the VMware Aria Suite Lifecycle bundle
+        Request the download of the VMware Aria Suite Lifecycle bundle.
 
         .DESCRIPTION
         The Request-vRSLCMBundle cmdlet requests the download of the VMware Aria Suite Lifecycle bundle in SDDC
@@ -21297,6 +21303,15 @@ Function Request-vRSLCMBundle {
         .EXAMPLE
         Request-vRSLCMBundle -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
         This example requests the download of the VMware Aria Suite Lifecycle bundle in SDDC Manager.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -21333,7 +21348,7 @@ Export-ModuleMember -Function Request-vRSLCMBundle
 Function New-vRSLCMDeployment {
     <#
         .SYNOPSIS
-        Deploy VMware Aria Suite Lifecycle
+        Deploy VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The New-vRSLCMDeployment cmdlet deploys VMware Aria Suite Lifecycle via SDDC Manager. The cmdlet
@@ -21345,6 +21360,21 @@ Function New-vRSLCMDeployment {
         .EXAMPLE
         New-vRSLCMDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
         This example starts a deployment of VMware Aria Suite Lifecycle using the JSON Specification for VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be used.
+
+        .PARAMETER outputPath
+        The path to the output file.
     #>
 
     Param (
@@ -21405,7 +21435,7 @@ Export-ModuleMember -Function New-vRSLCMDeployment
 Function Undo-vRSLCMDeployment {
     <#
         .SYNOPSIS
-        Remove VMware Aria Suite Lifecycle
+        Remove VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Undo-vRSLCMDeployment cmdlet removes VMware Aria Suite Lifecycle from SDDC Manager. The cmdlet connects to
@@ -21427,6 +21457,9 @@ Function Undo-vRSLCMDeployment {
 
         .PARAMETER pass
         The password to authenticate to the SDDC Manager.
+
+        .PARAMETER rootPass
+        The root password to authenticate to the SDDC Manager appliance.
     #>
 
     Param (
@@ -21470,7 +21503,7 @@ Export-ModuleMember -Function Undo-vRSLCMDeployment
 Function Install-vRSLCMCertificate {
     <#
         .SYNOPSIS
-        Install a signed certificate on VMware Aria Suite Lifecycle
+        Install a signed certificate on VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
         The Install-vRSLCMCertificate cmdlet installs a Certifiate Authority signed certificate on VMware Aria Suite
@@ -21482,6 +21515,18 @@ Function Install-vRSLCMCertificate {
         .EXAMPLE
         Install-vRSLCMCertificate -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\vrslcmDeploySpec.json
         This example installs a Certifiate Authority signed certificate on VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be used.
     #>
 
     Param (
@@ -21586,7 +21631,7 @@ Export-ModuleMember -Function Install-vRSLCMCertificate
 Function Connect-vRSLCMUpgradeIso {
     <#
         .SYNOPSIS
-        Connects the upgrade ISO to VMware Aria Suite Lifecycle
+        Connects the upgrade ISO to VMware Aria Suite Lifecycle appliance.
 
         .DESCRIPTION
         The Connect-vRSLCMUpgradeIso cmdlet connects the upgrade ISO to VMware Aria Suite Lifecycle. The cmdlet
@@ -21598,16 +21643,16 @@ Function Connect-vRSLCMUpgradeIso {
 
         .EXAMPLE
         Connect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-8.14.0.4-22630472-updaterepo"
-        This example connects the upgrade ISO to VMware Aria Suite Lifecycle
+        This example connects the upgrade ISO to VMware Aria Suite Lifecycle appliance.
 
         .PARAMETER server
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER contentLibrary
         The name of the vSphere content library.
@@ -21677,10 +21722,10 @@ Export-ModuleMember -Function Connect-vRSLCMUpgradeIso
 Function Disconnect-vRSLCMUpgradeIso {
     <#
         .SYNOPSIS
-        Disconnects the ISO from VMware Aria Suite Lifecycle
+        Disconnects the upgrade ISO to VMware Aria Suite Lifecycle appliance.
 
         .DESCRIPTION
-        The Disconnect-vRSLCMUpgradeIso cmdlet disconnects the ISO from VMware Aria Suite Lifecycle. The cmdlet
+        The Disconnect-vRSLCMUpgradeIso cmdlet disconnects the upgrade ISO from VMware Aria Suite Lifecycle. The cmdlet
         connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
@@ -21688,16 +21733,16 @@ Function Disconnect-vRSLCMUpgradeIso {
 
         .EXAMPLE
         Disconnect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example disconnects the ISO from VMware Aria Suite Lifecycle
+        This example disconnects the upgrade ISO from VMware Aria Suite Lifecycle appliance.
 
         .PARAMETER server
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -22502,6 +22547,33 @@ Function New-WSADeployment {
         .EXAMPLE
         New-WSADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
         This example starts a deployment of a Clustered Workspace ONE Access using the Planning and Preparation Workbook and deploying the OVA from a vSphere Content Library.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation Workbook (.xlsx) file.
+
+        .PARAMETER monitor
+        Switch to monitor the deployment of Workspace ONE Access.
+
+        .PARAMETER standard
+        Switch to deploy Workspace ONE Access in Standard (Single Node) mode.
+
+        .PARAMETER customVersion
+        The version of Workspace ONE Access to deploy.
+
+        .PARAMETER useContentLibrary
+        Switch to deploy the Workspace ONE Access OVA from a vSphere Content Library.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to deploy the Workspace ONE Access OVA from.
     #>
 
     Param (
@@ -24211,10 +24283,10 @@ Function Add-ClusterGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24292,10 +24364,10 @@ Function Undo-ClusterGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24371,10 +24443,10 @@ Function Add-VmStartupRule {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24462,10 +24534,10 @@ Function Undo-VmStartupRule {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24538,10 +24610,10 @@ Function Move-VMtoFolder {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24616,10 +24688,10 @@ Function Add-VdsPortGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24689,10 +24761,10 @@ Function Undo-VdsPortGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The SDDC Manager domain.
@@ -24758,10 +24830,10 @@ Function Import-vRSLCMLockerCertificate {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER certificateAlias
         The alias of the certificate to add to the VMware Aria Suite Lifecycle locker.
@@ -24843,10 +24915,10 @@ Function Undo-vRSLCMLockerCertificate {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER certificateAlias
         The alias of the certificate to remove from the VMware Aria Suite Lifecycle locker.
@@ -24908,10 +24980,10 @@ Function New-vRSLCMLockerPassword {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER alias
         The alias of the password to add to the VMware Aria Suite Lifecycle locker.
@@ -24988,10 +25060,10 @@ Function Undo-vRSLCMLockerPassword {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER alias
         The alias of the password to remove from the VMware Aria Suite Lifecycle locker.
@@ -25052,10 +25124,10 @@ Function New-vRSLCMLockerLicense {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER alias
         The alias of the license to add to the VMware Aria Suite Lifecycle locker.
@@ -25130,10 +25202,10 @@ Function Undo-vRSLCMLockerLicense {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER alias
         The alias of the license to remove from the VMware Aria Suite Lifecycle locker.
@@ -25194,10 +25266,10 @@ Function Add-VmGroup {
         The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager admin user.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager admin password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domain
         The Active Directory Domain name.
@@ -26052,13 +26124,13 @@ Function Get-vCenterServerDetail {
         This example retrieves the vCenter Server details for the Workload Domain sfo-w01.
 
         .PARAMETER server
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER user
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domainType
         The Workload Domain type.
@@ -26152,13 +26224,13 @@ Function Get-NsxtServerDetail {
         This example retrieves the vCenter Server details for the Workload Domain sfo-w01.
 
         .PARAMETER fqdn
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER username
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER password
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER domainType
         The Workload Domain type.
@@ -26239,13 +26311,13 @@ Function Get-vRSLCMServerDetail {
         This example retrieves the VMware Aria Suite Lifecycle details from SDDC Manager.
 
         .PARAMETER fqdn
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER username
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER password
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -26304,13 +26376,13 @@ Function Get-WSAServerDetail {
         This example retrieves the Workspace ONE Access details from SDDC Manager.
 
         .PARAMETER fqdn
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER username
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER password
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -26371,13 +26443,13 @@ Function Get-vRAServerDetail {
         This example retrieves the VMware Aria Automation details from SDDC Manager.
 
         .PARAMETER fqdn
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER username
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER password
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -26435,13 +26507,13 @@ Function Get-vROPsServerDetail {
         This example retrieves the VMware Aria Operations details from SDDC Manager.
 
         .PARAMETER fqdn
-        The SDDC Manager FQDN.
+        The fully qualified domain name of the SDDC Manager.
 
         .PARAMETER username
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER password
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -26510,10 +26582,10 @@ Function Get-vRLIServerDetail {
         The vCenter Server FQDN.
 
         .PARAMETER username
-        The SDDC Manager administrator username.
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER password
-        The SDDC Manager administrator password.
+        The password to authenticate to the SDDC Manager.
     #>
 
     Param (
@@ -26577,7 +26649,7 @@ Function Get-VCFDnsSearchDomain {
         The SDDC Manager appliance name.
 
         .PARAMETER sddcManagerRootPass
-        The SDDC Manager root password.
+        The root password to authenticate to SDDC Manager appliance..
     #>
 
     Param (
