@@ -420,6 +420,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMDatacenterVcenter.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMEnvironment.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMEnvironmentVMs.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMHealth.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLoadbalancer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMLockerCertificate.md
@@ -428,6 +429,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMMyVmwareAccount.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductBinaries.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductBinariesMapped.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductDetails.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductNode.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductNtpServer.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductVersion.md
