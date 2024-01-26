@@ -38,4 +38,4 @@ Select an option for the solution.
     | [`Undo-NsxtPrincipalIdentity`](./../../nsx/Undo-NsxtPrincipalIdentity.md)               | Procedure |
     | [`Undo-AntiAffinityRule`](./../../vsphere/Undo-AntiAffinityRule.md)                     | Procedure |
 
-[solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-cloud-based-network-visibility-v1/GUID-2C1C697A-A959-4C87-827F-616C66F4482A.html
+[solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-intelligent-network-visibility-v1/GUID-8E4C43CD-AFB2-48A6-B6F3-86BFBFE46C23.html

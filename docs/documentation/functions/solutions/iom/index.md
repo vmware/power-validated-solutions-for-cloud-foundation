@@ -17,6 +17,7 @@ Select an option for the solution.
 
     | Function                                                                                                       | Type                  |
     | -------------------------------------------------------------------------------------------------------------- | --------------------- |
+    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                  | End-to-End Deployment    |
     | [`Invoke-IomDeployment`](Invoke-IomDeployment.md)                                                              | End-to-End Deployment |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                        | Procedure             |
     | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                                                  | Procedure             |
@@ -40,7 +41,7 @@ Select an option for the solution.
     | [`Import-vROPSUserGroup`](./../../aria-suite/aria-operations/Import-vROPSUserGroup.md)                         | Procedure             |
     | [`Add-vROPSCurrency`](./../../aria-suite/aria-operations/Add-vROPSCurrency.md)                                 | Procedure             |
     | [`Add-vROPSAlertPluginEmail`](./../../aria-suite/aria-operations/Add-vROPSAlertPluginEmail.md)                 | Procedure             |
-    | [`Remove-OperationsDefaultAdapter`](./../../aria-suite/aria-operations/Remove-OperationsDefaultAdapter.md)                      | Procedure             |
+    | [`Remove-OperationsDefaultAdapter`](./../../aria-suite/aria-operations/Remove-OperationsDefaultAdapter.md)     | Procedure             |
     | [`Register-vROPSManagementPack`](./../../aria-suite/aria-operations/Register-vROPSManagementPack.md)           | Procedure             |
     | [`Add-vROPSVcfCredential`](./../../aria-suite/aria-operations/Add-vROPSVcfCredential.md)                       | Procedure             |
     | [`Add-vROPSVcenterCredential`](./../../aria-suite/aria-operations/Add-vROPSVcenterCredential.md)               | Procedure             |

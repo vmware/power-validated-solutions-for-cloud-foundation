@@ -4,6 +4,7 @@ VMware Aria Suite Lifecycle deployment is a prerequisite for the following solut
 
 - [Intelligent Logging and Analytics](./ila/index.md)
 - [Intelligent Operations Management](./iom/index.md)
+- [Intelligent Network Visibility](./inv/index.md)
 - [Private Cloud Automation](./pca/index.md)
 - [Health Reporting and Monitoring](./hrm/index.md)
 

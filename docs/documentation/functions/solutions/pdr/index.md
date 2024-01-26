@@ -80,4 +80,4 @@ Select an option for the solution.
     | [`Install-vRLIPhotonAgent`](./../../aria-suite/aria-operations-logs/Install-vRLIPhotonAgent.md)  | Procedure |
     | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)            | Procedure |
 
-[solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-private-cloud-automation-v1/GUID-33896484-4331-46F1-8875-B487BBEDCE05.html
+[solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-site-protection-and-disaster-recovery-v1/GUID-CA4DCF12-8BCC-4137-884C-E9DB2A19FAA4.html
