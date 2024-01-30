@@ -2,7 +2,7 @@
 
 ## v2.8.0
 
-> Release Date: Unreleased
+> Release Date: 2024-01-30
 
 - Added documentation for each cmdlet available from `Get-Help` and the module's [online documentation](https://vmware.github.io/power-validated-solutions-for-cloud-foundation/).
 - Added `Export-IamJsonSpec` cmdlet to generate a JSON specification file for Identify and Access Management.
@@ -63,7 +63,7 @@
 - Added `Request-VrslcmBundle` cmdlet to download the VMware Aria Suite Lifecycle bundle in SDDC Manager.
 - Added `New-VrslcmDeployment` cmdlet to perform the deployment of VMware Aria Suite Lifecycle using SDDC Manager.
 - Added `Install-VrslcmCertificate` cmdlet to install a signed certificate for VMware Aria Suite Lifecycle using SDDC Manager.
-- Added `Invoke-UndoPcaDeployment` cmldet to perform an end-to-end removal of Private Cloud Automation.
+- Added `Invoke-UndoPcaDeployment` cmdlet to perform an end-to-end removal of Private Cloud Automation.
 - Added `Export-GlobalWsaJsonSpec` cmdlet to generate a JSON specification file for Workspace ONE Access.
 - Added `Invoke-GlobalWsaDeployment` cmdlet to perform an end-to-end install of Workspace ONE Access.
 - Added `Invoke-UndoGlobalWsaDeployment` cmdlet to perform an end-to-end removal of Workspace ONE Access.
@@ -80,7 +80,7 @@
 - Added `Get-SrmProtectionGroup` cmdlet to retrieve a protection group from Site Recovery Manager.
 - Added `Add-SrmProtectionGroup` cmdlet to add a protection group to Site Recovery Manager.
 - Added `Remove-SrmProtectionGroup` cmdlet to remove a protection group from Site Recovery Manager.
-- Added `Connect-vRSLCMpgradeIso` cmdlet to connect an upgrade ISO on VMware Aria Suite Lifecycle.
+- Added `Connect-vRSLCMUpgradeIso` cmdlet to connect an upgrade ISO on VMware Aria Suite Lifecycle.
 - Added `Disconnect-vRSLCMUpgradeIso` cmdlet to disconnect an upgrade ISO from VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMUpgradeStatus` cmdlet to retrieve the status of an upgrade of VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMUpgrade` cmdlet to start check, prepare, pre-validate and upgrade operations on VMware Aria Suite Lifecycle.
@@ -92,7 +92,7 @@
 - Added `Get-SrmRecoveryPlanStep` cmdlet to retrieve steps from a recovery plan in Site Recovery Manager.
 - Added `Add-SrmRecoveryPlanCalloutStep` cmdlet to add a callout step to a recovery plan in Site Recovery Manager.
 - Added `Get-SrmRecoveryPlanVm` cmdlet to retrieve a virtual machine from a recovery plan in Site Recovery Manager.
-- Added `Set-SrmRecvoeryPlanVmPriority` cmdlet to set the restart priority of a virtual machine from a recovery plan in Site Recovery Manager.
+- Added `Set-SrmRecoveryPlanVmPriority` cmdlet to set the restart priority of a virtual machine from a recovery plan in Site Recovery Manager.
 - Added `Deploy-PhotonAppliance` cmdlet to deploy the Photon appliance for the Health Reporting and Monitoring validated solution.
 - Added `Remove-PhotonAppliance` cmdlet to remove the Photon appliance for the Health Reporting and Monitoring validated solution.
 - Fixed `Undo-SddcManagerRole` cmdlet where a blank line is returned due to no API response data.
