@@ -21503,8 +21503,8 @@ Function Request-vRSLCMBundle {
                 $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
                 if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -ne 'SUCCESSFUL') {
                     $request = Request-VCFBundle -id (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).id
-                    Start-Sleep 5
-                    Do { $taskStatus = Get-VCFTask -id $($request.id) | Select-Object status; Start-Sleep 5 } Until ($taskStatus -ne "IN_PROGRESS")
+                    Start-Sleep 10
+                    Do { $taskStatus = Get-VCFTask -id $request.id } While ($taskStatus.status -in "In Progress","IN_PROGRESS")
                     if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
                         Write-Output "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: SUCCESSFUL"
                     } else {
