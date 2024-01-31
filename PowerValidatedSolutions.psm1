@@ -37460,6 +37460,97 @@ Function Start-vRSLCMUpgrade {
 }
 Export-ModuleMember -Function Start-vRSLCMUpgrade
 
+Function Get-vRSLCMProductDetails {
+    <#
+        .SYNOPSIS
+        Get product details from VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Get-vRSLCMProductDetails cmdlet gets the product details for a specific product in VMware Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Get-vRSLCMProductDetails -productid vrli
+        This example gets all environments in VMware Aria Suite Lifecycle.
+
+        .PARAMETER productid
+        The product ID of the product to get the details for.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","vra","vrli","vrni","vrops","vro","vssc")][ValidateNotNullOrEmpty()] [String]$productid
+    )
+
+    Try {
+        $productname = (Get-vRSLCMEnvironment | where-object{$_.products.id -eq $productid }).environmentId
+            if ($productname -ne $null) {
+                $envid = @()
+                foreach( $product in $productname) {
+                    $envid = $product
+                    $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$envid/products/$productid"
+                    $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+                    $response
+                } 
+            } else {
+                Write-Warning "$productid is not installed in VMware Aria Suite Lifecycle"
+        }
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+} 
+Export-ModuleMember -Function Get-vRSLCMProductDetails
+
+Function Get-vRSLCMEnvironmentVMs {
+    <#
+        .SYNOPSIS
+        Get product virtual machines in VMware Aria Suite Lifecycle.
+
+        .DESCRIPTION
+        The Get-vRSLCMEnvironmentVMs cmdlet gets the virtual machines that exist for specific product in VMware Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Get-vRSLCMEnvironmentVMs -server sfo-sddc01.rainpole.io -user administrator -pass VMw@re1! -productid vrli
+        This example gets virtual machines that exist for VMware Aria Operations for Logs that existing in VMware Aria Suite Lifecycle.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER productid
+        The product ID of the product to get the details for.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateSet("vidm","vra","vrli","vrni","vrops","vro","vssc")][ValidateNotNullOrEmpty()] [String]$productid
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                        $nodes = (Get-vRSLCMProductDetails -productid $productid).nodes.properties.vmname
+                        $nodelist = $nodes | Select-Object -Unique   
+                    } else {
+                        Write-Warning "Unable to authenticate to VMware Aria Suite Lifecycle $($vcfVrslcmDetails.fqdn): PRE_VALIDATION_FAILED"
+                    }
+                }
+            }
+        }
+        return $nodelist
+    } Catch {
+        Write-Error $_.Exception.Message
+    }
+} 
+Export-ModuleMember -Function Get-vRSLCMEnvironmentVMs
+
 #EndRegion  End VMware Aria Suite Lifecycle Functions                        ######
 ###################################################################################
 
