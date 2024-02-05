@@ -20967,7 +20967,8 @@ Function Invoke-vRSLCMDeployment {
 
                     if (!$failureDetected) { 
                         Show-PowerValidatedSolutionsOutput -message "Deploying $lcmProductName using SDDC Manager"
-                        $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmDeploymentSpec.json")
+                        #$outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmDeploymentSpec.json")
+                        $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" 
                         $StatusMsg = New-vRSLCMDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                     }
@@ -21019,12 +21020,11 @@ Function Invoke-vRSLCMDeployment {
 
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Upgrading VMware Aria Suite Lifecycle"
-                                Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
-                            }
-
-                            if (!$failureDetected) {
-                                Show-PowerValidatedSolutionsOutput -message "Deleting Snapshots of $lcmProductName"
-                                Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
+                                $upgradeIso = (Get-ChildItem $binaries | Where-Object {$_.name -match ("(updaterepo.iso)")}).basename
+                                $StatusMsg = Connect-vRSLCMUpgradeIso -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -contentLibrary $jsonInput.contentLibraryName -libraryItem $upgradeIso -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                $StatusMsg = Start-vRSLCMUpgrade -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -type CDROM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                             }
                         }
                     } else {
@@ -21585,7 +21585,7 @@ Function New-vRSLCMDeployment {
                         if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
                             $newRequest = New-VCFvRSLCM -json $jsonSpecFileName
                             Start-Sleep 5
-                            Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
+                            Do { $request = Get-VCFTask -id $newRequest.id } While ($request.status -in "In Progress","IN_PROGRESS")
                             if ($request.status -eq "Failed") {
                                 Write-Error "Deployment of VMware Aria Suite Lifecyle Finished with a Status ($(($request.status).ToUpper())): POST_VALIDATED_FAILED"
                             } else {
@@ -21611,31 +21611,31 @@ Export-ModuleMember -Function New-vRSLCMDeployment
 Function Undo-vRSLCMDeployment {
     <#
         .SYNOPSIS
-        Remove VMware Aria Suite Lifecycle.
+        Removes a VMware Aria Suite Lifecycle deployment from SDDC Manager
 
         .DESCRIPTION
-        The Undo-vRSLCMDeployment cmdlet removes VMware Aria Suite Lifecycle from SDDC Manager. The cmdlet connects to
-        SDDC Manager using the -server, -user, and -password values.
+        The Undo-vRSLCMDeployment cmdlet starts the upgrade process of VMware Aria Suite Lifecycle. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values.
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
-        - Validates that the environment exist in VMware Aria Suite Lifecycle
-        - Requests a deletion of VMware Aria Suite Lifecycle
+        - Validates that VMware Aria Suite Lifecycle is deployed
+        - Removes VMware Aria Suite Lifecycle
 
         .EXAMPLE
-        Undo-vRSLCMDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1!
-        This example starts the removal of VMware Aria Suite Lifecycle from SDDC Manager.
+        Undo-vRSLCMDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -rootPass VMw@re1!
+        This example disconnects the ISO from VMware Aria Suite Lifecycle
 
         .PARAMETER server
-        The fully qualified domain name of the SDDC Manager.
+        The SDDC Manager FQDN.
 
         .PARAMETER user
-        The username to authenticate to the SDDC Manager.
+        The SDDC Manager administrator username.
 
         .PARAMETER pass
-        The password to authenticate to the SDDC Manager.
+        The SDDC Manager administrator password.
 
         .PARAMETER rootPass
-        The root password to authenticate to the SDDC Manager appliance.
+        The SDDC Manager root account password.
     #>
 
     Param (
@@ -21648,24 +21648,31 @@ Function Undo-vRSLCMDeployment {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType "MANAGEMENT")) {
-                    if (Get-VCFvRSLCM) {
-                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                $scriptCommand = 'psql -h localhost -U postgres -d platform -c "update vrslcm set status = ''DISABLED''"'
-                                Invoke-VMScript -VM  (($server).split('.')[-0]) -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass | Out-Null
-                                $newRequest = Remove-VCFvRSLCM
-                                Start-Sleep 3
-                                Do { $request = Get-VCFTask -id $newRequest.id } Until ($request.status -ne "In Progress")
-                                if ($request.status -eq "FAILED") {
-                                    Write-Error "Removing VMware Aria Suite Lifecycle ($((Get-VCFvRSLCM).fqdn)) from SDDC Manager: POST_VALIDATED_FAILED"
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Get-VM -Name $vcfVrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn) {
+                                    if (Get-VCFvRSLCM) {
+                                        $scriptCommand = 'psql -h localhost -U postgres -d platform -c "update vrslcm set status = ''DISABLED''"'
+                                        Invoke-VMScript -VM $server.Split('.')[-0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $rootPass | Out-Null
+                                        $request = Remove-VCFVrslcm
+                                        Start-Sleep 3
+                                        Do { $getStatus = (Get-VCFTask $request.id).status } Until ($getStatus -ne "IN_PROGRESS")
+                                        if ($getStatus -eq "COMPLETED") {
+                                            Write-Output "Removing VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) from SDDC Manager: SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Removing VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) from SDDC Manager: POST_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "Removing VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) from SDDC Manager, does not exist: SKIPPED"
+                                    }
                                 } else {
-                                    Write-Output "Removing VMware Aria Suite Lifecycle ($((Get-VCFvRSLCM).fqdn)) from SDDC Manager: SUCCESSFUL"
+                                    Write-Error "Unable to locate Virtual Machine ($($vcfVrslcmDetails.hostname)) in vCenter Server ($($($vcfVcenterDetails.fqdn))): PRE_VALIDATION_FAILED"
                                 }
                             }
                         }
-                    } else {
-                        Write-Warning "Removing VMware Aria Suite Lifecycle from SDDC Manager, not present: SKIPPED"
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -21963,6 +21970,92 @@ Function Disconnect-vRSLCMUpgradeIso {
 }
 Export-ModuleMember -Function Disconnect-vRSLCMUpgradeIso
 
+Function Start-vRSLCMUpgrade {
+    <#
+        .SYNOPSIS
+        Starts the upgrade process for VMware Aria Suite Lifecycle
+
+        .DESCRIPTION
+        The Start-vRSLCMUpgrade cmdlet starts the upgrade process of VMware Aria Suite Lifecycle. The cmdlet connects to
+        SDDC Manager using the -server, -user, and -password values.
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to VMware Aria Suite Lifecycle
+        - Starts the upgrade process of VMware Aria Suite Lifecycle
+
+        .EXAMPLE
+        Start-vRSLCMUpgrade -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -type CDROM
+        This example disconnects the ISO from VMware Aria Suite Lifecycle
+
+        .PARAMETER server
+        The SDDC Manager FQDN.
+
+        .PARAMETER user
+        The SDDC Manager administrator username.
+
+        .PARAMETER pass
+        The SDDC Manager administrator password.
+
+        .PARAMETER type
+        The location for the upgrade ISO file.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateSet('CDROM')] [String]$type = "CDROM"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass)) {
+                                if (Get-VM -Name $vcfVrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn) {
+                                    if ((Get-VCFvRSLCM).version.Split('-')[-0] -lt "8.14.0") {
+                                        $vcenterDetails = Get-vRSLCMDatacenterVcenter -datacenterVmid (Get-vRSLCMDatacenter).dataCenterVmid
+                                        $request = Start-vRSLCMSnapshot -vcenterFqdn $vcenterDetails.vCenterHost -vcenterName $vcenterDetails.vCenterName -username $vcenterDetails.vcUsername
+                                        Start-Sleep 3
+                                        Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
+                                        if ($getStatus -eq "COMPLETED") {
+                                            $request = Invoke-vRSLCMUpgrade -type $type -userName $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -action prepare
+                                            if ($request -match "SUCCESS") {
+                                                $request = Invoke-vRSLCMUpgrade -type $type -userName $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -action prevalidate
+                                                Start-Sleep 3
+                                                Do { $getStatus = (Get-vRSLCMRequest $request.requestId).state } Until ($getStatus -ne "INPROGRESS")
+                                                if ($getStatus -eq "COMPLETED") {
+                                                    $request = Invoke-vRSLCMUpgrade -type $type -userName $vcfVrslcmDetails.adminUser -password $vcfVrslcmDetails.adminPass -action upgrade
+                                                    Write-Output "Submitting Upgrade of VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Validating VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) Upgrade: PRE_VALIDATION_FAILED"
+                                                }
+                                            } else {
+                                                Write-Error "VMware Aria Suite Lifecycle Prepare Task was not successful: PRE_VALIDATION_FAILED"
+                                            }
+                                        } else {
+                                            Write-Error "VMware Aria Suite Lifecycle Snapshot Task ($($getStatus.vmid)) finished with state ($($getStatus)): PRE_VALIDATION_FAILED"
+                                        }
+                                    } else {
+                                        Write-Warning "VMware Aria Suite Lifecycle ($($vcfVrslcmDetails.hostname)) Upgrade Not Required: SKIPPED" 
+                                    }
+                                } else {
+                                    Write-Error "Unable to locate Virtual Machine ($($vcfVrslcmDetails.hostname)) in vCenter Server ($($($vcfVcenterDetails.fqdn))): PRE_VALIDATION_FAILED"
+                                }
+                            }
+                        }
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Start-vRSLCMUpgrade
+
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
 
@@ -22143,7 +22236,6 @@ Function Invoke-GlobalWsaDeployment {
                                     if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
                                         $failureDetected = $false
 
-                                        
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
                                             $StatusMsg = Add-ContentLibrary -Server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ContentLibraryName $jsonInput.contentLibraryName -published -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -22165,7 +22257,9 @@ Function Invoke-GlobalWsaDeployment {
                                             }
                                             $allDatacenters = Get-vRSLCMDatacenter
                                             foreach ($datacenter in $allDatacenters) {
-                                                Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                if ((Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName) {
+                                                    Sync-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid -vcenterName (Get-vRSLCMDatacenterVcenter -datacenterVmid $datacenter.datacenterVmid).vcenterName | Out-Null
+                                                }
                                             }
                                         }
                                         
@@ -22232,11 +22326,6 @@ Function Invoke-GlobalWsaDeployment {
                                             Show-PowerValidatedSolutionsOutput -message "Configure NTP on $wsaProductName Virtual Appliances"
                                             $StatusMsg = Set-WorkspaceOneNtpConfig -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -vrslcmIntegrated -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "Configuring NTP on Workspace ONE Access Instance ($($jsonInput.clusterFqdn): SUCCESSFUL" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message "Configuring NTP on Workspace ONE Access Instance ($($jsonInput.clusterFqdn), already performed: SKIPPED" } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
-                                        }
-
-                                        if (!$failureDetected) {
-                                            Show-PowerValidatedSolutionsOutput -message "Configuring the Domain and Domain Search Parameters on $wsaProductName"
-                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "AUTOMATION TO BE ADDED"
                                         }
 
                                         if (!$failureDetected) {
@@ -22925,6 +23014,66 @@ Function Undo-WSADeployment {
     }
 }
 Export-ModuleMember -Function Undo-WSADeployment
+
+Function Invoke-WsaDirectorySync {
+    <#
+    .SYNOPSIS
+        Starts a directory synchronization
+
+        .DESCRIPTION
+        The Invoke-WsaDirectorySync cmdlet trigger a synronisation of the domain. The cmdlet connects to SDDC Manager
+        using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that network connectivity and authentication is possible to Workspace ONE Access
+        - Validates that the domain exists within Workspace ONE Access
+        - Starts a directory synchronization for the domain provided
+
+        .EXAMPLE
+        Invoke-WsaDirectorySync -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo.rainpole.io
+        This example shows how to trigger a directory synchronization of the domain sfo.rainpole.io 
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The SDDC Manager admin user.
+
+        .PARAMETER pass
+        The SDDC Manager admin password.
+
+        .PARAMETER domain
+        The directory domain name.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [String]$server,
+        [Parameter (Mandatory = $true)] [String]$user,
+        [Parameter (Mandatory = $true)] [String]$pass,
+        [Parameter (Mandatory = $true)] [String]$domain
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfWsaDetails = Get-WSAServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-WSAConnection -server $vcfWsaDetails.loadBalancerFqdn) {
+                        if (Test-WSAAuthentication -server $vcfWsaDetails.loadBalancerFqdn -user $vcfWsaDetails.adminUser -pass $vcfWsaDetails.adminPass) {
+                            if (Get-WSADirectory | Where-Object {($_.name -eq $domain)}) {
+                                Start-WSADirectorySync -directoryId ((Get-WSADirectory | Where-Object {($_.name -eq $domain)})).directoryId | Out-Null
+                                Write-Output "Start Synchronization of Active Directory Users: SUCCESSFUL"
+                            } else {
+                                Write-Error "Unable to locate Domain ($domain) in Workspace ONE Access ($($vcfWsaDetails.loadBalancerFqdn))"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-WsaDirectorySync
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -37372,25 +37521,25 @@ Function Get-vRSLCMUpgradeStatus {
 }
 Export-ModuleMember -Function Get-vRSLCMUpgradeStatus
 
-Function Start-vRSLCMUpgrade {
+Function Invoke-vRSLCMUpgrade {
     <#
         .SYNOPSIS
         Perform upgrade operations on VMware Aria Suite Lifecycle.
 
         .DESCRIPTION
-        The Start-vRSLCMUpgrade cmdlet performs a number of upgrade related operations on VMware Aria Suite Lifecycle.
+        The Invoke-vRSLCMUpgrade cmdlet performs a number of upgrade related operations on VMware Aria Suite Lifecycle.
         These include checking for upgrade binares, performing pre-validaion and starting the upgrade.
 
         .EXAMPLE
-        Start-vRSLCMUpgrade -type CDROM -userName vcfadmin@local -password VMw@re1! -action check
+        Invoke-vRSLCMUpgrade -type CDROM -userName vcfadmin@local -password VMw@re1! -action check
         This example checks the CDROM for an upgrade package
 
         .EXAMPLE
-        Start-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action prevalidate
+        Invoke-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action prevalidate
         This example starts an upgrade precheck
 
         .EXAMPLE
-        Start-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action upgrade
+        Invoke-vRSLCMUpgrade -type CDROM -username vcfadmin@local -password VMw@re1! -action upgrade
         This example starts the upgrade
 
         .PARAMETER type
@@ -37456,7 +37605,7 @@ Function Start-vRSLCMUpgrade {
         Write-Error $_.Exception.Message
     }
 }
-Export-ModuleMember -Function Start-vRSLCMUpgrade
+Export-ModuleMember -Function Invoke-vRSLCMUpgrade
 
 Function Get-vRSLCMProductDetails {
     <#
