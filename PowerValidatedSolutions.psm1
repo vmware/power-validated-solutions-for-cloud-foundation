@@ -28054,12 +28054,11 @@ Function Get-LocalAccountLockout {
 
     Try {
 
-        $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+        $vcfVersion = Get-VCFManager -version
         $cmd = "cat /etc/photon-release"
         $output = Invoke-VMScript -VM $vmName -ScriptText $cmd -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
         $photonRelease = [regex]::match($output.ScriptOutput, '(\d+\.\d+)').Groups[1].Value
-        #Write-Host "VCF = $vcfVersion , Photon = $photonRelease"
-        if (($vcfVersion -ge "5.1.0") -and ($photonRelease -ge "4.0")) {
+        if (($vcfVersion -ge "5.1.0.0") -and ($photonRelease -ge "4.0")) {
             $scriptCommand = "cat /etc/security/faillock.conf"
             $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
             $lines = $output.ScriptOutput -split "\r?\n"
@@ -28147,12 +28146,12 @@ Function Set-LocalAccountLockout {
     )
 
     Try {
-        $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+        $vcfVersion = Get-VCFManager -version
         $cmd = "cat /etc/photon-release"
         $output = Invoke-VMScript -VM $vmName -ScriptText $cmd -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
         $photonRelease = [regex]::match($output.ScriptOutput, '(\d+\.\d+)').Groups[1].Value
         $scriptCommand = "sed -E -i.bak '"
-        if (($vcfVersion -ge "5.1.0") -and ($photonRelease -ge "4.0")) {
+        if (($vcfVersion -ge "5.1.0.0") -and ($photonRelease -ge "4.0")) {
             $scriptCommand = "sed -E -i.bak '"
             if ($PsBoundParameters.ContainsKey("failures")) {
                 $failureCommand = "s/deny = [-]?[0-9]+/deny = $failures/"
