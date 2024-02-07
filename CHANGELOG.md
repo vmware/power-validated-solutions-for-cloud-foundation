@@ -10,6 +10,8 @@
 - Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
+- Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0
+
 
 ## v2.8.0
 
