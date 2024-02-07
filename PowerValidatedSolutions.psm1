@@ -28069,11 +28069,9 @@ Function Get-LocalAccountLockout {
                 if ($line -notmatch "^#") {
                     if ($line -match "^deny\s*=\s*(\d+)") {
                         $failures = $matches[1]
-                    }
-                    elseif ($line -match "^unlock_time\s*=\s*(\d+)") {
+                    } elseif ($line -match "^unlock_time\s*=\s*(\d+)") {
                         $unlockInterval = $matches[1]
-                    }
-                    elseif ($line -match "^root_unlock_time\s*=\s*(\d+)") {
+                    } elseif ($line -match "^root_unlock_time\s*=\s*(\d+)") {
                         $rootUnlockInterval = $matches[1]
                     }
                 }
@@ -28152,7 +28150,6 @@ Function Set-LocalAccountLockout {
         $photonRelease = [regex]::match($output.ScriptOutput, '(\d+\.\d+)').Groups[1].Value
         $scriptCommand = "sed -E -i.bak '"
         if (($vcfVersion -ge "5.1.0.0") -and ($photonRelease -ge "4.0")) {
-            $scriptCommand = "sed -E -i.bak '"
             if ($PsBoundParameters.ContainsKey("failures")) {
                 $failureCommand = "s/deny = [-]?[0-9]+/deny = $failures/"
                 $scriptCommand += $failureCommand
