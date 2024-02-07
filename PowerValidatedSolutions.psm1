@@ -28043,8 +28043,8 @@ Function Get-LocalAccountLockout {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$policyFile
     )
 
-    if ($PsBoundParameters.ContainsKey('drift')) { 
-        if ($PsBoundParameters.ContainsKey('policyFile')) { 
+    if ($PsBoundParameters.ContainsKey('drift')) {
+        if ($PsBoundParameters.ContainsKey('policyFile')) {
             $command = "(Get-PasswordPolicyConfig -version $version -reportPath $reportPath -policyFile $policyFile).$product.accountLockout"
         } else {
             $command = "(Get-PasswordPolicyConfig -version $version).$product.accountLockout"
@@ -28054,11 +28054,38 @@ Function Get-LocalAccountLockout {
 
     Try {
 
-        $scriptCommand = "cat /etc/pam.d/system-auth"
-        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
-        if ([regex]::Matches($output.ScriptOutput, 'deny=[-]?[0-9]+')) { $failures = (([regex]::Matches($output.ScriptOutput, 'deny=[-]?[0-9]+').Value) -Split ('='))[-1] }
-        if ([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+')) { $unlockInterval = (([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
-        if ([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+')) { $rootUnlockInterval = (([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+        $cmd = "cat /etc/photon-release"
+        $output = Invoke-VMScript -VM $vmName -ScriptText $cmd -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
+        $photonRelease = [regex]::match($output.ScriptOutput, '(\d+\.\d+)').Groups[1].Value
+        #Write-Host "VCF = $vcfVersion , Photon = $photonRelease"
+        if (($vcfVersion -ge "5.1.0") -and ($photonRelease -ge "4.0")) {
+            $scriptCommand = "cat /etc/security/faillock.conf"
+            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
+            $lines = $output.ScriptOutput -split "\r?\n"
+            $failures = $null
+            $unlockInterval = $null
+            $rootUnlockInterval = $null
+            foreach ($line in $lines) {
+                if ($line -notmatch "^#") {
+                    if ($line -match "^deny\s*=\s*(\d+)") {
+                        $failures = $matches[1]
+                    }
+                    elseif ($line -match "^unlock_time\s*=\s*(\d+)") {
+                        $unlockInterval = $matches[1]
+                    }
+                    elseif ($line -match "^root_unlock_time\s*=\s*(\d+)") {
+                        $rootUnlockInterval = $matches[1]
+                    }
+                }
+            }
+        } else {
+            $scriptCommand = "cat /etc/pam.d/system-auth"
+            $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
+            if ([regex]::Matches($output.ScriptOutput, 'deny=[-]?[0-9]+')) { $failures = (([regex]::Matches($output.ScriptOutput, 'deny=[-]?[0-9]+').Value) -Split ('='))[-1] }
+            if ([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+')) { $unlockInterval = (([regex]::Matches($output.ScriptOutput, ' unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
+            if ([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+')) { $rootUnlockInterval = (([regex]::Matches($output.ScriptOutput, 'root_unlock_time=[-]?[0-9]+').Value) -Split ('='))[-1] }
+        }
         $accountLockoutObject = New-Object -TypeName psobject
         $accountLockoutObject | Add-Member -notepropertyname "System" -notepropertyvalue $vmName
         if ($failures) {$accountLockoutObject | Add-Member -notepropertyname "Max Failures" -notepropertyvalue $(if ($drift) { if ($failures -ne $requiredConfig.maxFailures) { "$($failures) [ $($requiredConfig.maxFailures) ]" } else { "$($failures)" }} else { "$($failures)" })}
@@ -28120,21 +28147,43 @@ Function Set-LocalAccountLockout {
     )
 
     Try {
+        $vcfVersion = ((Get-VCFManager).version -Split ('\.\d{1}\-\d{8}')) -split '\s+' -match '\S'
+        $cmd = "cat /etc/photon-release"
+        $output = Invoke-VMScript -VM $vmName -ScriptText $cmd -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false
+        $photonRelease = [regex]::match($output.ScriptOutput, '(\d+\.\d+)').Groups[1].Value
         $scriptCommand = "sed -E -i.bak '"
-        if ($PsBoundParameters.ContainsKey("failures")) {
-            $failureCommand = "s/deny=[-]?[0-9]+/deny=$failures/"
-            $scriptCommand += $failureCommand
-        }
-        if ($PsBoundParameters.ContainsKey("unlockInterval")) {
-            $unlockIntervalCommand = ";s/ unlock_time=[-]?[0-9]+/ unlock_time=$unlockInterval/"
-            $scriptCommand += $unlockIntervalCommand
-        }
-        if ($PsBoundParameters.ContainsKey("rootUnlockInterval")) {
-            $rootUnlockIntervalCommand = ";s/root_unlock_time=[-]?[0-9]+/root_unlock_time=$rootUnlockInterval/"
-            $scriptCommand += $rootUnlockIntervalCommand
-        }
+        if (($vcfVersion -ge "5.1.0") -and ($photonRelease -ge "4.0")) {
+            $scriptCommand = "sed -E -i.bak '"
+            if ($PsBoundParameters.ContainsKey("failures")) {
+                $failureCommand = "s/deny = [-]?[0-9]+/deny = $failures/"
+                $scriptCommand += $failureCommand
+            }
+            if ($PsBoundParameters.ContainsKey("unlockInterval")) {
+                $unlockIntervalCommand = ";s/\bunlock_time = [-]?[0-9]+\b/unlock_time = $unlockInterval/"
+                $scriptCommand += $unlockIntervalCommand
+            }
+            if ($PsBoundParameters.ContainsKey("rootUnlockInterval")) {
+                $rootUnlockIntervalCommand = ";s/root_unlock_time = [-]?[0-9]+/root_unlock_time = $rootUnlockInterval/"
+                $scriptCommand += $rootUnlockIntervalCommand
+            }
 
-        $scriptCommand += "' /etc/pam.d/system-auth"
+            $scriptCommand += "' /etc/security/faillock.conf"
+        } else {
+            if ($PsBoundParameters.ContainsKey("failures")) {
+                $failureCommand = "s/deny=[-]?[0-9]+/deny=$failures/"
+                $scriptCommand += $failureCommand
+            }
+            if ($PsBoundParameters.ContainsKey("unlockInterval")) {
+                $unlockIntervalCommand = ";s/ unlock_time=[-]?[0-9]+/ unlock_time=$unlockInterval/"
+                $scriptCommand += $unlockIntervalCommand
+            }
+            if ($PsBoundParameters.ContainsKey("rootUnlockInterval")) {
+                $rootUnlockIntervalCommand = ";s/root_unlock_time=[-]?[0-9]+/root_unlock_time=$rootUnlockInterval/"
+                $scriptCommand += $rootUnlockIntervalCommand
+            }
+
+            $scriptCommand += "' /etc/pam.d/system-auth"
+        }
         Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser $guestUser -GuestPassword $guestPassword -Confirm:$false | Out-Null
     } Catch {
         Write-Error $_.Exception.Message
