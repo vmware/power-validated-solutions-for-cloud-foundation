@@ -1,5 +1,16 @@
 # Release History
 
+## v2.9.0
+
+> Release Date: Unreleased
+
+- Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.
+- Added `Start-vRSLCMUpgrade` cmdlet to start the upgrade of VMware Aria Suite Lifecycle.
+- Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
+- Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
+- Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
+
 ## v2.8.0
 
 > Release Date: 2024-01-30
