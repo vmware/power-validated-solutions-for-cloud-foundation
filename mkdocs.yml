@@ -869,6 +869,10 @@ nav:
         - documentation/functions/solutions/iam/Export-IamJsonSpec.md
         - documentation/functions/solutions/iam/Invoke-IamDeployment.md
         - documentation/functions/solutions/iam/Invoke-UndoIamDeployment.md
+      - Developer Ready Infrastructure:
+        - documentation/functions/solutions/dri/Export-DriJsonSpec.md
+        - documentation/functions/solutions/dri/Invoke-DriDeployment.md
+        - documentation/functions/solutions/dri/Invoke-UndoDriDeployment.md
       - Intelligent Logging and Analytics:
         - documentation/functions/solutions/ila/Export-IlaJsonSpec.md
         - documentation/functions/solutions/ila/Invoke-IlaDeployment.md

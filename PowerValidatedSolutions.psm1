@@ -7871,6 +7871,482 @@ Export-ModuleMember -Function Copy-vRealizeLoadBalancer
 #######################################################################################################################
 #Region             D E V E L O P E R  R E A D Y  I N F R A S T R U C T U R E  F U N C T I O N S            ###########
 
+Function Export-DriJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Developer Ready Infrastructure
+
+        .DESCRIPTION
+        The Export-DriJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation
+        workbook to deploy and configure Developer Ready Infrastructure:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-DriJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\driDeploySpec.json
+        This example creates a JSON specification for Developer Ready Infrastructure using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        } 
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $Workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+            'sddcManagerFqdn'                   = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+            'sddcManagerUser'                   = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+            'sddcManagerPass'                   = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+            'mgmtSddcDomainName'                = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+            'tanzuSddcDomainName'               = $pnpWorkbook.Workbook.Names["dri_sddc_domain"].Value
+            'tanzuSegmentName'                  = $pnpWorkbook.Workbook.Names["k8s_mgmt_seg"].Value
+            'tier0GatewayName'                  = $pnpWorkbook.Workbook.Names["dri_tier0_name"].Value
+            'tier1GatewayName'                  = $pnpWorkbook.Workbook.Names["dri_tier1_name"].Value
+            'overlayTzName'                     = $pnpWorkbook.Workbook.Names["dri_overlay_transport_zone"].Value
+            'tanzuSegmentGatewayCIDR'           = $pnpWorkbook.Workbook.Names["k8s_segment_gateway_ip_cidr"].Value
+            'tanzuManagementSubnetCidr'         = $pnpWorkbook.Workbook.Names["k8s_segment_cidr"].Value
+            'tanzuManagementMode'               = "StaticRange"
+            'tanzuManagementStartIpAddress'     = $pnpWorkbook.Workbook.Names["k8s_mgmt_pool_start_ip"].Value
+            'tanzuManagementRangeSize'          = "5"
+            'tanzuManagementGateway'            = $pnpWorkbook.Workbook.Names["k8s_segment_gateway_ip"].Value
+            'tanzuManagementSubnetMask'         = $pnpWorkbook.Workbook.Names["k8s_segment_mask"].Value
+            'tanzuIngressSubnetCidr'            = $pnpWorkbook.Workbook.Names["k8s_ingress_pool_cidr"].Value
+            'tanzuEgressSubnetCidr'             = $pnpWorkbook.Workbook.Names["k8s_egress_pool_cidr"].Value
+            'prefixListName'                    = $pnpWorkbook.Workbook.Names["k8s_ip_prefixlist"].Value
+            'routeMapName'                      = $pnpWorkbook.Workbook.Names["k8s_ip_routemap"].Value
+            'tagCategoryName'                   = $pnpWorkbook.Workbook.Names["k8s_vcenter_category"].Value
+            'tagName'                           = $pnpWorkbook.Workbook.Names["k8s_vcenter_tag"].Value
+            'storagePolicyName'                 = $pnpWorkbook.Workbook.Names["k8s_vcenter_storage_policy"].Value
+            'contentLibraryName'                = $pnpWorkbook.Workbook.Names["k8s_vcenter_content_library"].Value
+            'supervisorClusterName'             = $pnpWorkbook.Workbook.Names["wld_cluster"].Value
+            'supervisorClusterSizeHint'         = "Tiny"
+            'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            'domainBindUser'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+            'domainBindPass'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+            'ntp'                               = $pnpWorkbook.Workbook.Names["dri_dns_servers"].Value
+            'dns'                               = $pnpWorkbook.Workbook.Names["dri_dns_servers"].Value
+            'searchPath'                        = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            'nsxEdgeCluster'                    = $pnpWorkbook.Workbook.Names["dri_ec_name"].Value
+            'distributedSwitch'                 = $pnpWorkbook.Workbook.Names["dri_vcenter_vds_name"].Value
+            'supervisorPodPoolCIDRs'            = $pnpWorkbook.Workbook.Names["k8s_supervisor_cluster_pod_pool_cidr"].Value
+            'supervisorServicePoolCIDR'         = $pnpWorkbook.Workbook.Names["k8s_supervisor_cluster_service_pool_cidr"].Value
+            'commonName'                        = $pnpWorkbook.Workbook.Names["k8s_cluster_endpoint_fqdn"].Value
+            'organization'                      = $pnpWorkbook.Workbook.Names["ca_organization"].Value
+            'organizationalUnit'                = $pnpWorkbook.Workbook.Names["ca_organization_unit"].Value
+            'country'                           = $pnpWorkbook.Workbook.Names["ca_country"].Value
+            'stateOrProvince'                   = $pnpWorkbook.Workbook.Names["ca_state"].Value
+            'locality'                          = $pnpWorkbook.Workbook.Names["ca_locality"].Value
+            'adminEmailAddress'                 = if ($null -eq $pnpWorkbook.Workbook.Names["ca_email_address"].Value) { "tanzu-admin@" + $pnpWorkbook.Workbook.Names["region_ad_parent_fqdn"].Value } else { $pnpWorkbook.Workbook.Names["ca_email_address"].Value }
+            'KeySize'                           = $pnpWorkbook.Workbook.Names["ca_key_size"].Value -as [Int] 
+            'mscaComputerName'                  = $pnpWorkbook.Workbook.Names["certificate_authority_fqdn"].Value
+            'mscaName'                          = $pnpWorkbook.Workbook.Names["certificate_authority_name"].Value
+            'certificateTemplate'               = $pnpWorkbook.Workbook.Names["ca_template_name"].Value
+            'caUsername'                        = $pnpWorkbook.Workbook.Names["user_svc_vcf_ca_vcf"].Value
+            'caUserPassword'                    = $pnpWorkbook.Workbook.Names["svc_vcf_ca_vvd_password"].Value
+            'licenseKey'                        = $pnpWorkbook.Workbook.Names["esx_k8s_license"].Value
+            'supervisorNamespaceName'           = $pnpWorkbook.Workbook.Names["k8s_namepsace"].Value
+            'namespaceEditUserGroup'            = $pnpWorkbook.Workbook.Names["group_gg_kub_admins"].Value
+            'namespaceViewUserGroup'            = $pnpWorkbook.Workbook.Names["group_gg_kub_readonly"].Value
+            'tanzuNamespaceName'                = $pnpWorkbook.Workbook.Names["k8s_cluster_name"].Value
+            'vmClass'                           = $pnpWorkbook.Workbook.Names["k8s_vm_class"].Value
+        }
+        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    $issueWithJson = $true
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message  "Creation of JSON Specification file for Developer Ready Infrastructure, missing data: POST_VALIDATION_FAILED"
+            } else { 
+                Show-PowerValidatedSolutionsOutput -message  "Creation of JSON Specification file for Developer Ready Infrastructure: SUCCESSFUL"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-DriJsonSpec
+
+Function Invoke-DriDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end Deployment of Developer Ready Infrastructure
+
+        .DESCRIPTION
+        The Invoke-DriDeployment cmdlet is a single function to implement the configuration of the Developer Ready
+        Infrastructure for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-DriDeployment -jsonFile .\driDeploySpec.json -certificates ".\certificates\" -kubectlPath "C:\Kubectl\bin\"
+        This example configures Developer Ready Infrastructure for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+
+        .PARAMETER certificates
+        The folder containing the certificates.
+
+        .PARAMETER kubectlPath
+        The path to the bin folder of kubectl.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$kubectlPath
+    )
+
+    $solutionName = "Developer Ready Infrastructure for VMware Cloud Foundation"
+    $currentEnvPath = $env:PATH
+    $env:PATH = "$kubectlPath;$env:PATH"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
+        if (Test-Path -Path $kubectlPath) {
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                    if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                        if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                            $certificateRequestFile     = $certificates + $jsonInput.supervisorClusterName + ".csr"
+                            $certificateFile            = $certificates + $jsonInput.supervisorClusterName + ".1.cer"
+
+                            Show-PowerValidatedSolutionsOutput -message "Adding a Network Segment for $solutionName"
+                            $StatusMsg = Add-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -connectedGateway $jsonInput.tier1GatewayName -cidr $jsonInput.tanzuSegmentGatewayCIDR -transportZone $jsonInput.overlayTzName -gatewayType Tier1 -segmentType Overlay -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Adding IP Prefix Lists to the Tier-0 Gateway for $solutionName"
+                                $StatusMsg = Add-PrefixList -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -prefixListName $jsonInput.prefixListName -subnetCIDR $jsonInput.tanzuManagementSubnetCidr -ingressSubnetCidr $jsonInput.tanzuIngressSubnetCidr -egressSubnetCidr $jsonInput.tanzuEgressSubnetCidr -GE "28" -LE "32" -Action PERMIT -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Creating a Route Map on the Tier-0 Gateway for $solutionName"
+                                $StatusMsg = Add-RouteMap -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -Domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -routeMap $jsonInput.routeMapName -PrefixListName $jsonInput.prefixListName -action PERMIT -applyPolicy:$True -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Assigning a New Tag to the vSAN Datastore for $solutionName"
+                                $StatusMsg = Set-DatastoreTag -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tagName $jsonInput.tagName -tagCategoryName $jsonInput.tagCategoryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Creating a Storage Policy that Uses the New vSphere Tag for $solutionName"
+                                $StatusMsg = Add-StoragePolicy -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -policyName $jsonInput.storagePolicyName -tagName $jsonInput.tagName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                if ((Get-VCFManager -version) -lt "5.0.0.0") {
+                                    Show-PowerValidatedSolutionsOutput -message "Creating a Subscribed Content Library for $solutionName"
+                                    $StatusMsg = Add-ContentLibrary -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -subscriptionUrl "https://wp-content.vmware.com/v2/latest/lib.json" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                $wmClusterInput = @{
+                                    server                              = $jsonInput.sddcManagerFqdn
+                                    user                                = $jsonInput.sddcManagerUser
+                                    pass                                = $jsonInput.sddcManagerPass
+                                    domain                              = $jsonInput.tanzuSddcDomainName
+                                    cluster                             = $jsonInput.supervisorClusterName
+                                    sizeHint                            = $jsonInput.supervisorClusterSizeHint
+                                    managementNetworkMode               = $jsonInput.tanzuManagementMode
+                                    managementVirtualNetwork            = $jsonInput.tanzuSegmentName
+                                    managementNetworkStartIpAddress     = $jsonInput.tanzuManagementStartIpAddress
+                                    managementNetworkAddressRangeSize   = $jsonInput.tanzuManagementRangeSize
+                                    managementNetworkGateway            = $jsonInput.tanzuManagementGateway
+                                    managementNetworkSubnetMask         = $jsonInput.tanzuManagementSubnetMask
+                                    masterDnsName                       = $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn
+                                    masterNtpServers                    = @($jsonInput.ntp)
+                                    masterDnsServers                    = @($jsonInput.dns)
+                                    contentLibrary                      = $jsonInput.contentLibraryName
+                                    ephemeralStoragePolicy              = $jsonInput.storagePolicyName
+                                    imageStoragePolicy                  = $jsonInput.storagePolicyName
+                                    masterStoragePolicy                 = $jsonInput.storagePolicyName
+                                    nsxEdgeCluster                      = $jsonInput.nsxEdgeCluster
+                                    distributedSwitch                   = $jsonInput.distributedSwitch
+                                    podCIDRs                            = $jsonInput.supervisorPodPoolCIDRs
+                                    serviceCIDR                         = $jsonInput.supervisorServicePoolCIDR
+                                    externalIngressCIDRs                = $jsonInput.tanzuIngressSubnetCidr
+                                    externalEgressCIDRs                 = $jsonInput.tanzuEgressSubnetCidr
+                                    masterDnsSearchDomain               = $jsonInput.searchPath
+                                    workerDnsServers                    = @($jsonInput.dns)
+                                }
+                                Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor for $solutionName"
+                                $StatusMsg = Enable-SupervisorCluster @wmClusterInput -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                # Signed Certificate Replacement Procedures - Requires System Executing the Script to be Joined to the Certificate Authority Domain
+                                Show-PowerValidatedSolutionsOutput -message "Replacing the Supervisor Kubernetes API Endpoint Certificate for $solutionName"
+                                if ($env:USERDNSDomain -eq $($jsonInput.domainFqdn.ToUpper)) {
+                                    Show-PowerValidatedSolutionsOutput -message "Generating the Supervisor CSR File"
+                                    $StatusMsg = New-SupervisorClusterCSR -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -CommonName $jsonInput.commonName -Organization $jsonInput.organization -OrganizationalUnit $jsonInput.organizationalUnit -Country $jsonInput.country -StateOrProvince $jsonInput.stateOrProvince -Locality $jsonInput.locality -adminEmailAddress $jsonInput.adminEmailAddress -KeySize $jsonInput.keysize -FilePath $jsonInput.certificateRequestFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    
+                                    Show-PowerValidatedSolutionsOutput -message "Requesting a Signed Certificate from the Microsoft Certificate Authority"
+                                    $StatusMsg = Request-SignedCertificate -mscaComputerName $jsonInput.mscaComputerName -mscaName $jsonInput.mscaName -domainUsername $jsonInput.caUsername -domainPassword $jsonInput.caUserPassword -certificateTemplate $jsonInput.certificateTemplate -certificateRequestFile $certificateRequestFile -certificateFile $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+
+                                    Show-PowerValidatedSolutionsOutput -message "Installing the Supervisor Signed-Certificate"
+                                    $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                } else {
+                                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPING"
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Licensing the Supervisor for Developer Ready Infrastructure for $solutionName"
+                                $StatusMsg = Add-SupervisorClusterLicense -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -LicenseKey $jsonInput.licenseKey -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor Namespace for $solutionName"
+                                $StatusMsg = Add-Namespace -Server $sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.supervisorNamespaceName -StoragePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Assigning the Supervisor Namespace Roles to Active Directory Groups for $solutionName"
+                                $editRole = New-Object -TypeName psobject
+                                $editRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceEditUserGroup
+                                $editRole | Add-Member -notepropertyname 'role' -notepropertyvalue "edit"
+                                $viewRole = New-Object -TypeName psobject
+                                $viewRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceViewUserGroup
+                                $viewRole | Add-Member -notepropertyname 'role' -notepropertyvalue "view"
+                                $groups = ($editRole,$viewRole)
+                                foreach ($group in $groups) {
+                                    $StatusMsg = Add-NamespacePermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -namespace $jsonInput.supervisorNamespaceName -principal $group.adGroup -role $group.role -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg, $null -eq $ErrorMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Activating the Registry Service on the Supervisor for $solutionName"
+                                $StatusMsg = Enable-Registry -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Deploying a Namespace for the Tanzu Kubernetes Cluster for $solutionName"
+                                $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.tanzuNamespaceName -storagePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Assigning the New Tanzu Cluster Namespace Roles to Active Directory Groups for $solutionName"
+                                $editRole = New-Object -TypeName psobject
+                                $editRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceEditUserGroup
+                                $editRole | Add-Member -notepropertyname 'role' -notepropertyvalue "edit"
+                                $viewRole = New-Object -TypeName psobject
+                                $viewRole | Add-Member -notepropertyname 'adGroup' -notepropertyvalue $jsonInput.namespaceViewUserGroup
+                                $viewRole | Add-Member -notepropertyname 'role' -notepropertyvalue "view"
+                                $groups = ($editRole,$viewRole)
+                                foreach ($group in $groups) {
+                                    $StatusMsg = Add-NamespacePermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.tanzuSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -namespace $jsonInput.tanzuNamespaceName -principal $group.adGroup -role $group.role -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg, $null -eq $ErrorMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+                            }
+
+                            if (!$failureDetected) {
+                                Show-PowerValidatedSolutionsOutput -message "Adding a Virtual Machine Class for the Tanzu Kubernetes Cluster for $solutionName"
+                                $StatusMsg = Add-NamespaceVmClass -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -namespace $jsonInput.tanzuNamespaceName -vmClass $jsonInput.vmClass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+
+                            if (!$failureDetected) {
+                                $yamlFile = ($yamlFile = Split-Path $jsonFile -Parent) + "\" + $($jsonInput.tanzuNamespaceName) + ".yaml"
+                                $content = @"
+apiVersion: run.tanzu.vmware.com/v1alpha1
+kind: TanzuKubernetesCluster
+metadata:
+name: $($jsonInput.tanzuNamespaceName)
+namespace: $($jsonInput.tanzuNamespaceName)
+spec:
+topology:
+controlPlane:
+count: 3
+class: guaranteed-small
+storageClass: $($jsonInput.storagePolicyName)
+workers:
+count: 3
+class: guaranteed-small
+storageClass: $($jsonInput.storagePolicyName)
+distribution:
+version: v1.24
+settings:
+network:
+cni:
+    name: antrea
+services:
+    cidrBlocks: ["198.51.100.0/12"]
+pods:
+    cidrBlocks: ["192.0.2.0/16"]
+"@
+                                $content | Out-File $yamlFile
+                                Show-PowerValidatedSolutionsOutput -message "Provisioning a Tanzu Kubernetes Cluster for $solutionName"
+                                $StatusMsg = Add-TanzuKubernetesCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -yaml $yamlFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Write-Error "Unable to find path to kubectl on the local machine: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    } Finally {
+        $env:PATH = $currentEnvPath
+    }
+}
+Export-ModuleMember -Function Invoke-DriDeployment 
+
+Function Invoke-UndoDriDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end removal of Developer Ready Infrastructure.
+
+        .DESCRIPTION
+        The Invoke-UndoDriDeployment cmdlet is a single function to remove the configuration of the Developer Ready
+        Infrastructure for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-UndoDriDeployment -jsonFile .\driDeploySpec.json -kubectlPath "C:\Kubectl\bin\"
+        This example removes the configuration of Developer Ready Infrastructure for VMware Cloud Foundation using JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+
+        .PARAMETER kubectlPath
+        The path to the bin folder of kubectl.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$kubectlPath
+    )
+
+    $solutionName = "Developer Ready Infrastructure for VMware Cloud Foundation"
+    $currentEnvPath = $env:PATH
+    $env:PATH = "$kubectlPath;$env:PATH"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
+        if (Test-Path -Path $kubectlPath) {
+            if (Test-Path -Path $jsonFile) {
+                $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected = $false
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing a Tanzu Kubernetes Cluster from Supervisor Cluster for $solutionName"
+                            $StatusMsg = Undo-TanzuKubernetesCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -tkc $jsonInput.tanzuNamespaceName -namespace $jsonInput.tanzuNamespaceName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing a Namespace from Supervisor Cluster for $solutionName"
+                            $StatusMsg = Undo-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -namespace $jsonInput.tanzuNamespaceName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Embedded Harbour Registry from Supervisor Cluster for $solutionName"
+                            $StatusMsg = Undo-Registry -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Supervisor Namespace for $solutionName"
+                            $StatusMsg = Undo-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -namespace $jsonInput.supervisorNamespaceName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Supervisor Cluster for for $solutionName"
+                            $StatusMsg = Undo-SupervisorCluster -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorclusterName -RunAsync -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Content Library from vCenter Server for $solutionName"
+                            $StatusMsg = Undo-ContentLibrary -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -contentLibraryName $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing the Storage Policy that Uses the vSphere Tag for $solutionName"
+                            $StatusMsg = Undo-StoragePolicy -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -policyName $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing the Tag from the vSAN Datastore for $solutionName"
+                            $StatusMsg = Undo-DatastoreTag -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tagName $jsonInput.tagName -tagCategoryName $jsonInput.tagCategoryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing a Route Map from the Tier-0 Gateway for $solutionName"
+                            $StatusMsg = Undo-RouteMap -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -routeMapName $jsonInput.routeMapName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing IP Prefix Lists from the Tier-0 Gateway for $solutionName"
+                            $StatusMsg = Undo-PrefixList -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -tier0Gateway $jsonInput.tier0GatewayName -prefixListName $jsonInput.prefixListName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing the Network Segment for $solutionName"
+                            $StatusMsg = Undo-NetworkSegment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -segmentName $jsonInput.tanzuSegmentName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+                    }
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+            }
+        } else {
+            Write-Error "Unable to find path to kubectl on the local machine: PRE_VALIDATION_FAILED"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    } Finally {
+        $env:PATH = $currentEnvPath
+    }
+}
+Export-ModuleMember -Function Invoke-UndoDriDeployment
+
 Function Add-NetworkSegment {
     <#
         .SYNOPSIS
@@ -8451,18 +8927,18 @@ Function Set-DatastoreTag {
                                         }
                                         Get-Datastore -Name $Datastore -Server $vcfVcenterDetails.fqdn | New-TagAssignment -Tag $tagName -Server $vcfVcenterDetails.fqdn -Confirm:$false | Out-Null
                                         if ((Get-TagAssignment -Entity $datastoreExist.Name -Category $tagCategoryName -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue)) {
-                                            Write-Output "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                            Write-Output "Creating vSphere Tag ($tagName) for datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
                                         } else {
-                                            Write-Error "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                            Write-Error "Creating vSphere Tag ($tagName) for datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Warning "Creating vSphere Tag ($tagName) and applying to datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
+                                        Write-Warning "Creating vSphere Tag ($tagName) for datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                     }
                                 } else {
                                     Write-Error "Unable to find datastore ($datastore) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
                                 }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -8538,8 +9014,8 @@ Function Undo-DatastoreTag {
                                 } else {
                                     Write-Warning "Removing vSphere Tag ($tagName) and Category ($tagCategoryName) from vCenter Server ($($vcfVcenterDetails.fqdn)), does not exist: SKIPPED"
                                 }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -8618,8 +9094,8 @@ Function Add-StoragePolicy {
                                 } else {
                                     Write-Warning "Creating Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), already exists: SKIPPED"                                    
                                 }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -8690,8 +9166,8 @@ Function Undo-StoragePolicy {
                                 } else {
                                     Write-Warning "Removing Storage Policy in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($policyName), does not exist: SKIPPED"                                    
                                 }
+                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Force -Confirm:$false -WarningAction SilentlyContinue
                             }
-                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                         }
                     }
                 } else {
@@ -8928,7 +9404,7 @@ Function Enable-SupervisorCluster {
             domain = "sfo-w01"
             cluster = "sfo-w01-cl01"
             sizeHint = "Tiny"
-            managementVirtualNetwork = "sfo-w01-kub-seg01"
+            managementVirtualNetwork = "sfo-w01-seg01-tanzu"
             managementNetworkMode = "StaticRange"
             managementNetworkStartIpAddress = "192.168.20.10"
             managementNetworkAddressRangeSize = 5
@@ -10673,10 +11149,10 @@ Function Undo-TanzuKubernetesCluster {
                                         Write-Warning "Removing Tanzu Kubernetes Cluster from Supervisor Cluster ($cluster) Namespace ($namespace) called ($tkc), does not exist: SKIPPED"
                                     }
                                 } else {
-                                    Write-Warning "Workload Management is not enabled on Cluster ($server) in vCenter Server ($($vcfVcenterDetails.fqdn))"
+                                    Write-Error "Workload Management is not enabled on cluster ($server) in vCenter Server ($($vcfVcenterDetails.fqdn))"
                                 }
                             }
-                            Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Force -Confirm:$false -WarningAction SilentlyContinue
                             Disconnect-WMCluster | Out-Null
                         }
                     }
@@ -20967,7 +21443,6 @@ Function Invoke-vRSLCMDeployment {
 
                     if (!$failureDetected) { 
                         Show-PowerValidatedSolutionsOutput -message "Deploying $lcmProductName using SDDC Manager"
-                        #$outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" + (((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}).name) + "-" + "vrslcmDeploymentSpec.json")
                         $outputPath = ($outputPath = Split-Path $jsonFile -Parent) + "\" 
                         $StatusMsg = New-vRSLCMDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -outputPath $outputPath -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                         if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" }; if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
@@ -21501,16 +21976,17 @@ Function Request-vRSLCMBundle {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 $releaseBom = Get-VCFRelease -domainId ((Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"})).id | Select-Object bom
                 $vrslcmVersion = ($releaseBom.bom | Where-Object {$_.name -eq "VRSLCM"}).version
-                if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -ne 'SUCCESSFUL') {
-                    $request = Request-VCFBundle -id (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).id
-                    Start-Sleep 10
-                    Do { $taskStatus = Get-VCFTask -id $request.id } While ($taskStatus.status -in "In Progress","IN_PROGRESS")
+                if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq "PENDING") {
+                    Request-VCFBundle -id (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).id | Out-Null
+                    Do { $taskStatus = (Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus } While ($taskStatus -in "In Progress","IN_PROGRESS","PENDING")
                     if ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq 'SUCCESSFUL') {
                         Write-Output "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: SUCCESSFUL"
                     } else {
                         Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: POST_VALIDATION_FAILED"
                     }
-                } else {
+                } elseif ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq "FAILED") {
+                    Write-Error "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager: PRE_VALIDATION_FAILED"
+                } elseif ((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).downloadStatus -eq "SUCCESSFUL") {
                     Write-Warning "Download VMware Aria Suite Lifecycle Bundle ($((Get-VCFBundle | Where-Object {$_.components.toVersion -eq $vrslcmVersion}).components.toVersion)) to SDDC Manager, already downloaded: SKIPPED"
                 }
             }
