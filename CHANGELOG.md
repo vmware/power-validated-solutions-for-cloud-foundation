@@ -10,7 +10,10 @@
 - Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
 - Added `Export-DriJsonSpec` cmdlet to generate a JSON specification file for Developer Ready Infrastructure.
 - Added `Invoke-DriDeployment` cmdlet to perform an end-to-end deployment of Developer Ready Infrastructure.
-- Added `Invoke-UndoDriDeployment` cmdlet to perform removal of Developer Ready Infrastructure.
+- Added `Invoke-UndoDriDeployment` cmdlet to perform removal of Health Reporting and Monitoring.
+- Added `Export-HrmJsonSpec` cmdlet to generate a JSON specification file for Health Reporting and Monitoring.
+- Added `Invoke-HrmDeployment` cmdlet to perform an end-to-end deployment of Health Reporting and Monitoring.
+- Added `Invoke-UndoHrmDeployment` cmdlet to perform removal of Health Reporting and Monitoring.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
