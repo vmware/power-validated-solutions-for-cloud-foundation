@@ -21108,6 +21108,251 @@ Export-ModuleMember -Function Undo-vRAvROPsIntegrationItem
 #######################################################################################################################
 #Region            H E A L T H  R E P O R T I N G  A N D  M O N I T O R I N G  F U N C T I O N S            ###########
 
+Function Export-HrmJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Health Reporting and Monitoring.
+
+        .DESCRIPTION
+        The Export-HrmJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation
+        workbook to deploy and configure Health Reporting and Monitoring:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-HrmJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\hrmDeploySpec.json
+        This example creates a JSON specification for Health Reporting and Monitoring using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        } 
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $Workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+            'sddcManagerFqdn'                   = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+            'sddcManagerUser'                   = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+            'sddcManagerPass'                   = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+            'mgmtSddcDomainName'                = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+            'vmFolder'                          = $pnpWorkbook.Workbook.Names["hrm_vm_folder"].Value
+            'vmName'                            = $pnpWorkbook.Workbook.Names["hrm_vm_hostname"].Value
+            'fqdn'                              = $pnpWorkbook.Workbook.Names["hrm_vm_fqdn"].Value
+            'ipAddress'                         = $pnpWorkbook.Workbook.Names["hrm_vm_ip"].Value
+            'netmask'                           = ((($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value -Split ('/'))[-1]) + " (" + ($pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_mask"].Value) + ")")
+            'gateway'                           = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+            'dns'                               = ($pnpWorkbook.Workbook.Names["region_dns1_ip"].Value + " " + $pnpWorkbook.Workbook.Names["region_dns2_ip"].Value)
+            'searchDomain'                      = $pnpWorkbook.Workbook.Names["child_dns_zone"].Value
+            'ntp'                               = $pnpWorkbook.Workbook.Names["region_ntp1_server"].Value
+            'rootPassword'                      = $pnpWorkbook.Workbook.Names["hrm_vm_root_password"].Value
+            'ova'                               = "vvs_appliance_v0.0.1.ova"
+            'portgroup'                         = $pnpWorkbook.Workbook.Names["mgmt_az1_mgmt_pg"].Value
+            'stretchedCluster'                  = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            'drsVmGroupNameAz'                  = $pnpWorkbook.Workbook.Names["mgmt_az1_vm_group_name"].Value
+            'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+            'domainBindUser'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+            'domainBindPass'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+            'hrmVcfServiceAccount'              = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_user"].Value
+            'hrmVcfServiceAccountPassword'      = $pnpWorkbook.Workbook.Names["svc_hrm_vcf_password"].Value
+        }
+        Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    $issueWithJson = $true
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message  "Creation of JSON Specification file for Health Reporting and Monitoring, missing data: POST_VALIDATION_FAILED"
+            } else { 
+                Show-PowerValidatedSolutionsOutput -message  "Creation of JSON Specification file for Health Reporting and Monitoring: SUCCESSFUL"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-HrmJsonSpec
+
+Function Invoke-HrmDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end deployment of Health Reporting and Monitoring.
+
+        .DESCRIPTION
+        The Invoke-HrmDeployment cmdlet is a single function to implement the configuration of the Health Reporting
+        and Monitoring for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-HrmDeployment -jsonFile .\hrmDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\"
+        This example configures Health Reporting and Monitoring for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+
+        .PARAMETER certificates
+        The folder containing the certificates.
+
+        .PARAMETER binaries
+        The folder containing the OVAs.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries
+    )
+
+    $solutionName = "Health Reporting and Monitoring for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        
+                        Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folder for the Host Virtual Machine for $solutionName"
+                        $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Deploying the Host Virtual Machine for $solutionName"
+                            $StatusMsg = Deploy-PhotonAppliance -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.searchDomain -hostname $jsonInput.vmName -ipAddress $jsonInput.ipAddress -netmask $jsonInput.netmask -gateway $jsonInput.gateway -dnsServer $jsonInput.dns -ntpServer $jsonInput.ntp -rootPassword $jsonInput.rootPassword -enableSsh True -enableDebug False -portGroup $jsonInput.portgroup -folder $jsonInput.vmFolder -ovaPath ($binaries + $jsonInput.ova) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            if ($jsonInput.stretchedCluster -eq "Include") {
+                                Show-PowerValidatedSolutionsOutput -message "Adding the Host Virtual Machine to the First Availability Zone VM Group for $solutionName"
+                                $StatusMsg = Add-VmGroup -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -name $jsonInput.drsVmGroupNameAz -vmList $jsonInput.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Assiging SDDC Manager Role to a Service Account for the PowerShell Module for $solutionName"
+                            $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.hrmVcfServiceAccount -role ADMIN -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Synchronizing the Active Directory Users for VMware Aria Operations for $solutionName"
+                            $StatusMsg = Invoke-WsaDirectorySync -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Defining a Custom Role in VMware Aria Operations for the Python Module for $solutionName"
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Manual steps to be followed"
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Assigning VMware Aria Operations Custom Role to a Service Account for the Python Module for $solutionName"
+                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Manual steps to be followed"
+                        }
+                    }
+                }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Health Reporting and Monitoring ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-HrmDeployment 
+
+Function Invoke-UndoHrmDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end removal of Health Reporting and Monitoring.
+
+        .DESCRIPTION
+        The Invoke-UndoHrmDeployment cmdlet is a single function to remove the configuration of the Health Reporting
+        and Monitoring for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-UndoHrmDeployment -jsonFile .\hrmDeploySpec.json
+        This example removes the configuration of Health Reporting and Monitoring for VMware Cloud Foundation using JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Health Reporting and Monitoring for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domainType "MANAGEMENT")) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Assignment of VMware Aria Operations Custom Role to a Service Account for the Python Module for $solutionName"
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Manual steps to be followed"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing the Custom Role from VMware Aria Operations for the Python Module for $solutionName"
+                                    Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Manual steps to be followed"
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Removing SDDC Manager Roles from Active Directory Groups"
+                                    $StatusMsg = Undo-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -principal $jsonInput.hrmVcfServiceAccount -type USER -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Deleting the Host Virtual Machine for $solutionName"
+                                    $StatusMsg = Remove-PhotonAppliance -server  $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -vmName $jsonInput.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+
+                                if (!$failureDetected) {
+                                    Show-PowerValidatedSolutionsOutput -message "Deleting the Virtual Machine and Template Folder for $solutionName"
+                                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -foldername $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; $ErrorMsg = $null } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                }
+
+                            }
+                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                        }   
+                    }
+                }
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoHrmDeployment
+
 Function Deploy-PhotonAppliance {
     <#
 		.SYNOPSIS
