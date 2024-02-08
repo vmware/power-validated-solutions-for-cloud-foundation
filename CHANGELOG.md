@@ -4,10 +4,11 @@
 
 > Release Date: Unreleased
 
-- Removes support for Microsoft Windows PowerShell 5.1. Please use Microsoft PowerShell 7.2.0 or later.
+- Removed support for Microsoft Windows PowerShell 5.1. Please use Microsoft PowerShell 7.2.0 or later.
 - Updated `PowerVCF` dependency from v2.4.0 to v2.4.1.
 - Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.
+- Added `Get-vRSLCMProductPassword` cmdlet to return the password for a specified product in VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMUpgrade` cmdlet to start the upgrade of VMware Aria Suite Lifecycle.
 - Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
 - Added `Export-DriJsonSpec` cmdlet to generate a JSON specification file for Developer Ready Infrastructure.
@@ -17,6 +18,7 @@
 - Added `Invoke-HrmDeployment` cmdlet to perform an end-to-end deployment of Health Reporting and Monitoring.
 - Added `Invoke-UndoHrmDeployment` cmdlet to perform removal of Health Reporting and Monitoring.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
+- Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
