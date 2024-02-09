@@ -38,10 +38,9 @@ Operating System                                                       | Version
 
 The following table lists the supported editions and versions of PowerShell for this module.
 
-Edition                                                                           | Version
-----------------------------------------------------------------------------------|----------
-:material-powershell: &nbsp; [PowerShell Core][microsoft-powershell]              | >= 7.2.0
-:material-powershell: &nbsp; [Microsoft Windows PowerShell][microsoft-powershell] | 5.1
+Edition                                                                | Version
+-----------------------------------------------------------------------|----------
+:material-powershell: &nbsp; [PowerShell Core][microsoft-powershell]   | >= 7.2.0
 
 ### Module Dependencies
 
