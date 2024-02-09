@@ -10,7 +10,7 @@ Verify that your system has a [supported edition and version](index.md#powershel
     --8<-- "./docs/snippets/install-module.ps1"
     ```
 
-    If using PowerShell Core, import the modules before proceeding:
+    Import the modules before proceeding:
 
     For example:
 
