@@ -432,6 +432,7 @@ nav:
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductDetails.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductNode.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductNtpServer.md
+      - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductPassword.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMProductVersion.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMPSPack.md
       - documentation/functions/aria-suite/aria-suite-lifecycle/Get-vRSLCMRequest.md
