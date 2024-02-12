@@ -38484,6 +38484,10 @@ Export-ModuleMember -Function Get-vRSLCMEnvironmentVMs
         Get-vRSLCMProductPassword -productId vrops -vrslcmRootPass VMware123! -nodeFqdn sfo-vrops01a.rainpole.io
         This example gets the password for a specific node in VMware Aria Suite Lifecycle.
 
+        .Example
+        Get-vRSLCMProductPassword -vrslcmRootPass VMware123! -vmid 12345678-1234-1234-1234-123456789012
+        This example gets the password using vmid for specific node in VMware Aria Suite Lifecycle.
+
         .PARAMETER productId
         The product ID of the product to get the password for.
 
@@ -38492,12 +38496,17 @@ Export-ModuleMember -Function Get-vRSLCMEnvironmentVMs
 
         .PARAMETER nodeFqdn
         The fully qualified domain name of the node to get the password for.
+
+        .PARAMETER vmid
+        The vmid of the product to get the password for.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateSet("vidm","vra","vrli","vrni","vrops","vro","vssc")][ValidateNotNullOrEmpty()] [String]$productId,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$vrslcmRootPass,
-        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$nodeFqdn 
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$nodeFqdn,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid 
+
     )
 
     Try {
@@ -38509,15 +38518,18 @@ Export-ModuleMember -Function Get-vRSLCMEnvironmentVMs
             $body = $jsonSpec | ConvertTo-Json -Depth 50
             $baseUri = "https://$vrslcmAppliance/lcm/locker/api/v2/passwords/"
 
-            if($nodeFqdn){
-               $id = ((Get-vRSLCMProductDetails -productid $productid).nodes.properties | Where-Object { $_.hostname -eq $nodeFqdn }).rootPassword
-               if ($null -ne $id) {
+            if ($nodeFqdn) {
+                $id = ((Get-vRSLCMProductDetails -productid $productid).nodes.properties | Where-Object { $_.hostname -eq $nodeFqdn }).rootPassword
+                if ($null -ne $id) {
                     $lockervmid = $id.Split(':')[2]
                     $uri = $baseUri + "$lockervmid/decrypted"
                     Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
                 } else {
                     Write-Warning "$nodeFqdn does not existing in product environment." 
                 }
+            } elseif ($vmid) {
+                $uri = $baseUri + "$vmid/decrypted"
+                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
             } else {
                 $id = (Get-vRSLCMProductDetails -productid $productid).properties.productPassword
                 $lockervmid = $id.Split(':')[2]
