@@ -5,6 +5,7 @@
 > Release Date: Unreleased
 
 - Removed support for Microsoft Windows PowerShell 5.1. Please use Microsoft PowerShell 7.2.0 or later.
+- Removes support for deployment of VMware Aria product components earlier than 8.14.0.
 - Updated `PowerVCF` dependency from v2.4.0 to v2.4.1.
 - Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.

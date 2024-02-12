@@ -11690,7 +11690,7 @@ Function Export-vRLIJsonSpec {
         This example creates a JSON specification file in the folder provided for deploying VMware Aria Operations for Logs using data from the JSON specification file for Intelligent Logging and Analytics
 
         .EXAMPLE
-        Export-vRLIJsonSpec -jsonFile .\ilaDeploySpec.json -customVersion 8.8.4
+        Export-vRLIJsonSpec -jsonFile .\ilaDeploySpec.json -customVersion 8.14.0
         This example creates a JSON specification file for deploying VMware Aria Operations for Logs using a custom version and data from the JSON specification file for Intelligent Logging and Analytics
 
         .EXAMPLE
@@ -11747,12 +11747,6 @@ Function Export-vRLIJsonSpec {
                                             
                                             #### Generate the VMware Aria Operations for Logs Properties Section
                                             if (!$PsBoundParameters.ContainsKey("customVersion")) { 
-                                                if ($vcfVersion -eq "4.3.0") { $vrliVersion = "8.4.0" }
-                                                if ($vcfVersion -eq "4.3.1") { $vrliVersion = "8.4.1" }
-                                                if ($vcfVersion -eq "4.4.0") { $vrliVersion = "8.6.2" }
-                                                if ($vcfVersion -eq "4.4.1") { $vrliVersion = "8.6.2" }
-                                                if ($vcfVersion -eq "4.5.0") { $vrliVersion = "8.8.2" }
-                                                if ($vcfVersion -eq "4.5.1") { $vrliVersion = "8.14.0" }
                                                 if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.14.0" }
                                                 if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.14.0" }
                                                 if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.14.0" }
@@ -11931,7 +11925,7 @@ Function New-vRLIDeployment {
         This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Logging and Analytics
 
         .EXAMPLE
-        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\ilaDeploySpec.json -customVersion 8.8.2
+        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\ilaDeploySpec.json -customVersion 8.14.0
         This example starts a deployment of a custom version of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Logging and Analytics
 
         .EXAMPLE
@@ -15354,7 +15348,7 @@ Function Export-vROPsJsonSpec {
         This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using data from the JSON specification file for Intelligent Operations Management
 
         .EXAMPLE
-        Export-vROPsJsonSpec -jsonFile .\ilaDeploySpec.json -customVersion 8.10.0
+        Export-vROPsJsonSpec -jsonFile .\ilaDeploySpec.json -customVersion 8.14.0
         This example creates a JSON specification file for deploying VMware Aria Operations using a custom version and data from the JSON specification file for Intelligent Operations Management
 
         .EXAMPLE
@@ -15418,12 +15412,6 @@ Function Export-vROPsJsonSpec {
                                                     $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonInput.environmentName}
                                                     
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.3.0") { $vropsVersion = "8.4.0"}
-                                                        if ($vcfVersion -eq "4.3.1") { $vropsVersion = "8.5.0"}
-                                                        if ($vcfVersion -eq "4.4.0") { $vropsVersion = "8.6.2"}
-                                                        if ($vcfVersion -eq "4.4.1") { $vropsVersion = "8.6.2"}
-                                                        if ($vcfVersion -eq "4.5.0") { $vropsVersion = "8.6.3"}
-                                                        if ($vcfVersion -eq "4.5.1") { $vropsVersion = "8.14.0"}
                                                         if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.14.0"}
                                                         if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.14.0"}
                                                         if ($vcfVersion -eq "5.1.0") { $vropsVersion = "8.14.0"}
@@ -15699,7 +15687,7 @@ Function New-vROPSDeployment {
         This example starts a reduce footprint deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Operations Management
 
         .EXAMPLE
-        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\iomDeploySpec.json -customVersion 8.10.0
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\iomDeploySpec.json -customVersion 8.14.0
         This example starts a deployment using a custom version of VMware Aria Operations via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Operations Management
 
         .EXAMPLE
@@ -19013,10 +19001,10 @@ Function Invoke-UndoPcaDeployment {
 
         .EXAMPLE
         Invoke-UndoPcaDeployment -jsonFile .\pcaDeploySpec.json
-        This example removal Private Cloud Automation using the JSON specification provided.
+        This example removed Private Cloud Automation using the JSON specification provided.
 
         .PARAMETER jsonFile
-        The JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution.
+        The path to the JSON specification file to be created.
     #>
 
     Param (
@@ -19183,25 +19171,25 @@ Function Export-vRAJsonSpec {
         The fully qualified domain name of the VMware Cloud Foundation SDDC Manager
 
         .PARAMETER user
-        The username of the VMware Cloud Foundation SDDC Manager
+        The username to authenticate to the SDDC Manager.
 
         .PARAMETER pass
-        The password of the VMware Cloud Foundation SDDC Manager
+        The password to authenticate to the SDDC Manager.
 
         .PARAMETER jsonFile
-        The JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution
+        The path to the JSON specification file to be used.
 
         .PARAMETER outputPath
-        The folder path to store the JSON specification file for the Private Cloud Automation for VMware Cloud Foundation validated solution
+        The folder path to store the JSON specification file.
 
         .PARAMETER customVersion
-        The version of the Private Cloud Automation for VMware Cloud Foundation validated solution to deploy
+        The custom version of VMware Aria Automation.
 
         .PARAMETER useContentLibrary
-        Use a Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA
+        Specifies to use a vSphere Content Library to deploy the VMware Aria Automation OVA.
 
         .PARAMETER contentLibrary
-        The name of the Content Library to store the Private Cloud Automation for VMware Cloud Foundation validated solution OVA.
+        The name of the vSphere Content Library to use to deploy the VMware Aria Automation OVA.
     #>
 
     Param (
@@ -19241,12 +19229,6 @@ Function Export-vRAJsonSpec {
                                                 if ($datacenterName = Get-vRSLCMDatacenter | Where-Object {$_.dataCenterName -eq $jsonInput.datacenter}) {
                                                     $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonInput.environmentName}
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.3.0") { $vraVersion = "8.4.1" }
-                                                        if ($vcfVersion -eq "4.3.1") { $vraVersion = "8.5.0" }
-                                                        if ($vcfVersion -eq "4.4.0") { $vraVersion = "8.6.2" }
-                                                        if ($vcfVersion -eq "4.4.1") { $vraVersion = "8.6.2" }
-                                                        if ($vcfVersion -eq "4.5.0") { $vraVersion = "8.8.2" }
-                                                        if ($vcfVersion -eq "4.5.1") { $vraVersion = "8.14.0" }
                                                         if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.14.0" }
                                                         if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.14.0" }
                                                         if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.14.0" }
@@ -19426,27 +19408,51 @@ Function New-vRADeployment {
         Deploy VMware Aria Automation to VMware Aria Suite Lifecycle
 
         .DESCRIPTION
-        The New-vRADeployment cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle. The cmdlet
-        connects to SDDC Manager using the -server, -user, and -password values:
+        The New-vRADeployment cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle. 
+        The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that VMware Aria Automation has not been deployed in VMware Cloud Foundation aware mode and retrieves its details
         - Requests a new deployment of VMware Aria Automation
 
         .EXAMPLE
         New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -outputPath .\
-        This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation
+        This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation.
 
         .EXAMPLE
-        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\deplyPcaSpec.json -customVersion 8.10.0
-        This example starts a deployment of VMware Aria Automation using a custom version and the JSON Specification for VMware Aria Automation
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -customVersion 8.14.0
+        This example starts a deployment of VMware Aria Automation using a custom version and the JSON Specification for VMware Aria Automation.
 
         .EXAMPLE
-        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\deplyPcaSpec.json -useContentLibrary -contentLibrary Operations
-        This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and deploys the OVAs from a vSphere Content Library
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -useContentLibrary -contentLibrary Operations
+        This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and deploys the OVAs from a vSphere Content Library.
 
         .EXAMPLE
-        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\deplyPcaSpec.json -monitor
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -monitor
         This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and monitors the request.
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username used to authenticate to SDDC Manager.
+
+        .PARAMETER pass
+        The password used to authenticate to SDDC Manager.
+
+        .PARAMETER jsonfile
+        The path to the JSON specification file to be used.
+
+        .PARAMETER monitor
+        Switch to monitor the deployment request.
+
+        .PARAMETER customVersion
+        The version VMware Aria Automation to deploy for the validated solution.
+
+        .PARAMETER useContentLibrary
+        Specifies to use a vSphere Content Library to deploy the VMware Aria Automation OVA.
+
+        .PARAMETER contentLibrary
+        The name of the vSphere Content Library to store the VMware Aria Automation OVA.
     #>
 
     Param (
@@ -23315,12 +23321,6 @@ Function Export-WsaJsonSpec {
                                                 
                                                 #### Generate the Workspace ONE Properties Section
                                                 if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                    if ($vcfVersion -eq "4.3.0") { $wsaVersion = "3.3.5" }
-                                                    if ($vcfVersion -eq "4.3.1") { $wsaVersion = "3.3.5" }
-                                                    if ($vcfVersion -eq "4.4.0") { $wsaVersion = "3.3.6" }
-                                                    if ($vcfVersion -eq "4.4.1") { $wsaVersion = "3.3.6" }
-                                                    if ($vcfVersion -eq "4.5.0") { $wsaVersion = "3.3.6" }
-                                                    if ($vcfVersion -eq "4.5.1") { $wsaVersion = "3.3.7" }
                                                     if ($vcfVersion -eq "4.5.2") { $wsaVersion = "3.3.7" }
                                                     if ($vcfVersion -eq "5.0.0") { $wsaVersion = "3.3.7" }
                                                     if ($vcfVersion -eq "5.1.0") { $wsaVersion = "3.3.7" }
