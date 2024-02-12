@@ -33,6 +33,15 @@ Get-vRSLCMProductPassword -productId vrops -vrslcmRootPass VMware123! -nodeFqdn 
 
 This example gets the password for a specific node in VMware Aria Suite Lifecycle.
 
+### Example 3
+
+```powershell
+Get-vRSLCMProductPassword -vrslcmRootPass VMware123! -vmid 12345678-1234-1234-1234-123456789012
+
+```
+
+This example gets the password using vmid for specific node in VMware Aria Suite Lifecycle.
+
 ## Parameter
 
 ### -productId
@@ -70,6 +79,21 @@ Accept wildcard characters: False
 ### -nodeFqdn
 
 The fully qualified domain name of the node to get the password for.
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 2
+Default value: None
+Accept pipeline input: False
+```
+
+### -vmid
+
+The vmid of the product to get the password for.
 
 ```yaml
 Type: String
