@@ -15088,7 +15088,7 @@ Function Invoke-IomDeployment {
                                     }
 
                                     if (!$failureDetected) {
-                                        Show-PowerValidatedSolutionsOutput -message "Activating the VMware Cloud Foundation Integration"
+                                        Show-PowerValidatedSolutionsOutput -message "Activating the VMware Cloud Foundation Integration in $operationsProductName"
                                         $StatusMsg = Register-vROPSManagementPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -state enable -packType VCF -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                     }
@@ -15110,8 +15110,9 @@ Function Invoke-IomDeployment {
                                     }
 
                                     if (!$failureDetected) {
-                                        Show-PowerValidatedSolutionsOutput -message "Configuring the VMware Cloud Foundation Integration"
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "CURRENTLY NO AUTOMATION"
+                                        Show-PowerValidatedSolutionsOutput -message "Configuring the VMware Cloud Foundation Integration in $operationsProductName"
+                                        $StatusMsg = Add-vROPSAdapterVcf -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -collectorGroupName $jsonInput.collectorGroupName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } elseif ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                                     }
 
                                     if (!$failureDetected) {
@@ -17576,6 +17577,210 @@ Function Add-vROPSAdapterVr {
     }
 }
 Export-ModuleMember -Function Add-vROPSAdapterVr
+
+Function Add-vROPSAdapterVcf {
+    <#
+		.SYNOPSIS
+        Adds an VMware Cloud Foundation Adapter to VMware Aria Operations
+
+        .DESCRIPTION
+        The Add-vROPSAdapterVcf cmdlet adds a VMware Cloud Foundation Adapter to VMware Aria Operations. The cmdlet
+        connects to SDDC Manager using the -server, -user, and -password values:
+        - Validates that network connectivity and authentication is possible to SDDC Manager
+        - Validates that VMware Aria Operations has been deployed in VCF-aware mode and retrieves its details
+        - Validates that network connectivity and authentication is possible to VMware Aria Operations
+        - Validates that the collector group exits in VMware Aria Operations
+        - Validates that the Adapter does not already exist in VMware Aria Operations
+        - Creates a new vCenter Server Adapter for each Workload Domain in the SDDC Manager instance in VMware Aria Operations
+        - Creates a new vSAN Adapter for each Workload Domain in the SDDC Manager instance in VMware Aria Operations
+        - Creates a new NSX Adapter for each Workload Domain in the SDDC Manager instance in VMware Aria Operations
+        - Creates a new VMware Cloud Foundation Adapter in VMware Aria Operations
+        - Starts the collection of the VMware Cloud Foundation Adapter in VMware Aria Operations
+
+        .EXAMPLE
+        Add-vROPSAdapterVcf -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -collectorGroupName sfo-m01-collector-group
+        This example creates a VMware Cloud Foundation adapter in VMware Aria Operations and assigns it to a collector group
+
+        .PARAMETER server
+        The fully qualified domain name of the SDDC Manager.
+
+        .PARAMETER user
+        The username to authenticate to the SDDC Manager.
+
+        .PARAMETER pass
+        The password to authenticate to the SDDC Manager.
+
+        .PARAMETER collectorGroupName
+        The name of the collector group from VMware Aria Operations.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$user,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$pass,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$collectorGroupName="Default collector group"
+    )
+
+    Try {
+        if (Test-VCFConnection -server $server) {
+            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                if (($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass)) {
+                    if (Test-vROPSConnection -server $vcfVropsDetails.loadBalancerFqdn) {
+                        if (Test-vROPSAuthentication -server $vcfVropsDetails.loadBalancerFqdn -user $vcfVropsDetails.adminUser -pass $vcfVropsDetails.adminPass) {
+                            if (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}) {
+                                if (!(Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $server})) {
+                                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                                    foreach ($workloadDomain in $allWorkloadDomains) {
+                                        $vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -user $user -pass $pass -domain $workloadDomain.name
+                                        $vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $workloadDomain.name
+                                        if (!((Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vCenter"}))) {
+                                            $adapterJson = '{
+                                                "name": "'+ $workloadDomain.name +' - vCenter",
+                                                "description": "vCenter Adapter - '+ $($vcfVcenterDetails.fqdn) +'",
+                                                "adapterKindKey" : "VMWARE",
+                                                "resourceKindKey" : "VMwareAdapter Instance",
+                                                "monitoringInterval": 5,
+                                                "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id +'",
+                                                "resourceIdentifiers" : [
+                                                    { "name": "CLOUD_TYPE", "value": "VMWARE_CLOUD_FOUNDATION" },
+                                                    { "name": "AUTODISCOVERY", "value": "true" },
+                                                    { "name": "PROCESSCHANGEEVENTS", "value": "true" },
+                                                    { "name": "VCURL", "value": "'+ $($vcfVcenterDetails.fqdn) +'" }
+                                                ],
+                                                "credential": {
+                                                    "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -match "vCenter Credential - $($vcfVcenterDetails.vmName)"}).id +'"
+                                                }
+                                            }'
+                                            $adapterJson | Out-File .\vcAddAdapter.json
+                                            Add-vROPSAdapter -json .\vcAddAdapter.json | Out-Null
+                                            $testAdapter = Test-vROPSAdapterConnection -json .\vcAddAdapter.json
+                                            $testAdapter | ConvertTo-Json -Depth 10 | Out-File .\vcCreatedAdapter.json
+                                            Test-vROPSAdapterConnection -json .\vcCreatedAdapter.json -patch | Out-Null
+                                            $adapterDetail = Get-Content -Path .\vcCreatedAdapter.json -Raw | ConvertFrom-Json
+                                            $adapterDetail.PSObject.Properties.Remove('links')
+                                            $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "vCenter Adapter - $($vcfVcenterDetails.fqdn)"
+                                            $adapterDetail.id = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vCenter"}).id
+                                            $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\vcPatchAdapter.json -Force
+                                            Set-vROPSAdapter -json .\vcPatchAdapter.json -patch | Out-Null
+                                            if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vCenter"}) {
+                                                Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vCenter"}).id | Out-Null
+                                            }
+                                        }
+                                        if (!((Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vSAN"}))) {
+                                            $adapterJson = '{
+                                                "name": "'+ $workloadDomain.name +' - vSAN",
+                                                "description": "vSAN Adapter - '+ $($vcfVcenterDetails.fqdn) +'",
+                                                "adapterKindKey" : "VirtualAndPhysicalSANAdapter",
+                                                "resourceKindKey" : "VirtualAndPhysicalSANAdapter Instance",
+                                                "monitoringInterval": 5,
+                                                "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id +'",
+                                                "resourceIdentifiers" : [
+                                                    { "name": "VCServer", "value": "' + $($vcfVcenterDetails.fqdn) +'" },
+                                                    { "name": "AUTODISCOVERY", "value": "true" }
+                                                ],
+                                                "credential": {
+                                                    "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -match "vCenter Credential - $($vcfVcenterDetails.vmName)"}).id +'"
+                                                }
+                                            }'
+                                            $adapterJson | Out-File .\vsanAddAdapter.json
+                                            Add-vROPSAdapter -json .\vsanAddAdapter.json | Out-Null
+                                            $testAdapter = Test-vROPSAdapterConnection -json .\vsanAddAdapter.json
+                                            $testAdapter | ConvertTo-Json -Depth 10 | Out-File .\vsanCreatedAdapter.json
+                                            Test-vROPSAdapterConnection -json .\vsanCreatedAdapter.json -patch | Out-Null
+                                            $adapterDetail = Get-Content -Path .\vsanCreatedAdapter.json -Raw | ConvertFrom-Json
+                                            $adapterDetail.PSObject.Properties.Remove('links')
+                                            $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "vSAN Adapter - $($vcfVcenterDetails.fqdn)"
+                                            $adapterDetail.id = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vSAN"}).id
+                                            $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\vsanPatchAdapter.json -Force
+                                            #Set-vROPSAdapter -json .\vsanPatchAdapter.json -patch | Out-Null
+                                            if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vSAN"}) {
+                                                Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - vSAN"}).id | Out-Null
+                                            }
+                                        }
+                                        if (!((Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - NSX"}))) {
+                                            $adapterJson = '{
+                                                "name": "'+ $workloadDomain.name +' - NSX",
+                                                "description": "NSX Adapter - '+ $vcfNsxDetails.fqdn +'",
+                                                "adapterKindKey" : "NSXTAdapter",
+                                                "resourceKindKey" : "NSXTAdapterInstance",
+                                                "monitoringInterval": 5,
+                                                "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id +'",
+                                                "resourceIdentifiers" : [
+                                                    { "name": "NSXTHOST", "value": "'+ $($vcfNsxDetails.fqdn) +'" },
+                                                    { "name": "VCURL", "value": "'+ $($vcfVcenterDetails.fqdn) +'" }
+                                                ],
+                                                "credential": {
+                                                    "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -match "NSX Credential - $($($vcfNsxDetails.fqdn).Split('.')[-0])"}).id +'"
+                                                    }
+                                            }'
+                                            $adapterJson | Out-File .\nsxAddAdapter.json
+                                            Add-vROPSAdapter -json .\nsxAddAdapter.json | Out-Null
+                                            $testAdapter = Test-vROPSAdapterConnection -json .\nsxAddAdapter.json
+                                            $testAdapter | ConvertTo-Json -Depth 10 | Out-File .\nsxCreatedAdapter.json
+                                            Test-vROPSAdapterConnection -json .\nsxCreatedAdapter.json -patch | Out-Null
+                                            $adapterDetail = Get-Content -Path .\nsxCreatedAdapter.json -Raw | ConvertFrom-Json
+                                            $adapterDetail.PSObject.Properties.Remove('links')
+                                            $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "NSX Adapter - $($vcfNsxDetails.fqdn)"
+                                            $adapterDetail.'adapter-certificates' = $adapterDetail.'adapter-certificates' | Select-Object * -ExcludeProperty certificateDetails
+                                            $adapterDetail.id = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - NSX"}).id
+                                            $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\nsxPatchAdapter.json  -Force
+                                            Set-vROPSAdapter -json .\nsxPatchAdapter.json -patch | Out-Null
+                                            if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - NSX"}) {
+                                                Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq "$($workloadDomain.name) - NSX"}).id | Out-Null
+                                            }
+                                        }
+                                    }
+                                    $adapterJson = '{
+                                        "name": "'+ $server +'",
+                                        "description": "VCF Adapter - '+ $server +'",
+                                        "adapterKindKey": "VcfAdapter",
+                                        "resourceKindKey" : "VcfAdapterInstance",
+                                        "monitoringInterval": 5,
+                                        "collectorGroupId": "'+ (Get-vROPSCollectorGroup | Where-Object {$_.name -eq $collectorGroupName}).id +'",
+                                        "resourceIdentifiers": [
+                                            { "name": "SDDCManager_Hostname", "value": "'+ $server +'" }
+                                        ],
+                                        "credential": {
+                                            "id": "'+ (Get-vROPSCredential | Where-Object {$_.name -match $server.Split('.')[-0]}).id +'"
+                                            }
+                                    }'
+                                    $adapterJson | Out-File .\addAdapter.json
+                                    Add-vROPSAdapter -json .\addAdapter.json | Out-Null
+                                    $testAdapter = Test-vROPSAdapterConnection -json .\addAdapter.json
+                                    $testAdapter | ConvertTo-Json -Depth 10 | Out-File .\createdAdapter.json
+                                    Test-vROPSAdapterConnection -json .\createdAdapter.json -patch | Out-Null
+                                    $adapterDetail = Get-Content -Path .\createdAdapter.json -Raw | ConvertFrom-Json
+                                    $adapterDetail.PSObject.Properties.Remove('links')
+                                    $adapterDetail | Add-Member -NotePropertyName description -NotePropertyValue "VCF Adapter - $server"
+                                    $adapterDetail.id = (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $server}).id
+                                    $adapterDetail | ConvertTo-Json -Depth 100 | Out-File .\patchAdapter.json -Force
+                                    Set-vROPSAdapter -json .\patchAdapter.json -patch | Out-Null
+                                    if (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $server}) {
+                                        Start-vROPSAdapter -adapterId (Get-vROPSAdapter | Where-Object {$_.resourceKey.name -eq $server}).id | Out-Null
+                                        Write-Output "Adding VMware Cloud Foundation Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($server)): SUCCESSFUL"
+                                    } else {
+                                        Write-Error "Adding VMware Cloud Foundation Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($($server)): POST_VALIDATION_FAILED"
+                                    }
+                                } else {
+                                    Write-Warning "Adding VMware Cloud Foundation Adapter in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($server), already exists: SKIPPED"
+                                }      
+                            } else {
+                                Write-Error "Collector Group in VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($collectorGroupName), does not exist: PRE_VALIDATION_FAILED"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    } Finally {
+        Remove-Item .\*addAdapter.json -Force -Confirm:$false | Out-Null
+        Remove-Item .\*createdAdapter.json -Force -Confirm:$false | Out-Null
+        Remove-Item .\*patchAdapter.json -Force -Confirm:$false | Out-Null 
+    }
+}
+Export-ModuleMember -Function Add-vROPSAdapterVcf
 
 Function Undo-vROPSAdapter {
     <#

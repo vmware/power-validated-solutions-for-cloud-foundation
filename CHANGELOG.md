@@ -18,10 +18,12 @@
 - Added `Export-HrmJsonSpec` cmdlet to generate a JSON specification file for Health Reporting and Monitoring.
 - Added `Invoke-HrmDeployment` cmdlet to perform an end-to-end deployment of Health Reporting and Monitoring.
 - Added `Invoke-UndoHrmDeployment` cmdlet to perform removal of Health Reporting and Monitoring.
+- Added `Add-vROPSAdapterVcf` cmdlet to support creating the VMware Cloud Foundation adapter in VMware Aria Operations.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
+- Enhanced `Invoke-IomDeployment` cmdlet to include `Add-vROPSAdapterVcf` for creating the VMware Cloud Foundation adapter in VMware Aria Operations.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
