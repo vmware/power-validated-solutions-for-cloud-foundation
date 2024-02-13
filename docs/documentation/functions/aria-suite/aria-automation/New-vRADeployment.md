@@ -7,13 +7,13 @@ Deploy VMware Aria Automation to VMware Aria Suite Lifecycle
 ## Syntax
 
 ```powershell
-New-vRADeployment -server <String> -user <String> -pass <String> [-workbook <String>] [-monitor]
- [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+New-vRADeployment -server <String> -user <String> -pass <String> [-jsonFile <String>] [-monitor] [-customVersion <String>] [-useContentLibrary] [-contentLibrary <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `New-vRADeployment` cmdlet deploys VMware Aria Automation via VMware Aria Suite Lifecycle.
+
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -25,26 +25,34 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx
+New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -outputPath .\
 ```
 
-This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook
+This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation.
 
 ### Example 2
 
 ```powershell
-New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -customVersion 8.10.0
+New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -customVersion 8.14.0
 ```
 
-This example starts a deployment of VMware Aria Automation using a custom version and the Planning and Preparation Workbook
+This example starts a deployment of VMware Aria Automation using a custom version and the JSON Specification for VMware Aria Automation.
 
 ### Example 3
 
 ```powershell
-New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -workbook .\pnp-workbook.xlsx -useContentLibrary -contentLibrary Operations
+New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -useContentLibrary -contentLibrary Operations
 ```
 
-This example starts a deployment of VMware Aria Automation using the Planning and Preparation Workbook and deploys the OVAs from a vSphere Content Library.
+This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and deploys the OVAs from a vSphere Content Library.
+
+### Example 4
+
+```powershell
+New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -monitor
+```
+
+This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation and monitors the request.
 
 ## Parameters
 
@@ -96,9 +104,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -workbook
+### -jsonFile
 
-The Planning and Preparation Workbook (.xlsx) file.
+The path to the JSON specification file to be used.
 
 ```yaml
 Type: String
@@ -114,7 +122,7 @@ Accept wildcard characters: False
 
 ### -monitor
 
-{{ Fill monitor Description }}
+Switch to monitor the deployment request.
 
 ```yaml
 Type: SwitchParameter
