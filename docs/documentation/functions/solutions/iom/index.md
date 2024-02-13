@@ -17,7 +17,7 @@ Select an option for the solution.
 
     | Function                                                                                                       | Type                  |
     | -------------------------------------------------------------------------------------------------------------- | --------------------- |
-    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                  | End-to-End Deployment    |
+    | [`Export-IomJsonSpec`](Export-IomJsonSpec.md)                                                                  | End-to-End Deployment |
     | [`Invoke-IomDeployment`](Invoke-IomDeployment.md)                                                              | End-to-End Deployment |
     | [`Update-vRSLCMPSPack`](./../../aria-suite/aria-suite-lifecycle/Update-vRSLCMPSPack.md)                        | Procedure             |
     | [`Add-ContentLibrary`](./../../vsphere/Add-ContentLibrary.md)                                                  | Procedure             |
@@ -46,6 +46,7 @@ Select an option for the solution.
     | [`Add-vROPSVcfCredential`](./../../aria-suite/aria-operations/Add-vROPSVcfCredential.md)                       | Procedure             |
     | [`Add-vROPSVcenterCredential`](./../../aria-suite/aria-operations/Add-vROPSVcenterCredential.md)               | Procedure             |
     | [`Add-vROPSNsxCredential`](./../../aria-suite/aria-operations/Add-vROPSNsxCredential.md)                       | Procedure             |
+    | [`Add-vROPSAdapterVcf`](./../../aria-suite/aria-operations/Add-vROPSAdapterVcf.md)                             | Procedure             |
     | [`Add-vROPSAdapterPing`](./../../aria-suite/aria-operations/Add-vROPSAdapterPing.md)                           | Procedure             |
     | [`Import-vROPSNotification`](./../../aria-suite/aria-operations/Import-vROPSNotification.md)                   | Procedure             |
     | [`Add-SsoUser`](./../../vsphere/Add-SsoUser.md)                                                                | Procedure             |

@@ -255,6 +255,7 @@ nav:
       - documentation/functions/aria-suite/aria-operations/Add-vROPSAdapterPing.md
       - documentation/functions/aria-suite/aria-operations/Add-vROPSAdapterSddcHealth.md
       - documentation/functions/aria-suite/aria-operations/Add-vROPSAdapterSrm.md
+      - documentation/functions/aria-suite/aria-operations/Add-vROPSAdapterVcf.md
       - documentation/functions/aria-suite/aria-operations/Add-vROPSAdapterVr.md
       - documentation/functions/aria-suite/aria-operations/Add-vROPSAlertPlugin.md
       - documentation/functions/aria-suite/aria-operations/Add-vROPSAlertPluginEmail.md
