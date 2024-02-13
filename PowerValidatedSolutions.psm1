@@ -7901,7 +7901,8 @@ Function Export-DriJsonSpec {
     Try {
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        } 
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of Developer Ready Infrastructure (.json) Specification File"
         if (Test-Path -Path $workbook) {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
@@ -21144,7 +21145,8 @@ Function Export-HrmJsonSpec {
     Try {
         if (!$PsBoundParameters.ContainsKey("workbook")) {
             $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
-        } 
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of Health Reporting and Monitoring JSON (.json) Specification File"
         if (Test-Path -Path $workbook) {
             $pnpWorkbook = Open-ExcelPackage -Path $Workbook
             $jsonObject = @()
@@ -21317,7 +21319,7 @@ Function Invoke-UndoHrmDeployment {
                             if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
 
                                 if (!$failureDetected) {
-                                    Show-PowerValidatedSolutionsOutput -message "Removing Assignment of VMware Aria Operations Custom Role to a Service Account for the Python Module for $solutionName"
+                                    Show-PowerValidatedSolutionsOutput -message "Removing Assignment of VMware Aria Operations Custom Role for the Python Module for $solutionName"
                                     Show-PowerValidatedSolutionsOutput -type NOTE -message "Automation to be developed. Manual steps to be followed"
                                 }
 
@@ -21470,10 +21472,14 @@ Function Deploy-PhotonAppliance {
                                     $ovfConfiguration.Common.guestinfo.enable_ssh.Value = $enableSsh
                                     $ovfConfiguration.Common.guestinfo.debug.Value = $enableDebug
                                     $ovfConfiguration.NetworkMapping.DHCP.Value = $portgroup
-                                    Import-vApp -Source $ovaPath -OvfConfiguration $ovfConfiguration -Name $hostname -VMHost (Get-VMHost -Server $vcfVcenterDetails.fqdn).Name[-1] -Location (Get-Cluster -Server $vcfVcenterDetails.fqdn).Name -InventoryLocation $folder -Datastore (Get-Datastore -Server $vcfVcenterDetails.fqdn).Name -DiskStorageFormat Thin -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force | Out-Null
-                                    Start-VM -VM $hostname -Server ($vcfVcenterDetails.fqdn).Name | Out-Null
-                                    if ((Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name).PowerState -eq "PoweredOn") {
-                                        Write-Output "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                    Import-vApp -Source $ovaPath -OvfConfiguration $ovfConfiguration -Name $hostname -VMHost (Get-VMHost -Server $vcfVcenterDetails.fqdn).Name[-1] -Location (Get-Cluster -Server $vcfVcenterDetails.fqdn).Name -InventoryLocation $folder -Datastore (Get-Datastore -Server $vcfVcenterDetails.fqdn).Name -DiskStorageFormat Thin -Server $vcfVcenterDetails.fqdn -Confirm:$false -Force
+                                    if (Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name -ErrorAction Ignore) {
+                                        Start-VM -VM $hostname -Server ($vcfVcenterDetails.fqdn).Name | Out-Null
+                                        if ((Get-VM -Name $hostname -Server ($vcfVcenterDetails.fqdn).Name).PowerState -eq "PoweredOn") {
+                                            Write-Output "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): SUCCESSFUL"
+                                        } else {
+                                            Write-Error "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
+                                        }
                                     } else {
                                         Write-Error "Deploying and Powering On Virtual Machine ($hostname) in vCenter Server ($($vcfVcenterDetails.fqdn)): POST_VALIDATION_FAILED"
                                     }
@@ -27451,16 +27457,20 @@ Function Get-WSAServerDetail {
         if (Test-VCFConnection -server $fqdn) {
             if (Test-VCFAuthentication -server $fqdn -user $username -pass $password) {
                 if (Get-VCFWSA) {
-                    $vcfWsaDetails = Get-VCFWSA
-                    $wsaCreds = Get-VCFCredential -resourceName $vcfWsaDetails.loadBalancerFqdn
+                    $wsaDetailsVcf = Get-VCFWSA
+                    $wsaCreds = Get-VCFCredential -resourceName $wsaDetailsVcf.loadBalancerFqdn | Where-Object {$_.credentialType -eq "API"}
                     $wsaDetails = New-Object -TypeName PSCustomObject
-                    $wsaDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $vcfWsaDetails.nodes.fqdn
-                    $wsaDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $vcfWsaDetails.loadBalancerIpAddress
-                    $wsaDetails | Add-Member -notepropertyname 'loadBalancerFqdn' -notepropertyvalue $vcfWsaDetails.loadBalancerFqdn
-                    $wsaDetails | Add-Member -notepropertyname 'nodeCount' -notepropertyvalue ($vcfWsaDetails).nodes.Count
-                    $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $vcfWsaDetails.nodes.ipAddress[0]
-                    $wsaDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $vcfWsaDetails.nodes.ipAddress[1]
-                    $wsaDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $vcfWsaDetails.nodes.ipAddress[2]
+                    $wsaDetails | Add-Member -notepropertyname 'fqdn' -notepropertyvalue $wsaDetailsVcf.nodes.fqdn
+                    $wsaDetails | Add-Member -notepropertyname 'loadBalancerIpAddress' -notepropertyvalue $wsaDetailsVcf.loadBalancerIpAddress
+                    $wsaDetails | Add-Member -notepropertyname 'loadBalancerFqdn' -notepropertyvalue $wsaDetailsVcf.loadBalancerFqdn
+                    $wsaDetails | Add-Member -notepropertyname 'nodeCount' -notepropertyvalue ($wsaDetailsVcf).nodes.Count
+                    if (($vcfWsaDetails).nodes.Count -gt 1) {
+                        $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue $wsaDetailsVcf.nodes.ipAddress[0]
+                        $wsaDetails | Add-Member -notepropertyname 'node2IpAddress' -notepropertyvalue $wsaDetailsVcf.nodes.ipAddress[1]
+                        $wsaDetails | Add-Member -notepropertyname 'node3IpAddress' -notepropertyvalue $wsaDetailsVcf.nodes.ipAddress[2]
+                    } else {
+                        $wsaDetails | Add-Member -notepropertyname 'node1IpAddress' -notepropertyvalue ($wsaDetailsVcf).nodes.ipAddress
+                    }
                     $wsaDetails | Add-Member -notepropertyname 'adminUser' -notepropertyvalue $wsaCreds.username
                     $wsaDetails | Add-Member -notepropertyname 'adminPass' -notepropertyvalue $wsaCreds.password
                     $wsaDetails
