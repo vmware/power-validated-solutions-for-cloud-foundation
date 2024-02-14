@@ -24846,7 +24846,7 @@ Function Add-vSphereRole {
         The password to authenticate to the SDDC Manager.
 
         .PARAMETER sddcDomain
-.
+        The workload domain in SDDC Manager.
 
         .PARAMETER roleName
         The name of the role to create.
@@ -24866,7 +24866,7 @@ Function Add-vSphereRole {
 
     Try {
         if (!$PsBoundParameters.ContainsKey("template")) {
-            $template = Get-ExternalFileName -title "Select the vSphere role template (.role)" -fileType "role" -location "C:\Program Files\WindowsPowerShell\Modules\PowerValidatedSolutions\vSphereRoles"
+            $template = Get-ExternalFileName -title "Select the vSphere role template (.role)" -fileType "role" -location ((Get-Module -ListAvailable -Name 'PowerValidatedSolutions' | Select-Object -First 1).ModuleBase + "\vSphereRoles")
         } else {
             if (!(Test-Path -Path $template)) {
                 Write-Error  "vSphere Role Template '$template' File Not Found"
@@ -24933,7 +24933,7 @@ Function Undo-vSphereRole {
         The password to authenticate to the SDDC Manager.
 
         .PARAMETER sddcDomain
-.
+        The workload domain in SDDC Manager.
 
         .PARAMETER roleName
         The name of the role to remove.

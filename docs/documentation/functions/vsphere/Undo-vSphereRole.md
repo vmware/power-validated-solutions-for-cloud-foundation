@@ -83,7 +83,7 @@ Accept wildcard characters: False
 
 ### -sddcDomain
 
-The SDDC Manager domain.
+The workload domain in SDDC Manager.
 
 ```yaml
 Type: String
