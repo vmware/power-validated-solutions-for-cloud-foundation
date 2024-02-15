@@ -5,8 +5,11 @@
 > Release Date: Unreleased
 
 - Removed support for Microsoft Windows PowerShell 5.1. Please use Microsoft PowerShell 7.2.0 or later.
-- Removes support for deployment of VMware Aria product components earlier than 8.14.0.
+- Removed support for deployment of VMware Aria product components earlier than 8.14.0.
 - Updated `PowerVCF` dependency from v2.4.0 to v2.4.1.
+- Updated Role files for VMware HCX to enable support for vSphere 7 and vSphere 8 where permission roles have changed.
+  - Added `vSphereRoles/hcx-vsphere-integration-7x.role` to support vSphere 7.
+  - Added `vSphereRoles/hcx-vsphere-integration-8x.role` to support vSphere 8.
 - Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductPassword` cmdlet to return the password for a specified product or product component in VMware Aria Suite Lifecycle.
@@ -14,11 +17,14 @@
 - Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
 - Added `Export-DriJsonSpec` cmdlet to generate a JSON specification file for Developer Ready Infrastructure.
 - Added `Invoke-DriDeployment` cmdlet to perform an end-to-end deployment of Developer Ready Infrastructure.
-- Added `Invoke-UndoDriDeployment` cmdlet to perform removal of Health Reporting and Monitoring.
+- Added `Invoke-UndoDriDeployment` cmdlet to perform removal of Developer Ready Infrastructure.
 - Added `Export-HrmJsonSpec` cmdlet to generate a JSON specification file for Health Reporting and Monitoring.
 - Added `Invoke-HrmDeployment` cmdlet to perform an end-to-end deployment of Health Reporting and Monitoring.
 - Added `Invoke-UndoHrmDeployment` cmdlet to perform removal of Health Reporting and Monitoring.
 - Added `Add-vROPSAdapterVcf` cmdlet to support creating the VMware Cloud Foundation adapter in VMware Aria Operations.
+- Added `Export-CbwJsonSpec` cmdlet to generate a JSON specification file for Cloud-Based Workload Protection.
+- Added `Invoke-CbwDeployment` cmdlet to perform an end-to-end deployment of Cloud-Based Workload Protection.
+- Added `Invoke-UndoCbwDeployment` cmdlet to perform removal of Cloud-Based Workload Protection.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.

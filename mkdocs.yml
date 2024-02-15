@@ -158,9 +158,9 @@ nav:
         - documentation/functions/solutions/hrm/index.md
     - Hybrid Cloud:
       - Cloud-Based Workload Protection:
-        - documentation/functions/solutions/cwp/index.md
+        - documentation/functions/solutions/cbw/index.md
       - Cloud-Based Ransomware Recovery:
-        - documentation/functions/solutions/crr/index.md
+        - documentation/functions/solutions/cbr/index.md
       - Cross Cloud Mobility:
         - documentation/functions/solutions/ccm/index.md
   - Component Functions:
@@ -893,6 +893,10 @@ nav:
         - documentation/functions/solutions/hrm/Invoke-UndoHrmDeployment.md
         - documentation/functions/solutions/hrm/Deploy-PhotonAppliance.md
         - documentation/functions/solutions/hrm/Remove-PhotonAppliance.md
+      - Cloud-Based Workload Protection:
+        - documentation/functions/solutions/cbw/Export-CbwJsonSpec.md
+        - documentation/functions/solutions/cbw/Invoke-CbwDeployment.md
+        - documentation/functions/solutions/cbw/Invoke-UndoCbwDeployment.md
     - Tests:
       - documentation/functions/supporting/Test-DnsServers.md
       - documentation/functions/supporting/Test-EndpointConnection.md
