@@ -9394,7 +9394,7 @@ Function Enable-SupervisorCluster {
         - Validates that network connectivity and authentication is possible to SDDC Manager
         - Validates that network connectivity and authentication is possible to vCenter Server
         - Validates that network connectivity and authentication is possible to NSX Manager cluster
-        - Performs validation of in puts unless skipped using a switch
+        - Performs validation of inputs unless skipped using a switch
         - Enables Workload Management on the vSphere cluster
 
         .EXAMPLE
@@ -9543,7 +9543,7 @@ Function Enable-SupervisorCluster {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$masterDnsName,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$masterNtpServers,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [Array]$masterDnsServers,
-        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$contentLibrary,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$contentLibrary,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ephemeralStoragePolicy,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$imageStoragePolicy,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$masterStoragePolicy,
@@ -9718,10 +9718,15 @@ Function Enable-SupervisorCluster {
                                                     } Catch {
                                                         Debug-ExceptionWriter -object $_
                                                     }
-                                                    if ($checkContentLibrary.Name -ne $contentLibrary -or !$contentLibrary) {
+                                                    if ($checkContentLibrary.Name -ne $contentLibrary) {
                                                         Write-Error "Invalid Content Library ($contentLibrary): PRE_VALIDATION_FAILED"
                                                         $inputParameterValidation = $false
-                                                    } 
+                                                    }
+                                                } else {
+                                                    if ($defaultVIServer.version -lt 8) {
+                                                        Write-Error "Content Library required for VCF versions prior to 5.0: PRE_VALIDATION_FAILED"
+                                                        $inputParameterValidation = $false
+                                                    }
                                                 }
                                                 # Validate Distributed Virtual Switch exists
                                                 if ($distributedSwitch) {
@@ -9844,15 +9849,15 @@ Function Enable-SupervisorCluster {
                                                     }
                                                 }
                                                 # If any of the prevalidation failed
-                                                if ($inputParameterValidation) {
-                                                    Write-Output "Pre-validation : SUCESSFULL" 
+                                                if ($inputParameterValidation -eq $true) {
+                                                    Write-Output "Pre-validation : SUCCESSFUL" 
                                                 } else {
                                                     Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
                                                     Break
                                                 }
                                             }
                                             # TBD MasterDnsServerIpAddress          = $masterDnsServers
-                                            if ($inputParameterValidation) {
+                                            if ($inputParameterValidation -eq $true) {
                                                 $internalWMClusterInput = @{
                                                     SizeHint                          = $SizeHint
                                                     ManagementVirtualNetwork          = (Get-VirtualNetwork -Name $managementVirtualNetwork)
@@ -9864,7 +9869,6 @@ Function Enable-SupervisorCluster {
                                                     MasterDnsNames                    = $masterDnsName
                                                     MasterNtpServer                   = $masterNtpServers
                                                     Cluster                           = (Get-Cluster -Name $cluster)
-                                                    ContentLibrary                    = $contentLibrary
                                                     EphemeralStoragePolicy            = (Get-SpbmStoragePolicy -Name $ephemeralStoragePolicy)
                                                     ImageStoragePolicy                = (Get-SpbmStoragePolicy -Name $imageStoragePolicy)
                                                     MasterStoragePolicy               = (Get-SpbmStoragePolicy -Name $masterStoragePolicy)
@@ -9877,6 +9881,9 @@ Function Enable-SupervisorCluster {
                                                     WorkerDnsServer                   = $workerDnsServers
                                                     MasterDnsServerIpAddress          = $masterDnsServers
                                                     MasterDnsSearchDomain             = $masterDnsSearchDomain
+                                                }
+                                                if ($contentLibrary) {
+                                                    $internalWMClusterInput += @{ContentLibrary = $contentLibrary}
                                                 }
                                             }
                                             if ($ValidateOnly.isPresent) {

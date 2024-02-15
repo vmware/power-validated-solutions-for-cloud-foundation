@@ -134,6 +134,7 @@
 - Fixed `Get-WSAServerDetails` cmdlet where incorrect initial check was looking for VMware Aria Automation not VMware Aria Suite Lifecycle.
 - Fixed `Add-vRLIAuthenticationWSA` cmdlet description and synopsis which was incorrect.
 - Fixed `Add-NsxtLdapRole` cmdlet which was passing the Workload Domain rather than the identity source domain when assigning groups and users.
+- Fixed `Enable-SupervisorCluster` cmdlet which didn't allow for automatic creation of the Content Library in VCF 5.0+.
 - Enhanced `Add-WorkspaceOneRole` cmdlet for better pre and post validation.
 - Enhanced `Add-vRLIAuthenticationWSA` cmdlet to check for connectivity and authentication to Workspace ONE Access.
 - Enhanced `Set-NsxtRole` cmdlet to support adding roles to LDAP users.
