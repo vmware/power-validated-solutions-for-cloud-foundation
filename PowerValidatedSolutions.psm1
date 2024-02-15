@@ -9850,7 +9850,7 @@ Function Enable-SupervisorCluster {
                                                 }
                                                 # If any of the prevalidation failed
                                                 if ($inputParameterValidation -eq $true) {
-                                                    Write-Output "Pre-validation : SUCESSFUL" 
+                                                    Write-Output "Pre-validation : SUCCESSFUL" 
                                                 } else {
                                                     Write-Error "At least one input parameter validation failed : PRE_VALIDATION_FAILED"
                                                     Break
