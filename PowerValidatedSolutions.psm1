@@ -21843,12 +21843,14 @@ Function Export-CbwJsonSpec {
                 'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
                 'domainBindUser'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
                 'domainBindPass'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'stretchedCluster'                  = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
             }
             Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
             $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -21904,28 +21906,28 @@ Function Invoke-CbwDeployment {
                             $hcxVsphereTemplate = ($pvsModulePath + "\vSphereRoles\" + "hcx-vsphere-integration-7x.role")
                         }
 
-                        Show-PowerValidatedSolutionsOutput -message "Creating a Custom Role in vSphere for Cloud-Based Workload Protection for $solutionName"
+                        Show-PowerValidatedSolutionsOutput -message "Creating a Custom Role in vSphere for $solutionName"
                         $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -roleName $jsonInput.vsphereRoleNameHcx -template $hcxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for vSphere Integration for $solutionName"
                             $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountHcx -role $jsonInput.vsphereRoleNameHcx -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Creating Virtual Machine and Template Folder for the Connector Appliances for $solutionName"
                             $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder and a Resource Pool for the HCX Appliances for $solutionName"
                             $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             $StatusMsg = Add-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -resourcePoolName $jsonInput.resourcePoolHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
                         
                         if (!$failureDetected) {
@@ -21933,20 +21935,20 @@ Function Invoke-CbwDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -ne "MANAGEMENT") {
                                     $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal $jsonInput.serviceAccountNsx -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 }
                             }
                         }
                     }
                 }
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Health Reporting and Monitoring ($jsonFile): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Cloud-Based Workload Protection ($jsonFile): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Invoke-CbwDeployment 
+Export-ModuleMember -Function Invoke-CbwDeployment
 
 Function Invoke-UndoCbwDeployment {
     <#
@@ -21985,7 +21987,7 @@ Function Invoke-UndoCbwDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -ne "MANAGEMENT") {
                                     $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.serviceAccountNsx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 }
                             }
                         }
@@ -21993,38 +21995,204 @@ Function Invoke-UndoCbwDeployment {
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder and a Resource Pool for the HCX Appliances for $solutionName"
                             $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderHcx -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             $StatusMsg = Undo-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -resourcePoolName $jsonInput.resourcePoolHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the Connector Appliances for $solutionName"
                             $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for vSphere Integration for $solutionName"
                             $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountHcx -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
 
                         if (!$failureDetected) {
-                            Show-PowerValidatedSolutionsOutput -message "Creating a Custom Role in vSphere for Cloud-Based Workload Protection for $solutionName"
+                            Show-PowerValidatedSolutionsOutput -message "Removing Custom Role from vSphere for $solutionName"
                             $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $jsonInput.mgmtSddcDomainName -roleName $jsonInput.vsphereRoleNameHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
                     }
                 }
         } else {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Health Reporting and Monitoring ($jsonFile): File Not Found"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Cloud-Based Ransomware Recovery ($jsonFile): File Not Found"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
     }
 }
-Export-ModuleMember -Function Invoke-UndoCbwDeployment 
+Export-ModuleMember -Function Invoke-UndoCbwDeployment
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
+#Region            C L O U D - B A S E D  R A N S O M W A R E  R E C O V E R Y  F U N C T I O N S           ###########
+
+Function Export-CbrJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Cloud-Based Ransomware Recovery
+
+        .DESCRIPTION
+        The Export-CbrJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation
+        workbook to deploy and configure Cloud-Based Ransomware Recovery:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-CbrJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\cbrDeploySpec.json
+        This example creates a JSON specification for Cloud-Based Ransomware Recovery using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of Cloud-Based Ransomware Recovery JSON (.json) Specification File"
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+                'sddcManagerFqdn'               = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'               = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'               = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'            = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vmFolderVcdr'                  = $pnpWorkbook.Workbook.Names["cbr_vm_folder"].Value
+                'stretchedCluster'              = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            }
+            Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
+                    $issueWithJson = $true
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message  "Creation of JSON Specification file for Cloud-Based Ransomware Recovery, missing data: POST_VALIDATION_FAILED"
+            } else { 
+                Show-PowerValidatedSolutionsOutput -message  "Creation of JSON Specification file for Cloud-Based Ransomware Recovery: SUCCESSFUL"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-CbrJsonSpec
+
+Function Invoke-CbrDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end Deployment of Cloud-Based Ransomware Recovery
+
+        .DESCRIPTION
+        The Invoke-CbrDeployment cmdlet is a single function to implement the configuration of the Cloud-Based
+        Ransomware Recovery for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-CbrDeployment -jsonFile .\cbrDeploySpec.json
+        This example configures Cloud-Based Ransomware Recovery for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cloud-Based Ransomware Recovery for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected        = $false
+                        
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Create Virtual Machine and Template Folder for the DRaaS Connector Appliances for $solutionName"
+                            $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                        }
+                    }
+                }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Cloud-Based Ransomware Recovery ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-CbrDeployment
+
+Function Invoke-UndoCbrDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end removal of Cloud-Based Ransomware Recovery
+
+        .DESCRIPTION
+        The Invoke-UndoCbrDeployment cmdlet is a single function to removal the configuration of the Cloud-Based
+        Ransomware Recovery for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-UndoCbrDeployment -jsonFile .\cbrDeploySpec.json
+        This example removes Cloud-Based Ransomware Recovery for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cloud-Based Ransomware Recovery for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected        = $false
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the DRaaS Connector Appliances for $solutionName"
+                            $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolderVcdr -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                        }
+                    }
+                }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Cloud-Based Ransomware Recovery ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoCbrDeployment
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
 #######################################################################################################################
@@ -48057,7 +48225,7 @@ $body = @"
     }
 }
 Export-ModuleMember -Function Add-SrmRecoveryPlanCalloutStep
-  
+
 Function Get-SrmRecoveryPlanVm {
     <#
         .SYNOPSIS
@@ -48194,6 +48362,28 @@ Function Show-PowerValidatedSolutionsOutput {
     }
 }
 Export-ModuleMember -Function Show-PowerValidatedSolutionsOutput
+
+Function messageHandler {
+    Param (
+        [Parameter (Mandatory = $false)] [Array]$statusMessage,
+        [Parameter (Mandatory = $false)] [Array]$warningMessage,
+        [Parameter (Mandatory = $false)] [Array]$errorMessage
+    )
+
+    if ($statusMessage) { 
+        foreach ($message in $statusMessage) {
+            Show-PowerValidatedSolutionsOutput $message
+        }
+    } elseif ($warningMessage) { 
+        foreach ($message in $warningMessage) {
+            Show-PowerValidatedSolutionsOutput -type WARNING -message $message
+        }
+    } elseif ($errorMessage) {
+        foreach ($message in $errorMessage) {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message $message; $failureDetected = $true
+        }
+    }
+}
 
 Function internalCatchWriter ($applianceName, $applianceFqdn) {
     if ($_.Exception.Message -match "400") {

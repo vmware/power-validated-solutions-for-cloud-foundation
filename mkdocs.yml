@@ -897,6 +897,10 @@ nav:
         - documentation/functions/solutions/cbw/Export-CbwJsonSpec.md
         - documentation/functions/solutions/cbw/Invoke-CbwDeployment.md
         - documentation/functions/solutions/cbw/Invoke-UndoCbwDeployment.md
+      - Cloud-Based Ransomware Recovery:
+        - documentation/functions/solutions/cbr/Export-CbrJsonSpec.md
+        - documentation/functions/solutions/cbr/Invoke-CbrDeployment.md
+        - documentation/functions/solutions/cbr/Invoke-UndoCbrDeployment.md
     - Tests:
       - documentation/functions/supporting/Test-DnsServers.md
       - documentation/functions/supporting/Test-EndpointConnection.md
