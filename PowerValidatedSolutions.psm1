@@ -19246,7 +19246,12 @@ Function Invoke-PcaDeployment {
                                         $allWorkloadDomains = Get-VCFWorkloadDomain
                                         $failureDetected = $false
                                         $automationVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-automation-assembler-vsphere-integration.role"
-                                        $orchestratorVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-automation-orchestrator-vsphere-integration.role"
+
+                                        if ((Get-VCFManager -version) -ge 5.0.0.0) { 
+                                            $orchestratorVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-automation-orchestrator-vsphere-integration-8x.role"
+                                        } else {
+                                            $orchestratorVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "aria-automation-orchestrator-vsphere-integration-7x.role"
+                                        }
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Creating a vSphere Content Library for Operational Management"
