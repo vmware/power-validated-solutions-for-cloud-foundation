@@ -22198,6 +22198,278 @@ Export-ModuleMember -Function Invoke-UndoCbrDeployment
 #######################################################################################################################
 
 #######################################################################################################################
+#Region                        C R O S S  C L O U D  M O B I L I T Y  F U N C T I O N S                     ###########
+
+Function Export-CcmJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Cross Cloud Mobility
+
+        .DESCRIPTION
+        The Export-CcmJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation
+        workbook to deploy and configure Cross Cloud Mobility:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-CcmJsonSpec -workbook .\pnp-workbook.xlsx -jsonFile .\ccmDeploySpec.json
+        This example creates a JSON specification for Cross Cloud Mobility using the Planning and Preparation Workbook.
+
+        .PARAMETER workbook
+        The path to the Planning and Preparation workbook (.xlsx) file.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$workbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("workbook")) {
+            $workbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx)" -fileType "xlsx" -location "default"
+        }
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of Cross Cloud Mobility JSON (.json) Specification File"
+        if (Test-Path -Path $workbook) {
+            $pnpWorkbook = Open-ExcelPackage -Path $workbook
+            $jsonObject = @()
+            $jsonObject += [pscustomobject]@{
+                'sddcManagerFqdn'                   = $pnpWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                'sddcManagerUser'                   = $pnpWorkbook.Workbook.Names["sso_default_admin"].Value
+                'sddcManagerPass'                   = $pnpWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                'mgmtSddcDomainName'                = $pnpWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                'vsphereRoleNameHcx'                = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_role"].Value
+                'serviceAccountHcx'                 = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_user"].Value
+                'serviceAccountHcxPass'             = $pnpWorkbook.Workbook.Names["ccm_hcx_vsphere_svc_password"].Value
+                'serviceAccountNsx'                 = ($pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_user"].Value + "@" + $pnpWorkbook.Workbook.Names["child_dns_zone"].Value)
+                'serviceAccountNsxPass'             = $pnpWorkbook.Workbook.Names["ccm_hcx_nsx_svc_password"].Value
+                'vmFolder'                          = $pnpWorkbook.Workbook.Names["ccm_vm_folder"].Value
+                'folderSuffix'                      = "-fd-hcx"
+                'resourcePoolSuffix'                = "-rp-hcx"
+                'domainFqdn'                        = $pnpWorkbook.Workbook.Names["region_ad_child_fqdn"].Value
+                'domainBindUser'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_user"].Value
+                'domainBindPass'                    = $pnpWorkbook.Workbook.Names["child_svc_vsphere_ad_password"].Value
+                'stretchedCluster'                  = $pnpWorkbook.Workbook.Names["mgmt_stretched_cluster_chosen"].Value
+            }
+            Close-ExcelPackage $pnpWorkbook -NoSave -ErrorAction SilentlyContinue
+            $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+            Foreach ($jsonValue in $jsonInput.psobject.properties) {
+                if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
+                    $issueWithJson = $true
+                }
+            }
+            if ($issueWithJson) {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message  "Creation of JSON Specification file for Cross Cloud Mobility, missing data: POST_VALIDATION_FAILED"
+            } else { 
+                Show-PowerValidatedSolutionsOutput -message  "Creation of JSON Specification file for Cross Cloud Mobility: SUCCESSFUL"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($workbook): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-CcmJsonSpec
+
+Function Invoke-CcmDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end Deployment of Cross Cloud Mobility
+
+        .DESCRIPTION
+        The Invoke-CcmDeployment cmdlet is a single function to implement the configuration of the Cross Cloud
+        Mobility for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-CcmDeployment -jsonFile .\ccmDeploySpec.json
+        This example configures Cross Cloud Mobility for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cross Cloud Mobility for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected        = $false
+                        $allWorkloadDomains     = Get-VCFWorkloadDomain
+                        $pvsModulePath          = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+                        if ((Get-VCFManager -version) -ge 5.1.0.0) { 
+                            $hcxVsphereTemplate = ($pvsModulePath + "\vSphereRoles\" + "hcx-vsphere-integration-8x.role")
+                        } else {
+                            $hcxVsphereTemplate = ($pvsModulePath + "\vSphereRoles\" + "hcx-vsphere-integration-7x.role")
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Creating a Custom Role in vSphere for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                    $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameHcx -template $hcxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                }
+                            }
+                        }                   
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for vSphere Integration for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                    $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUser -domainBindPass $jsonInput.domainBindPass -principal $jsonInput.serviceAccountHcx -role $jsonInput.vsphereRoleNameHcx -propagate true -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                }
+                            }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder for the HCX Appliance for $solutionName"
+                            $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Creating a Virtual Machine and Template Folder and a Resource Pool for the HCX Appliances for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "VI") {
+                                    $StatusMsg = Add-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name  -folderName ($sddcDomain.name + $jsonInput.folderSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                    Foreach ($cluster in $sddcDomain.clusters) {
+                                        $StatusMsg = Add-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -resourcePoolName (((Get-VCFCluster -id $cluster.id).name) + $jsonInput.resourcePoolSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Configuring Service Account Permissions for NSX Integration for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -ne "MANAGEMENT") {
+                                    $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type user -principal $jsonInput.serviceAccountNsx -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                }
+                            }
+                        }
+                    }
+                }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Cross Cloud Mobility ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-CcmDeployment 
+
+Function Invoke-UndoCcmDeployment {
+    <#
+        .SYNOPSIS
+        End-to-end removal of Cross Cloud Mobility
+
+        .DESCRIPTION
+        The Invoke-UndoCcmDeployment cmdlet is a single function to removal the configuration of the Cross Cloud
+        Mobility for VMware Cloud Foundation validated solution.
+
+        .EXAMPLE
+        Invoke-UndoCcmDeployment -jsonFile .\ccmDeploySpec.json
+        This example removes Cross Cloud Mobility for VMware Cloud Foundation using the JSON spec supplied.
+
+        .PARAMETER jsonFile
+        The JSON (.json) file created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    $solutionName = "Cross Cloud Mobility for VMware Cloud Foundation"
+
+    Try {
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Removal of $solutionName"
+        if (Test-Path -Path $jsonFile) {
+            $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
+                if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
+                    if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
+                        $failureDetected        = $false
+                        $allWorkloadDomains     = Get-VCFWorkloadDomain
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for NSX Integration for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -ne "MANAGEMENT") {
+                                    $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.serviceAccountNsx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                }
+                            }
+                        }
+                        
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folders and a Resource Pools for the HCX Appliances for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "VI") {
+                                    $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name  -folderName ($sddcDomain.name + $jsonInput.folderSuffix) -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                    Foreach ($cluster in $sddcDomain.clusters) {
+                                        $StatusMsg = Undo-ResourcePool -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -resourcePoolName (((Get-VCFCluster -id $cluster.id).name) + $jsonInput.resourcePoolSuffix) -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Virtual Machine and Template Folder for the HCX Appliance for $solutionName"
+                            $StatusMsg = Undo-VMFolder -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -folderName $jsonInput.vmFolder -folderType VM -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Service Account Permissions for vSphere Integration for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                    $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.serviceAccountHcx -type user -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                }
+                            }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Removing Custom Role from vSphere for $solutionName"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                    $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleNameHcx -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
+                                }
+                            }
+                        }
+                    }
+                }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for Cross Cloud Mobility ($jsonFile): File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Invoke-UndoCcmDeployment 
+
+#EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
 #Region                 V M W A R E  A R I A  S U I T E  L I F E C Y C L E  F U N C T I O N S               ###########
 
 Function Export-vRSLCMJsonSpec {

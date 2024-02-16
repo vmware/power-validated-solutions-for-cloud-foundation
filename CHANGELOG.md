@@ -29,6 +29,9 @@
 - Added `Invoke-CbrDeployment` cmdlet to perform an end-to-end deployment of Cloud-Based Ransomware Recovery.
 - Added `Invoke-UndoCbrDeployment` cmdlet to perform removal of Cloud-Based Ransomware Recovery.
 - Added `messageHandler` cmdlet an internal function to handle multiple lines of message output for end-to-end deployments.
+- Added `Export-CcmJsonSpec` cmdlet to generate a JSON specification file for Cross Cloud Migration.
+- Added `Invoke-CcmDeployment` cmdlet to perform an end-to-end deployment of Cross Cloud Migration.
+- Added `Invoke-UndoCcmDeployment` cmdlet to perform removal of Cross Cloud Migration.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
