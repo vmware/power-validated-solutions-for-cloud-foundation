@@ -887,6 +887,8 @@ nav:
         - documentation/functions/solutions/pca/Export-PcaJsonSpec.md
         - documentation/functions/solutions/pca/Invoke-PcaDeployment.md
         - documentation/functions/solutions/pca/Invoke-UndoPcaDeployment.md
+      - Site Protection and Disaster Recovery:
+        - documentation/functions/solutions/pdr/Export-PdrJsonSpec.md
       - Health Reporting and Monitoring:
         - documentation/functions/solutions/hrm/Export-HrmJsonSpec.md
         - documentation/functions/solutions/hrm/Invoke-HrmDeployment.md

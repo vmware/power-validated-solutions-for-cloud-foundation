@@ -32,8 +32,10 @@
 - Added `Export-CcmJsonSpec` cmdlet to generate a JSON specification file for Cross Cloud Migration.
 - Added `Invoke-CcmDeployment` cmdlet to perform an end-to-end deployment of Cross Cloud Migration.
 - Added `Invoke-UndoCcmDeployment` cmdlet to perform removal of Cross Cloud Migration.
+- Added `Export-PdrJsonSpec` cmdlet to generate a JSON specification file for Site Protection and Disaster Recovery.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
+- Fixed `Add-EsxiVrmsVMkernelPort` pre-validation to actually compare server count so that it skips if configured.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
 - Enhanced `Invoke-IomDeployment` cmdlet to include `Add-vROPSAdapterVcf` for creating the VMware Cloud Foundation adapter in VMware Aria Operations.
@@ -43,6 +45,8 @@
   - `Invoke-UndoIamDeployment`
   - `Invoke-IlaDeployment`
   - `Invoke-UndoIlaDeployment`
+- Enhanced `Move-VMtoFolder` cmdlet to check if the VM has already been moved and also handle multiple vCenter Server connections.
+- Enhanced `Install-VamiCertificate` cmdlet to check the path to the certificate files.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.

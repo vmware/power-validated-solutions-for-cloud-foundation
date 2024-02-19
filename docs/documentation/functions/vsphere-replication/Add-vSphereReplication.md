@@ -7,15 +7,12 @@ Adds a vSphere Replication for a specified virtual machine.
 ## Syntax
 
 ```powershell
-Add-vSphereReplication [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-vmName] <String>
- [-recoveryPointObjective] <Int32> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-vSphereReplication [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-vmName] <String> [-recoveryPointObjective] <Int32> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
 The `Add-vSphereReplication` cmdlet adds vSphere Replication for a specified virtual machine.
-
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
@@ -28,7 +25,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Add-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01
+Add-vSphereReplication --sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
 ```
 
 This example adds vSphere Replication for VM xint-vrslcm01 from the protected instance to the recovery instance.

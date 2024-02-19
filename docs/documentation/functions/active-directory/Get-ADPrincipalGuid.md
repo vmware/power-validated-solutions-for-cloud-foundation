@@ -12,7 +12,7 @@ Get-ADPrincipalGuid [-domain] <String> [-user] <String> [-pass] <String> [-princ
 
 ## Description
 
-The `Get-ADPrincipalGuid` cmdlet retrieves the GUID details for an active directory user or group Active Directory domain.
+The `Get-ADPrincipalGuid` cmdlet retrieves the GUID details for an Active Directory user or group from a domain.
 
 ## Examples
 
@@ -22,7 +22,7 @@ The `Get-ADPrincipalGuid` cmdlet retrieves the GUID details for an active direct
 Get-ADPrincipalGuid -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
 ```
 
-This example retrieves the details for the gg-sso-admin domain.
+This example retrieves the details for the group gg-sso-admin from the domain.
 
 ## Parameters
 
