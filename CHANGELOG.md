@@ -41,6 +41,8 @@
 - Enhanced One-Click `Invoke-` cmdlets for better message output:
   - `Invoke-IamDeployment`
   - `Invoke-UndoIamDeployment`
+  - `Invoke-IlaDeployment`
+  - `Invoke-UndoIlaDeployment`
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
