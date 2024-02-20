@@ -157,19 +157,20 @@ Function Invoke-IamDeployment {
             if (Test-Path -Path $rootCertificate) {
                 if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
                     if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                        $allWorkloadDomains     = Get-VCFWorkloadDomain
-                        $pvsModulePath          = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
-                        $nsxVsphereTemplate     = $pvsModulePath + "\vSphereRoles\" + "nsx-vsphere-integration.role"
+                        $failureDetected    = $false
+                        $allWorkloadDomains = Get-VCFWorkloadDomain
+                        $pvsModulePath      = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
+                        $nsxVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "nsx-vsphere-integration.role"
 
                         Show-PowerValidatedSolutionsOutput -message "Adding Active Directory as an Identity Provider in vCenter Server"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                 if ($jsonInput.vcenterAdConnectionType -eq "LDAPS") {
                                     $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 } else {
                                     $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldap -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 }
                             }
                         }
@@ -179,7 +180,7 @@ Function Invoke-IamDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                     $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -template $nsxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 }
                             }
                         }
@@ -188,7 +189,7 @@ Function Invoke-IamDeployment {
                             Show-PowerValidatedSolutionsOutput -message "Configuring an LDAP Identity Source in NSX Manager"
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $StatusMsg = Add-NsxtIdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserNsx -domainBindPass $jsonInput.domainBindPassNsx -dcMachineName $jsonInput.domainControllerMachineName -baseDn $jsonInput.baseDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
                         
@@ -197,9 +198,9 @@ Function Invoke-IamDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                     $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.vcenterAdminGroup -role Admin -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                     $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.vcenterReadOnlyGroup -role ReadOnly -propagate true -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 }
                             }
                         }
@@ -209,7 +210,7 @@ Function Invoke-IamDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                     $StatusMsg = Add-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 }
                             }
                         }
@@ -217,22 +218,22 @@ Function Invoke-IamDeployment {
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Assigning SDDC Manager Roles to Active Directory Groups"
                             $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -principal $jsonInput.vcfAdminGroup -role ADMIN -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere $jsonInput.vcfOperatorGroup -role OPERATOR -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             $StatusMsg = Add-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere $jsonInput.vcfViewerGroup -role VIEWER -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         }
 
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message "Assigning NSX Manager Roles to Active Directory Groups"
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxEnterpriseAdminGroup -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxNetworkAdminsGroup -role network_engineer -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 $StatusMsg = Add-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -type group -principal $jsonInput.nsxAuditorGroup -role auditor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
 
@@ -241,7 +242,7 @@ Function Invoke-IamDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                 $StatusMsg = Add-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -ssoGroup "LicenseService.Administrators" -type user -source local -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
 
@@ -250,20 +251,23 @@ Function Invoke-IamDeployment {
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                 $StatusMsg = Add-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -role $jsonInput.vsphereRoleName -propagate true -type user -localdomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; $ErrorMsg = $null } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 if ($sddcDomain.type -eq "MANAGEMENT") {
                                     $viWorkloadDomains = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "VI"}
                                     foreach ($viDomain in $viWorkloadDomains) {
                                         $viServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                         $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg; $ErrorMsg = $null } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                        if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                     }
                                 }
                                 if ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -eq "vsphere.local") {
                                     $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}
                                     $mgmtServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                     $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "NoAccess" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                    if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 }
                             }
                         }
@@ -310,7 +314,8 @@ Function Invoke-UndoIamDeployment {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             if (Test-VCFConnection -server $jsonInput.sddcManagerFqdn ) {
                 if (Test-VCFAuthentication -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass) {
-                    $allWorkloadDomains     = Get-VCFWorkloadDomain
+                    $allWorkloadDomains = Get-VCFWorkloadDomain
+                    $failureDetected    = $false
 
                     Show-PowerValidatedSolutionsOutput -message "Reconfiguring the vSphere Role and Permissions Scope for NSX Service Accounts"
                     foreach ($sddcDomain in $allWorkloadDomains) {
@@ -319,14 +324,16 @@ Function Invoke-UndoIamDeployment {
                             foreach ($viDomain in $viWorkloadDomains) {
                                 $viServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $viDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                                 $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $viServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg 
                             }
                         }
                         if ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -eq "vsphere.local") {
                             $mgmtWorkloadDomain = Get-VCFWorkloadDomain | Where-Object {$_.type -eq "MANAGEMENT"}
                             $mgmtServiceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $mgmtWorkloadDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                             $StatusMsg = Set-vCenterPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.ssoName -workloadDomain $sddcDomain.name -principal $mgmtServiceAccount -role "Admin" -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                         }
                     }
 
@@ -335,7 +342,7 @@ Function Invoke-UndoIamDeployment {
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             $serviceAccount = (Get-VCFCredential | Where-Object {$_.accountType -eq "SERVICE" -and $_.resource.domainName -eq $sddcDomain.name -and $_.resource.resourceType -eq "VCENTER"}).username.Split("@")[-0]
                             $StatusMsg = Undo-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $sddcDomain.ssoName -principal $serviceAccount -ssoGroup "LicenseService.Administrators" -type user -source local -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         }
                     }
 
@@ -343,11 +350,11 @@ Function Invoke-UndoIamDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Removing NSX Manager Roles from Active Directory Groups"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxEnterpriseAdminGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxNetworkAdminsGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             $StatusMsg = Undo-NsxtLdapRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principal $jsonInput.nsxAuditorGroup -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         }
                     }
 
@@ -355,7 +362,7 @@ Function Invoke-UndoIamDeployment {
                         Show-PowerValidatedSolutionsOutput -message "Removing LDAP Identity Source from NSX Manager"
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             $StatusMsg = Undo-NsxtIdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                            if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                            messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         }
                     }
 
@@ -364,7 +371,7 @@ Function Invoke-UndoIamDeployment {
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                 $StatusMsg = Undo-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
                     }
@@ -372,11 +379,11 @@ Function Invoke-UndoIamDeployment {
                     if (!$failureDetected) {
                         Show-PowerValidatedSolutionsOutput -message "Removing SDDC Manager Roles from Active Directory Groups"
                         $StatusMsg = Undo-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -principal $jsonInput.vcfAdminGroup -type GROUP -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         $StatusMsg = Undo-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -principal $jsonInput.vcfOperatorGroup -type GROUP -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                         $StatusMsg = Undo-SddcManagerRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -principal $jsonInput.vcfViewerGroup -type GROUP -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                        if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                     }
 
                     if (!$failureDetected) {
@@ -384,7 +391,7 @@ Function Invoke-UndoIamDeployment {
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                 $StatusMsg = Undo-SsoPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.ssoAdminGroup -ssoGroup "Administrators" -type group -source external -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg}
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
                     }
@@ -394,9 +401,9 @@ Function Invoke-UndoIamDeployment {
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                 $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.vcenterAdminGroup -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 $StatusMsg = Undo-vCenterGlobalPermission -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -principal $jsonInput.vcenterReadOnlyGroup -type group -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
                     }
@@ -406,7 +413,7 @@ Function Invoke-UndoIamDeployment {
                         foreach ($sddcDomain in $allWorkloadDomains) {
                             if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                 $StatusMsg = Undo-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                if ($StatusMsg) { Show-PowerValidatedSolutionsOutput -message $StatusMsg } elseif ($WarnMsg) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg } elseif ($ErrorMsg) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
                         }
                     }

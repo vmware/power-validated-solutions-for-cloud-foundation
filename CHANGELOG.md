@@ -38,6 +38,9 @@
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
 - Enhanced `Invoke-IomDeployment` cmdlet to include `Add-vROPSAdapterVcf` for creating the VMware Cloud Foundation adapter in VMware Aria Operations.
 - Enhanced `Add-vSphereRole` cmdlet to open by default the \vSphereRoles folder in the installed path of PowerValidatedSolutions.
+- Enhanced One-Click `Invoke-` cmdlets for better message output:
+  - `Invoke-IamDeployment`
+  - `Invoke-UndoIamDeployment`
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
