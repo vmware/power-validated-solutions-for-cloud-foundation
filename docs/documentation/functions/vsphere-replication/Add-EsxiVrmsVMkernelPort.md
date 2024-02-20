@@ -6,7 +6,7 @@ Create a VMkernel port on ESXi hosts
 
 ## Syntax
 
-```powershell
+``` powershell
 Add-EsxiVrmsVMkernelPort [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
  [-portgroup] <String> [-netmask] <String> [-ipAddresses] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
@@ -14,8 +14,7 @@ Add-EsxiVrmsVMkernelPort [-server] <String> [-user] <String> [-pass] <String> [-
 ## Description
 
 The `Add-EsxiVrmsVMkernelPort` cmdlet creates a VMkernel port on each ESXi host for vSphere Replication traffic.
-The
-cmdlet connects to SDDC Manager using the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance
 - Validates that network connectivity and authentication is possible to the vCenter Server instance
@@ -25,8 +24,8 @@ cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 ### Example 1
 
-```powershell
-Add-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
+``` powershell
+Add-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo01-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
 ```
 
 This example creates a VMkernel port for each ESXi host Management Domain.

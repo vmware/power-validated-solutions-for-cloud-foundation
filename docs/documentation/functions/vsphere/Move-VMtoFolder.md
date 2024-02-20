@@ -14,8 +14,7 @@ Move-VMtoFolder [-server] <String> [-user] <String> [-pass] <String> [-domain] <
 ## Description
 
 The `Move-VMtoFolder` cmdlet moves the Virtual Machines to a folder.
-The cmdlet connects to SDDC Manager using
-the -server, -user, and -password values:
+The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
 - Retrives the details of the vCenter Server for the Workload Domain provided
@@ -28,7 +27,7 @@ the -server, -user, and -password values:
 ### Example 1
 
 ```powershell
-Move-VMtoFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmList "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c" -folder xinst-m01-fd-wsa
+Move-VMtoFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmList "xint-wsa01a,xint-wsa01b xint-wsa01c" -folder xint-m01-fd-wsa
 ```
 
 This example shows how to move a list of virtual machines to a new folder.

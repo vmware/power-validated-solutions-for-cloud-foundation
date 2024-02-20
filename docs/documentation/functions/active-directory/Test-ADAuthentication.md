@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Test authetication against Active Directory
+Test authentication against Active Directory
 
 ## Syntax
 
@@ -12,7 +12,7 @@ Test-ADAuthentication [-user] <String> [-pass] <String> [[-server] <String>] [[-
 
 ## Description
 
-The `Test-ADAuthentication` cmdlet tests the credentials provided against Active Directory domain.
+The `Test-ADAuthentication` cmdlet tests the credentials provided against the Active Directory domain.
 
 ## Examples
 
@@ -22,13 +22,13 @@ The `Test-ADAuthentication` cmdlet tests the credentials provided against Active
 Test-ADAuthentication -user svc-vsphere-ad -pass VMw@re1! -server sfo.rainpole.io -domain sfo.rainpole.io
 ```
 
-This example check that the svc-vsphere-ad user can authenticate to the sfo.rainpole.io domain.
+This example checks that the svc-vsphere-ad user can authenticate to the sfo.rainpole.io domain.
 
 ## Parameters
 
 ### -user
 
-The Active Directory Domain user account to bind to.
+The Active Directory Domain user account to connect with.
 
 ```yaml
 Type: String

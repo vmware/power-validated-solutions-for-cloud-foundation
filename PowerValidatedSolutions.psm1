@@ -2354,6 +2354,224 @@ Export-ModuleMember -Function Undo-NsxtIdentitySource
 #######################################################################################################################
 #Region          S I T E  P R O T E C T I O N  &  D I S A S T E R  R E C O V E R Y  F U N C T I O N S       ###########
 
+Function Export-PdrJsonSpec {
+    <#
+        .SYNOPSIS
+        Create JSON specification for Site Protection and Disaster Recovery
+
+        .DESCRIPTION
+        The Export-PdrJsonSpec cmdlet creates the JSON specification file using the Planning and Preparation
+        workbook to deploy and configure Site Protection and Disaster Recovery:
+        - Validates that the Planning and Preparation is available
+        - Generates the JSON specification file using the Planning and Preparation workbook
+
+        .EXAMPLE
+        Export-PdrJsonSpec -protectedWorkbook .\pnp-workbook.xlsx -recoveryWorkbook .\pnp-workbook.xlsx -jsonFile .\pdrDeploySpec.json
+        This example creates a JSON specification for Site Protection and Disaster Recovery using the Planning and Preparation Workbook.
+
+        .PARAMETER protectedWorkbook
+        The path to the Planning and Preparation workbook (.xlsx) file for the protected site.
+
+        .PARAMETER recoveryWorkbook
+        The path to the Planning and Preparation workbook (.xlsx) file for the recovery site.
+
+        .PARAMETER jsonFile
+        The path to the JSON specification file to be created.
+    #>
+
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile
+    )
+
+    Try {
+        if (!$PsBoundParameters.ContainsKey("protectedWorkbook")) {
+            $protectedWorkbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx) for the Protected Site" -fileType "xlsx" -location "default"
+        } 
+        if (!$PsBoundParameters.ContainsKey("recoveryWorkbook")) {
+            $recoveryWorkbook = Get-ExternalFileName -title "Select the Planning and Preparation Workbook (.xlsx) for the Recovery Site" -fileType "xlsx" -location "default"
+        } 
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Generation of Site Protection and Disaster Recovery (.json) Specification File"
+        if (Test-Path -Path $protectedWorkbook) {
+            if (Test-Path -Path $recoveryWorkbook) {
+                $pnpProtectedWorkbook = Open-ExcelPackage -Path $protectedWorkbook
+                $pnpRecoveryWorkbook = Open-ExcelPackage -Path $recoveryWorkbook
+
+                $protectedObject = @()
+                $protectedObject += [pscustomobject]@{
+                    'sddcManagerFqdn'               = $pnpProtectedWorkbook.Workbook.Names["sddc_mgr_fqdn"].Value
+                    'sddcManagerUser'               = $pnpProtectedWorkbook.Workbook.Names["sso_default_admin"].Value
+                    'sddcManagerPass'               = $pnpProtectedWorkbook.Workbook.Names["administrator_vsphere_local_password"].Value
+                    'mgmtSddcDomainName'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_sddc_domain"].Value
+                    'ntp'                           = $pnpProtectedWorkbook.Workbook.Names["xregion_ntp1_server"].Value
+                    'vmFolderVrms'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_vm_folder"].Value
+                    'vrmsVmName'                    = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_hostname"].Value
+                    'vrmsFqdn'                      = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_fqdn"].Value
+                    'vrmsIpAddress'                 = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_mgmt_ip"].Value
+                    'vrmsGateway'                   = $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+                    'vrmsNetPrefix'                 = (($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value) -Split ('/'))[-1]
+                    'vrmsSearchDomain'              = $pnpProtectedWorkbook.Workbook.Names["child_dns_zone"].Value
+                    'vrmsRootPassword'              = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_root_password"].Value
+                    'vrmsAdminPassword'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_admin_password"].Value
+                    'vrmsCertificateFile'           = ($pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_hostname"].Value + ".4.p12")
+                    'vrmsCertificatePassword'       = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_p12_password"].Value
+                    'vrmsSiteName'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_site_name"].Value
+                    'vrmsAdminEmail'                = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_admin_email"].Value
+                    'replicationPortgroup'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_pg"].Value
+                    'replicationVlan'               = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_vlan"].Value -as [Int]
+                    'replicationSubnet'             = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value
+                    'replicationIpAddress'          = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_vrms_ip"].Value
+                    'replicationGateway'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value
+                    'replicationNetmask'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
+                    'remoteReplicationNetwork'      = $pnpProtectedWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
+                    'replicationIpAddresses'        = @("$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host1_vrms_ip"].Value)","$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host2_vrms_ip"].Value)","$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host3_vrms_ip"].Value)","$($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_host4_vrms_ip"].Value)")
+                    'vmFolderSrm'                   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vm_folder"].Value
+                    'srmVmName'                     = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_hostname"].Value
+                    'srmFqdn'                       = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value
+                    'srmIpAddress'                  = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_ip"].Value
+                    'srmGateway'                    = $pnpProtectedWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+                    'srmNetPrefix'                  = (($pnpProtectedWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value) -Split ('/'))[-1]
+                    'srmSearchDomain'               = $pnpProtectedWorkbook.Workbook.Names["child_dns_zone"].Value
+                    'srmRootPassword'               = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_root_password"].Value
+                    'srmAdminPassword'              = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_admin_password"].Value
+                    'srmDbPassword'                 = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_database_password"].Value
+                    'srmDeploymentOption'           = "standard"
+                    'srmCertificateFile'            = ($pnpProtectedWorkbook.Workbook.Names["mgmt_srm_hostname"].Value + ".4.p12")
+                    'srmCertificatePassword'        = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_p12_password"].Value
+                    'srmSiteName'                   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_site_name"].Value
+                    'srmAdminEmail'                 = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_admin_email"].Value
+                    'srmLicenseKey'                 = $pnpProtectedWorkbook.Workbook.Names["srm_license"].Value
+                    'networkSegment'                = $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                    'cluster'                       = $pnpProtectedWorkbook.Workbook.Names["mgmt_cluster"].Value
+                }
+
+                $recoveryObject = @()
+                $recoveryObject += [pscustomobject]@{
+                    'sddcManagerFqdn'               = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_sddc_manager_fqdn"].Value
+                    'sddcManagerUser'               = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_sddc_manager_username"].Value
+                    'sddcManagerPass'               = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_sddc_manager_password"].Value
+                    'mgmtSddcDomainName'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_sddc_manager_domain"].Value
+                    'ntp'                           = $pnpProtectedWorkbook.Workbook.Names["xregion_ntp2_server"].Value
+                    'ntpDescription'                = "VCF NTP Server 2"
+                    'vmFolderVrms'                  = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_vm_folder"].Value
+                    'vrmsVmName'                    = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_hostname"].Value
+                    'vrmsFqdn'                      = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_fqdn"].Value
+                    'vrmsIpAddress'                 = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_mgmt_ip"].Value
+                    'vrmsGateway'                   = $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+                    'vrmsNetPrefix'                 = (($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value) -Split ('/'))[-1]
+                    'vrmsSearchDomain'              = $pnpRecoveryWorkbook.Workbook.Names["child_dns_zone"].Value
+                    'vrmsRootPassword'              = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_root_password"].Value
+                    'vrmsAdminPassword'             = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_admin_password"].Value
+                    'vrmsCertificateFile'           = ($pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_hostname"].Value + ".4.p12")
+                    'vrmsCertificatePassword'       = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_p12_password"].Value
+                    'vrmsSiteName'                  = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_site_name"].Value
+                    'vrmsAdminEmail'                = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_admin_email"].Value
+                    'replicationPortgroup'          = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_pg"].Value
+                    'replicationVlan'               = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_vlan"].Value -as [Int]
+                    'replicationSubnet'             = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_cidr"].Value
+                    'replicationIpAddress'          = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_vrms_ip"].Value
+                    'replicationGateway'            = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_gateway_ip"].Value
+                    'replicationNetmask'            = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_mask"].Value
+                    'remoteReplicationNetwork'      = $pnpRecoveryWorkbook.Workbook.Names["mgmt_vrms_recovery_replication_cidr"].Value
+                    'replicationIpAddresses'        = @("$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host1_vrms_ip"].Value)","$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host2_vrms_ip"].Value)","$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host3_vrms_ip"].Value)","$($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_host4_vrms_ip"].Value)")
+                    'vmFolderSrm'                   = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_vm_folder"].Value
+                    'srmVmName'                     = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_hostname"].Value
+                    'srmFqdn'                       = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_fqdn"].Value
+                    'srmIpAddress'                  = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_ip"].Value
+                    'srmGateway'                    = $pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_mgmt_gateway_ip"].Value
+                    'srmNetPrefix'                  = (($pnpRecoveryWorkbook.Workbook.Names["mgmt_az1_mgmt_cidr"].Value) -Split ('/'))[-1]
+                    'srmSearchDomain'               = $pnpRecoveryWorkbook.Workbook.Names["child_dns_zone"].Value
+                    'srmRootPassword'               = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_root_password"].Value
+                    'srmAdminPassword'              = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_admin_password"].Value
+                    'srmDbPassword'                 = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_database_password"].Value
+                    'srmDeploymentOption'           = "standard"
+                    'srmCertificateFile'            = ($pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_hostname"].Value + ".4.p12")
+                    'srmCertificatePassword'        = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_p12_password"].Value
+                    'srmSiteName'                   = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_site_name"].Value
+                    'srmAdminEmail'                 = $pnpRecoveryWorkbook.Workbook.Names["mgmt_srm_admin_email"].Value
+                    'srmLicenseKey'                 = $pnpRecoveryWorkbook.Workbook.Names["srm_license"].Value
+                    'networkSegment'                = $pnpProtectedWorkbook.Workbook.Names["xreg_seg01_name"].Value
+                    'cluster'                       = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_cluster"].Value
+                }
+
+                $jsonObject = @()
+                $jsonObject += [pscustomobject]@{
+                    'protected'                         = $protectedObject
+                    'recovery'                          = $recoveryObject
+                    'vmFolderWsa'                       = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_vm_folder"].Value
+                    'vmFolderOperations'                = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_vm_folder"].Value
+                    'vmFolderAutomation'                = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_vm_folder"].Value
+                    'vmFolderLifecycle'                 = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_vm_folder"].Value
+                    'vmListLifecycle'                   = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
+                    'serviceInterfaceIp'                = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_recovery_t1_si_ip"].Value
+                    'certificateNameWsa'                = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_virtual_hostname"].Value
+                    'dns'                               = ($pnpProtectedWorkbook.Workbook.Names["xregion_dns1_ip"].Value + " " + $pnpProtectedWorkbook.Workbook.Names["xregion_dns2_ip"].Value)
+                    'searchDomain'                      = $pnpProtectedWorkbook.Workbook.Names["parent_dns_zone"].Value
+                    'environmentName'                   = $pnpProtectedWorkbook.Workbook.Names["vrslcm_xreg_env"].Value
+                    'automationUser'                    = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_username"].Value
+                    'automationPassword'                = $pnpProtectedWorkbook.Workbook.Names["local_configadmin_password"].Value
+                    'recoveryPointObjective'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_rpo"].Value
+                    'instancesPerDay'                   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_instances_per_day"].Value
+                    'days'                              = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_days"].Value
+                    'protectionGroupWsa'                = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_pg"].Value
+                    'recoveryPlanWsa'                   = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrslcm_wsa_rp"].Value
+                    'protectionGroupOperations'         = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_pg"].Value
+                    'recoveryPlanOperations'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vrops_rp"].Value
+                    'protectionGroupAutomation'         = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_pg"].Value
+                    'recoveryPlanAutomation'            = $pnpProtectedWorkbook.Workbook.Names["mgmt_srm_vra_rp"].Value
+                    'vmNameLifecycle'                   = $pnpProtectedWorkbook.Workbook.Names["xreg_vrslcm_hostname"].Value
+                    'vmNameWsaNodeA'                    = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodea_hostname"].Value
+                    'vmNameWsaNodeB'                    = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodeb_hostname"].Value
+                    'vmNameWsaNodeC'                    = $pnpProtectedWorkbook.Workbook.Names["xreg_wsa_nodec_hostname"].Value
+                    'vmNameOperationsNodeA'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodea_hostname"].Value
+                    'vmNameOperationsNodeB'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodeb_hostname"].Value
+                    'vmNameOperationsNodeC'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vrops_nodec_hostname"].Value
+                    'vmNameAutomationNodeA'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodea_hostname"].Value
+                    'vmNameAutomationNodeB'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodeb_hostname"].Value
+                    'vmNameAutomationNodeC'             = $pnpProtectedWorkbook.Workbook.Names["xreg_vra_nodec_hostname"].Value
+                }
+                Close-ExcelPackage $pnpProtectedWorkbook -NoSave -ErrorAction SilentlyContinue
+                Close-ExcelPackage $pnpRecoveryWorkbook -NoSave -ErrorAction SilentlyContinue
+                $baseData = $jsonObject | ConvertTo-Json -Depth 12; $baseData = $baseData | ConvertFrom-Json
+                Foreach ($jsonValue in $baseData.psobject.properties) {
+                    if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                        Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
+                        $issueWithJson = $true
+                    }
+                }
+                $protectedData = $protectedObject | ConvertTo-Json -Depth 12; $protectedData = $protectedData | ConvertFrom-Json
+                Foreach ($objectValue in $protectedData.psobject.properties) {
+                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value ) {
+                        Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Protected property: {0}' -f $objectValue.Name)
+                        $issueWithJson = $true
+                    }
+                }
+                $recoveryData = $recoveryObject | ConvertTo-Json -Depth 12; $recoveryData = $recoveryData | ConvertFrom-Json
+                Foreach ($objectValue in $recoveryData.psobject.properties) {
+                    if ($objectValue.value -eq "Value Missing" -or $null -eq $objectValue.value ) {
+                        Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for Recovery property: {0}' -f $objectValue.Name)
+                        $issueWithJson = $true
+                    }
+                }
+                $jsonObject | ConvertTo-Json -Depth 12 | Out-File -Encoding UTF8 -FilePath $jsonFile
+                if ($issueWithJson) {
+                    Show-PowerValidatedSolutionsOutput -type ERROR -message  "Creation of JSON Specification file for Site Protection and Disaster Recovery, missing data: POST_VALIDATION_FAILED"
+                } else { 
+                    Show-PowerValidatedSolutionsOutput -message  "Creation of JSON Specification file for Site Protection and Disaster Recovery: SUCCESSFUL"
+                }
+            } else {
+                Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($recoveryWorkbook) for the Recovery Site: File Not Found"
+            }
+        } else {
+            Show-PowerValidatedSolutionsOutput -type ERROR -message  "Planning and Preparation Workbook (.xlsx) ($protectedWorkbook) for the Protected Site: File Not Found"
+        }
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Export-PdrJsonSpec
+
 Function Install-SiteRecoveryManager {
     <#
 		.SYNOPSIS
@@ -2827,8 +3045,8 @@ Function Connect-DRSolutionTovCenter {
         - Validates that network connectivity and authentication is possible to the SDDC Manager instance
         - Validates that network connectivity and authentication is possible to the vCenter Server instance
         - Validates that network connectivity and authentication is possible to the vSphere Replication or Site
-        Recovery Manaeger instance
-        - Validates if the solution has already been registerd and if not proceeds with the registration
+        Recovery Manager instance
+        - Validates if the solution has already been registered and if not proceeds with the registration
 
         .EXAMPLE
         Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-srm01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "srm-administrator@rainpole.io" -solution SRM 
@@ -2836,7 +3054,7 @@ Function Connect-DRSolutionTovCenter {
 
         .EXAMPLE
         Connect-DRSolutionTovCenter -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -applianceFqdn sfo-m01-vrms01.sfo.rainpole.io -vamiAdminPassword VMw@re1! -siteName SFO-M01 -adminEmail "vrms-administrator@rainpole.io" -solution VRMS 
-        This example registers Site Recovery Manager with the vCenter Server of the Management Domain .
+        This example registers vSphere Replication with the vCenter Server of the Management Domain
 
         .PARAMETER server
         The fully qualified domain name of the SDDC Manager.
@@ -2857,10 +3075,10 @@ Function Connect-DRSolutionTovCenter {
         The admin password of the vSphere Replication or Site Recovery Manager Virtual Appliance.
 
         .PARAMETER siteName
-        The name of the Site.
+        The name of the site.
 
         .PARAMETER adminEmail
-        The email address of the Site Administrator.
+        The email address of the site administrator.
 
         .PARAMETER solution
         The solution to register with the vCenter Server.
@@ -3112,26 +3330,26 @@ Function Install-VamiCertificate {
         if (!$PsBoundParameters.ContainsKey("certFile")) {
             $certFile = Get-ExternalFileName -title "Select the Appliance Certificate File (.p12)" -fileType "p12"
         } elseif ($PsBoundParameters.ContainsKey("certFile")) {
-            if (!(Test-Path -Path $certFile)) {
-                Write-Error  "Certificate (.p12) '$certFile' File Not Found"
-            }
-        }
-        
-        if ($solution -eq "VRMS") {
-            if (Test-VrmsVamiConnection -server $server) {
-                if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
-                    Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
-                    Write-Output "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($certFile): SUCCESSFUL"
+            if (Test-Path -Path $certFile) {
+                if ($solution -eq "VRMS") {
+                    if (Test-VrmsVamiConnection -server $server) {
+                        if (Test-VrmsVamiAuthentication -server $server -user $user -pass $pass) {
+                            Set-VrmsVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                            Write-Output "Installing Signed Certifcate on vSphere Replication Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
+                        }
+                    
+                    }
+                } elseif ($solution -eq "SRM") {
+                    if (Test-SrmVamiConnection -server $server) {
+                        if (Test-SrmVamiAuthentication -server $server -user $user -pass $pass) {
+                            Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
+                            Write-Output "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($((Get-ChildItem $certfile).Name)): SUCCESSFUL"
+                        }
+                    
+                    }
                 }
-            
-            }
-        } elseif ($solution -eq "SRM") {
-            if (Test-SrmVamiConnection -server $server) {
-                if (Test-SrmVamiAuthentication -server $server -user $user -pass $pass) {
-                    Set-SrmVamiCertificate -pkcs12CertFile $certFile -certPassword $certPassword | Out-Null
-                    Write-Output "Installing Signed Certifcate on Site Recovery Manager Appliance ($server) using ($certFile): SUCCESSFUL"
-                }
-            
+            } else {
+                Write-Error  "Certificate (.p12) ($((Get-ChildItem $certfile).Name)) File Not Found"
             }
         }
     } Catch {
@@ -5525,10 +5743,10 @@ Function Add-SrmMapping {
                                         if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
                                                 $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                                $global:DefaultSrmServers = $null
+                                                $Global:DefaultSrmServers = $null
                                                 if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
                                                     if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
-                                                        $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
+                                                        $siteASrmServer = $Global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                         if ($type -eq "Folder") {
                                                             Try {
                                                                 $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
@@ -5794,168 +6012,172 @@ Function Undo-SrmMapping {
                                                 $global:DefaultSrmServers = $null
                                                 if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
                                                     if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass -remoteUser $siteBvCenterDetails.ssoAdmin -remotePass $siteBvCenterDetails.ssoAdminPass) {
-                                                        $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
-                                                        if ($type -eq "Folder") {
-                                                            Try {
-                                                                $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
-                                                                $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Network") {
-                                                            Try {
-                                                                $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
-                                                                $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
-                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Resource") {
-                                                            Try {
-                                                                $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}
-                                                                if ($protectedCluster) {
-                                                                    $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
-                                                                } else {
-                                                                    $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
-                                                                }
-                                                                $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}
-                                                                if ($recoveryCluster) {
-                                                                    $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
-                                                                } else {
-                                                                    $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
-                                                                }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
-                                                        }
-                                                        if ($existingSiteAMappings) {
-                                                            $forwardMappingExists = $null
-                                                            Foreach ($existingSiteAMapping in $existingSiteAMappings) {
-                                                                if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
-                                                                    $forwardMappingExists = $true
-                                                                }
-                                                            }
-                                                        }
-                                                        if ($forwardMappingExists -eq $true) {
+                                                        if (Get-SrmSitePairing) {
+                                                            $siteASrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmAFqdn}
                                                             if ($type -eq "Folder") {
                                                                 Try {
-                                                                    $SiteASrmServer.extensionData.InventoryMapping.RemoveFolderMapping($protectedMoRef)
+                                                                    $protectedMoRef = (Get-Folder -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
+                                                                    $recoveryMoRef = (Get-Folder -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
+                                                                    $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetFolderMappings()    
                                                                 } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
-                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
                                                             } elseif ($type -eq "Network") {
                                                                 Try {
-                                                                    $SiteASrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($protectedMoRef)
+                                                                    $protectedMoRef = (Get-VirtualNetwork -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
+                                                                    $recoveryMoRef = (Get-VirtualNetwork -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id  
+                                                                    $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
                                                                 } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
-                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
                                                             } elseif ($type -eq "Resource") {
                                                                 Try {
-                                                                    $SiteASrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($protectedMoRef)
+                                                                    $protectedCluster = Get-Cluster -Server $SiteAvCenterDetails.fqdn -Name $protected -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}
+                                                                    if ($protectedCluster) {
+                                                                        $protectedMoRef = ($protectedCluster | Get-ResourcePool -Name "Resources").id
+                                                                    } else {
+                                                                        $protectedMoRef = (Get-ResourcePool -Server $siteAvCenterDetails.fqdn -Name $protected -ErrorAction Stop | Where-Object {$_.Uid -match $siteAvCenterDetails.fqdn}).id
+                                                                    }
+                                                                    $recoveryCluster = Get-Cluster -Server $SiteBvCenterDetails.fqdn -Name $recovery -ErrorAction SilentlyContinue | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}
+                                                                    if ($recoveryCluster) {
+                                                                        $recoveryMoRef = ($recoveryCluster | Get-ResourcePool -Name "Resources").id
+                                                                    } else {
+                                                                        $recoveryMoRef = (Get-ResourcePool -Server $siteBvCenterDetails.fqdn -Name $recovery -ErrorAction Stop | Where-Object {$_.Uid -match $siteBvCenterDetails.fqdn}).id
+                                                                    }
                                                                 } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
-                                                                $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                                $existingSiteAMappings = $siteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
-                                                            $forwardMappingValidated = $null
-                                                            Foreach ($validateSiteAMapping in $validateSiteAMappings) {
-                                                                if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
-                                                                    $forwardMappingValidated = $true
+                                                            if ($existingSiteAMappings) {
+                                                                $forwardMappingExists = $null
+                                                                Foreach ($existingSiteAMapping in $existingSiteAMappings) {
+                                                                    if (($protectedMoRef -match $existingSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $existingSiteAMapping.secondaryObject.Value)) {
+                                                                        $forwardMappingExists = $true
+                                                                    }
                                                                 }
                                                             }
-                                                            if (!$forwardMappingValidated) {
-                                                                Write-Output "Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
-                                                            } else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
-                                                                        'Add-SrmMapping',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
+                                                            if ($forwardMappingExists -eq $true) {
+                                                                if ($type -eq "Folder") {
+                                                                    Try {
+                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveFolderMapping($protectedMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                                } elseif ($type -eq "Network") {
+                                                                    Try {
+                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($protectedMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                                } elseif ($type -eq "Resource") {
+                                                                    Try {
+                                                                        $SiteASrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($protectedMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteAMappings = $SiteASrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                                }
+                                                                $forwardMappingValidated = $null
+                                                                Foreach ($validateSiteAMapping in $validateSiteAMappings) {
+                                                                    if (($protectedMoRef -match $validateSiteAMapping.primaryObject.Value) -and ($recoveryMoRef -match $validateSiteAMapping.secondaryObject.Value)) {
+                                                                        $forwardMappingValidated = $true
+                                                                    }
+                                                                }
+                                                                if (!$forwardMappingValidated) {
+                                                                    Write-Output "Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Remove $type mapping between protected $type ($protected) and recovery $type ($recovery): POST_VALIDATION_FAILED"),
+                                                                            'Add-SrmMapping',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
                                                                     )
-                                                                )
-                                                            }
-                                                        } else {
-                                                            Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPING"
-                                                        }
-                                                        Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
-                                                    }
-                                                    if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
-                                                        $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
-                                                        if ($type -eq "Folder") {
-                                                            Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Network") {
-                                                            Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        } elseif ($type -eq "Resource") {
-                                                            Try {
-                                                                $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                        }
-                                                        if ($existingSiteBMappings) {
-                                                            $reverseMappingExists = $null
-                                                            Foreach ($existingSiteBMapping in $existingSiteBMappings) {
-                                                                if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
-                                                                    $reverseMappingExists = $true
                                                                 }
+                                                            } else {
+                                                                Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPING"
                                                             }
-                                                        }  
-                                                        if ($reverseMappingExists -eq $true) {
+                                                            Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
+                                                        }
+                                                        if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass -remoteUser $siteAvCenterDetails.ssoAdmin -remotePass $siteAvCenterDetails.ssoAdminPass) {
+                                                            $siteBSrmServer = $global:DefaultSrmServers | Where-Object {$_.Name -match $srmBFqdn}
                                                             if ($type -eq "Folder") {
                                                                 Try {
-                                                                    $SiteBSrmServer.extensionData.InventoryMapping.RemoveFolderMapping($recoveryMoRef)
+                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()    
                                                                 } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
-                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
                                                             } elseif ($type -eq "Network") {
                                                                 Try {
-                                                                    $SiteBSrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($recoveryMoRef)
+                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
                                                                 } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
-                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
                                                             } elseif ($type -eq "Resource") {
                                                                 Try {
-                                                                    $SiteBSrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($recoveryMoRef)
+                                                                    $existingSiteBMappings = $siteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()   
                                                                 } Catch {
                                                                     $PSCmdlet.ThrowTerminatingError($PSItem)
                                                                 }
-                                                                $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
                                                             }
-                                                            $reverseMappingValidated = $null
-                                                            Foreach ($validateSiteBMapping in $validateSiteBMappings) {
-                                                                if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
-                                                                    $reverseMappingValidated = $true
+                                                            if ($existingSiteBMappings) {
+                                                                $reverseMappingExists = $null
+                                                                Foreach ($existingSiteBMapping in $existingSiteBMappings) {
+                                                                    if (($recoveryMoRef -match $existingSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $existingSiteBMapping.secondaryObject.Value)) {
+                                                                        $reverseMappingExists = $true
+                                                                    }
                                                                 }
-                                                            }
-                                                            if (!$reverseMappingValidated) {
-                                                                Write-Output "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
-                                                            } else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
-                                                                        'Add-SrmMapping',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
+                                                            }  
+                                                            if ($reverseMappingExists -eq $true) {
+                                                                if ($type -eq "Folder") {
+                                                                    Try {
+                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveFolderMapping($recoveryMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetFolderMappings()
+                                                                } elseif ($type -eq "Network") {
+                                                                    Try {
+                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveNetworkMapping($recoveryMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetNetworkMappings()
+                                                                } elseif ($type -eq "Resource") {
+                                                                    Try {
+                                                                        $SiteBSrmServer.extensionData.InventoryMapping.RemoveResourcePoolMapping($recoveryMoRef)
+                                                                    } Catch {
+                                                                        $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                    }
+                                                                    $validateSiteBMappings = $SiteBSrmServer.extensionData.InventoryMapping.GetResourcePoolMappings()
+                                                                }
+                                                                $reverseMappingValidated = $null
+                                                                Foreach ($validateSiteBMapping in $validateSiteBMappings) {
+                                                                    if (($recoveryMoRef -match $validateSiteBMapping.primaryObject.Value) -and ($protectedMoRef -match $validateSiteBMapping.secondaryObject.Value)) {
+                                                                        $reverseMappingValidated = $true
+                                                                    }
+                                                                }
+                                                                if (!$reverseMappingValidated) {
+                                                                    Write-Output "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): SUCCESSFUL"
+                                                                } else {
+                                                                    $PSCmdlet.ThrowTerminatingError(
+                                                                        [System.Management.Automation.ErrorRecord]::new(
+                                                                            ([System.Management.Automation.GetValueException]"Remove $type mapping between recovery $type ($recovery) and protected $type ($protected): POST_VALIDATION_FAILED"),
+                                                                            'Add-SrmMapping',
+                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                                                                            ""
+                                                                        )
                                                                     )
-                                                                )
+                                                                }
+                                                            } else {
+                                                                Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPING"
                                                             }
                                                         } else {
-                                                            Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPING"
+                                                            Write-Warning "No Site Pairing Found: SKIPPED"
                                                         }
                                                         Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
                                                     }
@@ -6235,7 +6457,7 @@ Function Add-EsxiVrmsVMkernelPort {
         - Creates a VMkernel port on each ESXi host for vSphere Replication traffic
 
         .EXAMPLE
-        Add-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
+        Add-EsxiVrmsVMkernelPort -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -portgroup sfo01-m01-cl01-vds01-pg-vrms -netmask 255.255.255.0 -ipAddresses @("172.27.15.101","172.27.15.102","172.27.15.103","172.27.15.104")
         This example creates a VMkernel port for each ESXi host Management Domain.
 
         .PARAMETER server
@@ -6277,16 +6499,16 @@ Function Add-EsxiVrmsVMkernelPort {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
-                                $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
+                                $vdsSwitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
                                 $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
                                 if ($esxiHosts.Count -eq $ipAddresses.Count) {
-                                    if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}) -ne $esxiHosts.Count) {
+                                    if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdsSwitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}).Count -ne $esxiHosts.Count) {
                                         For ($i=0; $i -lt $esxiHosts.Count; $i++) {
                                             if (!(Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] | Where-Object {$_.vSphereReplicationEnabled -eq $true})) {
-                                                New-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] -VirtualSwitch $vdswitchName -PortGroup $portgroup -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $ipAddresses[$i] -SubnetMask $netmask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
+                                                New-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VMHost $esxiHosts.fqdn[$i] -VirtualSwitch $vdsSwitchName -PortGroup $portgroup -ErrorAction Stop | Set-VMHostNetworkAdapter -IP $ipAddresses[$i] -SubnetMask $netmask -vSphereReplicationEnabled:$true -vSphereReplicationNfcEnabled:$true -Confirm:$false -ErrorAction Stop | Out-Null
                                             }
                                         }
-                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
+                                        $validateVMkernelCreated = Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdsSwitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}
                                         if ($validateVMkernelCreated.Count -eq $esxiHosts.Count) {
                                             Write-Output "Creating VMkernel Ports for vSphere Replication traffic on all ESXi hosts in Workload Domain ($domain): SUCCESSFUL"
                                         } else {
@@ -6302,13 +6524,14 @@ Function Add-EsxiVrmsVMkernelPort {
                                 Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
-                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
         }
     } Catch {
         Debug-ExceptionWriter -object $_
+    } Finally {
+        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
     }
 }
 Export-ModuleMember -Function Add-EsxiVrmsVMkernelPort
@@ -6406,7 +6629,7 @@ Function Add-EsxiVrmsStaticRoute {
         - Creates static routes on ESXi hosts for vSphere Replication traffic
 
         .EXAMPLE
-        Add-EsxiVrmsStaticRoute -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -subnet 172.27.15.0/24 -gateway 172.27.15.1 -portgroup sfo-sfo-m01-cl01-vds01-pg-vrms
+        Add-EsxiVrmsStaticRoute -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -subnet 172.27.15.0/24 -gateway 172.27.15.1 -portgroup sfo-m01-cl01-vds01-pg-vrms
         This example adds a static route to each ESXi host in the Management Domain to the recovery site vSphere Replication subnet.
 
         .PARAMETER server
@@ -6447,10 +6670,10 @@ Function Add-EsxiVrmsStaticRoute {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $vdswitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
+                            $vdsSwitchName = (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}).VDSwitch.Name
                             $esxiHosts = Get-VCFHost | Where-Object {$_.cluster.id -eq ((Get-VCFWorkloadDomain | Where-Object {$_.name -eq $domain -and $_.vcenters.fqdn -eq $vcfVcenterDetails.fqdn}).clusters.id)}
                             if (Get-VDPortGroup -Server $vcfVcenterDetails.fqdn | Where-Object {($_.Name -eq $portgroup)}) {
-                                if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdswitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}).Count -eq $esxiHosts.Count) {
+                                if ((Get-VMHostNetworkAdapter -Server $vcfVcenterDetails.fqdn -VirtualSwitch $vdsSwitchName -PortGroup $portgroup | Where-Object {$_.VSphereReplicationEnabled -eq $true -and $_.VSphereReplicationNfcEnabled -eq $true}).Count -eq $esxiHosts.Count) {
                                     [IPAddress]$network = $subnet.Split("/")[0]
                                     [Int32]$prefixLength = $subnet.Split("/")[1]
                                     Foreach ($esxiHost in $esxiHosts) {
@@ -6472,13 +6695,14 @@ Function Add-EsxiVrmsStaticRoute {
                                 Write-Error "Unable to find vSphere Distributed Port Group in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($portgroup): PRE_VALIDATION_FAILED"
                             }
                         }
-                        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
         }
     } Catch {
         Debug-ExceptionWriter -object $_
+    } Finally {
+        Disconnect-VIServer * -Force -Confirm:$false -WarningAction SilentlyContinue
     }
 }
 Export-ModuleMember -Function Add-EsxiVrmsStaticRoute
@@ -6764,7 +6988,7 @@ Function Add-vSphereReplication {
         - Adds a vSphere Replication for the specified virtual machine.
 
         .EXAMPLE
-        Add-vSphereReplication -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
+        Add-vSphereReplication --sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -vmName xint-vrslcm01 -recoveryPointObjective 15
         This example adds vSphere Replication for VM xint-vrslcm01 from the protected instance to the recovery instance.
 
         .PARAMETER sddcManagerAFqdn
@@ -23858,7 +24082,7 @@ Function Invoke-GlobalWsaDeployment {
     $wsaProductName = "Workspace ONE Access"
 
     Try {
-        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of $wsaProductName"
+        Show-PowerValidatedSolutionsOutput -type NOTE -message "Starting Deployment of Cross-Instance $wsaProductName"
         if (Test-Path -Path $jsonFile) {
             if (Test-Path -Path $workbook) {
                 $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
@@ -26558,7 +26782,7 @@ Function Move-VMtoFolder {
         - Moves the virtual machines provided in the -vmlist parameter
 
         .EXAMPLE
-        Move-VMtoFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmList "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c" -folder xinst-m01-fd-wsa
+        Move-VMtoFolder -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -vmList "xint-wsa01a,xint-wsa01b,xint-wsa01c" -folder xint-m01-fd-wsa
         This example shows how to move a list of virtual machines to a new folder.
 
         .PARAMETER server
@@ -26592,25 +26816,27 @@ Function Move-VMtoFolder {
     Try {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if ($vcenter = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain -ErrorAction SilentlyContinue) {
-                    Connect-VIServer -Server $vcenter.fqdn -User $vcenter.ssoAdmin -pass $vcenter.ssoAdminPass | Out-Null
-                    if ($DefaultVIServer.Name -eq $($vcenter.fqdn)) {
-                        if (Get-Folder | Where-Object {$_.Name -eq $folder}) {
-                            $vmNames = $vmList.split(",")
-                            foreach ($vm in $vmNames) { 
-                                if (Get-VM -Name $vm -ErrorAction SilentlyContinue) {
-                                    Get-VM -Name $vm | Move-VM -InventoryLocation (Get-Folder | Where-Object {$_.Name -eq $folder}) | Out-Null
-                                    Write-Output "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
-                                } else {
-                                    Write-Error "Relocating Virtual Machines in vCenter Server ($($vcenter.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
+                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $domain)) {
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if (Get-Folder -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $folder}) {
+                                $vmNames = $vmList.split(",")
+                                foreach ($vm in $vmNames) { 
+                                    if (Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn -ErrorAction SilentlyContinue) {
+                                        if (!((Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn).ExtensionData.Parent.Value -eq (Get-Folder -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $folder}).ExtensionData.MoRef.Value)) {
+                                            Get-VM -Name $vm -Server $vcfVcenterDetails.fqdn | Move-VM -Server $vcfVcenterDetails.fqdn -InventoryLocation (Get-Folder -Server $vcfVcenterDetails.fqdn | Where-Object {$_.Name -eq $folder}) | Out-Null
+                                            Write-Output "Relocating Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vm) to folder ($folder): SUCCESSFUL"
+                                        } else {
+                                            Write-Warning "Relocating Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vm) to folder ($folder), already moved: SKIPPED"
+                                        }
+                                    } else {
+                                        Write-Error "Relocating Virtual Machines in vCenter Server ($($vcfVcenterDetails.fqdn)) named ($vm) to folder ($folder), Vitual Machine not found: SKIPPED"
+                                    }
                                 }
+                            } else {
+                                Write-Error "Relocating Virtual Machine in vCenter Server ($($vcfVcenterDetails.fqdn)) folder ($folder), Folder not found: PRE_VALIDATION_FAILED"
                             }
-                        } else {
-                            Write-Error "Relocating Virtual Machine in vCenter Server ($($vcenter.fqdn)) folder ($folder), Folder not found: PRE_VALIDATION_FAILED"
                         }
-                        Disconnect-VIServer $vcenter.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                    } else {
-                        Write-Error "Unable to connect to vCenter Server ($($vcenter.fqdn)): PRE_VALIDATION_FAILED"
                     }
                 } else {
                     Write-Error "Unable to find Workload Domain named ($domain) in the inventory of SDDC Manager ($server): PRE_VALIDATION_FAILED"
@@ -26619,6 +26845,8 @@ Function Move-VMtoFolder {
         }
     } Catch {
         Debug-ExceptionWriter -object $_
+    } Finally {
+        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
     }
 }
 Export-ModuleMember -Function Move-VMtoFolder
@@ -27954,17 +28182,17 @@ Export-ModuleMember -Function Undo-NsxtPrincipalIdentity
 Function Test-ADAuthentication {
     <#
         .SYNOPSIS
-        Test authetication against Active Directory.
+        Test authentication against Active Directory.
 
         .DESCRIPTION
-        The Test-ADAuthentication cmdlet tests the credentials provided against Active Directory domain
+        The Test-ADAuthentication cmdlet tests the credentials provided against the Active Directory domain.
 
         .EXAMPLE
         Test-ADAuthentication -user svc-vsphere-ad -pass VMw@re1! -server sfo.rainpole.io -domain sfo.rainpole.io
-        This example check that the svc-vsphere-ad user can authenticate to the sfo.rainpole.io domain.
+        This example checks that the svc-vsphere-ad user can authenticate to the sfo.rainpole.io domain.
 
         .PARAMETER user
-        The Active Directory Domain user account to bind to.
+        The Active Directory Domain user account to connect with.
 
         .PARAMETER pass
         The Active Directory Domain user account password.
@@ -28013,11 +28241,11 @@ Function Get-ADPrincipalGuid {
         Get principal GUID details.
 
         .DESCRIPTION
-        The Get-ADPrincipalGuid cmdlet retrieves the GUID details for an active directory user or group Active Directory domain
+        The Get-ADPrincipalGuid cmdlet retrieves the GUID details for an Active Directory user or group from a domain.
 
         .EXAMPLE
         Get-ADPrincipalGuid -domain sfo.rainpole.io -user svc-vsphere-ad -pass VMw@re1! -principal gg-sso-admin
-        This example retrieves the details for th gg-sso-admin domain.
+        This example retrieves the details for the group gg-sso-admin from the domain.
 
         .PARAMETER domain
         The Active Directory Domain name.
@@ -47021,7 +47249,7 @@ Function Set-VrmsVamiCertificate {
         Invoke-RestMethod -Method POST -Uri $uri -Headers $vrmsHeader -Body $body
         Set-VrmsApplianceState -action restart | Out-Null
     } Catch {
-        # Do Nothing
+        Write-Error $_.Exception.Message
     }
 }
 Export-ModuleMember -Function Set-VrmsVamiCertificate
@@ -48078,12 +48306,12 @@ Function Connect-SrmRemoteSession {
         $srmRemoteHeader.Add("x-dr-session", "$srmSessionId")
         $pairing_id = (Get-SrmSitePairing).pairing_id
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairing_id/remote-session"
-        $return = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmRemoteHeader
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Headers $srmRemoteHeader -SkipCertificateCheck
         if (($return.StatusCode -eq 200) -or ($return.StatusCode -eq 202) -or ($return.StatusCode -eq 204)) {
             Write-Output "Successfully connected to the Site Recovery Manager remote session."
         }
-        } Catch {
-        # Do Nothing
+    } Catch {
+        internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
     }
 }
 Export-ModuleMember -Function Connect-SrmRemoteSession
@@ -48647,20 +48875,25 @@ Function messageHandler {
     Param (
         [Parameter (Mandatory = $false)] [Array]$statusMessage,
         [Parameter (Mandatory = $false)] [Array]$warningMessage,
-        [Parameter (Mandatory = $false)] [Array]$errorMessage
+        [Parameter (Mandatory = $false)] [Array]$errorMessage,
+        [Parameter (Mandatory = $false)] [String]$alternativeMessage
     )
 
     if ($statusMessage) { 
-        foreach ($message in $statusMessage) {
-            Show-PowerValidatedSolutionsOutput $message
+        if ($PsBoundParameters.ContainsKey('alternativeMessage')) {
+            Show-PowerValidatedSolutionsOutput $alternativeMessage
+        } else {
+            foreach ($message in $statusMessage) {
+                Show-PowerValidatedSolutionsOutput $message
+            }
         }
-    } elseif ($warningMessage) { 
+    } elseif ($warningMessage) {
         foreach ($message in $warningMessage) {
             Show-PowerValidatedSolutionsOutput -type WARNING -message $message
         }
     } elseif ($errorMessage) {
         foreach ($message in $errorMessage) {
-            Show-PowerValidatedSolutionsOutput -type ERROR -message $message; $failureDetected = $true
+            Show-PowerValidatedSolutionsOutput -type ERROR -message $message
         }
     }
 }
