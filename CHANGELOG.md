@@ -33,6 +33,7 @@
 - Added `Invoke-CcmDeployment` cmdlet to perform an end-to-end deployment of Cross Cloud Migration.
 - Added `Invoke-UndoCcmDeployment` cmdlet to perform removal of Cross Cloud Migration.
 - Added `Export-PdrJsonSpec` cmdlet to generate a JSON specification file for Site Protection and Disaster Recovery.
+- Added `Test-SrmSdkConnection` cmdlet to test the connection to a Site Recovery Manager instance for PowerCLI connectivity.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Fixed `Add-EsxiVrmsVMkernelPort` pre-validation to actually compare server count so that it skips if configured.
@@ -47,6 +48,12 @@
   - `Invoke-UndoIlaDeployment`
 - Enhanced `Move-VMtoFolder` cmdlet to check if the VM has already been moved and also handle multiple vCenter Server connections.
 - Enhanced `Install-VamiCertificate` cmdlet to check the path to the certificate files.
+- Enhanced `New-SrmSitePair` cmdlet to:
+  - use the native PowerCLI cmdlets for managing Site Recovery Manager.
+  - support using native PowerCLI cmdlets to manage vSphere Replication site pairing.
+- Enhanced `Undo-SrmSitePair` cmdlet:
+  - to use the native PowerCLI cmdlets for managing Site Recovery Manager.
+  - support using native PowerCLI cmdlets to manage the removal of vSphere Replication site pairing.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.

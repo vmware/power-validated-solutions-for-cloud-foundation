@@ -2,36 +2,29 @@
 
 ## Synopsis
 
-Remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF
-instances in Site Recovery Manager
+Remove a mapping between objects (folder, network, or compute resource) in the protected and failover VCF instances in Site Recovery Manager.
 
 ## Syntax
 
 ```powershell
-Undo-SrmMapping [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-type] <String>
- [-protected] <String> [-recovery] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Undo-SrmMapping [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-type] <String> [-protected] <String> [-recovery] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Undo-SrmMapping` cmdlet removes a mapping between objects (folder, network, or compute resource) in the
-protected and failover instances in Site Recovery Manager.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Undo-SrmMapping` cmdlet removes a mapping between objects (folder, network, or compute resource) in the protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to both SDDC Manager instances
 - Validates that network connectivity and authentication is possible to both vCenter Server instances
 - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-- Removes a mapping between objects in the protected and failover instances in Site Recovery Manager as
-defined by the -type, -protected, and -recovery parameters.
+- Removes a mapping between objects in the protected and failover instances in Site Recovery Manager as defined by the -type, -protected, and -recovery parameters.
 
 ## Examples
 
 ### Example 1
 
 ```powershell
-Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
+Undo-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
 ```
 
 This example removes a mapping between protected site folder xint-m01-fd-vrslcm01 and recovery site folder xint-m01-fd-vrslcm01 in Site Recovery Manager.
@@ -56,8 +49,7 @@ This example removes a mapping between protected site compute resource vSphere C
 
 ### -sddcManagerAFqdn
 
-The fully qualified domain name of the SDDC Manager.
-managing the protected site.
+The fully qualified domain name of the SDDC Manager managing the protected site.
 
 ```yaml
 Type: String
@@ -105,8 +97,7 @@ Accept wildcard characters: False
 
 ### -sddcManagerBFqdn
 
-The fully qualified domain name of the SDDC Manager.
-managing the recovery site.
+The fully qualified domain name of the SDDC Manager managing the recovery site.
 
 ```yaml
 Type: String
