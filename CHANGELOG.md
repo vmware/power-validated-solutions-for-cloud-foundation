@@ -57,6 +57,7 @@
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
+- Bug `Set-LocalUserPasswordExpiration` cmdlet updated if statement for warnDays from minDays being twice.
 
 ## v2.8.0
 
