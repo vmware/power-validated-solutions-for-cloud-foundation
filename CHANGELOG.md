@@ -10,6 +10,9 @@
 - Updated Role files for VMware HCX to enable support for vSphere 7 and vSphere 8 where permission roles have changed.
   - Added `vSphereRoles/hcx-vsphere-integration-7x.role` to support vSphere 7.
   - Added `vSphereRoles/hcx-vsphere-integration-8x.role` to support vSphere 8.
+- Updated Role files for VMware Aria Automation Orchestrator to enable support for vSphere 7 and vSphere 8 where permission roles have changed.
+  - Added `vSphereRoles/aria-automation-orchestrator-vsphere-integration-7x.role` to support vSphere 7.
+  - Added `vSphereRoles/aria-automation-orchestrator-vsphere-integration-8x.role` to support vSphere 8.
 - Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductPassword` cmdlet to return the password for a specified product or product component in VMware Aria Suite Lifecycle.
@@ -37,6 +40,7 @@
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Fixed `Add-EsxiVrmsVMkernelPort` pre-validation to actually compare server count so that it skips if configured.
+- Fixed `Set-LocalUserPasswordExpiration` cmdlet `warnDays` switch parameter.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
 - Enhanced `Invoke-IomDeployment` cmdlet to include `Add-vROPSAdapterVcf` for creating the VMware Cloud Foundation adapter in VMware Aria Operations.
@@ -57,7 +61,6 @@
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
-- Bug `Set-LocalUserPasswordExpiration` cmdlet updated if statement for warnDays from minDays being twice.
 
 ## v2.8.0
 
