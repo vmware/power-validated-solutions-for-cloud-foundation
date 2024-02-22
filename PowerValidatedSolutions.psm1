@@ -3472,7 +3472,7 @@ Function Add-VrmsNetworkAdapter {
                                             Write-Output "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn): SUCCESSFUL"
                                         }
                                     } else {
-                                        Write-Warning "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn), already exists: SKIPPING" 
+                                        Write-Warning "Adding Ethernet Adapter to vSphere Replication Instance ($vrmsFqdn), already exists: SKIPPED" 
                                     }
                                 } else {
                                     Write-Error "Unable to find vSphere Distributed Port Group ($replicationPortgroup) in vCenter Server ($($vcfVcenterDetails.fqdn)): PRE_VALIDATION_FAILED"
@@ -5832,7 +5832,7 @@ Function Add-SrmMapping {
                                                                 )
                                                             }
                                                         } else {
-                                                            Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) already exists: SKIPPING"
+                                                            Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) already exists: SKIPPED"
                                                         }
                                                         Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
                                                     }
@@ -5907,7 +5907,7 @@ Function Add-SrmMapping {
                                                                 )
                                                             }
                                                         } else {
-                                                            Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) already exists: SKIPPING"
+                                                            Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) already exists: SKIPPED"
                                                         }
                                                         Disconnect-SrmServer -Server $srmBFqdn -Confirm:$false
                                                     }
@@ -6099,7 +6099,7 @@ Function Undo-SrmMapping {
                                                                     )
                                                                 }
                                                             } else {
-                                                                Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPING"
+                                                                Write-Warning "$type mapping between protected $type ($protected) and recovery $type ($recovery) does not exist: SKIPPED"
                                                             }
                                                             Disconnect-SrmServer -Server $srmAFqdn -Confirm:$False
                                                         }
@@ -6174,7 +6174,7 @@ Function Undo-SrmMapping {
                                                                     )
                                                                 }
                                                             } else {
-                                                                Write-Warning "$type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPING"
+                                                                Write-Warning "Remove $type mapping between recovery $type ($recovery) and protected $type ($protected) does not exist: SKIPPED"
                                                             }
                                                         } else {
                                                             Write-Warning "No Site Pairing Found: SKIPPED"
@@ -6201,7 +6201,7 @@ Export-ModuleMember -Function Undo-SrmMapping
 Function New-SrmSitePair {
     <#
 		.SYNOPSIS
-        Create a site pair between Site Recovery Manager instances.
+        Create a site pair between vSphere Replication and Site Recovery Manager instances.
 
         .DESCRIPTION
         The New-SrmSitePair cmdlet creates a site pair between Site Recovery Manager instances. The cmdlet connects to
@@ -6210,15 +6210,15 @@ Function New-SrmSitePair {
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
         - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Create a site pair between the Site Recovery Manager instances integrated with their respective vCenter 
-        Server instances.
+        - Creates a site pair between the vSphere Replication instances
+        - Creates a site pair between the Site Recovery Manager instances
 
         .EXAMPLE
-        New-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
-        This example creates a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.
+        New-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+        This example creates a site pair between vSphere Replication and Site Recovery Manager instances.
 
         .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager. in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
         The user name of the SDDC Manager instance in the protected site.
@@ -6227,7 +6227,7 @@ Function New-SrmSitePair {
         The password of the SDDC Manager instance in the protected site.
 
         .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager. in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
         The user name of the SDDC Manager instance in the recovery site.
@@ -6251,66 +6251,109 @@ Function New-SrmSitePair {
                 if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                             if (Test-VCFConnection -server $sddcManagerBFqdn) {
                                 if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
                                     if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
                                         if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                                $global:DefaultSrmServers = $null
-                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
-                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        if (Test-SrmAuthentication -server $srmBFqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                            Try {
-                                                                $existingSitePair = $null
-                                                                $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
-                                                                $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                            } Catch {
-                                                            }
-                                                            if ($existingSitePair.VcHost -eq $siteBvCenterDetails.fqdn) {
-                                                                Write-Warning "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) already done: SKIPPING"
-                                                                Break
-                                                            }
-                                                            $creds = @{
-                                                                user = $siteBvCenterDetails.ssoAdmin
-                                                                password = $siteBvCenterDetails.ssoAdminPass
-                                                            }
-                                                            $thumbprints = $global:DefaultSrmServers[1].ExtensionData.ProbeSsl($siteBvCenterDetails.fqdn)
-                                                            $connectionSpec = @{
-                                                                host = $siteBvCenterDetails.fqdn
-                                                                thumbprints = $thumbprints
-                                                                creds = $creds
-                                                            }
-                                                            Try {
-                                                                $global:DefaultSrmServers[1].ExtensionData.PairSrm_Task($connectionSpec) | Out-Null
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                            }
-                                                            Try {
-                                                                Start-Sleep -Seconds 5
-                                                                $existingSitePair = $null
-                                                                $getPairedSite = '$global:DefaultSrmServers[1].ExtensionData.GetPairedSite()'
-                                                                $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                                if ($existingSitePair.VcHost -eq $siteBvCenterDetails.fqdn) {
-                                                                    Write-Output "Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
-                                                                } else {
-                                                                    $PSCmdlet.ThrowTerminatingError(
-                                                                        [System.Management.Automation.ErrorRecord]::new(
-                                                                        ([System.Management.Automation.GetValueException]"Create Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
-                                                                            'New-SrmSitePair',
-                                                                            [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                            ""
-                                                                        )
-                                                                    )
+                                                if ($srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                    if ($vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                        if ($srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                            if ($vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                                if ((Test-EndpointConnection -server $srmAFqdn -port 443) -and (Test-EndpointConnection -server $srmBFqdn -port 443) -and (Test-EndpointConnection -server $vrmsAFqdn -port 443) -and (Test-EndpointConnection -server $vrmsBFqdn -port 443)) {
+                                                                    $vCenterB = $Global:DefaultVIServers | Where-Object {$_.Name -eq $siteBvCenterDetails.fqdn}
+                                                                    $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $vrmsBConnection = Connect-VrServer -Server $vrmsBFqdn -User $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                    $srmBConnection = Connect-SrmSdkServer -Server $srmBFqdn -User $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                    # Pairing of vSphere Replication
+                                                                    $pairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                    $existingPairing = $false
+                                                                    foreach ($pairing in $pairings) {
+                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $true
+                                                                            Write-Warning "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])), already exists: SKIPPED"
+                                                                        }
+                                                                    }
+                                                                    if ($existingPairing -eq $false) {
+                                                                        $vCenterBThumbprint = $vrmsBConnection.ConnectedPairings.$($siteBvCenterDetails.fqdn).Pairing.LocalVcServer.Certificates.Thumbprint
+                                                                        if ($vCenterBThumbprint) {
+                                                                            $PairingSpecPairPscInfo = Initialize-VrPairingSpecPairPscInfo -Url $siteBvCenterDetails.fqdn -Port $vCenterB.Port -Thumbprint $vCenterBThumbprint -Username $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                            $PairingSpec = Initialize-VrPairingSpec -PairPscInfo $PairingSpecPairPscInfo -PairVcId $vCenterB.InstanceUuid
+                                                                            $pairingTask = Invoke-VrPairVr -pairingSpec $pairingSpec -Server $vrmsAConnection
+                                                                            Do {
+                                                                                Start-Sleep 10
+                                                                                $pairingTaskStatus = Invoke-VrGetTaskInfo -TaskId $pairingTask.Id -Server $vrmsAConnection
+                                                                            } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                            $pairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                            foreach ($pairing in $pairings) {
+                                                                                if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                                    $existingPairing = $true
+                                                                                }
+                                                                            }
+                                                                            if ($existingPairing -eq $true) {
+                                                                                Write-Output "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                            } else {
+                                                                                Write-Error "Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                            }
+                                                                            
+                                                                        } else {
+                                                                            Write-Error "Unable to Retrieve Certificate Thumbprint for vCenter Server ($($siteBvCenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                                                        }
+                                                                    }
+                                                                    # Pairing of Site Recovery Manager
+                                                                    $pairings = (Invoke-SrmGetPairings -Server $srmAConnection).List
+                                                                    $existingPairing = $false
+                                                                    foreach ($pairing in $pairings) {
+                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $true
+                                                                            Write-Warning "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already exists: SKIPPED"
+                                                                        }
+                                                                    }
+                                                                    if ($existingPairing -eq $false) {
+                                                                        $vCenterBThumbprint = $vrmsBConnection.ConnectedPairings.$($siteBvCenterDetails.fqdn).Pairing.LocalVcServer.Certificates.Thumbprint
+                                                                        if ($vCenterBThumbprint) {
+                                                                            $pairingSpecPairPscInfo = Initialize-SrmPairingSpecPairPscInfo -Url $siteBvCenterDetails.fqdn -Port $vCenterB.Port -Thumbprint $vCenterBThumbprint -Username $siteBvCenterDetails.ssoAdmin -Password $siteBvCenterDetails.ssoAdminPass
+                                                                            $pairingSpec = Initialize-SrmPairingSpec -PairPscInfo $pairingSpecPairPscInfo -PairVcGuid $vcenterB.InstanceUuid -PairSrmThumbprint (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server | Where-Object {$_.Url -match $srmBConnection.Name}).ServerThumbprint -PairSrmUrl $srmBConnection.Name
+                                                                            $pairingTask = Invoke-SrmCreatePairing -PairingSpec $pairingSpec -Server $srmAConnection
+                                                                            Do {
+                                                                                Start-Sleep 10
+                                                                                $pairingTaskStatus = Invoke-SrmGetTaskInfo -TaskId $pairingTask.Id -Server $srmAConnection
+                                                                            } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                            Disconnect-SrmSdkServer -Server *
+                                                                            $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                            $pairings = (Invoke-SrmGetPairings -Server ($Global:defaultSrmSdkConnections | Where-Object {$_.Name -eq $srmAFqdn})).List
+                                                                            foreach ($pairing in $pairings) {
+                                                                                if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                                    $existingPairing = $true
+                                                                                }
+                                                                            }
+                                                                            if ($existingPairing -eq $true) {
+                                                                                Write-Output "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                            } else {
+                                                                                Write-Error "Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                            }
+                                                                        } else {
+                                                                            Write-Error "Unable to Retrieve Certificate Thumbprint for vCenter Server ($($siteBvCenterDetails.fqdn)): PRE_VALIDATION_FAILED"
+                                                                        }
+                                                                    }
                                                                 }
-                                                            } Catch {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                            } else {
+                                                                Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                                                             }
-                                                        }
+                                                        } else {
+                                                            Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteBvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                        }        
+                                                    } else {
+                                                        Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                                                     }
+                                                } else {
+                                                    Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                                                 }
                                             }
+                                            Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
+                                            Disconnect-SrmSdkServer -Server *
+                                            Disconnect-VrServer -Server *
                                         }
                                     }
                                 }
@@ -6332,21 +6375,21 @@ Function Undo-SrmSitePair {
         Removes an existing site pair between Site Recovery Manager instances.
 
         .DESCRIPTION
-        The Undo-SrmSitePair cmdlet removes an existing site pair between Site Recovery Manager instances. The cmdlet 
-        connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn, 
+        The Undo-SrmSitePair cmdlet cmdlet removes an existing site pair between vSphere Replication and Site Recovery
+        Manager instances. The cmdlet connects to SDDC Manager in both the protected and recovery sites using the -sddcManagerAFqdn,
         -sddcManagerAUser, -sddcManagerAPass, -sddcManagerBFqdn, -sddcManagerBUser, and -sddcManagerBPass values:
         - Validates that network connectivity and authentication is possible to both SDDC Manager instances
         - Validates that network connectivity and authentication is possible to both vCenter Server instances
         - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-        - Removes an existing site pair between the Site Recovery Manager instances integrated with their respective 
-        vCenter Server instances.
+        - Removes a site pair between the vSphere Replication instances
+        - Removes a site pair between the Site Recovery Manager instances
 
         .EXAMPLE
-        Undo-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
-        This example removes a site pair between Site Recovery Manager instances integrated with the management vCenter Server instance in each site.
+        Undo-SrmSitePair -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1!
+        This example removes a site pair between vSphere Replication and Site Recovery Manager instances.
 
         .PARAMETER sddcManagerAFqdn
-        The fully qualified domain name of the SDDC Manager. in the protected site.
+        The fully qualified domain name of the SDDC Manager in the protected site.
 
         .PARAMETER sddcManagerAUser
         The user name of the SDDC Manager instance in the protected site.
@@ -6355,7 +6398,7 @@ Function Undo-SrmSitePair {
         The password of the SDDC Manager instance in the protected site.
 
         .PARAMETER sddcManagerBFqdn
-        The fully qualified domain name of the SDDC Manager. in the recovery site.
+        The fully qualified domain name of the SDDC Manager in the recovery site.
 
         .PARAMETER sddcManagerBUser
         The user name of the SDDC Manager instance in the recovery site.
@@ -6379,56 +6422,105 @@ Function Undo-SrmSitePair {
                 if (($siteAvCenterDetails = Get-vCenterServerDetail -server $sddcManagerAFqdn -user $sddcManagerAUser -pass $sddcManagerAPass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($siteAvCenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $siteAvCenterDetails.fqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                            $srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
                             if (Test-VCFConnection -server $sddcManagerBFqdn) {
                                 if (Test-VCFAuthentication -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass) {
                                     if (($siteBvCenterDetails = Get-vCenterServerDetail -server $sddcManagerBFqdn -user $sddcManagerBUser -pass $sddcManagerBPass -domainType MANAGEMENT)) {
                                         if (Test-VsphereConnection -server $($siteBvCenterDetails.fqdn)) {
                                             if (Test-VsphereAuthentication -server $siteBvCenterDetails.fqdn -user $siteBvCenterDetails.ssoAdmin -pass $siteBvCenterDetails.ssoAdminPass) {
-                                                $srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]
-                                                $global:DefaultSrmServers = $null
-                                                if ((Test-SrmConnection -server $srmAFqdn) -and (Test-SrmConnection -server $srmBFqdn)) {
-                                                    if (Test-SrmAuthentication -server $srmAFqdn -user $siteAvCenterDetails.ssoAdmin -pass $siteAvCenterDetails.ssoAdminPass) {
-                                                        Try {
-                                                            $existingSitePair = $null
-                                                            $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
-                                                            $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                        } Catch {
-                                                            if (!$existingSitePair) {
-                                                                Write-Warning "Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) does not exist: SKIPPING"
-                                                                Break
+                                                if ($srmAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                    if ($vrmsAFqdn = (((Get-View -server $siteAvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                        if ($srmBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcDr"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                            if ($vrmsBFqdn = (((Get-View -server $siteBvCenterDetails.fqdn ExtensionManager).ExtensionList | Where-Object {$_.key -eq "com.vmware.vcHms"}).Server.Url -Split "//" -Split ":")[2]) {
+                                                                if ((Test-EndpointConnection -server $srmAFqdn -port 443) -and (Test-EndpointConnection -server $srmBFqdn -port 443) -and (Test-EndpointConnection -server $vrmsAFqdn -port 443) -and (Test-EndpointConnection -server $vrmsBFqdn -port 443)) {
+                                                                    $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                    $existingPairing = $null
+                                                                    # Delete Pairing of vSphere Replication
+                                                                    $vrmsPairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                    foreach ($pairing in $vrmsPairings) {
+                                                                        if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $true
+                                                                            $pairingId = $pairing.pairingId
+                                                                        }
+                                                                    }
+                                                                    if ($existingPairing -eq $true) {
+                                                                        $pairingTask = Invoke-VrDeleteVrPairing -PairingId $pairingId -Server $vrmsAConnection
+                                                                        Do {
+                                                                            Start-Sleep 10
+                                                                            $pairingTaskStatus = Invoke-VrGetTaskInfo -TaskId $pairingTask.Id -Server $vrmsAConnection
+                                                                        } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                        Disconnect-VrServer -Server *
+                                                                        $vrmsAConnection = Connect-VrServer -Server $vrmsAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                        $existingPairing = $null
+                                                                        $vrmsPairings = (Invoke-VrGetVrPairings -Server $vrmsAConnection).List
+                                                                        foreach ($pairing in $vrmsPairings) {
+                                                                            if ($pairing.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                                $existingPairing = $false
+                                                                            }
+                                                                        }
+                                                                        if ($existingPairing -eq $false) {
+                                                                            Write-Output "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                        } else {
+                                                                            Write-Error "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                        }
+                                                                    } else {
+                                                                        Write-Warning "Remove Pairing of vSphere Replication Between Local Server ($($vrmsAFqdn.Split(".")[0])) and Remote Server ($($vrmsBFqdn.Split(".")[0])), already removed: SKIPPED"
+                                                                    }
+                                                                    # Pairing of Site Recovery Manager
+                                                                    $existingPairing = $null
+                                                                    $srmPairings = (Invoke-SrmGetPairings -Server $srmAConnection).List
+                                                                    if ($srmPairings.Count -gt 0) {
+                                                                        foreach ($pairing in $srmPairings) {
+                                                                            if ($pairing.RemoteVcServer.Name -eq $siteBvCenterDetails.fqdn) {
+                                                                                $existingPairing = $true
+                                                                                # Write-Warning "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already exists: SKIPPED"
+                                                                            }
+                                                                        }
+                                                                    } elseif ($pairsrmPairingsings.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                        $existingPairing = $false
+                                                                                Write-Warning "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])), already removed: SKIPPED"
+                                                                    }
+                                                                    if ($existingPairing -eq $true) {
+                                                                        $pairingTask = Invoke-SrmDeletePairing -Server $srmAConnection -pairingId ((Invoke-SrmGetPairings -Server $srmAConnection).List.PairingId.Guid)
+                                                                        Do {
+                                                                            Start-Sleep 10
+                                                                            $pairingTaskStatus = Invoke-SrmGetTaskInfo -TaskId $pairingTask.Id -Server $srmAConnection
+                                                                        } While ($pairingTaskStatus.Status -eq "RUNNING")
+                                                                        Disconnect-SrmSdkServer -Server *
+                                                                        $srmAConnection = Connect-SrmSdkServer -Server $srmAFqdn -User $siteAvCenterDetails.ssoAdmin -Password $siteAvCenterDetails.ssoAdminPass
+                                                                        $srmPairings = (Invoke-SrmGetPairings -Server ($Global:defaultSrmSdkConnections | Where-Object {$_.Name -eq $srmAFqdn})).List
+                                                                        if ($srmPairings.Count -gt 0) {   
+                                                                            foreach ($pairing in $srmPairings) {
+                                                                                if ($pairing.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                                    $existingPairing = $false
+                                                                                }
+                                                                            }
+                                                                        } elseif ($srmPairings.RemoteVcServer.Name -ne $siteBvCenterDetails.fqdn) {
+                                                                            $existingPairing = $false
+                                                                        }
+                                                                        if ($existingPairing -eq $false) {
+                                                                            Write-Output "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): SUCCESSFUL"
+                                                                        } else {
+                                                                            Write-Error "Remove Pairing of Site Recovery Manager Between Local Server ($($srmAFqdn.Split(".")[0])) and Remote Server ($($srmBFqdn.Split(".")[0])): POST_VALIDATION_FAILED"
+                                                                        }
+                                                                    }
+                                                                }
                                                             } else {
-                                                                $PSCmdlet.ThrowTerminatingError($PSItem)
+                                                                Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                                                             }
-                                                        }
-                                                        Try {
-                                                            $global:DefaultSrmServers[0].ExtensionData.BreakPairing_Task($existingSitePair) | Out-Null
-                                                        } Catch {
-                                                            $PSCmdlet.ThrowTerminatingError($PSItem)
-                                                        }
-                                                        Try {
-                                                            Start-Sleep -Seconds 5
-                                                            $existingSitePair = $null
-                                                            $getPairedSite = '$global:DefaultSrmServers[0].ExtensionData.GetPairedSite()'
-                                                            $existingSitePair = Invoke-Expression $getPairedSite -ErrorAction SilentlyContinue
-                                                            else {
-                                                                $PSCmdlet.ThrowTerminatingError(
-                                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                                    ([System.Management.Automation.GetValueException]"Remove Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]): POST_VALIDATION_FAILED"),
-                                                                        'New-SrmSitePair',
-                                                                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                                                                        ""
-                                                                    )
-                                                                )
-                                                            }
-                                                        } Catch {
-                                                            if (!$existingSitePair) {
-                                                                Write-Output "Remove Site Recovery Manager pair between local server $($srmAFqdn.Split(".")[0]) and remote server $($srmBFqdn.Split(".")[0]) : SUCCESSFUL"
-                                                            }
-                                                        }
+                                                        } else {
+                                                            Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteBvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
+                                                        }        
+                                                    } else {
+                                                        Write-Error "No vSphere Replication instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                                                     }
+                                                } else {
+                                                    Write-Error "No Site Recovery Manager instance registered with vCenter Server $($siteAvCenterDetails.fqdn): PRE_VALIDATION_FAILURE"
                                                 }
                                             }
+                                            Disconnect-VIServer -Server * -Confirm:$false -WarningAction SilentlyContinue
+                                            Disconnect-SrmSdkServer -Server *
+                                            Disconnect-VrServer -Server *
                                         }
                                     }
                                 }
@@ -6834,7 +6926,7 @@ Function Add-SrmLicenseKey {
                                         $licenseManager = Get-View -Server $vcfVcenterDetails.fqdn $serviceInstance.Content.LicenseManager | Where-Object {$_.LicensedEdition -match $vcfVcenterDetails.fqdn}
                                         $licenseAssignmentManager = Get-View -Server $vcfVcenterDetails.fqdn $licenseManager.licenseAssignmentManager
                                         if ($licenseManager.Licenses | Where-Object {$_.LicenseKey -eq $srmLicenseKey}) {
-                                            Write-Warning "Adding License key ($srmLicenseKey) for Site Recovery Manager to vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPING"
+                                            Write-Warning "Adding License key ($srmLicenseKey) for Site Recovery Manager to vCenter Server ($($vcfVcenterDetails.fqdn)), already exists: SKIPPED"
                                         } else {
                                             $licenseManager.AddLicense($srmLicenseKey,$null) | Out-Null
                                             $licenseManager.UpdateViewData()
@@ -6849,7 +6941,7 @@ Function Add-SrmLicenseKey {
                                             $output = Invoke-VMScript -VM ($vcfVcenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vcfVcenterDetails.rootPass -Server $vcfVcenterDetails.fqdn
                                             $srmUuid = ($srmPartialUuid + "-" + $output.ScriptOutput).Trim()
                                             if (($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -eq $srmLicenseKey) {
-                                                Write-Warning "Assigning License Key ($srmLicenseKey) to Site Recovery Manager instance ($srmFqdn), already exists: SKIPPING"
+                                                Write-Warning "Assigning License Key ($srmLicenseKey) to Site Recovery Manager instance ($srmFqdn), already exists: SKIPPED"
                                             } else {
                                                 $licenseAssignmentManager.UpdateAssignedLicense($srmUuid,$srmLicenseKey,$null) | Out-Null
                                                 $licenseAssignmentManager.UpdateViewData() | Out-Null
@@ -6938,7 +7030,7 @@ Function Undo-SrmLicenseKey {
                                         $output = Invoke-VMScript -VM ($vcfVcenterDetails.fqdn).Split(".")[0] -ScriptText $scriptCommand -GuestUser root -GuestPassword $vcfVcenterDetails.RootPass -Server $vcfVcenterDetails.fqdn
                                         $srmUuid = ($srmPartialUuid + "-" + $output.ScriptOutput).Trim()
                                         if (!($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -or ($licenseAssignmentManager.QueryAssignedLicenses($srmUuid).AssignedLicense.LicenseKey) -eq "00000-00000-00000-00000-00000") {
-                                            Write-Warning "Removing License key ($srmLicenseKey) for Site Recovery Manager instance ($srmFqdn), already removed: SKIPPING"
+                                            Write-Warning "Removing License key ($srmLicenseKey) for Site Recovery Manager instance ($srmFqdn), already removed: SKIPPED"
                                         } else {
                                             $licenseAssignmentManager.RemoveAssignedLicense($srmUuid) | Out-Null
                                             $licenseAssignmentManager.UpdateViewData() | Out-Null
@@ -6948,7 +7040,7 @@ Function Undo-SrmLicenseKey {
                                                 Write-Error "Removing License key ($srmLicenseKey) from Site Recovery Manager instance ($srmFqdn): POST_VALIDATION_FAILED"
                                             }
                                             if (!($licenseManager.Licenses | Where-Object {$_.LicenseKey -eq $srmLicenseKey})) {
-                                                Write-Warning "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)), already removed: SKIPPING"
+                                                Write-Warning "Removing License key ($srmLicenseKey) from vCenter Server ($($vcfVcenterDetails.fqdn)), already removed: SKIPPED"
                                             } else {
                                                 $licenseManager.RemoveLicense($srmLicenseKey) | Out-Null
                                                 $licenseManager.UpdateViewData()
@@ -7059,7 +7151,7 @@ Function Add-vSphereReplication {
                                                                 if ($getVmReplication -match "was not found") {
                                                                     $vmsToReplicate += $vm
                                                                 } else {
-                                                                    Write-Warning "Replication for virtual machine ($vm) already exists: SKIPPING"
+                                                                    Write-Warning "Replication for virtual machine ($vm) already exists: SKIPPED"
                                                                 }
                                                             }
                                                             foreach ($vm in $vmsToReplicate) {
@@ -7189,7 +7281,7 @@ Function Undo-vSphereReplication {
                                                             foreach ($vm in $vmName) {
                                                                 $getVmReplication = Get-VrmsReplication -vmName $vm
                                                                 if ($getVmReplication -match "was not found") {
-                                                                    Write-Warning "Replication for virtual machine $vm does not exist: SKIPPING"
+                                                                    Write-Warning "Replication for virtual machine $vm does not exist: SKIPPED"
                                                                 } else {
                                                                     $replicationsToRemove += $vm
                                                                 }
@@ -7330,7 +7422,7 @@ Function Add-ProtectionGroup {
                                                             if ($srmProtectionGroups) {
                                                                 foreach ($srmProtectionGroup in $srmProtectionGroups) {
                                                                     if ($pgName -eq $srmProtectionGroup.name) {
-                                                                        Write-Warning "Protection Group $pgName already exists: SKIPPING"
+                                                                        Write-Warning "Protection Group $pgName already exists: SKIPPED"
                                                                         $skip = $true
                                                                         break
                                                                     }
@@ -7453,7 +7545,7 @@ Function Undo-ProtectionGroup {
                                                             $protectionGroup = Get-SrmProtectionGroup -pgName $pgName
                                                             $skip = $false
                                                             if (!$protectionGroup) {
-                                                                Write-Warning "Protection Group ($pgName) not found: SKIPPING"
+                                                                Write-Warning "Protection Group ($pgName) not found: SKIPPED"
                                                                 $skip = $true
                                                                 break
                                                             }
@@ -7589,7 +7681,7 @@ Function Add-RecoveryPlan {
                                                             $srmRecoveryPlan = Get-SrmRecoveryPlan -rpName $rpName
                                                             $skip = $false
                                                             if ($srmRecoveryPlan) {
-                                                               Write-Warning "Recovery Plan $rpName already exists: SKIPPING"
+                                                               Write-Warning "Recovery Plan $rpName already exists: SKIPPED"
                                                                 $skip = $true
                                                                 break
                                                             }
@@ -7870,7 +7962,7 @@ Function Undo-RecoveryPlan {
                                                             $srmRecoveryPlan = Get-SrmRecoveryPlan -rpName $rpName
                                                             $skip = $false
                                                             if (!$srmRecoveryPlan) {
-                                                               Write-Warning "Recovery Plan $rpName not found: SKIPPING"
+                                                                Write-Warning "Recovery Plan $rpName not found: SKIPPED"
                                                                 $skip = $true
                                                                 break
                                                             }
@@ -8346,7 +8438,7 @@ Function Invoke-DriDeployment {
                                     $StatusMsg = Install-SupervisorClusterCertificate -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -cluster $jsonInput.supervisorClusterName -FilePath $certificateFile -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 } else {
-                                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPING"
+                                    Show-PowerValidatedSolutionsOutput -type WARNING -message "Jumphost Executing the Script is Not Joined to the Domain ($($jsonInput.domainFqdn)): SKIPPED"
                                 }
                             }
 
@@ -50043,6 +50135,48 @@ Function Test-SrmVamiAuthentication {
     }
 }
 Export-ModuleMember -Function Test-SrmVamiAuthentication
+
+Function Test-SrmSdkConnection {
+    <#
+        .SYNOPSIS
+        Check network connectivity to a Site Recovery Manager instance.
+
+        .DESCRIPTION
+        Checks the network connectivity to a Site Recovery Manager instance.
+        Supports testing a connection on ports 443 (HTTPS) and 22 (SSH). Default: 443 (HTTPS).
+
+        .EXAMPLE
+        Test-SrmSdkConnection -server sfo-m01-srm01.sfo.rainpole.io -port 443
+        This example checks network connectivity with a Site Recovery Manager instance on port 443 (HTTPS). This is the default port.
+
+        .EXAMPLE
+        Test-VsphereConnection -server sfo-m01-srm01.sfo.rainpole.io -port 22
+        This example checks network connectivity with a Site Recovery Manager instance on port 22 (SSH).
+
+        .PARAMETER server
+        The fully qualified domain name (FQDN) or IP address of the Site Recovery Manager instance.
+
+        .PARAMETER port
+        The port number to test the connection. One of the following: 443 (HTTPS) or 22 (SSH). Default: 443 (HTTPS).
+    #>
+    
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$server,
+        [Parameter (Mandatory = $false)] [ValidateSet("443", "22")] [Int32]$port = "443"
+    )
+
+    Try {
+        if ($status = Test-EndpointConnection -server $server -port $port ) {
+            Return $status
+        } else { 
+            Write-Error "Unable to communicate with Site Recovery Manager instance ($server) on port ($port), check FQDN/IP Address: PRE_VALIDATION_FAILED"
+            Return $status
+        } 
+    } Catch {
+        $_.Exception.Message
+    }
+}
+Export-ModuleMember -Function Test-VsphereConnection
 
 Function Test-SrmConnection {
     <#
