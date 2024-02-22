@@ -29659,7 +29659,7 @@ Function Set-LocalUserPasswordExpiration {
             $minDaysCommand = "--mindays $minDays "
             $scriptCommand += $minDaysCommand
         }
-        if ($PsBoundParameters.ContainsKey("minDays")) {
+        if ($PsBoundParameters.ContainsKey("warnDays")) {
             $warnDaysCommand = "--warndays $warnDays "
             $scriptCommand += $warnDaysCommand
         }
