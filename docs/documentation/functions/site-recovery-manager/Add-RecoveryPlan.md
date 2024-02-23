@@ -6,15 +6,13 @@ Adds a Site Recovery Manager recovery plan.
 
 ## Syntax
 
-```powershell
+``` powershell
 Add-RecoveryPlan [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-rpName] <String> [-pgName] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-RecoveryPlan` cmdlet adds a Site Recovery Manager recovery plan.
-
-The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
+The `Add-RecoveryPlan` cmdlet adds a Site Recovery Manager recovery plan. The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
 - Validates that network connectivity and authentication is possible to the vCenter Server instance.
@@ -25,7 +23,7 @@ The cmdlet connects to SDDC Manager instances in both the protected and recovery
 
 ### Example 1
 
-```powershell
+``` powershell
 Add-RecoveryPlan -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1! -sddcManagerBFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -rpName xint-vrops01-rp -pgName xint-vrops01-pg
 ```
 

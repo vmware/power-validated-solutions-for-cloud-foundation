@@ -6,9 +6,8 @@ Add a license for Site Recovery Manager
 
 ## Syntax
 
-```powershell
-Add-SrmLicenseKey [-server] <String> [-user] <String> [-pass] <String> [-domain] <String>
- [-srmLicenseKey] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+``` powershell
+Add-SrmLicenseKey [-server] <String> [-user] <String> [-pass] <String> [-domain] <String> [-srmLicenseKey] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -27,7 +26,7 @@ to SDDC Manager using the -server, -user, and -password values:
 
 ### Example 1
 
-```powershell
+``` powershell
 Add-SrmLicenseKey -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -srmLicenseKey AAAAA-BBBBB-CCCCC-DDDDD-EEEEE
 ```
 

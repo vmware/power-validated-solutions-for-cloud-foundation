@@ -2,29 +2,27 @@
 
 ## Synopsis
 
-Adds a callout step in a named recovery plan from a Site Recovery Manager instance.
+Adds a call-out step in a named recovery plan from a Site Recovery Manager instance.
 
 ## Syntax
 
-```powershell
-Add-SrmRecoveryPlanCalloutStep [-rpName] <String> [-calloutType] <String> [-calloutName] <String>
- [-content] <String> [-position] <Int32> [[-timeoutSeconds] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+``` powershell
+Add-SrmRecoveryPlanCalloutStep [-rpName] <String> [-calloutType] <String> [-calloutName] <String> [-content] <String> [-position] <Int32> [[-timeoutSeconds] <Int32>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-SrmRecoveryPlanCalloutStep` cmdlet adds steps in a named recovery plan from a Site Recovery Manager
-server.
+The `Add-SrmRecoveryPlanCalloutStep` cmdlet adds a call-out step in the named recovery plan for a Site Recovery Manager server.
 
 ## Examples
 
 ### Example 1
 
-```powershell
+``` powershell
 Add-SrmRecoveryPlanCalloutStep -rpName xint-vrops01-rp -calloutType PROMPT -calloutName "Power on the VMware Aria Operations cloud proxies" -content "Power on the VMware Aria Operations cloud proxies" -position 15 -timeoutSeconds 30
 ```
 
-This example retrieves all recovery plans from a Site Recovery Manager instance.
+This example adds a prompt to the recovery plan.
 
 ## Parameters
 

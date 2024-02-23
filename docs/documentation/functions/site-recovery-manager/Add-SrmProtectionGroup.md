@@ -6,7 +6,7 @@ Adds a protection group to a Site Recovery Manager instance.
 
 ## Syntax
 
-```powershell
+``` powershell
 Add-SrmProtectionGroup [-pgName] <String> [-vmName] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
@@ -19,7 +19,7 @@ Site Recovery Manager instance.
 
 ### Example 1
 
-```powershell
+``` powershell
 Add-SrmProtectionGroup
 ```
 
