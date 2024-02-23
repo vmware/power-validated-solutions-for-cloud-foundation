@@ -73,15 +73,15 @@ Select an option for the solution.
 
     The following functions can be use for the solution interoperability.
 
-    | Function                                                                                         | Type      |
-    | ------------------------------------------------------------------------------------------------ | --------- |
-    | [`Add-SsoUser`](./../../vsphere/Add-SsoUser.md)                                                  | Procedure |
-    | [`Add-vCenterGlobalPermission`](./../../vsphere/Add-vCenterGlobalPermission.md)                  | Procedure |
-    | [`Enable-vROPSManagementPack`](./../../aria-suite/aria-operations/Enable-vROPSManagementPack.md) | Procedure |
-    | [`Add-vROPSAdapterSrm`](./../../aria-suite/aria-operations/Add-vROPSAdapterSrm.md)               | Procedure |
-    | [`Add-vROPSAdapterVr`](./../../aria-suite/aria-operations/Add-vROPSAdapterVr.md)                 | Procedure |
-    | [`Import-vROPSNotification`](./../../aria-suite/aria-operations/Import-vROPSNotification.md)     | Procedure |
-    | [`Install-vRLIPhotonAgent`](./../../aria-suite/aria-operations-logs/Install-vRLIPhotonAgent.md)  | Procedure |
-    | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)            | Procedure |
+    | Function                                                                                         | Type                   |
+    | ------------------------------------------------------------------------------------------------ | ---------------------- |
+    | [`Add-SsoUser`](./../../vsphere/Add-SsoUser.md)                                                  | Procedure              |
+    | [`Add-vCenterGlobalPermission`](./../../vsphere/Add-vCenterGlobalPermission.md)                  | Procedure              |
+    | [`Enable-vROPSManagementPack`](./../../aria-suite/aria-operations/Enable-vROPSManagementPack.md) | Procedure              |
+    | [`Add-vROPSAdapterSrm`](./../../aria-suite/aria-operations/Add-vROPSAdapterSrm.md)               | Procedure              |
+    | [`Add-vROPSAdapterVr`](./../../aria-suite/aria-operations/Add-vROPSAdapterVr.md)                 | Procedure              |
+    | [`Import-vROPSNotification`](./../../aria-suite/aria-operations/Import-vROPSNotification.md)     | Procedure              |
+    | [`Install-vRLIPhotonAgent`](./../../aria-suite/aria-operations-logs/Install-vRLIPhotonAgent.md)  | Procedure              |
+    | [`Add-vRLIAgentGroup`](./../../aria-suite/aria-operations-logs/Add-vRLIAgentGroup.md)            | Procedure              |
 
 [solution]: https://docs.vmware.com/en/VMware-Cloud-Foundation/services/vcf-site-protection-and-disaster-recovery-v1/GUID-CA4DCF12-8BCC-4137-884C-E9DB2A19FAA4.html
