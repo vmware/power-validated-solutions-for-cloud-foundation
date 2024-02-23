@@ -36,6 +36,8 @@
 - Added `Invoke-CcmDeployment` cmdlet to perform an end-to-end deployment of Cross Cloud Migration.
 - Added `Invoke-UndoCcmDeployment` cmdlet to perform removal of Cross Cloud Migration.
 - Added `Export-PdrJsonSpec` cmdlet to generate a JSON specification file for Site Protection and Disaster Recovery.
+- Added `Invoke-PdrDeployment` cmdlet to perform an end-to-end deployment of Site Protection and Disaster Recovery.
+- Added `Invoke-UndoPdrDeployment` cmdlet to perform removal of Site Protection and Disaster Recovery.
 - Added `Test-SrmSdkConnection` cmdlet to test the connection to a Site Recovery Manager instance for PowerCLI connectivity.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
