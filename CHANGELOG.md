@@ -58,6 +58,8 @@
 - Enhanced `Undo-SrmSitePair` cmdlet:
   - to use the native PowerCLI cmdlets for managing Site Recovery Manager.
   - support using native PowerCLI cmdlets to manage the removal of vSphere Replication site pairing.
+- Enhanced `Get-VrmsVamiCertificate` cmdlet to retrieve the installed Certificate Authority certificates from the vSphere Replication Appliance.
+- Enhanced `Get-SrmVamiCertificate` cmdlet to retrieve the installed Certificate Authority certificates from the Site Recovery Manager Appliance.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.

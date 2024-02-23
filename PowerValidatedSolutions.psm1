@@ -105,6 +105,7 @@ Function Export-IamJsonSpec {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -8291,6 +8292,7 @@ Function Export-DriJsonSpec {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -11615,6 +11617,7 @@ Function Export-IlaJsonSpec {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -15146,6 +15149,7 @@ Function Export-IomJsonSpec {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -19170,6 +19174,7 @@ Function Export-PcaJsonSpec {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -21722,6 +21727,7 @@ Function Export-HrmJsonSpec {
             $jsonInput = (Get-Content -Path $jsonFile) | ConvertFrom-Json
             Foreach ($jsonValue in $jsonInput.psobject.properties) {
                 if ($jsonValue.value -eq "Value Missing" -or $null -eq $jsonValue.value ) {
+                    Show-PowerValidatedSolutionsOutput -type WARNING -message ('Missing value for property: {0}' -f $jsonValue.Name)
                     $issueWithJson = $true
                 }
             }
@@ -47282,19 +47288,36 @@ Export-ModuleMember -Function Set-VrmsReplication
 Function Get-VrmsVamiCertificate {
     <#
         .SYNOPSIS
-        Get the certificate of the VAMI Appliance interface.
+        Get the certificate information from the vSphere Replication appliance.
 
         .DESCRIPTION
-        The Get-VrmsConfiguration cmdlet retrieves the certificate of the VAMI interface of a vSphere Replication appliance.
+        The Get-VrmsVamiCertificate cmdlet retrieves certificate information from the VAMI interface of a vSphere
+        Replication appliance.
 
         .EXAMPLE
-        Get-VrmsConfiguration
-        This example retrieves the registration configuration for the vSphere Replication appliance.
+        Get-VrmsVamiCertificate
+        This example retrieves the certificate information for the vSphere Replication appliance.
+
+        .EXAMPLE
+        Get-VrmsVamiCertificate -caCertificate
+        This example retrieves a list of Certificate Authority certificates installed in the vSphere Replication appliance.
+
+        .PARAMETER caCertificate
+        The caCertificate parameter will retrieve Certificate Authority certificates installed.
     #>
 
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$caCertificate
+    )
+
     Try {
-        $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
-        Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+        if ($PsBoundParameters.ContainsKey("caCertificate")) {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/ca"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader).List
+        } else {
+            $uri = "https://$vrmsAppliance/api/rest/configure/v1/appliance/certificates/server"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $vrmsHeader
+        }
     } Catch {
         internalCatchWriter -applianceName "vSphere Replication Appliance" -applianceFqdn $vrmsAppliance
     }
@@ -48235,19 +48258,36 @@ Export-ModuleMember -Function Remove-SrmConfiguration
 Function Get-SrmVamiCertificate {
     <#
         .SYNOPSIS
-        Get the certificate of the VAMI Appliance interface.
+        Get the certificate information from the Site Recovery Manager appliance.
 
         .DESCRIPTION
-        The Get-SrmVamiCertificate cmdlet retrieves the certificate of the VAMI interface of a Site Recovery Manager appliance.
+        The Get-SrmVamiCertificate cmdlet retrieves certificate information from the VAMI interface of a Site Recovery
+        Manager appliance.
 
         .EXAMPLE
         Get-SrmVamiCertificate
-        This example retrieves the registration configuration for the Site Recovery Manager appliance.
+        This example retrieves the certificate information for the Site Recovery Manager appliance.
+
+        .EXAMPLE
+        Get-SrmVamiCertificate -caCertificate
+        This example retrieves a list of Certificate Authority certificates installed in the Site Recovery Manager appliance.
+
+        .PARAMETER caCertificate
+        The caCertificate parameter will retrieve Certificate Authority certificates installed.
     #>
 
+    Param (
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [Switch]$caCertificate
+    )
+
     Try {
-        $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
-        Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+        if ($PsBoundParameters.ContainsKey("caCertificate")) {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/ca"
+            (Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader).List
+        } else {
+            $uri = "https://$srmAppliance/api/rest/configure/v1/appliance/certificates/server"
+            Invoke-RestMethod -Method GET -Uri $uri -Headers $srmHeader
+        }
     } Catch {
         internalCatchWriter -applianceName "Site Recovery Manager Appliance" -applianceFqdn $srmAppliance
     }
@@ -48606,7 +48646,7 @@ Function Get-SrmRecoveryPlan {
     } Catch {
         # Do Nothing
     }
-  }
+}
 Export-ModuleMember -Function Get-SrmRecoveryPlan
 
 Function Add-SrmRecoveryPlan {
@@ -48618,7 +48658,7 @@ Function Add-SrmRecoveryPlan {
         The Add-SrmRecoveryPlan cmdlet adds a recovery plan to a Site Recovery Manager instance.
 
         .EXAMPLE
-        Add-SrmRecoveryPlan
+        Add-SrmRecoveryPlan -rpName xint-vrops01-rp -pgName xint-vrops01-pg
         This example adds recovery plan xint-vrops01-rp to a Site Recovery Manager instance.
 
         .PARAMETER rpName
@@ -48752,19 +48792,19 @@ Function Get-SrmRecoveryPlanStep {
     }
 }
 Export-ModuleMember -Function Get-SrmRecoveryPlanStep
-  
+
 Function Add-SrmRecoveryPlanCalloutStep {
     <#
         .SYNOPSIS
         Adds a callout step in a named recovery plan from a Site Recovery Manager instance.
 
         .DESCRIPTION
-        The Add-SrmRecoveryPlanCalloutStep cmdlet adds steps in a named recovery plan from a Site Recovery Manager
-        server.
+        The Add-SrmRecoveryPlanCalloutStep cmdlet adds a call-out step in the named recovery plan for a Site Recovery
+        Manager server.
 
         .EXAMPLE
         Add-SrmRecoveryPlanCalloutStep -rpName xint-vrops01-rp -calloutType PROMPT -calloutName "Power on the VMware Aria Operations cloud proxies" -content "Power on the VMware Aria Operations cloud proxies" -position 15 -timeoutSeconds 30
-        This example retrieves all recovery plans from a Site Recovery Manager instance.
+        This example adds a prompt to the recovery plan.
 
         .PARAMETER rpName
         The name of the recovery plan to modify.

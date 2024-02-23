@@ -6,7 +6,7 @@ Adds a recovery plan to a Site Recovery Manager instance.
 
 ## Syntax
 
-```powershell
+``` powershell
 Add-SrmRecoveryPlan [-rpName] <String> [-pgName] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
@@ -18,8 +18,8 @@ The `Add-SrmRecoveryPlan` cmdlet adds a recovery plan to a Site Recovery Manager
 
 ### Example 1
 
-```powershell
-Add-SrmRecoveryPlan
+``` powershell
+Add-SrmRecoveryPlan -rpName xint-vrops01-rp -pgName xint-vrops01-pg
 ```
 
 This example adds recovery plan xint-vrops01-rp to a Site Recovery Manager instance.

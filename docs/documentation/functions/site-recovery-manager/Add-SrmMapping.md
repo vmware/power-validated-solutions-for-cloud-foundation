@@ -7,30 +7,24 @@ instances in Site Recovery Manager
 
 ## Syntax
 
-```powershell
-Add-SrmMapping [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-type] <String>
- [-protected] <String> [-recovery] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+``` powershell
+Add-SrmMapping [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-type] <String> [-protected] <String> [-recovery] <String> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-SrmMapping` cmdlet creates a mapping between objects (folder, network, or compute resource) in the
-protected and failover instances in Site Recovery Manager.
-The cmdlet connects to SDDC Manager using the
--server, -user, and -password values:
+The `Add-SrmMapping` cmdlet creates a mapping between objects (folder, network, or compute resource) in the protected and failover instances in Site Recovery Manager. The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to both SDDC Manager instances
 - Validates that network connectivity and authentication is possible to both vCenter Server instances
 - Validates that network connectivity and authentication are possible to both Site Recovery Manager instances
-- Create a mapping between objects in the protected and failover instances in Site Recovery Manager as
-defined by the -type, -protected, and -recovery parameters.
+- Create a mapping between objects in the protected and failover instances in Site Recovery Manager as defined by the -type, -protected, and -recovery parameters.
 
 ## Examples
 
 ### Example 1
 
-```powershell
+``` powershell
 Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Folder -protected xint-m01-fd-vrslcm -recovery xint-m01-fd-vrslcm
 ```
 
@@ -38,7 +32,7 @@ This example creates a mapping between protected site folder xint-m01-fd-vrslcm0
 
 ### Example 2
 
-```powershell
+``` powershell
 Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Network -protected xint-m01-seg01 -recovery xint-m01-seg01
 ```
 
@@ -46,7 +40,7 @@ This example creates a mapping between protected site network xint-m01-seg01 and
 
 ### Example 3
 
-```powershell
+``` powershell
 Add-SrmMapping -sddcManagerAFqdn sfo-vcf01.sfo.rainpole.io -sddcManagerAUser administrator@vsphere.local -sddcManagerAPass VMw@re1 -sddcManagerBFqdn lax-vcf01.lax.rainpole.io -sddcManagerBUser administrator@vsphere.local -sddcManagerBPass VMw@re1! -type Resource -protected sfo-m01-cl01 -recovery lax-m01-cl01
 ```
 

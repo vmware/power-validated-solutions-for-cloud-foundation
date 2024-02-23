@@ -7,16 +7,12 @@ Adds a Site Recovery Manager protection group.
 ## Syntax
 
 ```powershell
-Add-ProtectionGroup [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String>
- [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-pgName] <String>
- [-vmName] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Add-ProtectionGroup [-sddcManagerAFqdn] <String> [-sddcManagerAUser] <String> [-sddcManagerAPass] <String> [-sddcManagerBFqdn] <String> [-sddcManagerBUser] <String> [-sddcManagerBPass] <String> [-pgName] <String> [-vmName] <Array> [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
 
-The `Add-ProtectionGroup` cmdlet adds a Site Recovery Manager protection group.
-
-The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
+The `Add-ProtectionGroup` cmdlet adds a Site Recovery Manager protection group. The cmdlet connects to SDDC Manager instances in both the protected and recovery sites:
 
 - Validates that network connectivity and authentication is possible to the SDDC Manager instance.
 - Validates that network connectivity and authentication is possible to the vCenter Server instance.
