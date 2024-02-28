@@ -2635,7 +2635,6 @@ Function Invoke-PdrDeployment {
                                             }
                                         }
 
-                                        # TODO
                                         # if (!$failureDetected) {
                                         #     Show-PowerValidatedSolutionsOutput -message "Preparing Load Balancing Services for the VMware Aria Suite Components and the Clustered Workspace ONE Access Instance in the Recovery VMware Cloud Foundation Instance"
                                         #     $StatusMsg = Copy-vRealizeLoadBalancer -sddcManagerAFQDN $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPassword $jsonInput.protected.sddcManagerPass -sddcManagerBFQDN $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPassword $jsonInput.recovery.sddcManagerPass -serviceInterfaceIP $jsonInput.serviceInterfaceIP -wsaCertName $jsonInput.certificateNameWsa -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
@@ -2656,7 +2655,7 @@ Function Invoke-PdrDeployment {
 
                                         if (!$failureDetected) {
                                             Show-PowerValidatedSolutionsOutput -message "Reconfiguring DNS and Domain Search on the Clustered Workspace ONE Access Nodes for $solutionName"
-                                            Show-PowerValidatedSolutionsOutput -message "Please be patient this process takes some time to complete"
+                                            Show-PowerValidatedSolutionsOutput -message "Please be patient this process may takes some time to complete"
                                             $StatusMsg = Set-WorkspaceOneDnsConfig -server $jsonInput.protected.sddcManagerFqdn -user $jsonInput.protected.sddcManagerUser -pass $jsonInput.protected.sddcManagerPass -dnsServers $jsonInput.dns -dnsSearchDomains $jsonInput.searchDomain -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                         }
@@ -2800,8 +2799,9 @@ Function Invoke-PdrDeployment {
                                             }
                                         }
                                         
-                                        Show-PowerValidatedSolutionsOutput -type NOTE -message "Performing Protected Site Configuration Tasks for $solutionName"
+                                        
                                         if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -type NOTE -message "Performing Protected Site Configuration Tasks for $solutionName"
                                             Show-PowerValidatedSolutionsOutput -message "Creating a Site Pair Between the Protected and Recovery VMware Cloud Foundation Instances"
                                             $StatusMsg = New-SRMSitePair -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
@@ -2858,8 +2858,8 @@ Function Invoke-PdrDeployment {
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                         }
 
-                                        Show-PowerValidatedSolutionsOutput -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Operations Analytics Cluster"
                                         if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Operations Analytics Cluster"
                                             Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Operations Analytics Cluster"
                                             $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameOperationsNodeA)","$($jsonInput.vmNameOperationsNodeB)","$($jsonInput.vmNameOperationsNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
@@ -2910,8 +2910,8 @@ Function Invoke-PdrDeployment {
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                         }
 
-                                        Show-PowerValidatedSolutionsOutput -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Automation"
                                         if (!$failureDetected) {
+                                            Show-PowerValidatedSolutionsOutput -message "Configuring Replication, Create a Protection Group and a Recovery Plan for VMware Aria Automation"
                                             Show-PowerValidatedSolutionsOutput -message "Configuring Replication for VMware Aria Automation"
                                             $StatusMsg = Add-vSphereReplication -sddcManagerAFqdn $jsonInput.protected.sddcManagerFqdn -sddcManagerAUser $jsonInput.protected.sddcManagerUser -sddcManagerAPass $jsonInput.protected.sddcManagerPass -sddcManagerBFqdn $jsonInput.recovery.sddcManagerFqdn -sddcManagerBUser $jsonInput.recovery.sddcManagerUser -sddcManagerBPass $jsonInput.recovery.sddcManagerPass -vmName @("$($jsonInput.vmNameAutomationNodeA)","$($jsonInput.vmNameAutomationNodeB)","$($jsonInput.vmNameAutomationNodeC)") -recoveryPointObjective $jsonInput.recoveryPointObjective -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
@@ -4872,42 +4872,52 @@ Function Set-vRSLCMDnsConfig {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
-                            if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
-                                $vmName = $vrslcmDetails.fqdn.Split(".")[0]
-                                if ((Get-VM -Name $vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                                    if ($dnsServers) {
-                                        $scriptCommand = "sed -i '/#DNS=/d' /etc/systemd/resolved.conf"
-                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
-                                        $scriptCommand = "sed -i '/^DNS=/c\DNS=$dnsServers' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
+                            if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                                if (Test-vRSLCMConnection -server $vrslcmDetails.fqdn) {
+                                    if ((Get-VM -Name $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
                                         $scriptCommand = "cat /etc/systemd/resolved.conf"
-                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
-                                        if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
-                                            Write-Output "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
-                                        } else {
-                                            Write-Error "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                        $initialOutput = Invoke-VMScript -VM $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword
+                                        if ($dnsServers) {
+                                            if (($initialOutput.ScriptOutput).Contains("DNS=$dnsServers")) {
+                                                Write-Warning "Configure VMware Aria Suite Lifecycle ($($vrslcmDetails.hostname)) to use DNS Server(s) ($dnsServers), already exists: SKIPPED"
+                                            } else {
+                                                $scriptCommand = "sed -i '/#DNS=/d' /etc/systemd/resolved.conf"
+                                                $output = Invoke-VMScript -VM $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword
+                                                $scriptCommand = "sed -i '/^DNS=/c\DNS=$dnsServers' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
+                                                $output = Invoke-VMScript -VM $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword
+                                                $scriptCommand = "cat /etc/systemd/resolved.conf"
+                                                $output = Invoke-VMScript -VM $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword
+                                                if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
+                                                    Write-Output "Configure VMware Aria Suite Lifecycle ($($vrslcmDetails.hostname)) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Configure VMware Aria Suite Lifecycle ($($vrslcmDetails.hostname)) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                }
+                                            }
                                         }
-                                    }
-                                    if ($dnsSearchDomains) {
-                                        if (($output.ScriptOutput).Contains("#Domains")) {
-                                            $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                        } else {
-                                            $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                        } 
-                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn   
-                                        $scriptCommand = "cat /etc/systemd/resolved.conf"
-                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword -Server $vcfVcenterDetails.fqdn
-                                        if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
-                                            Write-Output "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                        } else {
-                                            Write-Error "Configuring VMware Aria Suite Lifecycle ($vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                        if ($dnsSearchDomains) {
+                                            if (($initialOutput.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
+                                                Write-Warning "Configure VMware Aria Suite Lifecycle ($($vrslcmDetails.hostname)) to use DNS search domain(s) ($dnsSearchDomains), already exists: SKIPPED"
+                                            } else {
+                                                if (($initialOutput.ScriptOutput).Contains("#Domains")) {
+                                                    $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
+                                                } else {
+                                                    $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
+                                                } 
+                                                $output = Invoke-VMScript -VM $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword
+                                                $scriptCommand = "cat /etc/systemd/resolved.conf"
+                                                $output = Invoke-VMScript -VM $vrslcmDetails.hostname -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vrslcmDetails.rootPassword
+                                                if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
+                                                    Write-Output "Configure VMware Aria Suite Lifecycle ($($vrslcmDetails.hostname)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Configure VMware Aria Suite Lifecycle ($($vrslcmDetails.hostname)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                                }
+                                            }
                                         }
+                                    } else {
+                                        Write-Error "Unable to locate VMware Aria Suite Lifecycle virtual machine named ($($vrslcmDetails.hostname)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
-                                } else {
-                                    Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
+                                    Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
-                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
@@ -5150,64 +5160,71 @@ Function Set-WorkspaceOneDnsConfig {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
-                            if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
-                                Try {
-                                    $newRequest = Stop-vRSLCMProductNode -environment globalenvironment -product vidm -ErrorAction Stop
-                                } Catch {
-                                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                                }
-                                if ($newRequest) {
-                                    Write-Output "Powering off Workspace ONE Access appliances. This may take quite a while."
-                                    Start-Sleep 10
-                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null
-                                } else {
-                                    Write-Error "Power off request of Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
-                                } 
-                                $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm              
-                                foreach ($productVM in $productVMs) {
-                                    if ((Get-VM -Name $productVM.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                                        if ($dnsServers) {
-                                            $existingDNS = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value
-                                            if ($existingDNS -eq $dnsServers) {
-                                                Write-Warning "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS Server(s) ($dnsServers) already done: SKIPPED"
+                            if ($vcfVrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                                if (Test-vRSLCMAuthentication -server $vcfVrslcmDetails.fqdn -user $vcfVrslcmDetails.adminUser -pass $vcfVrslcmDetails.adminPass) {
+                                    $productVMs = Get-vRSLCMProductNode -environmentName globalenvironment -product vidm
+                                    if ($dnsServers) {
+                                        foreach ($productVM in $productVMs) {
+                                            if ((Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value) -eq $dnsServers) {
+                                                $dnsServerConfigured = $true
+                                                Write-Warning "Configure Workspace ONE Access Appliance ($($productVM.vmName)) to use DNS Server(s) ($dnsServers), already exits: SKIPPED"
                                             } else {
-                                                Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"DNS"="$dnsServers"} | Out-Null
-                                            }
-                                            $validateDNS = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value
-                                            if ($validateDNS -eq $dnsServers) {
-                                                Write-Output "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS server(s) ($dnsServers): SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Configuring Workspace ONE Access appliance $($ProductVM.vmName) to use DNS server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                $dnsServerConfigured = $false
                                             }
                                         }
-                                        if ($dnsSearchDomains) {
-                                            $existingSearchDomains = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value
-                                            if ($existingSearchDomains -eq $dnsSearchDomains) {
-                                                Write-Warning "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED"
-                                            } else {
-                                                Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"searchpath"="$dnsSearchDomains"} | Out-Null
-                                            }
-                                            $validateSearchDomains = Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value
-                                            if ($validateSearchDomains -eq $dnsSearchDomains) {
-                                                Write-Output "Configuring Workspace ONE Access appliance $($productVM.vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Configuring Workspace ONE Access appliance $($ProductVM.vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
-                                            }
-                                        }
-                                    } else {
-                                        Write-Error "Unable to locate a virtual machine named $($productVM.vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                     }
+                                    if ($dnsSearchDomains) { 
+                                        foreach ($productVM in $productVMs) {
+                                            if ((Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value) -eq $dnsSearchDomains) {
+                                                Write-Warning "Configure Workspace ONE Access Appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains), already exits: SKIPPED"
+                                                $dnsSearchConfigured = $true
+                                            } else {
+                                                $dnsSearchConfigured = $false
+                                            }
+                                        }
+                                    }
+                                    if (($dnsServerConfigured -eq $false) -or ($dnsSearchConfigured -eq $false)) {
+                                        $newRequest = Stop-vRSLCMProductNode -environment globalenvironment -product vidm
+                                        if ($newRequest) {
+                                            Write-Output "Powering off Workspace ONE Access appliances. This may take quite a while."
+                                            Start-Sleep 10
+                                            Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null
+                                        } else {
+                                            Write-Error "Power off request of Workspace ONE Access failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                        } 
+                                        foreach ($productVM in $productVMs) {
+                                            if ((Get-VM -Name $productVM.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                if ($dnsServers) {
+                                                    Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"DNS"="$dnsServers"} | Out-Null
+                                                    if ((Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "DNS"} | Select-Object -ExpandProperty Value) -eq $dnsServers) {
+                                                        Write-Output "Configure Workspace ONE Access appliance ($($productVM.vmName)) to use DNS server(s) ($dnsServers): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Configure Workspace ONE Access appliance ($($ProductVM.vmName)) to use DNS server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                    }
+                                                }
+                                                if ($dnsSearchDomains) {
+                                                    Set-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) -properties @{"searchpath"="$dnsSearchDomains"} | Out-Null
+                                                    if ((Get-VMOvfProperty -vm (Get-VM -Name $productVM.vmName) | Where-Object {$_.Id -eq "searchpath"} | Select-Object -ExpandProperty Value) -eq $dnsSearchDomains) {
+                                                        Write-Output "Configure Workspace ONE Access appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
+                                                    } else {
+                                                        Write-Error "Configure Workspace ONE Access appliance ($($ProductVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                                    }
+                                                }
+                                            } else {
+                                                Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
+                                            }
+                                        }
+                                        $newRequest = Start-vRSLCMProductNode -environment globalenvironment -product vidm
+                                        if ($newRequest) {
+                                            Write-Output "Powering on Workspace ONE Access appliances and bringing up services. This may take quite a while."
+                                            Start-Sleep 10
+                                            Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null                                    
+                                        } else {
+                                            Write-Error "Power on request of Workspace ONE Access appliance(s) failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
+                                        }
+                                    }
+                                    Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                 }
-                                $newRequest = Start-vRSLCMProductNode -environment globalenvironment -product vidm
-                                if ($newRequest) {
-                                    Write-Output "Powering on Workspace ONE Access appliances and bringing up services. This may take quite a while."
-                                    Start-Sleep 10
-                                    Watch-vRSLCMRequest -vmid $($newRequest.requestId) | Out-Null                                    
-                                } else {
-                                    Write-Error "Power on request of Workspace ONE Access appliance(s) failed, check the VMware Aria Suite Lifecycle UI: POST_VALIDATION_FAILED"
-                                }
-                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }
                         }
                     }
@@ -5355,71 +5372,74 @@ Function Set-vROPSDnsConfig {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
-                            if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                $vropsVMs = (Get-VCFvROPs).nodes.fqdn
-                                Try {
-                                    $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop
-                                } Catch [System.Net.WebException] {
-                                    $PSCmdlet.ThrowTerminatingError(
-                                        [System.Management.Automation.ErrorRecord]::new(
-                                            ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
-                                            'Get-vRSLCMProductNode',
-                                            [System.Management.Automation.ErrorCategory]::ReadError,
-                                            ""
-                                        )
-                                    )
-                                }
-                                $vropsXregVMs = @()
-                                foreach ($productVM in $productVMs) {
-                                    if ($vropsVMs -contains $productVM.hostName) {
-                                        $vropsXregVMs += $productVM
+                            if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                                if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                                    if ($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass) {
+                                        if (Get-vRSLCMProductNode -environmentName $environmentName -product vrops) {
+                                            if ($dnsServers) {    
+                                                foreach ($vropsClusterVM in $vcfVropsDetails.fqdn) {
+                                                    $vmName = $vropsClusterVM.Split('.')[-0]
+                                                    $vmRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VROPS" -and $_.resource.resourceName -eq $vropsClusterVM}).password
+                                                    if ((Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                        $scriptCommand = "cat /etc/systemd/network/10-eth0.network"
+                                                        $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                        if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
+                                                            Write-Warning "Configure VMware Aria Operations appliance ($vmName) to use DNS Server(s) ($dnsServers), already exists: SKIPPED"
+                                                        } else {
+                                                            $scriptCommand = "sed -i '/#DNS=/d' /etc/systemd/network/10-eth0.network"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $scriptCommand = "sed -i '/^DNS=/c\DNS=$dnsServers' /etc/systemd/network/10-eth0.network | systemctl restart systemd-resolved"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $scriptCommand = "cat /etc/systemd/network/10-eth0.network"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
+                                                                Write-Output "Configure VMware Aria Operations appliance ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
+                                                            } else {
+                                                                Write-Error "Configure VMware Aria Operations appliance ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
+                                                    }
+                                                }
+                                            }
+                                            if ($dnsSearchDomains) {
+                                                foreach ($vropsClusterVM in $vcfVropsDetails.fqdn) {
+                                                    $vmName = $vropsClusterVM.Split('.')[-0]
+                                                    $vmRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VROPS" -and $_.resource.resourceName -eq $vropsClusterVM}).password
+                                                    if ((Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                        $scriptCommand = "cat /etc/systemd/resolved.conf"
+                                                        $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                        if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
+                                                            Write-Warning "Configure VMware Aria Operations appliance ($vmName) to use DNS search domain(s) ($dnsSearchDomains), already exists: SKIPPED"
+                                                        } else {
+                                                            if (($output.ScriptOutput).Contains("#Domains")) {
+                                                                $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
+                                                            } elseif (($output.ScriptOutput).Contains("Domains")) {
+                                                                $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
+                                                            } else {
+                                                                $scriptCommand = "sed -i '$ a\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
+                                                            }
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $scriptCommand = "cat /etc/systemd/resolved.conf"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
+                                                                Write-Output "Configure VMware Aria Operations appliance ($vmName) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
+                                                            } else {
+                                                                Write-Error "Configure VMware Aria Operations appliance ($vmName) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
+                                                    }
+                                                }
+                                            } 
+                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                        } else {
+                                            Write-Error "Unable to retieve VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                        }
                                     }
                                 }
-                                foreach ($vropsXregVM in $vropsXregVMs){
-                                    $vropsRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VROPS" -and $_.resource.resourceName -eq $vropsXregVM.hostName}).password
-                                    if ((Get-VM -Name $vropsXregVM.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                                        if ($dnsServers) {
-                                            $scriptCommand = "sed -i '/#DNS=/d' /etc/systemd/resolved.conf"
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            $scriptCommand = "sed -i '/^DNS=/c\DNS=$dnsServers' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            $scriptCommand = "cat /etc/systemd/resolved.conf"
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            if (($output.ScriptOutput).Contains("DNS=$dnsServers")) {
-                                                Write-Output "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                            }
-                                        }
-                                        if ($dnsSearchDomains) {
-                                            $scriptCommand = "cat /etc/systemd/network/10-eth0.network"
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            if (($output.ScriptOutput).Contains("Domains=")) {
-                                                $scriptCommand = "sed -i '/^Domains=/d' /etc/systemd/network/10-eth0.network | systemctl restart systemd-networkd"
-                                                $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            } 
-                                            $scriptCommand = "cat /etc/systemd/resolved.conf"
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            if (($output.ScriptOutput).Contains("#Domains")) {
-                                                $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                            } else {
-                                                $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                            } 
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn   
-                                            $scriptCommand = "cat /etc/systemd/resolved.conf"
-                                            $output = Invoke-VMScript -VM $vropsXregVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                            if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
-                                                Write-Output "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL"
-                                            } else {
-                                                Write-Error "Configuring VMware Aria Operations appliance ($($vropsXregVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
-                                            }
-                                        }
-                                    } else {
-                                        Write-Error "Unable to locate a virtual machine named ($($vropsXregVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                    }
-                                } 
-                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                             }  
                         }
                     }
@@ -5570,68 +5590,68 @@ Function Add-vROPSNtpServer {
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$ntpServer
     )
 
-    $testNtp = Test-NtpServer -Server $ntpServer
-    if ($testNtp -eq $false) {
-        Write-Error "Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"
-        break
-    }
-
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
-                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
-                            if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                Try {
-                                    $productVM = (Get-vRSLCMProductNode -environmentName $environmentName -product vrops -ErrorAction Stop)[0]
-                                } Catch [System.Net.WebException] {
-                                    $PSCmdlet.ThrowTerminatingError(
-                                        [System.Management.Automation.ErrorRecord]::new(
-                                            ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
-                                            'Get-vRSLCMProductNode',
-                                            [System.Management.Automation.ErrorCategory]::ReadError,
-                                            ""
-                                        )
-                                    )
+        if (Test-NtpServer -Server $ntpServer) {
+            if (Test-VCFConnection -server $server) {
+                if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                    if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                        if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                            if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                                    if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                                        if ($vcfVropsDetails = Get-vROPsServerDetail -fqdn $server -username $user -password $pass) {
+                                            if (Get-vRSLCMProductNode -environmentName $environmentName -product vrops) {
+                                                foreach ($vropsClusterVM in $vcfVropsDetails.fqdn) {
+                                                    $vmName = $vropsClusterVM.Split('.')[-0]
+                                                    $vmRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VROPS" -and $_.resource.resourceName -eq $vropsClusterVM}).password
+                                                    if ((Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                        $scriptCommand = "python /usr/lib/vmware-casa/bin/ntp_list.py"
+                                                        $output = Invoke-VMScript -VM $vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass -Server $vcfVcenterDetails.fqdn
+                                                        $existingNtpServers = ($output.ScriptOutput | ConvertFrom-JSON).time_servers
+                                                        $ntpServers = @()
+                                                        foreach ($existingNtpServer in $existingNtpServers) {
+                                                            $ntpServers += $existingNtpServer.address
+                                                        }
+                                                        if (($ntpServers).Contains($ntpServer)) {
+                                                            Write-Warning "Configure VMware Aria Operations Appliance ($vmName) to use NTP Servers ($($ntpServers -Join ", ")), already exist: SKIPPED"
+                                                        } else {
+                                                            $ntpServers += $ntpServer
+                                                            $ntpServersJson = $ntpServers | ConvertTo-JSON
+                                                            $ntpServersJson = $ntpServersJson -replace "`r`n","" -replace " ",""
+                                                            $scriptCommand = "echo '$ntpServersJson' | python /usr/lib/vmware-casa/bin/ntp_update.py > /dev/null 2>&1"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $scriptCommand = "python /usr/lib/vmware-casa/bin/ntp_list.py"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $vropsNtpServers = ($output.ScriptOutput | ConvertFrom-JSON).time_servers
+                                                            $vropsNtpServerArray = @()
+                                                            foreach ($vropsNtpServer in $vropsNtpServers) {
+                                                                $vropsNtpServerArray += $vropsNtpServer.address
+                                                            }
+                                                            $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
+                                                            if (!$compareArrays) {
+                                                                Write-Output "Configure VMware Aria Operations Appliance ($vmName) to use NTP Servers ($($ntpServers -Join ", ")): SUCCESSFUL"
+                                                            } else {
+                                                                Write-Error "Configure VMware Aria Operations Appliance ($vmName) to use NTP Servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
+                                                    }
+                                                }
+                                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                            } else {
+                                                Write-Error "Unable to retieve VMware Aria Operations appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
+                                            }
+                                        }
+                                    }
                                 }
-                                $vropsRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VROPS" -and $_.resource.resourceName -eq $productVM.hostName}).password
-                                if ((Get-VM -Name $productVM.vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                                    $scriptCommand = "python /usr/lib/vmware-casa/bin/ntp_list.py"
-                                    $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                    $existingNtpServers = ($output.ScriptOutput | ConvertFrom-JSON).time_servers
-                                    $ntpServers = @()
-                                    foreach ($existingNtpServer in $existingNtpServers) {
-                                        $ntpServers += $existingNtpServer.address
-                                    }
-                                    $ntpServers += $ntpServer
-                                    $ntpServersJson = $ntpServers | ConvertTo-JSON
-                                    $ntpServersJson = $ntpServersJson -replace "`r`n","" -replace " ",""
-                                    $scriptCommand = "echo '$ntpServersJson' | python /usr/lib/vmware-casa/bin/ntp_update.py > /dev/null 2>&1"
-                                    $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                    $scriptCommand = "python /usr/lib/vmware-casa/bin/ntp_list.py"
-                                    $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vropsRootPass -Server $vcfVcenterDetails.fqdn
-                                    $vropsNtpServers = ($output.ScriptOutput | ConvertFrom-JSON).time_servers
-                                    $vropsNtpServerArray = @()
-                                    foreach ($vropsNtpServer in $vropsNtpServers) {
-                                        $vropsNtpServerArray += $vropsNtpServer.address
-                                    }
-                                    $compareArrays = Compare-Object -ReferenceObject $ntpServers -DifferenceObject $vropsNtpServerArray
-                                    if (!$compareArrays) {
-                                        Write-Output "Configuring VMware Aria Operations appliances to use NTP servers ($($ntpServers -Join ", ")): SUCCESSFUL"
-                                    } else {
-                                        Write-Output "Unable to validate VMware Aria Operations appliances were configured to use NTP servers ($($ntpServers -Join ", ")): POST_VALIDATION_FAILED"
-                                    }
-                                } else {
-                                    Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                } 
-                                Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
-                            }  
+                            }
                         }
                     }
                 }
             }
+        } else {
+            Write-Error "Unable to confirm NTP Server ($ntpServer) is valid: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -5795,157 +5815,94 @@ Function Set-vRADnsConfig {
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
-                    if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
-                        if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
-                            if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
-                                if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                                    if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
-                                        if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                            Try {
-                                                $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vra -ErrorAction Stop
-                                            } Catch [System.Net.WebException] {
-                                                $PSCmdlet.ThrowTerminatingError(
-                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                        ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Automation appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
-                                                        'Get-vRSLCMProductNode',
-                                                        [System.Management.Automation.ErrorCategory]::ReadError,
-                                                        ""
-                                                    )
-                                                )
-                                            }
-                                            $vraRootPass = (Get-VCFCredential -ErrorAction Stop | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VRA" -and $_.resource.resourceName -match $productVMs[0].hostName}).password
-                                            if ((Get-VM -Name $productVMs[0].vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                                                if ($dnsServers) {
-                                                    $scriptCommand = "cat /etc/resolv.conf"
-                                                    $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
-                                                    [Array]$dnsServersArray = $dnsServers.Split(" ")
-                                                    $alreadyConfigured = @()
-                                                    Foreach ($dnsServer in $dnsServersArray) {
-                                                        if ($output.ScriptOutput -Match $dnsServer) {
-                                                            $alreadyConfigured += $dnsServer
-                                                        }
-                                                    }                               
-                                                    $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
-                                                    if (!$compareArrays) {
-                                                        Write-Warning "Configuring VMware Aria Automation appliances to use DNS Server(s) ($dnsServers) already done: SKIPPED"
-                                                    } else {
-                                                        $dnsServers = $dnsServers.Split(" ") -Join(",")
-                                                        $scriptCommand = "vracli network dns set --servers $dnsServers"
-                                                        $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
+                    if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                        if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                            if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
+                                if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
+                                    if ($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass) {
+                                        if (Get-vRSLCMProductNode -environmentName $environmentName -product vra) {
+                                            if ($dnsServers) {
+                                                foreach ($vraClusterVM in $vcfVraDetails.fqdn) { 
+                                                    $vmName = $vraClusterVM.Split('.')[-0]
+                                                    $vmRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VRA" -and $_.resource.resourceName -eq $vraClusterVM}).password
+                                                    if ((Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                        [Array]$dnsServersArray = $dnsServers.Split(" ")
                                                         $scriptCommand = "vracli network dns status"
-                                                        $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
+                                                        $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
                                                         [Array]$checkDns = $output.ScriptOutput
                                                         foreach ($item in $checkDns) {
-                                                            $alreadyConfigured = @()
+                                                            $notConfigured = @()
                                                             foreach ($dnsServer in $dnsServersArray) {
-                                                                if ($item -Match $dnsServer) {
-                                                                    $alreadyConfigured += $dnsServer
+                                                                if (!($item -match $dnsServer -and $item -match $vmName)) {
+                                                                    $notConfigured += $dnsServer
                                                                 }
                                                             }
                                                         }
-                                                        $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured        
-                                                        if ($compareArrays){
-                                                            Write-Error "Unable to validate VMware Aria Automation appliances using DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                                            Break
+                                                        if (!($notConfigured)) {
+                                                            Write-Warning "Configure VMware Aria Automation Appliance ($vmName) to use DNS Server(s) ($dnsServers), already exists: SKIPPED"
                                                         } else {
-                                                            $dnsServersVracliValidated = $true
-                                                            $scriptCommand = "cat /etc/resolv.conf"
-                                                            $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
-                                                            [Array]$dnsServersArray = $dnsServers.Split(",")
-                                                            $alreadyConfigured = @()
-                                                            Foreach ($dnsServer in $dnsServersArray) {
-                                                                if ($output.ScriptOutput -Match $dnsServer) {
-                                                                    $alreadyConfigured += $dnsServer
+                                                            $applyDnsServers = $dnsServers.Split(" ") -Join(",")
+                                                            $scriptCommand = "vracli network dns set --servers $applyDnsServers"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $scriptCommand = "vracli network dns status"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            [Array]$checkDns = $output.ScriptOutput
+                                                            foreach ($item in $checkDns) {
+                                                                $notConfigured = @()
+                                                                foreach ($dnsServer in $dnsServersArray) {
+                                                                    if (!($item -match $dnsServer -and $item -match $vmName)) {
+                                                                        $notConfigured += $dnsServer
+                                                                    }
                                                                 }
-                                                            }                               
-                                                            $compareArrays = Compare-Object -ReferenceObject $dnsServersArray -DifferenceObject $alreadyConfigured
-                                                            if ($compareArrays) {
-                                                                Write-Error "Configuring VMware Aria Automation appliances to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
-                                                                Break
-                                                            } else {
-                                                                $dnsServersResolvConfValidated = $true
-                                                                Write-Output "Configuring VMware Aria Automation appliances to use DNS Server(s) ($dnsServers): SUCCESSFUL"
                                                             }
-                                                        } 
+                                                            if ($notConfigured) {
+                                                                Write-Output "Configure VMware Aria Automation Appliance ($vmName) to use DNS Server(s) ($dnsServers): SUCCESSFUL"
+                                                            } else {
+                                                                Write-Output "Configure VMware Aria Automation Appliance ($vmName) to use DNS Server(s) ($dnsServers): POST_VALIDATION_FAILED"
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Write-Error "Unable to locate a virtual machine named ($vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                                     }
                                                 }
-                                                if ($dnsSearchDomains) {
-                                                    Foreach ($productVM in $productVMs) {
-                                                        $scriptCommand = "cat /etc/resolv.conf"
-                                                        $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                        if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
-                                                            Write-Warning "Configuring VMware Aria Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains) already done: SKIPPED" 
+                                            }
+                                            if ($dnsSearchDomains) {
+                                                foreach ($vraClusterVM in $vcfVraDetails.fqdn) { 
+                                                    $vmName = $vraClusterVM.Split('.')[-0]
+                                                    $vmRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VRA" -and $_.resource.resourceName -eq $vraClusterVM}).password
+                                                    if ((Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                        $scriptCommand = "cat /etc/systemd/resolved.conf"
+                                                        $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                        if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
+                                                            Write-Warning "Configure VMware Aria Automation Appliance ($vmName) to use DNS Search Domain(s) ($dnsSearchDomains); already exists: SKIPPED"
                                                         } else {
-                                                            $scriptCommand = "cat /etc/systemd/resolved.conf"
-                                                            $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
                                                             if (($output.ScriptOutput).Contains("#Domains")) {
                                                                 $scriptCommand = "sed -i '/#Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
                                                             } else {
                                                                 $scriptCommand = "sed -i '/^Domains=/c\Domains=$dnsSearchDomains' /etc/systemd/resolved.conf | systemctl restart systemd-resolved"
-                                                            } 
-                                                            $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn   
-                                                            $scriptCommand = "cat /etc/resolv.conf"
-                                                            $output = Invoke-VMScript -VM $productVM.vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                            if (($output.ScriptOutput).Contains("search $dnsSearchDomains")) {
-                                                                $dnsSearchDomainsResolvConfValidated = $true
-                                                                Write-Output "Configuring VMware Aria Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): SUCCESSFUL" 
+                                                            }
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass  
+                                                            $scriptCommand = "cat /etc/systemd/resolved.conf"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            if (($output.ScriptOutput).Contains("Domains=$dnsSearchDomains")) {
+                                                                Write-Output "Configure VMware Aria Automation Appliance ($vmName) to use DNS Search Domain(s) ($dnsSearchDomains): SUCCESSFUL"
                                                             } else {
-                                                                Write-Error "Configuring VMware Aria Automation appliance ($($productVM.vmName)) to use DNS search domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
+                                                                Write-Output "Configure VMware Aria Automation Appliance ($vmName) to use DNS Search Domain(s) ($dnsSearchDomains): POST_VALIDATION_FAILED"
                                                             }
                                                         }
+                                                    } else {
+                                                        Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                                     }
                                                 }
-                                                if (($dnsServers -and $dnsServersVracliValidated -eq $true -and $dnsServersResolvConfValidated -eq $true) -or ($dnsSearchDomains -and $dnsSearchDomainsResolvConfValidated -eq $true)) {
-                                                    Write-Output "Restarting VMware Aria Automation appliances and starting services upon bootup. This can take quite a while."
-                                                    $scriptCommand = "/opt/scripts/svc-stop.sh"
-                                                    $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    $scriptCommand = "/opt/scripts/deploy.sh --shutdown"
-                                                    $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    Foreach ($productVM in $productVMs) {
-                                                        Get-VM -Name $productVM.vmName | Restart-VMGuest | Out-Null
-                                                    }
-                                                    Start-Sleep -Seconds 15
-                                                    Foreach ($productVM in $productVMs) {
-                                                        Do {
-                                                            $toolsStatus = (Get-VM -Name $productVM.vmName -ErrorAction SilentlyContinue).ExtensionData.Guest.ToolsRunningStatus
-                                                            if ($toolsStatus -ne "guestToolsRunning") {
-                                                                Start-Sleep -Seconds 15
-                                                            }
-                                                        }
-                                                        Until ($toolsStatus -eq "guestToolsRunning")
-                                                    }
-                                                    Foreach ($productVM in $productVMs) {
-                                                        Do {
-                                                            $testvRA = Test-vRAConnection -server $productVM.hostname
-                                                            if ($testvRA -eq $false) {
-                                                                Start-Sleep -Seconds 15
-                                                            }
-                                                        }
-                                                        Until ($testvRA -eq $true)
-                                                    }
-                                                    $scriptCommand = "ln -s /opt/vmware/bin/vamicli /usr/sbin/vamicli | /opt/scripts/deploy.sh"
-                                                    $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    Do {
-                                                        $checkVraAuth = Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass -ErrorAction SilentlyContinue
-                                                        if ($checkVraAuth -eq $false) {
-                                                            Start-Sleep -Seconds 60
-                                                        }
-                                                    }
-                                                    Until ($checkVraAuth -eq $true)
-                                                    $scriptCommand = "unlink /usr/sbin/vamicli"
-                                                    $output = Invoke-VMScript -VM $productVM[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-
-                                                }
-                                            } else {
-                                                Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                            } 
+                                            }
+                                        } else  {
+                                            Write-Error "Retrieving VMware Aria Automation Appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
                                         }
-                                    }  
-                                    Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                    }
                                 }
                             }
-                        }
+                        }  
+                        Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                     }
                 }
             }
@@ -6106,108 +6063,80 @@ Function Set-vRANtpConfig {
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ntpServers
     )
 
-    [Array]$ntpServersArray = $ntpServers.Split(" ")
-    foreach ($ntpServer in $ntpServersArray) {
-        $testNtp = Test-NtpServer -Server $ntpServer
-        if ($testNtp -eq $false) {
-            $PSCmdlet.ThrowTerminatingError(
-                [System.Management.Automation.ErrorRecord]::new(
-                    ([System.Management.Automation.GetValueException]"Unable to confirm NTP server $ntpServer is valid: PRE_VALIDATION_FAILED"),
-                    'Test-NtpServer',
-                    [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                    ""
-                )
-            )
-        }
-    }
-
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
-                    if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
-                        if (Test-vRAConnection -server $vcfVraDetails.loadBalancerFqdn) {
-                            if (Test-vRAAuthentication -server $vcfVraDetails.loadBalancerFqdn -user $vraUser -pass $vraPass) {
-                                if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
-                                    if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                                        $vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass -ErrorAction Stop
+        [Array]$ntpServersArray = $ntpServers.Split(" ")
+        foreach ($ntpServer in $ntpServersArray) {
+            if (Test-NtpServer -Server $ntpServer) {
+                if (Test-VCFConnection -server $server) {
+                    if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                        if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT)) {
+                            if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
+                                if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
+                                    if ($vrslcmDetails = Get-vRSLCMServerDetail -fqdn $server -username $user -password $pass) {
                                         if (Test-vRSLCMAuthentication -server $vrslcmDetails.fqdn -user $vrslcmDetails.adminUser -pass $vrslcmDetails.adminPass) {
-                                            Try {
-                                                $productVMs = Get-vRSLCMProductNode -environmentName $environmentName -product vra -ErrorAction Stop
-                                            } Catch [System.Net.WebException] {
-                                                $PSCmdlet.ThrowTerminatingError(
-                                                    [System.Management.Automation.ErrorRecord]::new(
-                                                        ([System.Management.Automation.GetValueException]"Retrieving VMware Aria Automation appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"),
-                                                        'Get-vRSLCMProductNode',
-                                                        [System.Management.Automation.ErrorCategory]::ReadError,
-                                                        ""
-                                                    )
-                                                )
-                                            }
-                                            $vraRootPass = (Get-VCFCredential -ErrorAction Stop | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VRA" -and $_.resource.resourceName -match $productVMs[0].hostName}).password
-                                            if ((Get-VM -Name $productVMs[0].vmName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
-                                                $scriptCommand = "vracli ntp show-config"
-                                                $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn                                            
-                                                $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\w\.\w"
-                                                if (!$outputComparison) {
-                                                    $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
-                                                }
-                                                $alreadyConfigured = @()
-                                                Foreach ($ntpServer in $ntpServersArray) {
-                                                    if ($outputComparison -Match $ntpServer) {
-                                                        $alreadyConfigured += $ntpServer
-                                                    }
-                                                }
-                                                if (($alreadyConfigured.Count -eq $outputComparison.Count) -and ($alreadyConfigured.Count -eq $ntpServersArray.Count) ) {
-                                                    $compareArrays = Compare-Object -ReferenceObject $ntpServersArray -DifferenceObject $alreadyConfigured
-                                                    if (!$compareArrays) {
-                                                        Write-Warning "Configuring VMware Aria Automation appliances to use NTP Server(s) ($ntpServers) already done: SKIPPED"
-                                                    } 
-                                                } elseif ($compareArrays -or ($alreadyConfigured.Count -ne $outputComparison.Count) -or ($alreadyConfigured.Count -ne $ntpServersArray.Count)) {
-                                                    if ($ntpServersArray.Count -gt 1){
-                                                        [String]$ntpServersString = $null
-                                                        Foreach ($ntpServer in $ntpServersArray) {
-                                                            $ntpServersString = $ntpServersString+"'$($ntpServer)',"
-                                                        }
-                                                        $ntpServersString = $ntpServersString.Substring(0,$ntpServersString.Length-1)
-                                                        $scriptCommand = "vracli ntp systemd --set $ntpServersString"
-                                                    } else {
-                                                        $scriptCommand = "vracli ntp systemd --set $ntpServers"
-                                                    }
-                                                    $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    $scriptCommand = "vracli ntp show-config"
-                                                    $output = Invoke-VMScript -VM $productVMs[0].vmName -ScriptText $scriptCommand -GuestUser root -GuestPassword $vraRootPass -Server $vcfVcenterDetails.fqdn
-                                                    [Array]$ntpServersArray = $ntpServers.Split(" ")
-                                                    $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\w\.\w"
-                                                    if (!$outputComparison) {
-                                                        $outputComparison = (($output.ScriptOutput -Split "`n")[1]).Split("'") | Select-String -pattern "\d{1,3}(\.\d{1,3}){3}"
-                                                    }                                                    
-                                                    $alreadyConfigured = @()
-                                                    Foreach ($ntpServer in $ntpServersArray) {
-                                                        if ($outputComparison -Match $ntpServer) {
-                                                            $alreadyConfigured += $ntpServer
-                                                        }
-                                                    }
-                                                    if ($alreadyConfigured.Count -eq $outputComparison.Count) {
-                                                        $compareArrays = Compare-Object -ReferenceObject $ntpServersArray -DifferenceObject $alreadyConfigured
-                                                        if ($compareArrays) {
-                                                            Write-Error "Unable to configure VMware Aria Automation appliances to use NTP Server(s) ($ntpServers): POST_VALIDATION_FAILED"
+                                            if (($vcfVraDetails = Get-vRAServerDetail -fqdn $server -username $user -password $pass)) {
+                                                if (Get-vRSLCMProductNode -environmentName $environmentName -product vra) {
+                                                    [Array]$newNtpServers = $ntpServers.Split(' ')
+                                                    $missingNtpServer = $null
+                                                    foreach ($vraClusterVM in $vcfVraDetails.fqdn) { 
+                                                        $vmName = $vraClusterVM.Split('.')[-0]
+                                                        $vmRootPass = (Get-VCFCredential | Where-Object {$_.credentialType -eq "SSH" -and $_.resource.resourceType -eq "VRA" -and $_.resource.resourceName -eq $vraClusterVM}).password
+                                                        if ((Get-VM -Name $vmName -Server $vcfVcenterDetails.fqdn -WarningAction SilentlyContinue -ErrorAction SilentlyContinue )) {
+                                                            $scriptCommand = "vracli ntp show-config"
+                                                            $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                            $vmNtpServers = ($output.ScriptOutput -Split "`n")[(($output.ScriptOutput -Split "`n") | Select-String -SimpleMatch $vmName).LineNumber]
+                                                            foreach ($ntpServer in $newNtpServers) {
+                                                                if (($vmNtpServers).Contains($ntpServer)) {
+                                                                    $missingNtpServer = $false
+                                                                }
+                                                            }
+                                                            if ($missingNtpServer = $false) {
+                                                                Write-Warning "Configure VMware Aria Automation Appliances ($vmName) to use NTP Server(s) ($ntpServers), already exists: SKIPPED"
+                                                            } else {
+                                                                $missingNtpServer = $null
+                                                                if ($newNtpServers.Count -gt 1){
+                                                                    [String]$ntpServersString = $null
+                                                                    Foreach ($ntpServer in $newNtpServers) {
+                                                                        $ntpServersString = $ntpServersString+"'$($ntpServer)',"
+                                                                    }
+                                                                    $ntpServersString = $ntpServersString.Substring(0,$ntpServersString.Length-1)
+                                                                    $scriptCommand = "vracli ntp systemd --set $ntpServersString"
+                                                                } else {
+                                                                    $scriptCommand = "vracli ntp systemd --set $ntpServers"
+                                                                }
+                                                                $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                                $scriptCommand = "vracli ntp show-config"
+                                                                $output = Invoke-VMScript -VM $vmName -Server $vcfVcenterDetails.fqdn -ScriptText $scriptCommand -GuestUser root -GuestPassword $vmRootPass
+                                                                $vmNtpServers = ($output.ScriptOutput -Split "`n")[(($output.ScriptOutput -Split "`n") | Select-String -SimpleMatch $vmName).LineNumber]
+                                                                foreach ($ntpServer in $newNtpServers) {
+                                                                    if (($vmNtpServers).Contains($ntpServer)) {
+                                                                        $missingNtpServer = $false
+                                                                    }
+                                                                }
+                                                                if ($missingNtpServer -eq $false) {
+                                                                    Write-Output "Configure VMware Aria Automation Appliances ($vmName) to use NTP Server(s) ($ntpServers): SUCCESSFUL"
+                                                                } else {
+                                                                    Write-Error "Configure VMware Aria Automation Appliances ($vmName) to use NTP Server(s) ($ntpServers): POST_VALIDATION_FAILED"
+                                                                }
+                                                            }
                                                         } else {
-                                                            Write-Output "Configuring VMware Aria Automation appliances to use NTP Server(s) ($ntpServers): SUCCESSFUL"
+                                                            Write-Error "Unable to locate a virtual machine named ($vmName) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
                                                         }
                                                     }
+                                                } else {
+                                                    Write-Error "Retrieving VMware Aria Automation appliance information from VMware Aria Suite Lifecycle: PRE_VALIDATION_FAILED"
                                                 }
-                                            } else {
-                                                Write-Error "Unable to locate a virtual machine named ($($productVM.vmName)) in vCenter Server ($($vcfVcenterDetails.fqdn)) inventory: PRE_VALIDATION_FAILED"
-                                            } 
+                                            }  
+                                            Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
                                         }
-                                    }  
-                                    Disconnect-VIServer $vcfVcenterDetails.fqdn -Confirm:$false -WarningAction SilentlyContinue
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            } else {
+                Write-Error "Unable to confirm NTP Server ($ntpServer) is valid: PRE_VALIDATION_FAILED"
             }
         }
     } Catch {
@@ -49654,11 +49583,11 @@ Function messageHandler {
                 Show-PowerValidatedSolutionsOutput $message
             }
         }
-    } elseif ($warningMessage) {
+    } if ($warningMessage) {
         foreach ($message in $warningMessage) {
             Show-PowerValidatedSolutionsOutput -type WARNING -message $message
         }
-    } elseif ($errorMessage) {
+    } if ($errorMessage) {
         foreach ($message in $errorMessage) {
             Show-PowerValidatedSolutionsOutput -type ERROR -message $message
         }
