@@ -40199,31 +40199,50 @@ Function Get-vRSLCMProductDetails {
         The Get-vRSLCMProductDetails cmdlet gets the product details for a specific product in VMware Aria Suite Lifecycle.
 
         .EXAMPLE
-        Get-vRSLCMProductDetails -productid vrli
+        Get-vRSLCMProductDetails -productId vrli
         This example gets all environments in VMware Aria Suite Lifecycle.
+
+        .EXAMPLE
+        Get-vRSLCMProductDetails vmid 12345678-1234-1234-1234-123456789012 -productid vrli
+        This example gets the details for a specific product in VMware Aria Suite Lifecycle.
 
         .PARAMETER productid
         The product ID of the product to get the details for.
+
+        .PARAMETER vmid
+        The ID of the product to get the details for.
+
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vidm","vra","vrli","vrni","vrops","vro","vssc")][ValidateNotNullOrEmpty()] [String]$productid
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm","vra","vrli","vrni","vrops","vro","vssc")][ValidateNotNullOrEmpty()] [String]$productId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
     )
 
     Try {
         if($vrslcmAppliance) {
+        if($productid -and (!$vmid)) {
         $productname = (Get-vRSLCMEnvironment | where-object{$_.products.id -eq $productid }).environmentId
             if ($productname -ne $null) {
                 $envid = @()
                 foreach( $product in $productname) {
                     $envid = $product
                     $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$envid/products/$productid"
-                    $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders
+                    $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders -SkipCertificateCheck
                     $response
                 }
             } else {
                 Write-Warning "$productid is not installed in VMware Aria Suite Lifecycle"
             }
+         } elseif ($vmid -and $productid) {
+                    $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$vmid/products/$productid"
+                    $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders -SkipCertificateCheck
+                    $response
+
+            } else {
+                Write-Warning "$productid is not installed in VMware Aria Suite Lifecycle"
+            }
+
         } else {
            Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
         }
@@ -40285,7 +40304,7 @@ Function Get-vRSLCMEnvironmentVMs {
 }
 Export-ModuleMember -Function Get-vRSLCMEnvironmentVMs
 
- Function Get-vRSLCMProductPassword {
+Function Get-vRSLCMProductPassword {
     <#
         .SYNOPSIS
         Get the product password from VMware Aria Suite Lifecycle.
@@ -40340,18 +40359,18 @@ Export-ModuleMember -Function Get-vRSLCMEnvironmentVMs
                 if ($null -ne $id) {
                     $lockervmid = $id.Split(':')[2]
                     $uri = $baseUri + "$lockervmid/decrypted"
-                    Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+                    Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body -SkipCertificateCheck
                 } else {
                     Write-Warning "$nodeFqdn does not existing in product environment."
                 }
             } elseif ($vmid) {
                 $uri = $baseUri + "$vmid/decrypted"
-                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body -SkipCertificateCheck
             } else {
                 $id = (Get-vRSLCMProductDetails -productid $productid).properties.productPassword
                 $lockervmid = $id.Split(':')[2]
                 $uri = $baseUri + "$lockervmid/decrypted"
-                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body
+                Invoke-RestMethod $uri -Method 'POST' -Headers $vrslcmHeaders -Body $body -SkipCertificateCheck
             }
         } else {
             Write-Error 'Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again.'
