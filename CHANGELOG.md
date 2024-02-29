@@ -18,6 +18,7 @@
 - Added `Get-vRSLCMProductPassword` cmdlet to return the password for a specified product or product component in VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMUpgrade` cmdlet to start the upgrade of VMware Aria Suite Lifecycle.
 - Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
+- Enhanced `Export-vROpsJsonSpec` cmdlet to support automatic creation of anti-affinity rule for the VMware Aria Operations cluster nodes.
 - Added `Export-DriJsonSpec` cmdlet to generate a JSON specification file for Developer Ready Infrastructure.
 - Added `Invoke-DriDeployment` cmdlet to perform an end-to-end deployment of Developer Ready Infrastructure.
 - Added `Invoke-UndoDriDeployment` cmdlet to perform removal of Developer Ready Infrastructure.
