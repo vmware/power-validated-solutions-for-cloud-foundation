@@ -69,6 +69,7 @@
 - Enhanced `Add-vROPSNtpServer` cmdlet to check if the configuration has already been carried out.
 - Enhanced `Set-vRADnsConfig` cmdlet to check if the configuration has already been carried out.
 - Enhanced `Set-vRANtpConfig` cmdlet to check if the configuration has already been carried out.
+- Enhanced `Invoke-***Deployment` and `Invoke-Undo***Deployment` functions to use the `messageHandler` function.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
