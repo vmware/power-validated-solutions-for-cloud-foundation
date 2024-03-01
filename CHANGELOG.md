@@ -74,6 +74,10 @@
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
+- Updates `Set-LocalUserPasswordExpiration` cmdlet if statement for `warnDays`.
+- Added `Invoke-GeneratePrivateKeyAndCsr` cmdlet to generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary..
+- Added `Invoke-RequestSignedCertificate` cmdlet to sign off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
+- Added `Invoke-GenerateChainPem` cmdlet to combine the private key, signed certificate and/or root certificate files into a single PEM file.
 
 ## v2.8.0
 
