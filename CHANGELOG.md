@@ -71,6 +71,7 @@
 - Enhanced `Set-vRANtpConfig` cmdlet to check if the configuration has already been carried out.
 - Enhanced `Invoke-***Deployment` and `Invoke-Undo***Deployment` functions to use the `messageHandler` function.
 - Enhanced `Get-vRSLCMProductDetails` cmdlet with the `vmid` option to get the details for a specific product in VMware Aria Suite Lifecycle.
+- Enhanced `Get-vRLIMarketplaceMetadata` and `Enable-vRLIContentPack` cmdlets to accept a GitHub token that is either non-base64 or base64 encoded. If not encoded, the cmdlet will based64 encode it automatically.
 - Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
 - Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
