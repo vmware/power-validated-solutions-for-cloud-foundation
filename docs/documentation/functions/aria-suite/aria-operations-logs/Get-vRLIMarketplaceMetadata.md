@@ -45,7 +45,7 @@ Accept wildcard characters: False
 
 ### -token
 
-The base64 encoded GitHub token.
+The base64 encoded GitHub token. If not base64 encoded, the cmdlet will encode it for you.
 
 ```yaml
 Type: String

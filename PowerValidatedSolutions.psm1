@@ -15330,6 +15330,7 @@ Function Enable-vRLIContentPack {
         The password to authenticate with SDDC Manager.
 
         .PARAMETER token.
+        The base64 encoded GitHub token. If not base64 encoded, the cmdlet will encode it automatically.
 
         .PARAMETER contentPack
         The content pack to install from the marketplace. 'VSPHERE','VSAN','NSX','WSA','VRSLCM','VROPS','VRNI','VRA','VRO','SRM','LINUX','LINUX-SYSTEMD'
@@ -15344,6 +15345,14 @@ Function Enable-vRLIContentPack {
     )
 
     Try {
+        Try {
+            # Attempt to decode the token. If the decoding succeeds, the token is already base64 encoded. Do nothing.
+            [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($token)) | Out-Null
+        } Catch {
+            # If the decoding fails, the token was not base64 encoded. Encode it.
+            $token = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($token))
+        }
+
         if (Test-VCFConnection -server $server) {
             if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
                 if (($vcfVrliDetails = Get-vRLIServerDetail -fqdn $server -username $user -password $pass)) {
@@ -46150,7 +46159,7 @@ Function Get-vRLIMarketplaceMetadata {
         This example returns the metadata for VMware Aria Operations for Logs content packs in the Content Pack MarketPlace.
 
         .PARAMETER token
-        The base64 encoded GitHub token.
+        The base64 encoded GitHub token. If not base64 encoded, the cmdlet will encode it automatically.
 
         .PARAMETER index
         Returns the index of available content packs in the Content Pack Marketplace.
@@ -46162,6 +46171,14 @@ Function Get-vRLIMarketplaceMetadata {
     )
 
     Try {
+        Try {
+            # Attempt to decode the token. If the decoding succeeds, the token is already base64 encoded. Do nothing.
+            [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($token)) | Out-Null
+        } Catch {
+            # If the decoding fails, the token was not base64 encoded. Encode it.
+            $token = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($token))
+        }
+
         # Get the headers with authorization to pull content pack from the GitHub repository
         createGitHubAuthHeader -token $token
         if ($PsBoundParameters.ContainsKey("index")) {
