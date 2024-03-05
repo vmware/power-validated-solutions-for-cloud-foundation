@@ -7,12 +7,8 @@
 - Removed support for Microsoft Windows PowerShell 5.1. Please use Microsoft PowerShell 7.2.0 or later.
 - Removed support for deployment of VMware Aria product components earlier than 8.14.0.
 - Updated `PowerVCF` dependency from v2.4.0 to v2.4.1.
-- Updated Role files for VMware HCX to enable support for vSphere 7 and vSphere 8 where permission roles have changed.
-  - Added `vSphereRoles/hcx-vsphere-integration-7x.role` to support vSphere 7.
-  - Added `vSphereRoles/hcx-vsphere-integration-8x.role` to support vSphere 8.
-- Updated Role files for VMware Aria Automation Orchestrator to enable support for vSphere 7 and vSphere 8 where permission roles have changed.
-  - Added `vSphereRoles/aria-automation-orchestrator-vsphere-integration-7x.role` to support vSphere 7.
-  - Added `vSphereRoles/aria-automation-orchestrator-vsphere-integration-8x.role` to support vSphere 8.
+- Removed role files VMware Aria Automation Orchestrator and VMware HCX. Use the `Copy-vSphereRole` cmdlet.
+- Added `Copy-vSphereRole` to request the set of privileges assigned to a specific role in vCenter Server and create a new role with the same privileges.
 - Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductPassword` cmdlet to return the password for a specified product or product component in VMware Aria Suite Lifecycle.
