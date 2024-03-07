@@ -40,6 +40,7 @@
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Fixed `Add-EsxiVrmsVMkernelPort` pre-validation to actually compare server count so that it skips if configured.
 - Fixed `Set-LocalUserPasswordExpiration` cmdlet `warnDays` switch parameter.
+- Fixed `Invoke-GlobalWsaDeployment` cmdlet failure to programatically resolve the cross-instance Workspace One Access FQDN.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
 - Enhanced `Invoke-IomDeployment` cmdlet to include `Add-vROPSAdapterVcf` for creating the VMware Cloud Foundation adapter in VMware Aria Operations.
