@@ -12,7 +12,7 @@ Get-DrsVmToVmGroup [[-name] <String>] [-cluster] <String> [-ProgressAction <Acti
 
 ## Description
 
-The `Get-DrsVmToVmGrou` cmdlet retrieves the vSphere VM to VM Group.
+The `Get-DrsVmToVmGroup` cmdlet retrieves the vSphere VM to VM Group.
 
 ## Examples
 
