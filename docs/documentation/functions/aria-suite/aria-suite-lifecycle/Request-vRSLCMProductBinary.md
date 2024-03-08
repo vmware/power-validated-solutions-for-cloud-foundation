@@ -20,18 +20,18 @@ account to VMware Aria Suite Lifecycle.
 ### Example 1
 
 ```powershell
-Request-vRSLCMProductBinary -version 8.14.0 -productId "vra" -productDownloadType "Install"
+Request-vRSLCMProductBinary -version x.y.z -productId "vra" -productDownloadType "Install"
 ```
 
-This example will download the VMware Aria Automation install binary for verison 8.14.0
+This example will download the VMware Aria Automation install binary for version x.y.z.
 
 ### Example 2
 
 ```powershell
-Request-vRSLCMProductBinary -version 8.14.0 -productId "vra" -productDownloadType "upgrade"
+Request-vRSLCMProductBinary -version x.y.z -productId "vra" -productDownloadType "upgrade"
 ```
 
-This example will download the VMware Aria Automation upgrade binary for verison 8.14.0.
+This example will download the VMware Aria Automation upgrade binary for version x.y.z.
 
 ## Parameters
 
