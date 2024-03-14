@@ -76,6 +76,7 @@
 - Added `Invoke-GeneratePrivateKeyAndCsr` cmdlet to generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary..
 - Added `Invoke-RequestSignedCertificate` cmdlet to sign off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
 - Added `Invoke-GenerateChainPem` cmdlet to combine the private key, signed certificate and/or root certificate files into a single PEM file.
+- Fixed `Invoke-IomDeployment` cmdlet to point out the correct certificate folder.
 
 ## v2.8.0
 

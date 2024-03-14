@@ -15876,7 +15876,7 @@ Function Invoke-IomDeployment {
                                         Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration"
                                         foreach ($sddcDomain in $allWorkloadDomains) {
                                             Show-PowerValidatedSolutionsOutput -message "Preparing the NSX to $operationsProductName Integration for Workload Domain ($($sddcDomain.name))"
-                                            $StatusMsg = Add-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-iom-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -role enterprise_admin -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                            $StatusMsg = Add-NsxtPrincipalIdentity -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $sddcDomain.name -principalId ("svc-iom-" + $(($sddcDomain.nsxtCluster.vipFqdn).Split('.')[-0])) -role enterprise_admin -outputPath $certificates -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                             messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                         }
                                     }
