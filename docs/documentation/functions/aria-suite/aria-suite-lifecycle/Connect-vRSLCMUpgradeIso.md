@@ -26,7 +26,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Connect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-8.14.0.4-22630472-updaterepo"
+Connect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-x.y.z-xxxxxxxx-updaterepo"
 ```
 
 This example connects the upgrade ISO to VMware Aria Suite Lifecycle appliance.

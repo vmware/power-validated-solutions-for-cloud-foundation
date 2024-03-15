@@ -33,7 +33,7 @@ This example starts a deployment of VMware Aria Automation using the JSON Specif
 ### Example 2
 
 ```powershell
-New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -customVersion 8.14.0
+New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -customversion x.y.z
 ```
 
 This example starts a deployment of VMware Aria Automation using a custom version and the JSON Specification for VMware Aria Automation.
