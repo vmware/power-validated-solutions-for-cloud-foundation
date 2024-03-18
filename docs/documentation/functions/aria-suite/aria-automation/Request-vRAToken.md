@@ -21,7 +21,7 @@ It is required once per session before running all other cmdlets.
 ### Example 1
 
 ```powershell
-Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1!
+Request-vRAToken -fqdn xint-vra01.rainpole.io -username configadmin -password VMware1!
 ```
 
 This example shows how to connect to the VMware Aria Automation appliance
@@ -29,7 +29,7 @@ This example shows how to connect to the VMware Aria Automation appliance
 ### Example 2
 
 ```powershell
-Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1! -displayToken
+Request-vRAToken -fqdn xint-vra01.rainpole.io -username configadmin -password VMware1! -displayToken
 ```
 
 This example shows how to connect to the VMware Aria Automation appliance and display the token needed for Terraform.

@@ -19,7 +19,7 @@ The `Add-CertToNsxCertificateStore` cmdlet adds a Certificate to the NSX Certifi
 ### Example 1
 
 ```powershell
-Add-CertToNsxCertificateStore -certName sfo-w01-ec01-xreg-wsa
+Add-CertToNsxCertificateStore -certName sfo-w01-ec01-xint-wsa
 ```
 
 This example adds a Certificate to the NSX Certificate Store.

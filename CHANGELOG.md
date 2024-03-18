@@ -80,6 +80,7 @@
 - Enhanced `Invoke-***Deployment` and `Invoke-Undo***Deployment` functions to use the `messageHandler` function.
 - Enhanced `Get-vRSLCMProductDetails` cmdlet with the `vmid` option to get the details for a specific product in VMware Aria Suite Lifecycle.
 - Enhanced `Get-vRLIMarketplaceMetadata` and `Enable-vRLIContentPack` cmdlets to accept a GitHub token that is either non-base64 or base64 encoded. If not encoded, the cmdlet will based64 encode it automatically.
+- Enhanced `Get-vRAIntegrationDetail` cmdlet with an integration status check option.
 
 ## v2.8.0
 

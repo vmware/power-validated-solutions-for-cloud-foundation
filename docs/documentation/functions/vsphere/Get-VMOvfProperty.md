@@ -19,10 +19,10 @@ The `Get-VMOvfProperty` cmdlet returns OVF properties of a virtual appliance.
 ### Example 1
 
 ```powershell
-Get-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a)
+Get-VMOvfProperty -vm (Get-VM -Name xint-wsa01a)
 ```
 
-This example returns an object that contains a full list of OVF properties for xreg-wsa01a.
+This example returns an object that contains a full list of OVF properties for xint-wsa01a.
 
 ## Parameters
 

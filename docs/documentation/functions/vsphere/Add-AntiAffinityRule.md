@@ -27,7 +27,7 @@ the -server, -user, and -password values:
 ### Example 1
 
 ```powershell
-Add-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa -antiAffinityVMs "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c"
+Add-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa -antiAffinityVMs "xint-wsa01a,xint-wsa01b,xint-wsa01c"
 This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain
 ```
 

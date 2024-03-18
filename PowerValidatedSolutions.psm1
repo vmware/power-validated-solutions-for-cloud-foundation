@@ -4594,8 +4594,8 @@ Function Get-VMOvfProperty {
         Returns OVF properties of a virtual appliance
 
         .EXAMPLE
-        Get-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a)
-        This example returns an object that contains a full list of OVF properties for xreg-wsa01a.
+        Get-VMOvfProperty -vm (Get-VM -Name xint-wsa01a)
+        This example returns an object that contains a full list of OVF properties for xint-wsa01a.
 
         .PARAMETER vm
         The virtual appliance to get the OVF properties from.
@@ -4628,8 +4628,8 @@ Function Set-VMOvfProperty {
         appliance.
 
         .EXAMPLE
-        Set-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
-        This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xreg-wsa01a.
+        Set-VMOvfProperty -vm (Get-VM -Name xint-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
+        This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xint-wsa01a.
 
         .PARAMETER vm
         The virtual appliance to set the OVF properties on.
@@ -27060,7 +27060,7 @@ Function Add-AntiAffinityRule {
         - Creates the anti-affinity rule in the vCenter Server inventory
 
         .EXAMPLE
-        Add-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa -antiAffinityVMs "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c"
+        Add-AntiAffinityRule -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -ruleName sfo-m01-anti-affinity-rule-wsa -antiAffinityVMs "xint-wsa01a,xint-wsa01b,xint-wsa01c"
         This example shows how to create a vSphere Anti-Affinity rule in the vCenter Server of the sfo-m01 workload domain.
 
         .PARAMETER server
@@ -27214,7 +27214,7 @@ Function Add-ClusterGroup {
         - Creates the vSphere DRS Cluster Group in the vCenter Server inventory
 
         .EXAMPLE
-        Add-ClusterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drsGroupName "xint-vm-group-wsa" -drsGroupVMs "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c"
+        Add-ClusterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drsGroupName "xint-vm-group-wsa" -drsGroupVMs "xint-wsa01a,xint-wsa01b,xint-wsa01c"
         This example shows how to create a vSphere DRS Cluster group in the vCenter Server of the sfo-m01 workload domain.
 
         .PARAMETER server
@@ -33838,8 +33838,8 @@ Function New-NsxtSegment {
         The New-NsxtSegment cmdlet creates NSX Segments
 
         .EXAMPLE
-        New-NsxtSegment -Name "sfo-w01-xreg-seg01" -GatewayType "Tier1" -ConnectedGateway "sfo-w01-ec01-t1-gw01" -Cidr "192.168.31.1/24" -TransportZone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io"
-        This example creates an NSX Overlay Segment with the name "sfo-w01-xreg-seg01", connected to Tier-1 gateway "sfo-w01-ec01-t1-gw01", Transport Zone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io", and CIDR address of "192.168.31.1/24".
+        New-NsxtSegment -Name "sfo-w01-xint-seg01" -GatewayType "Tier1" -ConnectedGateway "sfo-w01-ec01-t1-gw01" -Cidr "192.168.31.1/24" -TransportZone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io"
+        This example creates an NSX Overlay Segment with the name "sfo-w01-xint-seg01", connected to Tier-1 gateway "sfo-w01-ec01-t1-gw01", Transport Zone "overlay-tz-sfo-w01-nsx01.sfo.rainpole.io", and CIDR address of "192.168.31.1/24".
 
         .PARAMETER Name
         The NSX Segment name.
@@ -35841,7 +35841,7 @@ Function Add-CertToNsxCertificateStore {
         The Add-CertToNsxCertificateStore cmdlet adds a Certificate to the NSX Certificate Store
 
         .EXAMPLE
-        Add-CertToNsxCertificateStore -certName sfo-w01-ec01-xreg-wsa
+        Add-CertToNsxCertificateStore -certName sfo-w01-ec01-xint-wsa
         This example adds a Certificate to the NSX Certificate Store.
 
         .PARAMETER certName
@@ -38498,7 +38498,7 @@ Function Add-vRSLCMLockerCertificate {
         This example gets all certificates in the locker
 
         .EXAMPLE
-        Add-vRSLCMLockerCertificate -vrslcmFQDN xreg-vrslcm.rainpole.io -certificateAlias xint-vrops01 -certificatePassphrase VMware1! -certChainPath ".\vrops01.rainpole.io.cer".
+        Add-vRSLCMLockerCertificate -vrslcmFQDN xint-vrslcm.rainpole.io -certificateAlias xint-vrops01 -certificatePassphrase VMware1! -certChainPath ".\vrops01.rainpole.io.cer".
 
         .PARAMETER vrslcmFQDN
         The fully qualified domain name of the VMware Aria Suite Lifecycle appliance.
@@ -40286,7 +40286,7 @@ Function Get-vRSLCMProductDetails {
         This example gets all environments in VMware Aria Suite Lifecycle.
 
         .EXAMPLE
-        Get-vRSLCMProductDetails vmid 12345678-1234-1234-1234-123456789012 -productid vrli
+        Get-vRSLCMProductDetails -vmid 12345678-1234-1234-1234-123456789012 -productid vrli
         This example gets the details for a specific product in VMware Aria Suite Lifecycle.
 
         .PARAMETER productid
@@ -40294,40 +40294,62 @@ Function Get-vRSLCMProductDetails {
 
         .PARAMETER vmid
         The ID of the product to get the details for.
-
     #>
 
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vidm","vra","vrli","vrni","vrops","vro","vssc")][ValidateNotNullOrEmpty()] [String]$productId,
+        [Parameter (Mandatory = $true)] [ValidateSet("vidm", "vra", "vrli", "vrni", "vrops", "vro", "vssc")][ValidateNotNullOrEmpty()] [String]$productId,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$ariaName,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$vmid
     )
 
     Try {
-        if($vrslcmAppliance) {
-        if($productid -and (!$vmid)) {
-        $productname = (Get-vRSLCMEnvironment | where-object{$_.products.id -eq $productid }).environmentId
-            if ($productname -ne $null) {
-                $envid = @()
-                foreach( $product in $productname) {
-                    $envid = $product
-                    $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$envid/products/$productid"
-                    $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders -SkipCertificateCheck
-                    $response
+        switch ($productId) {
+            "vrops" {
+                $ariaName = "VMware Aria Operations"
+            }
+            "vrli" {
+                $ariaName = "VMware Aria Operations for Logs"
+            }
+            "vrni" {
+                $ariaName = "VMware Aria Operations for Networks"
+            }
+            "vra" {
+                $ariaName = "VMware Aria Automation"
+            }
+            "vro" {
+                $ariaName = "VMware Aria Automation Orchestrator"
+            }
+            "vssc" {
+                $ariaName = "VMware Aria Automation Config"
+            }
+            "vidm" {
+                $ariaName = "Workspace ONE Access"
+            }
+        }
+
+        if ($vrslcmAppliance) {
+            if ($productid -and (!$vmid)) {
+                $productname = (Get-vRSLCMEnvironment | where-object { $_.products.id -eq $productid }).environmentId
+                if ($productname -ne $null) {
+                    $envid = @()
+                    foreach ($product in $productname) {
+                        $envid = $product
+                        $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$envid/products/$productid"
+                        $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders -SkipCertificateCheck
+                        $response
+                    }
+                } else {
+                    Write-Output "$ariaName is not installed in VMware Aria Suite Lifecycle."
                 }
+            } elseif ($vmid -and $productid) {
+                $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$vmid/products/$productid"
+                $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders -SkipCertificateCheck
+                $response
             } else {
-                Write-Warning "$productid is not installed in VMware Aria Suite Lifecycle"
+                Write-Output "$ariaName is not installed in VMware Aria Suite Lifecycle."
             }
-         } elseif ($vmid -and $productid) {
-                    $uri = "https://$vrslcmAppliance/lcm/lcops/api/environments/$vmid/products/$productid"
-                    $response = Invoke-RestMethod $uri -Method 'GET' -Headers $vrslcmHeaders -SkipCertificateCheck
-                    $response
-
-            } else {
-                Write-Warning "$productid is not installed in VMware Aria Suite Lifecycle"
-            }
-
         } else {
-           Write-Error "Not connected to VMware Aria Suite Lifecycle, run Request-vRSLCMToken and try again"
+            Write-Error "Not connected to VMware Aria Suite Lifecycle. Run Request-vRSLCMToken and try again."
         }
     } Catch {
         Write-Error $_.Exception.Message
@@ -40480,11 +40502,11 @@ Function Request-vRAToken {
         It is required once per session before running all other cmdlets.
 
         .EXAMPLE
-        Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1!
+        Request-vRAToken -fqdn xint-vra01.rainpole.io -username configadmin -password VMware1!
         This example shows how to connect to the VMware Aria Automation appliance
 
         .EXAMPLE
-        Request-vRAToken -fqdn xreg-vra01.rainpole.io -username configadmin -password VMware1! -displayToken
+        Request-vRAToken -fqdn xint-vra01.rainpole.io -username configadmin -password VMware1! -displayToken
         This example shows how to connect to the VMware Aria Automation appliance and display the token needed for Terraform.
 
         .PARAMETER fqdn
@@ -41071,18 +41093,26 @@ Function Get-vRAIntegrationDetail {
         Get an integration detail of an item from VMware Aria Automation.
 
         .DESCRIPTION
-        The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from VMware Aria Automation
+        The Get-vRAIntegrationDetail cmdlet returns an integration details of an item from VMware Aria Automation.
 
         .EXAMPLE
         Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
-        This example returns the ids of the vCenter Server instances managed by the VMware Aria Operations
+        This example returns the ids of the vCenter Server instances managed by the VMware Aria Operations.
 
         .EXAMPLE
         Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "VMware Aria Operations" -getIntegrationID
-        This example returns the integration id of "VMware Aria Operations" which is integrated with the VMwareAria Automation.
+        This example returns the integration id of "VMware Aria Operations" which is integrated with the VMware Aria Automation.
+
+        .EXAMPLE
+        Get-vRAIntegrationDetail -integrationType "vrops" -getStatus
+        This example returns the integration status of all VMware Aria Operations integrations in VMware Aria Automation.
+
+        .EXAMPLE
+        Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "VMware Aria Operations" -getStatus
+        This example returns the integration status of "VMware Aria Operations" which is integrated with the VMware Aria Automation.
 
         .PARAMETER integrationType
-        The integration type to get details for, supports vrops.
+        The integration type to get details for. One of vrops or vro.
 
         .PARAMETER integrationName
         The integration name to get details for.
@@ -41092,25 +41122,68 @@ Function Get-vRAIntegrationDetail {
 
         .PARAMETER getIntegrationID
         Get the integration id of the integration name provided.
+
+        .PARAMETER getStatus
+        Get the status of the integration type and/or name provided.
     #>
 
+    [CmdletBinding(DefaultParameterSetName='Status')]
+
     Param (
-        [Parameter (Mandatory = $true)] [ValidateSet("vrops")] [ValidateNotNullOrEmpty()] [String]$integrationType,
+        [Parameter (Mandatory = $true)] [ValidateSet("vrops", "vro")] [ValidateNotNullOrEmpty()] [String]$integrationType,
         [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$integrationName,
-        [switch]$getVCID,
-        [switch]$getIntegrationID
+        [Parameter(ParameterSetName='ID')] [Switch]$getVCID,
+        [Parameter(ParameterSetName='ID')] [Switch]$getIntegrationID,
+        [Parameter(ParameterSetName='Status')] [Switch]$getStatus
     )
 
     Try {
-        $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
-        $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"
-        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders
-        if ($getVCID) {
-            ($response.content | Where-Object integrationType -Match $integrationType).customProperties.vcIds
+
+        if (Get-vRAAPIVersion) {
+            $vraapiVersion = "apiVersion=" + (Get-vRAAPIVersion)
+            if ($vraapiVersion) {
+                $uri = "https://$vraAppliance/iaas/api/integrations?$vraapiVersion"
+                $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $vraHeaders -SkipCertificateCheck
+            }
+        } else {
+            Write-Error "Unable to retrieve the VMware Aria Automation API version. Please run Request-vRAToken to get the token and retry."
         }
-        if ($getIntegrationID) {
-            if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
-                (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match "\b$integrationName\b").id
+
+        Switch ($PSCmdlet.ParameterSetName) {
+            'ID' {
+                if ($getVCID) {
+                    ($response.content | Where-Object integrationType -Match $integrationType).customProperties.vcIds
+                }
+                if ($getIntegrationID) {
+                    if (($PsBoundParameters.ContainsKey("integrationType")) -and ($PsBoundParameters.ContainsKey("integrationName"))) {
+                        (($response.content | Where-Object integrationType -Match $integrationType) | Where-Object name -Match "\b$integrationName\b").id
+                    }
+                }
+            }
+            'Status' {
+                if ($getStatus) {
+                    if ($integrationType -eq "vrops") {
+                        $names = $response.content | Where-Object { $_.integrationType -eq "vrops" -and (!($integrationName) -or $_.name -eq $integrationName) } | ForEach-Object { $_.name }
+                        $names
+                        if ($names) {
+                            $names | ForEach-Object {
+                                Write-Output "Integration with $_ is completed successfully."
+                            }
+                        } else {
+                            Write-Error "VMware Aria Operations integration is not complete. Please check configuration in VMware Aria Automation."
+                        }
+                    }
+                    if ($integrationType -eq "vro") {
+                        $names = $response.content | Where-Object { $_.integrationType -eq "vro" -and (!($integrationName) -or $_.name -eq $integrationName) } | ForEach-Object { $_.name }
+                        if ($names) {
+                            $names | ForEach-Object {
+                                Write-Output "Integration with $_ is completed successfully."
+                            }
+                        } else {
+                            Write-Error "VMware Aria Automation Orchestrator is not complete. Please check configuration in VMware Aria Automation."
+                        }
+                    }
+                }
             }
         }
     } Catch {

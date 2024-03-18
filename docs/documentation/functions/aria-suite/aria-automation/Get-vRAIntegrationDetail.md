@@ -2,13 +2,21 @@
 
 ## Synopsis
 
-Get an integration detail of an item from VMware Aria Automation
+Get an integration detail of an item from VMware Aria Automation.
 
 ## Syntax
 
+### Status (Default)
+
 ```powershell
-Get-vRAIntegrationDetail [-integrationType] <String> [[-integrationName] <String>] [-getVCID]
- [-getIntegrationID] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Get-vRAIntegrationDetail -integrationType <String> [-integrationName <String>] [-getStatus] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+```
+
+### ID
+
+```powershell
+Get-vRAIntegrationDetail -integrationType <String> [-integrationName <String>] [-getVCID] [-getIntegrationID]
+ [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## Description
@@ -23,7 +31,7 @@ The `Get-vRAIntegrationDetail` cmdlet returns an integration details of an item 
 Get-vRAIntegrationDetail -integrationType "vrops" -getVCID
 ```
 
-This example returns the ids of the vCenter Server instances managed by the VMware Aria Operations
+This example returns the ids of the vCenter Server instances managed by the VMware Aria Operations.
 
 ### Example 2
 
@@ -31,13 +39,29 @@ This example returns the ids of the vCenter Server instances managed by the VMwa
 Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "VMware Aria Operations" -getIntegrationID
 ```
 
-This example returns the integration id of "VMware Aria Operations" which is integrated with the VMwareAria Automation.
+This example returns the integration id of "VMware Aria Operations" which is integrated with the VMware Aria Automation.
 
-## Parameters
+
+### Example 3
+
+```powershell
+Get-vRAIntegrationDetail -integrationType "vrops" -getStatus
+```
+This example returns the integration status of all VMware Aria Operations integrations in VMware Aria Automation.
+
+### Example 4
+
+```powershell
+Get-vRAIntegrationDetail -integrationType "vrops" -integrationName "VMware Aria Operations" -getStatus
+```
+
+This example returns the integration status of "VMware Aria Operations" which is integrated with the VMware Aria Automation.
+
+## PARAMETERS
 
 ### -integrationType
 
-The integration type to get details for, supports vrops.
+The integration type to get details for. One of `vrops` or `vro`.
 
 ```yaml
 Type: String
@@ -45,7 +69,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 1
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -61,7 +85,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 2
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -73,7 +97,7 @@ Get the vCenter Server instance ids managed by the VMware Aria Operations.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
+Parameter Sets: ID
 Aliases:
 
 Required: False
@@ -89,7 +113,23 @@ Get the integration id of the integration name provided.
 
 ```yaml
 Type: SwitchParameter
-Parameter Sets: (All)
+Parameter Sets: ID
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -getStatus
+
+Get the status of the integration type and/or name provided.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: Status
 Aliases:
 
 Required: False
