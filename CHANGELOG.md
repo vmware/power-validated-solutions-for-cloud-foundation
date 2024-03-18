@@ -4,17 +4,20 @@
 
 > Release Date: Unreleased
 
+- Updated `VMware.PowerCLI` module dependency from v13.1.0 to v13.2.1.
+- Updated `PowerVCF` module dependency from v2.4.0 to v2.4.1.
 - Removed support for Microsoft Windows PowerShell 5.1. Please use Microsoft PowerShell 7.2.0 or later.
 - Removed support for deployment of VMware Aria product components earlier than 8.14.0.
-- Updated `PowerVCF` dependency from v2.4.0 to v2.4.1.
 - Removed role files VMware Aria Automation Orchestrator and VMware HCX. Use the `Copy-vSphereRole` cmdlet.
+- Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
+- Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
+- Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
 - Added `Copy-vSphereRole` to request the set of privileges assigned to a specific role in vCenter Server and create a new role with the same privileges.
 - Added `Get-vRSLCMEnvironmentVMs` cmdlet to return the virtual machines that exist for specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductDetails` cmdlet to return the product details for a specified product in VMware Aria Suite Lifecycle.
 - Added `Get-vRSLCMProductPassword` cmdlet to return the password for a specified product or product component in VMware Aria Suite Lifecycle.
 - Added `Start-vRSLCMUpgrade` cmdlet to start the upgrade of VMware Aria Suite Lifecycle.
 - Added `Invoke-WsaDirectorySync` cmdlet to start a Directory synchronization of Workspace ONE Access.
-- Enhanced `Export-vROpsJsonSpec` cmdlet to support automatic creation of anti-affinity rule for the VMware Aria Operations cluster nodes.
 - Added `Export-DriJsonSpec` cmdlet to generate a JSON specification file for Developer Ready Infrastructure.
 - Added `Invoke-DriDeployment` cmdlet to perform an end-to-end deployment of Developer Ready Infrastructure.
 - Added `Invoke-UndoDriDeployment` cmdlet to perform removal of Developer Ready Infrastructure.
@@ -36,11 +39,17 @@
 - Added `Invoke-PdrDeployment` cmdlet to perform an end-to-end deployment of Site Protection and Disaster Recovery.
 - Added `Invoke-UndoPdrDeployment` cmdlet to perform removal of Site Protection and Disaster Recovery.
 - Added `Test-SrmSdkConnection` cmdlet to test the connection to a Site Recovery Manager instance for PowerCLI connectivity.
+- Added `Invoke-GeneratePrivateKeyAndCsr` cmdlet to generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary..
+- Added `Invoke-RequestSignedCertificate` cmdlet to sign off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
+- Added `Invoke-GenerateChainPem` cmdlet to combine the private key, signed certificate and/or root certificate files into a single PEM file.
 - Fixed `Invoke-IamDeployment` timing issue causing intermittent failures.
 - Fixed `Set-LocalAccountLockout` and `Get-LocalAccountLockout` to report correct data for VCF 5.1 and Photon OS 4.0.
 - Fixed `Add-EsxiVrmsVMkernelPort` pre-validation to actually compare server count so that it skips if configured.
 - Fixed `Set-LocalUserPasswordExpiration` cmdlet `warnDays` switch parameter.
-- Fixed `Invoke-GlobalWsaDeployment` cmdlet failure to programatically resolve the cross-instance Workspace One Access FQDN.
+- Fixed `Invoke-GlobalWsaDeployment` cmdlet failure to programmatically resolve the cross-instance Workspace One Access FQDN.
+- Fixed `Invoke-IomDeployment` cmdlet to point out the correct certificate folder.
+- Fixed `Set-LocalUserPasswordExpiration` cmdlet if statement for `warnDays`.
+- Enhanced `Export-vROpsJsonSpec` cmdlet to support automatic creation of anti-affinity rule for the VMware Aria Operations cluster nodes.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
 - Enhanced `Invoke-IomDeployment` cmdlet to include `Add-vROPSAdapterVcf` for creating the VMware Cloud Foundation adapter in VMware Aria Operations.
@@ -69,14 +78,6 @@
 - Enhanced `Invoke-***Deployment` and `Invoke-Undo***Deployment` functions to use the `messageHandler` function.
 - Enhanced `Get-vRSLCMProductDetails` cmdlet with the `vmid` option to get the details for a specific product in VMware Aria Suite Lifecycle.
 - Enhanced `Get-vRLIMarketplaceMetadata` and `Enable-vRLIContentPack` cmdlets to accept a GitHub token that is either non-base64 or base64 encoded. If not encoded, the cmdlet will based64 encode it automatically.
-- Removed `driConfigureSupervisorCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
-- Removed `driDeployTanzuCluster.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-DriDeployment` cmdlet.
-- Removed `driUndoDeployment.ps1` from the \SampleScripts\ directory as functionality now provided using the `Invoke-UndoDriDeployment` cmdlet.
-- Updates `Set-LocalUserPasswordExpiration` cmdlet if statement for `warnDays`.
-- Added `Invoke-GeneratePrivateKeyAndCsr` cmdlet to generate the private key and certificate signing request (CSR) files using OpenSSL with a common name and additional parameters as necessary..
-- Added `Invoke-RequestSignedCertificate` cmdlet to sign off a certificate signing request (CSR) using either the Microsoft Certificate Authority web enrollment service or OpenSSL method.
-- Added `Invoke-GenerateChainPem` cmdlet to combine the private key, signed certificate and/or root certificate files into a single PEM file.
-- Fixed `Invoke-IomDeployment` cmdlet to point out the correct certificate folder.
 
 ## v2.8.0
 
