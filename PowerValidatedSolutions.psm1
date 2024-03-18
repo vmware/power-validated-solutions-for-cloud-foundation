@@ -12595,7 +12595,7 @@ Function Export-vRLIJsonSpec {
         This example creates a JSON specification file in the folder provided for deploying VMware Aria Operations for Logs using data from the JSON specification file for Intelligent Logging and Analytics
 
         .EXAMPLE
-        Export-vRLIJsonSpec -jsonFile .\ilaDeploySpec.json -customVersion 8.14.0
+        Export-vRLIJsonSpec -jsonFile .\ilaDeploySpec.json -customversion x.y.z
         This example creates a JSON specification file for deploying VMware Aria Operations for Logs using a custom version and data from the JSON specification file for Intelligent Logging and Analytics
 
         .EXAMPLE
@@ -12652,9 +12652,10 @@ Function Export-vRLIJsonSpec {
 
                                             #### Generate the VMware Aria Operations for Logs Properties Section
                                             if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.14.0" }
-                                                if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.14.0" }
-                                                if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.14.0" }
+                                                if ($vcfVersion -eq "4.5.2") { $vrliVersion = "8.16.0" }
+                                                if ($vcfVersion -eq "5.0.0") { $vrliVersion = "8.16.0" }
+                                                if ($vcfVersion -eq "5.1.0") { $vrliVersion = "8.16.0" }
+                                                if ($vcfVersion -eq "5.1.1") { $vrliVersion = "8.16.0" }
                                             } else {
                                                 $vrliVersion = $customVersion
                                             }
@@ -12830,7 +12831,7 @@ Function New-vRLIDeployment {
         This example starts a deployment of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Logging and Analytics
 
         .EXAMPLE
-        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\ilaDeploySpec.json -customVersion 8.14.0
+        New-vRLIDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\ilaDeploySpec.json -customversion x.y.z
         This example starts a deployment of a custom version of VMware Aria Operations for Logs via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Logging and Analytics
 
         .EXAMPLE
@@ -16264,7 +16265,7 @@ Function Export-vROPsJsonSpec {
         This example creates a reduce footprint JSON specification file for deploying VMware Aria Operations using data from the JSON specification file for Intelligent Operations Management
 
         .EXAMPLE
-        Export-vROPsJsonSpec -jsonFile .\ilaDeploySpec.json -customVersion 8.14.0
+        Export-vROPsJsonSpec -jsonFile .\ilaDeploySpec.json -customversion x.y.z
         This example creates a JSON specification file for deploying VMware Aria Operations using a custom version and data from the JSON specification file for Intelligent Operations Management
 
         .EXAMPLE
@@ -16328,9 +16329,10 @@ Function Export-vROPsJsonSpec {
                                                     $xintEnvironment = Get-vRSLCMEnvironment | Where-Object {$_.environmentName -eq $jsonInput.environmentName}
 
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.14.0"}
-                                                        if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.14.0"}
-                                                        if ($vcfVersion -eq "5.1.0") { $vropsVersion = "8.14.0"}
+                                                        if ($vcfVersion -eq "4.5.2") { $vropsVersion = "8.16.1"}
+                                                        if ($vcfVersion -eq "5.0.0") { $vropsVersion = "8.16.1"}
+                                                        if ($vcfVersion -eq "5.1.0") { $vropsVersion = "8.16.1"}
+                                                        if ($vcfVersion -eq "5.1.0") { $vropsVersion = "8.16.1"}
                                                     } else {
                                                         $vropsVersion = $customVersion
                                                     }
@@ -16603,7 +16605,7 @@ Function New-vROPSDeployment {
         This example starts a reduce footprint deployment of VMware Aria Operations via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Operations Management
 
         .EXAMPLE
-        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\iomDeploySpec.json -customVersion 8.14.0
+        New-vROPSDeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\iomDeploySpec.json -customversion x.y.z
         This example starts a deployment using a custom version of VMware Aria Operations via VMware Aria Suite Lifecycle using data from the JSON Specification for Intelligent Operations Management
 
         .EXAMPLE
@@ -20350,9 +20352,10 @@ Function Export-vRAJsonSpec {
                                                 if ($datacenterName = Get-vRSLCMDatacenter | Where-Object { $_.dataCenterName -eq $jsonInput.datacenter }) {
                                                     $xintEnvironment = Get-vRSLCMEnvironment | Where-Object { $_.environmentName -eq $jsonInput.environmentName }
                                                     if (!$PsBoundParameters.ContainsKey("customVersion")) {
-                                                        if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.14.0" }
-                                                        if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.14.0" }
-                                                        if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.14.0" }
+                                                        if ($vcfVersion -eq "4.5.2") { $vraVersion = "8.16.1" }
+                                                        if ($vcfVersion -eq "5.0.0") { $vraVersion = "8.16.1" }
+                                                        if ($vcfVersion -eq "5.1.0") { $vraVersion = "8.16.1" }
+                                                        if ($vcfVersion -eq "5.1.1") { $vraVersion = "8.16.1" }
                                                     } else {
                                                         $vraVersion = $customVersion
                                                     }
@@ -20540,7 +20543,7 @@ Function New-vRADeployment {
         This example starts a deployment of VMware Aria Automation using the JSON Specification for VMware Aria Automation.
 
         .EXAMPLE
-        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -customVersion 8.14.0
+        New-vRADeployment -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -jsonFile .\pcaDeploySpec.json -customversion x.y.z
         This example starts a deployment of VMware Aria Automation using a custom version and the JSON Specification for VMware Aria Automation.
 
         .EXAMPLE
@@ -24359,7 +24362,7 @@ Function Connect-vRSLCMUpgradeIso {
         - Connects the ISO to the VMware Aria Suite Lifecycle appliance
 
         .EXAMPLE
-        Connect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-8.14.0.4-22630472-updaterepo"
+        Connect-vRSLCMUpgradeIso -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -contentLibrary Operations -libraryItem "VMware-Aria-Suite-Lifecycle-Appliance-x.y.z-xxxxxxxx-updaterepo"
         This example connects the upgrade ISO to VMware Aria Suite Lifecycle appliance.
 
         .PARAMETER server
@@ -39994,12 +39997,12 @@ Function Request-vRSLCMProductBinary {
         account to VMware Aria Suite Lifecycle
 
         .EXAMPLE
-        Request-vRSLCMProductBinary -version 8.14.0 -productId "vra" -productDownloadType "Install"
-        This example will download the VMware Aria Automation install binary for verison 8.14.0
+        Request-vRSLCMProductBinary -version x.y.z -productId "vra" -productDownloadType "Install"
+        This example will download the VMware Aria Automation install binary for version x.y.z.
 
         .EXAMPLE
-        Request-vRSLCMProductBinary -version 8.14.0 -productId "vra" -productDownloadType "upgrade"
-        This example will download the VMware Aria Automation upgrade binary for verison 8.14.0.
+        Request-vRSLCMProductBinary -version x.y.z -productId "vra" -productDownloadType "upgrade"
+        This example will download the VMware Aria Automation upgrade binary for version x.y.z.
 
         .PARAMETER version
         The version of the product binary to download.
