@@ -14066,6 +14066,7 @@ Function Add-vRLIAuthenticationGroup {
                                 if ((Get-vRLIAuthenticationAD).enableAD -eq $true) {
                                     if (!(Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group})) {
                                         Add-vRLIGroup -authProvider ad -domain $domain -group $group -role $role | Out-Null
+                                        Start-Sleep 3
                                         if (Get-vRLIGroup -authProvider ad | Where-Object {$_.name -eq $group}) {
                                             Write-Output "Adding Group to VMware Aria Operations for Logs ($($vcfVrliDetails.fqdn)), named ($group): SUCCESSFUL"
                                         } else {
@@ -45699,7 +45700,8 @@ Function Get-vRLIGroup {
             (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders).authProviderGroups
         } else {
             $uri = "https://$vrliAppliance/api/v2/user-groups/$authProvider"
-            (Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders).userGroups
+            $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
+            $response
         }
     } Catch {
         Write-Error $_.Exception.Message
