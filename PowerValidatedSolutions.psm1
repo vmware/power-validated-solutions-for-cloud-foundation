@@ -8947,7 +8947,8 @@ Function Invoke-DriDeployment {
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Creating a Storage Policy that Uses the New vSphere Tag for $solutionName"
                                 $StatusMsg = Add-StoragePolicy -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -policyName $jsonInput.storagePolicyName -tagName $jsonInput.tagName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                             }
 
                             if (!$failureDetected) {
