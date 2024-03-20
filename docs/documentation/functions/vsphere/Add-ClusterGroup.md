@@ -27,7 +27,7 @@ The cmdlet connects to SDDC Manager using the
 ### Example 1
 
 ```powershell
-Add-ClusterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drsGroupName "xint-vm-group-wsa" -drsGroupVMs "xreg-wsa01a,xreg-wsa01b,xreg-wsa01c"
+Add-ClusterGroup -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -domain sfo-m01 -drsGroupName "xint-vm-group-wsa" -drsGroupVMs "xint-wsa01a,xint-wsa01b,xint-wsa01c"
 ```
 
 This example shows how to create a vSphere DRS Cluster group in the vCenter Server of the sfo-m01 workload domain.

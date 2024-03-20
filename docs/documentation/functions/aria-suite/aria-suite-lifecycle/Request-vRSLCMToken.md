@@ -21,7 +21,7 @@ It is required once per session before running all other cmdlets.
 ### Example 1
 
 ```powershell
-Request-vRSLCMToken -fqdn xreg-vrslcm.rainpole.io -username admin@local -password VMware1!
+Request-vRSLCMToken -fqdn xint-vrslcm.rainpole.io -username admin@local -password VMware1!
 ```
 
 This example shows how to connect to the VMware Aria Suite Lifecycle appliance.

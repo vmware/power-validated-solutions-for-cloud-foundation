@@ -20,10 +20,10 @@ appliance.
 ### Example 1
 
 ```powershell
-Set-VMOvfProperty -vm (Get-VM -Name xreg-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
+Set-VMOvfProperty -vm (Get-VM -Name xint-wsa01a) -Properties @{"DNS"="172.16.11.4,172.16.11.5"}
 ```
 
-This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xreg-wsa01a.
+This example sets the DNS servers to 172.16.11.4 and 172.16.11.5 in the OVF properties for xint-wsa01a.
 
 ## Parameters
 
