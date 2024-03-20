@@ -45662,7 +45662,7 @@ Function Get-vRLIRole {
     Try {
         $uri = "https://$vrliAppliance/api/v1/roles"
         $response = Invoke-RestMethod -Method 'GET' -Uri $uri -Headers $vrliHeaders
-        $response.roles
+        $response
     } Catch {
         Write-Error $_.Exception.Message
     }

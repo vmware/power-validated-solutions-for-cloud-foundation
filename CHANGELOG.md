@@ -50,6 +50,7 @@
 - Fixed `Invoke-IomDeployment` cmdlet to point out the correct certificate folder.
 - Fixed `Set-LocalUserPasswordExpiration` cmdlet if statement for `warnDays`.
 - Fixed `Invoke-DriDeployment` cmdlet to handle message output for error during execution of `Add-StoragePolicy`.
+- Fixed `Get-vRLIRole` cmdlet to ensure it returns data correctly from the API.
 - Enhanced `Export-vROpsJsonSpec` cmdlet to support automatic creation of anti-affinity rule for the VMware Aria Operations cluster nodes.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
