@@ -61,6 +61,7 @@
   - `Invoke-UndoIamDeployment`
   - `Invoke-IlaDeployment`
   - `Invoke-UndoIlaDeployment`
+  - `Invoke-GlobalWsaDeployment`
 - Enhanced `Move-VMtoFolder` cmdlet to check if the VM has already been moved and also handle multiple vCenter Server connections.
 - Enhanced `Install-VamiCertificate` cmdlet to check the path to the certificate files.
 - Enhanced `New-SrmSitePair` cmdlet to:
