@@ -52,6 +52,7 @@
 - Fixed `Invoke-DriDeployment` cmdlet to handle message output for error during execution of `Add-StoragePolicy`.
 - Fixed `Get-vRLIRole` cmdlet to ensure it returns data correctly from the API.
 - Fixed `Invoke-PcaDeployment` cmdlet where the `Add-NsxtVidmRole` was used instead of `Add-NsxtLdapRole`.
+- Fixed `Invoke-PcaDeployment` cmdlet where the -vraUser value in `New-vRACloudAccount` was incorrect.
 - Enhanced `Export-vROpsJsonSpec` cmdlet to support automatic creation of anti-affinity rule for the VMware Aria Operations cluster nodes.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.

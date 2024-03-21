@@ -20036,7 +20036,7 @@ Function Invoke-PcaDeployment {
                                             foreach ($sddcDomain in $allWorkloadDomains) {
                                                 if ($jsonInput.consolidatedCluster -eq "Include" -or ($jsonInput.consolidatedCluster -eq "Exclude" -and $sddcDomain.type -eq "VI")) {
                                                     Show-PowerValidatedSolutionsOutput -message "Adding Cloud Accounts for the Workload Domains ($($sddcDomain.name)) to $automationProductName"
-                                                    $StatusMsg = New-vRACloudAccount -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.wldSddcDomainName -vraUser $jsonInput.vraUser -vraPass $jsonInput.vraPass -capabilityTab $jsonInput.capabilityTag -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                                    $StatusMsg = New-vRACloudAccount -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.wldSddcDomainName -vraUser $jsonInput.automationUser -vraPass $jsonInput.automationPass -capabilityTab $jsonInput.capabilityTag -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) { $failureDetected = $true }
                                                 }
                                             }
