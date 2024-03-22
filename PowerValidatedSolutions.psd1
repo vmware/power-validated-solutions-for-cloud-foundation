@@ -8,28 +8,28 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule        = 'PowerValidatedSolutions.psm1'
+    RootModule = 'PowerValidatedSolutions.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '2.9.0.1047'
+    ModuleVersion = '2.9.0.1048'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
     # ID used to uniquely identify this module
-    GUID              = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
+    GUID = 'a6dfed7b-65d2-4da2-bdcc-7f3d3df9b75d'
 
     # Author of this module
-    Author            = 'Broadcom'
+    Author = 'Broadcom'
 
     # Company or vendor of this module
-    CompanyName       = 'Broadcom'
+    CompanyName = 'Broadcom'
 
     # Copyright statement for this module
-    Copyright         = 'Copyright 2023-2024 Broadcom. All Rights Reserved.'
+    Copyright = 'Copyright 2023-2024 Broadcom. All Rights Reserved.'
 
     # Description of the functionality provided by this module
-    Description       = 'PowerShell Module for VMware Validated Solutions'
+    Description = 'PowerShell Module for VMware Validated Solutions'
 
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.2.0'
@@ -77,7 +77,7 @@
     VariablesToExport = '*'
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-    AliasesToExport   = '*'
+    AliasesToExport = '*'
 
     # DSC resources to export from this module
     # DscResourcesToExport = @()
@@ -89,7 +89,7 @@
     # FileList = @()
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-    PrivateData       = @{
+    PrivateData = @{
 
         PSData = @{
 
