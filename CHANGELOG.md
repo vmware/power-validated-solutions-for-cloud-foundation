@@ -50,6 +50,7 @@
 - Fixed `Invoke-IomDeployment` cmdlet to point out the correct certificate folder.
 - Fixed `Set-LocalUserPasswordExpiration` cmdlet if statement for `warnDays`.
 - Fixed `Invoke-DriDeployment` cmdlet to handle message output for error during execution of `Add-StoragePolicy`.
+- Fixed `Invoke-DriDeployment` cmdlet to format -masterNtpServers, -masterDnsServers, and -workerDnsServers parameter values as arrays.
 - Fixed `Get-vRLIRole` cmdlet to ensure it returns data correctly from the API.
 - Fixed `Invoke-PcaDeployment` cmdlet where the `Add-NsxtVidmRole` was used instead of `Add-NsxtLdapRole`.
 - Fixed `Invoke-PcaDeployment` cmdlet where the -vraUser value in `New-vRACloudAccount` was incorrect.

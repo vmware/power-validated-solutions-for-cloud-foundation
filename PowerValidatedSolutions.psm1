@@ -8960,6 +8960,11 @@ Function Invoke-DriDeployment {
                             }
 
                             if (!$failureDetected) {
+                                $dnsA = $jsonInput.dns.Split(',')[0]
+                                $dnsB = $jsonInput.dns.Split(',')[1]
+                                $ntpA = $jsonInput.ntp.Split(',')[0]
+                                $ntpB = $jsonInput.ntp.Split(',')[1]
+
                                 $wmClusterInput = @{
                                     server                              = $jsonInput.sddcManagerFqdn
                                     user                                = $jsonInput.sddcManagerUser
@@ -8974,8 +8979,8 @@ Function Invoke-DriDeployment {
                                     managementNetworkGateway            = $jsonInput.tanzuManagementGateway
                                     managementNetworkSubnetMask         = $jsonInput.tanzuManagementSubnetMask
                                     masterDnsName                       = $jsonInput.supervisorClusterName + "." + $jsonInput.domainFqdn
-                                    masterNtpServers                    = @($jsonInput.ntp)
-                                    masterDnsServers                    = @($jsonInput.dns)
+                                    masterNtpServers                    = @($ntpA, $ntpB)
+                                    masterDnsServers                    = @($dnsA, $dnsB)
                                     contentLibrary                      = $jsonInput.contentLibraryName
                                     ephemeralStoragePolicy              = $jsonInput.storagePolicyName
                                     imageStoragePolicy                  = $jsonInput.storagePolicyName
@@ -8987,7 +8992,7 @@ Function Invoke-DriDeployment {
                                     externalIngressCIDRs                = $jsonInput.tanzuIngressSubnetCidr
                                     externalEgressCIDRs                 = $jsonInput.tanzuEgressSubnetCidr
                                     masterDnsSearchDomain               = $jsonInput.searchPath
-                                    workerDnsServers                    = @($jsonInput.dns)
+                                    workerDnsServers                    = @($dnsA, $dnsB)
                                 }
                                 Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor for $solutionName"
                                 $StatusMsg = Enable-SupervisorCluster @wmClusterInput -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
