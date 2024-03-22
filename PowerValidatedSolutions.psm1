@@ -9027,7 +9027,7 @@ Function Invoke-DriDeployment {
 
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Deploying a Supervisor Namespace for $solutionName"
-                                $StatusMsg = Add-Namespace -Server $sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.supervisorNamespaceName -StoragePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                $StatusMsg = Add-Namespace -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.tanzuSddcDomainName -Cluster $jsonInput.supervisorClusterName -Namespace $jsonInput.supervisorNamespaceName -StoragePolicy $jsonInput.storagePolicyName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                 messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                             }
 
