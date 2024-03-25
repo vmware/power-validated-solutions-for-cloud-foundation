@@ -163,25 +163,27 @@ Function Invoke-IamDeployment {
                         $pvsModulePath      = (Get-InstalledModule -Name PowerValidatedSolutions).InstalledLocation
                         $nsxVsphereTemplate = $pvsModulePath + "\vSphereRoles\" + "nsx-vsphere-integration.role"
 
-                        Show-PowerValidatedSolutionsOutput -message "Adding Active Directory as an Identity Provider in vCenter Server"
-                        foreach ($sddcDomain in $allWorkloadDomains) {
-                            if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
-                                if ($jsonInput.vcenterAdConnectionType -eq "LDAPS") {
-                                    $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                } else {
-                                    $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldap -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
-                                }
-                            }
-                        }
-
                         if (!$failureDetected) {
                             Show-PowerValidatedSolutionsOutput -message  "Defining a Custom Role in vSphere for the NSX Service Accounts"
                             foreach ($sddcDomain in $allWorkloadDomains) {
                                 if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
                                     $StatusMsg = Add-vSphereRole -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -roleName $jsonInput.vsphereRoleName -template $nsxVsphereTemplate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                }
+                            }
+                        }
+
+                        if (!$failureDetected) {
+                            Show-PowerValidatedSolutionsOutput -message "Adding Active Directory as an Identity Provider in vCenter Server"
+                            foreach ($sddcDomain in $allWorkloadDomains) {
+                                if ($sddcDomain.type -eq "MANAGEMENT" -or ($sddcDomain.type -eq "VI" -and $sddcDomain.ssoName -ne "vsphere.local")) {
+                                    if ($jsonInput.vcenterAdConnectionType -eq "LDAPS") {
+                                        $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldaps -certificate $rootCertificate -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    } else {
+                                        $StatusMsg = Add-IdentitySource -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -sddcDomain $sddcDomain.name -domain $jsonInput.domainFqdn -domainBindUser $jsonInput.domainBindUserVsphere -domainBindPass $jsonInput.domainBindPassVsphere -dcMachineName $jsonInput.domainControllerMachineName -baseGroupDn $jsonInput.baseGroupDn -baseUserDn $jsonInput.baseUserDn -protocol ldap -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    }
                                 }
                             }
                         }
@@ -12718,11 +12720,11 @@ Function Export-vRLIJsonSpec {
                                                 'licenseRef'					= ("locker:license:" + $($vrliLicense.vmid) + ":" + $($vrliLicense.alias))
                                                 'nodeSize'						= $jsonInput.nodeSize
                                                 'configureClusterVIP'			= "false"
-                                                'affinityRule'					= $true
+                                                'affinityRule'					= "true"
                                                 'configureAffinitySeparateAll'	= "true"
-                                                'isUpgradeVmCompatibility'		= $true
-                                                'vrliAlwaysUseEnglish'			= $false
-                                                'masterVidmEnabled'				= $false
+                                                'isUpgradeVmCompatibility'		= "true"
+                                                'vrliAlwaysUseEnglish'			= "false"
+                                                'masterVidmEnabled'				= "false"
                                                 'contentLibraryItemId'          = $contentLibraryItemId
                                                 'ntp'                           = $jsonInput.ntp
                                                 'timeSyncMode'                  = "ntp"
@@ -15939,8 +15941,6 @@ Function Invoke-IomDeployment {
 
                                     if (!$failureDetected) {
                                         Show-PowerValidatedSolutionsOutput -message "Configuring vSphere DRS Anti-Affinity Rules for the $operationsProductName Appliances"
-                                        $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleNameOperations -antiAffinityVMs $jsonInput.vmListOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                        messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                         $StatusMsg = Add-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleNameProxies -antiAffinityVMs $jsonInput.vmListProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                         messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                     }
@@ -16145,8 +16145,6 @@ Function Invoke-UndoIomDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Removing vSphere DRS Anti-Affinity Rules for the $operationsProductName Appliances"
-                                    $StatusMsg = Undo-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleNameOperations -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                     $StatusMsg = Undo-AntiAffinityRule -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -domain $jsonInput.mgmtSddcDomainName -ruleName $jsonInput.antiAffinityRuleNameProxies -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
                                 }
@@ -16397,7 +16395,7 @@ Function Export-vROPsJsonSpec {
                                                         'disableTls'                   = "TLSv1,TLSv1.1"
                                                         'fipsMode'                     = "false"
                                                         'timeSyncMode'                 = "ntp"
-                                                        'masterVidmEnabled'            = $true
+                                                        'masterVidmEnabled'            = "true"
                                                         'ntp'                          = $jsonInput.ntp
                                                         'affinityRule'                 = $true
                                                         'configureAffinitySeparateAll' = "true"
@@ -19596,12 +19594,12 @@ Function Add-vROPSNsxCredential {
                                     Add-vROPSCredential -json .\addCredential.json | Out-Null
                                     Remove-Item .\addCredential.json -Force -Confirm:$false
                                     if (Get-vROPSCredential | Where-Object {$_.name -eq $credentialName}) {
-                                        Write-Output "Adding $credentialType to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
+                                        Write-Output "Adding NSX Credential to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): SUCCESSFUL"
                                     } else {
-                                        Write-Error "Adding $credentialType to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
+                                        Write-Error "Adding NSX Credential to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName): POST_VALIDATION_FAILED"
                                     }
                                 } else {
-                                    Write-Warning "Adding $credentialType to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), already exists: SKIPPED"
+                                    Write-Warning "Adding NSX Credential to VMware Aria Operations ($($vcfVropsDetails.loadBalancerFqdn)) named ($credentialName), already exists: SKIPPED"
                                 }
                             }
                         }
@@ -20419,7 +20417,7 @@ Function Export-vRAJsonSpec {
                                                         'fipsMode'                     = "false"
                                                         'timeSyncMode'                 = "ntp"
                                                         'ntp'                          = $jsonInput.ntp
-                                                        'affinityRule'                 = $false
+                                                        'affinityRule'                 = "false"
                                                         'configureAffinitySeparateAll' = "false"
                                                         'contentLibraryItemId'         = $contentLibraryItemId
                                                         'nodeSize'                     = $jsonInput.nodeSize.ToLower()
