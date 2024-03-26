@@ -55,6 +55,8 @@
 - Fixed `Invoke-PcaDeployment` cmdlet where the `Add-NsxtVidmRole` was used instead of `Add-NsxtLdapRole`.
 - Fixed `Invoke-PcaDeployment` cmdlet where the -vraUser value in `New-vRACloudAccount` was incorrect.
 - Fixed `Invoke-DriDeployment` cmdlet where `Add-Namespace` -server value was not pulling from the JSON file.
+- Fixed `Invoke-IlaDeployment` cmdlet to force GitHub Token from JSON to a string value.
+- Fixed `Add-IdentitySource` cmdlet to include -Server parameter to support isolated workload domains.
 - Enhanced `Export-vROpsJsonSpec` cmdlet to support automatic creation of anti-affinity rule for the VMware Aria Operations cluster nodes.
 - Enhanced `Request-vRSLCMBundle` cmdlet to improve the progress tracking.
 - Enhanced `Get-WSAServerDetail` cmdlet to handle single node Workspace ONE Access deployments.
