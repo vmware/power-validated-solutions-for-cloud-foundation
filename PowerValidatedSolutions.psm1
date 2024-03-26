@@ -532,9 +532,9 @@ Function Add-IdentitySource {
                             if (!(Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain })) {
                                 if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
                                     if ($protocol -eq "ldaps") {
-                                        Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass -Certificate $certificate
+                                        Add-LDAPIdentitySource -Server $ssoConnectionDetail -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass -Certificate $certificate
                                     } else {
-                                        Add-LDAPIdentitySource -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
+                                        Add-LDAPIdentitySource -Server $ssoConnectionDetail -ServerType ActiveDirectory -Name $domain -DomainName $domain -DomainAlias $domainAlias -PrimaryUrl $primaryUrl -BaseDNUsers $baseUserDn -BaseDNGroups $baseGroupDn -Username $bindUser -Password $domainBindPass
                                     }
                                     $managementVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domainType MANAGEMENT
                                     if (Get-IdentitySource -Server $ssoConnectionDetail | Where-Object { $_.Name -eq $domain }) {
@@ -12376,8 +12376,10 @@ Function Invoke-IlaDeployment {
 
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Install Workspace ONE Access Content Pack"
+                                    [String]$jsonInput.gitHubToken = $jsonInput.gitHubToken
                                     $StatusMsg = Enable-vRLIContentPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -token $jsonInput.gitHubToken -contentPack WSA -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
-                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg; if ($ErrorMsg) {$failureDetected = $true}
+                                    if ($StatusMsg -or $WarnMsg) {$null = $ErrorMsg} elseif ($ErrorMsg) {$failureDetected = $true}
+                                    messageHandler -statusMessage $StatusMsg -warningMessage $WarnMsg -errorMessage $ErrorMsg
                                 }
 
                                 if (!$failureDetected) {
@@ -50802,7 +50804,7 @@ Function Test-SSOAuthentication {
     )
 
     Try {
-        $Script:ssoConnectionDetail = Connect-SsoAdminServer -Server $server -User $user -Password $pass -SkipCertificateCheck
+        $Global:ssoConnectionDetail = Connect-SsoAdminServer -Server $server -User $user -Password $pass -SkipCertificateCheck
         if ($DefaultSsoAdminServers.Name -eq $server) {
             $ssoAuthentication = $True
             Return $ssoAuthentication
