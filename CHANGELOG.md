@@ -2,7 +2,7 @@
 
 ## v2.9.0
 
-> Release Date: Unreleased
+> Release Date: 2024-03-26
 
 - Updated `VMware.PowerCLI` module dependency from v13.1.0 to v13.2.1.
 - Updated `PowerVCF` module dependency from v2.4.0 to v2.4.1.
