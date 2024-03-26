@@ -23541,7 +23541,7 @@ Function Invoke-vRSLCMDeployment {
                             if ( $StatusMsg ) { Show-PowerValidatedSolutionsOutput -message "$StatusMsg" } if ( $WarnMsg ) { Show-PowerValidatedSolutionsOutput -type WARNING -message $WarnMsg }; if ( $ErrorMsg ) { Show-PowerValidatedSolutionsOutput -type ERROR -message $ErrorMsg; $failureDetected = $true }
                         }
 
-                        if (((Get-VCFVrslcm).version -Split ('-'))[-0] -lt "8.14.0") {
+                        if (((Get-VCFVrslcm).version -Split ('-'))[-0] -lt "8.16.0") {
                             if (!$failureDetected) {
                                 Show-PowerValidatedSolutionsOutput -message "Applying a Product Support Pack to $lcmProductName"
                                 $StatusMsg = Update-vRSLCMPSPack -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -psPack $jsonInput.psPack -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
