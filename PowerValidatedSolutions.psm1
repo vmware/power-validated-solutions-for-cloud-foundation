@@ -9132,7 +9132,7 @@ pods:
                 Show-PowerValidatedSolutionsOutput -type ERROR -message "JSON Specification file for $solutionName ($jsonFile): File Not Found"
             }
         } else {
-            Write-Error "Unable to find path to kubectl on the local machine: PRE_VALIDATION_FAILED"
+            Show-PowerValidatedSolutionsOutput -type ERROR -message "Unable to find path to kubectl on the local machine: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -12235,7 +12235,7 @@ Function Invoke-IlaDeployment {
         This example configures Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied
 
         .EXAMPLE
-        Invoke-IlaDeployment -jsonFile .\ilaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary -contentLibrary Operations
+        Invoke-IlaDeployment -jsonFile .\ilaDeploySpec.json -certificates ".\certificates\" -binaries ".\binaries\" -useContentLibrary
         This example configures Intelligent Logging and Analytics for VMware Cloud Foundation using the JSON spec supplied deploying the OVA using a vSphere Content Library
 
         .PARAMETER jsonFile
@@ -12249,17 +12249,13 @@ Function Invoke-IlaDeployment {
 
         .PARAMETER useContentLibrary
         Use a vSphere Content Library to deploy the OVA.
-
-        .PARAMETER contentLibrary
-        The name of the vSphere Content Library to use.
     #>
 
     Param (
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonFile,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificates,
         [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaries,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary,
-        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [String]$contentLibrary
+        [Parameter (Mandatory = $false, ParameterSetName = 'useContentLibrary')] [ValidateNotNullOrEmpty()] [Switch]$useContentLibrary
     )
 
     $solutionName       = "Intelligent Logging and Analytics for VMware Cloud Foundation"
@@ -12325,7 +12321,7 @@ Function Invoke-IlaDeployment {
                                 if (!$failureDetected) {
                                     Show-PowerValidatedSolutionsOutput -message "Deploying $logsProductName By Using $lcmProductName"
                                     if ($PsBoundParameters.ContainsKey("useContentLibrary")) {
-                                        $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $contentLibrary -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
+                                        $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -useContentLibrary -contentLibrary $jsonInput.contentLibraryName -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     } else {
                                         $StatusMsg = New-vRLIDeployment -server $jsonInput.sddcManagerFqdn -user $jsonInput.sddcManagerUser -pass $jsonInput.sddcManagerPass -jsonFile $jsonFile -monitor -WarningAction SilentlyContinue -ErrorAction SilentlyContinue -WarningVariable WarnMsg -ErrorVariable ErrorMsg
                                     }
@@ -16260,7 +16256,7 @@ Function Export-vROPsJsonSpec {
         Create VMware Aria Operations Deployment JSON specification.
 
         .DESCRIPTION
-        The Export-vRLIJsonSpec cmdlet creates the JSON specification file using the Intelligent Operations Management
+        The Export-vROPsJsonSpec cmdlet creates the JSON specification file using the Intelligent Operations Management
         JSON specification file generated from the Planning and Preparation workbook to deploy VMware Aria Operations
         using VMware Aria Suite Lifecycle. The cmdlet connects to SDDC Manager using the -server, -user, and
         -password values.
@@ -25727,7 +25723,7 @@ Function Add-vCenterGlobalPermission {
                 if (($vcfVcenterDetails = Get-vCenterServerDetail -server $server -user $user -pass $pass -domain $sddcDomain)) {
                     if (Test-VsphereConnection -server $($vcfVcenterDetails.fqdn)) {
                         if (Test-VsphereAuthentication -server $vcfVcenterDetails.fqdn -user $vcfVcenterDetails.ssoAdmin -pass $vcfVcenterDetails.ssoAdminPass) {
-                            if (Get-VIRole -Name $role -ErrorAction Ignore ) {
+                            if (Get-VIRole -Server $vcfVcenterDetails.fqdn -Name $role -ErrorAction Ignore ) {
                                 Connect-vSphereMobServer -server $vcfVcenterDetails.fqdn -username $vcfVcenterDetails.ssoAdmin -password $vcfVcenterDetails.ssoAdminPass | Out-Null
                                 $roleAssigned = (Get-GlobalPermission | Where-Object { $_.Principal -match $principal })
                                 if (!($roleAssigned | Where-Object { $_.Role -eq $role })) {
@@ -25741,7 +25737,7 @@ Function Add-vCenterGlobalPermission {
                                                         $objectCheck = (Get-ADGroup -Server $domain -Credential $domainCreds -Filter { SamAccountName -eq $principal })
                                                         $principal = $domain.ToUpper() + "\" + $principal
                                                     } else {
-                                                        $objectCheck = (Get-VIAccount -Group -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
+                                                        $objectCheck = (Get-VIAccount -Group -Domain $domain -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
                                                         $principal = $domain.ToUpper() + "\" + $principal
                                                     }
                                                 } elseif ($type -eq "user") {
@@ -25750,7 +25746,7 @@ Function Add-vCenterGlobalPermission {
                                                         $principal = $domain.ToUpper() + "\" + $principal
                                                     } else {
                                                         $principal = $domain.ToUpper() + "\" + $principal
-                                                        $objectCheck = (Get-VIAccount -User -Domain $domain -server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
+                                                        $objectCheck = (Get-VIAccount -User -Domain $domain -Server $vcfVcenterDetails.fqdn | Where-Object { $_.Name -eq $principal })
                                                     }
                                                 }
                                                 if ($objectCheck) {
@@ -29953,7 +29949,7 @@ Function Connect-vSphereMobServer {
             Credential      = $Global:DefaultMobServer.Credential
             Method          = "GET"
         }
-        $response = Invoke-WebRequest @params -UseBasicParsing
+        $response = Invoke-WebRequest @params -UseBasicParsing -SkipCertificateCheck
         if ($response.StatusCode -eq 200) {
             $null = $response -match 'name="vmware-session-nonce" type="hidden" value="?([^\s^"]+)"'
             $Global:DefaultMobServer.SessionNonce = $matches[1]
@@ -29982,7 +29978,7 @@ Function Disconnect-vSphereMobServer {
 
     Try {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/logout"
-        $response = Invoke-WebRequest -Method GET -Uri $uri -WebSession $Global:DefaultMobServer.WebSession -UseBasicParsing
+        $response = Invoke-WebRequest -Method GET -Uri $uri -WebSession $Global:DefaultMobServer.WebSession -UseBasicParsing -SkipCertificateCheck
         $Global:DefaultMobServer.Server = $null
         $Global:DefaultMobServer.WebSession = $null
         $Global:DefaultMobServer.SessionOnce = $null
@@ -30840,12 +30836,13 @@ Function Get-GlobalPermission {
         $uri = "https://$($Global:DefaultMobServer.Server)/invsvc/mob3/?moid=authorizationService&" + "method=AuthorizationService.GetGlobalAccessControlList"
         $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)"
         $params = @{
-            Uri             = $uri
-            WebSession      = $Global:DefaultMobServer.WebSession
-            Credential      = $Global:DefaultMobServer.Credential
-            Method          = "POST"
-            Body            = $body
-            UseBasicParsing = $true
+            Uri                     = $uri
+            WebSession              = $Global:DefaultMobServer.WebSession
+            Credential              = $Global:DefaultMobServer.Credential
+            Method                  = "POST"
+            Body                    = $body
+            UseBasicParsing         = $true
+            SkipCertificateCheck    = $true
         }
         $response = Invoke-WebRequest @params
         $vsphereRoles = Get-VIRole | Select-Object Name, @{N = "Id"; E = { @($_.Id) } } # Gather vSphere Roles and their Id
@@ -30929,12 +30926,13 @@ Function Add-GlobalPermission {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&permissions=%3Cpermissions%3E%0D%0A+++%3Cprincipal%3E%0D%0A++++++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A++++++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A+++%3C%2Fprincipal%3E%0D%0A+++%3Croles%3E$roleId%3C%2Froles%3E%0D%0A+++%3Cpropagate%3E$propagate%3C%2Fpropagate%3E%0D%0A%3C%2Fpermissions%3E"
         }
         $params = @{
-            Uri             = $uri
-            WebSession      = $Global:DefaultMobServer.WebSession
-            Credential      = $Global:DefaultMobServer.Credential
-            Method          = "POST"
-            Body            = $body
-            UseBasicParsing = $true
+            Uri                         = $uri
+            WebSession              = $Global:DefaultMobServer.WebSession
+            Credential              = $Global:DefaultMobServer.Credential
+            Method                  = "POST"
+            Body                    = $body
+            UseBasicParsing         = $true
+            SkipCertificateCheck    = $true
         }
         $response = Invoke-WebRequest @params
         if ($response.StatusCode -eq 200) {
@@ -30979,12 +30977,13 @@ Function Remove-GlobalPermission {
             $body = "vmware-session-nonce=$($Global:DefaultMobServer.SessionNonce)&principals=%3Cprincipals%3E%0D%0A+++%3Cname%3E$userEscaped%3C%2Fname%3E%0D%0A+++%3Cgroup%3Efalse%3C%2Fgroup%3E%0D%0A%3C%2Fprincipals%3E"
         }
         $params = @{
-            Uri             = $uri
-            WebSession      = $Global:DefaultMobServer.WebSession
-            Credential      = $Global:DefaultMobServer.Credential
-            Method          = "POST"
-            Body            = $body
-            UseBasicParsing = $true
+            Uri                     = $uri
+            WebSession              = $Global:DefaultMobServer.WebSession
+            Credential              = $Global:DefaultMobServer.Credential
+            Method                  = "POST"
+            Body                    = $body
+            UseBasicParsing         = $true
+            SkipCertificateCheck    = $true
         }
         $response = Invoke-WebRequest @params
         if ($response.StatusCode -eq 200) {
@@ -46521,6 +46520,8 @@ Function Request-CSPToken {
             $cspHeader.Add("Accept", "application/json")
             $cspHeader.Add("Content-Type", "application/json")
             $cspHeader.Add("Authorization", "Bearer " + ($cspResponse.Content | ConvertFrom-Json).access_token)
+            $Global:liveRecoveryHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+            $liveRecoveryHeader.Add("x-da-access-token:", ($cspResponse.Content | ConvertFrom-Json).access_token)
             Write-Output "Successfully connected to VMware Cloud Console: $cspBaseUrl"
         } else {
             Write-Error "Invalid API Token Failed to connect to VMware Cloud Console: $cspBaseUrl"
@@ -48267,7 +48268,7 @@ Function Connect-VrmsRemoteSession {
         $vrmsRemoteHeader.Add("x-dr-session", "$vrmsSessionId")
         $pairing_id = (Get-VrmsSitePairing).pairing_id
         $uri = "https://$vrmsAppliance/api/rest/vr/v2/pairings/$pairing_id/remote-session"
-        $return = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsRemoteHeader
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Headers $vrmsRemoteHeader -SkipCertificateCheck
         if (($return.StatusCode -eq 200) -or ($return.StatusCode -eq 202) -or ($return.StatusCode -eq 204)) {
             Write-Output "Successfully connected to the vSphere Replication remote session."
         }
@@ -49331,7 +49332,7 @@ $pgBody = @"
 }
 "@
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/protection-management/groups"
-        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $pgBody -Headers $srmHeaderREST
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $pgBody -Headers $srmHeaderREST -SkipCertificateCheck
         if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
             Write-Output "Protection Group $pgName was successfully added."
         } else {
@@ -49369,7 +49370,7 @@ Function Remove-SrmProtectionGroup {
         $groupId = (Get-SrmProtectionGroup -pgName $pgName).id
         if ($groupId) {
             $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/protection-management/groups/$groupId"
-            $return = Invoke-WebRequest -Method DELETE -Uri $uri -Headers $srmHeaderREST
+            $return = Invoke-WebRequest -Method DELETE -Uri $uri -Headers $srmHeaderREST -SkipCertificateCheck
             if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
                 Write-Output "Protection Group $pgName was successfully removed"
             } else {
@@ -49477,7 +49478,7 @@ $rpBody = @"
 }
 "@
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/recovery-management/plans"
-        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $rpBody -Headers $srmHeaderREST
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $rpBody -Headers $srmHeaderREST -SkipCertificateCheck
         if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
             Write-Output "Recovery Plan $rpName was successfully added."
         } else {
@@ -49516,7 +49517,7 @@ Function Remove-SrmRecoveryPlan {
         $planId = (Get-SrmRecoveryPlan -rpName $rpName).id
         if ($planId) {
             $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/recovery-management/plans/$planId"
-            $return = Invoke-WebRequest -Method DELETE -Uri $uri -Headers $srmHeaderREST
+            $return = Invoke-WebRequest -Method DELETE -Uri $uri -Headers $srmHeaderREST -SkipCertificateCheck
             if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
                 Write-Output "Recovery Plan $rpName was successfully removed"
             } else {
@@ -49631,7 +49632,7 @@ $body = @"
 "@
         }
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/recovery-management/plans/$planId/recovery-steps/recovery"
-        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $body -Headers $srmHeaderREST
+        $return = Invoke-WebRequest -Method POST -Uri $uri -Body $body -Headers $srmHeaderREST -SkipCertificateCheck
         if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
             Write-Output "Recovery Plan step $calloutName was successfully added"
         } else {
@@ -49732,7 +49733,7 @@ $body = @"
 }
 "@
         $uri = "https://$srmAppliance/api/rest/srm/v2/pairings/$pairingId/recovery-management/plans/$planId/vms/$vmId/recovery-settings/priority"
-        $return = Invoke-WebRequest -Method PUT -Uri $uri -Body $body -Headers $srmHeaderREST
+        $return = Invoke-WebRequest -Method PUT -Uri $uri -Body $body -Headers $srmHeaderREST -SkipCertificateCheck
         if ($return.StatusCode -eq 200 -or $return.StatusCode -eq 202) {
             Write-Output "Virtual machine restart priority ($priority) was successfully set on virtual machine $vmName"
         } else {
@@ -52077,18 +52078,18 @@ Function Invoke-RequestSignedCertificate {
                 $randomString = -join (((48..57)+(65..90)+(97..122)) * 80 |Get-Random -Count 6 |%{[char]$_})
                 $rootCaFilePathTemp = Join-Path -path $outDirPath -ChildPath "$fileName-$randomString.p7b"
                 if (-Not(Test-Path -Path $rootCaFilePathTemp)) {
-			    	Write-Output "1" | Set-Content $rootCaFilePathTemp
-				    if (Test-Path -Path $rootCaFilePathTemp) {
-					    Remove-Item $rootCaFilePathTemp
-					    break;
-				    }
-			    } else {
-				    if ($createRandomCounter -gt 6) {
-					    Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
-					    Exit
-				    }
-			    }
-		    }
+                    Write-Output "1" | Set-Content $rootCaFilePathTemp
+                    if (Test-Path -Path $rootCaFilePathTemp) {
+                        Remove-Item $rootCaFilePathTemp
+                        break;
+                    }
+                } else {
+                    if ($createRandomCounter -gt 6) {
+                        Write-Error "Unable to create temporary files in directory $outDirPath." -ErrorAction Stop
+                        Exit
+                    }
+                }
+            }
             $rootCaFilename = "$caFqdn-rootCA.pem"
             $rootCaFilePath = Join-Path -Path $outDirPath -ChildPath $rootCaFilename
             if (Test-Path -Path $rootCaFilePath) {
@@ -52433,4 +52434,1083 @@ Export-ModuleMember -Function Test-NtpServer
 ###################################################################################
 
 #EndRegion                                 E N D  O F  F U N C T I O N S                                    ###########
+#######################################################################################################################
+
+#######################################################################################################################
+#Region                                             M E N U S                                               ###########
+
+Function Start-ValidatedSolutionMenu {
+    Param (
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$jsonPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$certificatePath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$binaryPath,
+        [Parameter (Mandatory = $true)] [ValidateNotNullOrEmpty()] [String]$protectedWorkbook,
+        [Parameter (Mandatory = $false)] [ValidateNotNullOrEmpty()] [String]$recoveryWorkbook
+    )
+
+    Try {
+        $Script:menuHeader = "Validated Solutions"
+        $Script:jsonPath = $jsonPath
+        $Script:certificatePath = $certificatePath
+        $Script:binaryPath = $binaryPath
+        $Script:protectedWorkbook = $protectedWorkbook
+        $Script:recoveryWorkbook = $recoveryWorkbook
+        
+        $submenuTitle = ("VMware Validated Solutions - End-to-End Automation")
+
+        $headingItem01 = "On-Premises Validated Solutions"
+        $menuitem01 = "(LCM) VMware Aria Suite Lifecycle"
+        $menuitem02 = "(WSA) Cross-Instance Workspace ONE Access"
+        $menuitem03 = "(IAM) Identity and Access Management"
+        $menuitem04 = "(DRI) Developer Ready Infrastructure"
+        $menuitem05 = "(ILA) Intelligent Logging and Analytics"
+        $menuitem06 = "(IOM) Intelligent Operations Management"
+        $menuitem07 = "(INV) Intelligent Network Visibility"
+        $menuitem08 = "(PCA) Private Cloud Automation"
+        $menuitem09 = "(PDR) Site Protection and Disaster Recovery"
+        $menuitem10 = "(HRM) Health Reporting and Monitoring"
+
+        $headingItem02 = "Hybrid Cloud Validated Solutions"
+        $menuitem11 = "(CBW) Cloud-Based Workload Protection"
+        $menuitem12 = "(CBR) Cloud-Based Ransomware Recovery"
+        $menuitem13 = "(CCM) Cross Cloud Mobility"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+            Write-Host -Object " 04. $menuItem04" -ForegroundColor White
+            Write-Host -Object " 05. $menuItem05" -ForegroundColor White
+            Write-Host -Object " 06. $menuItem06" -ForegroundColor White
+            Write-Host -Object " 07. $menuItem07" -ForegroundColor White
+            Write-Host -Object " 08. $menuItem08" -ForegroundColor White
+            Write-Host -Object " 09. $menuItem09" -ForegroundColor White
+            Write-Host -Object " 10. $menuItem10" -ForegroundColor White
+
+            Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 11. $menuItem11" -ForegroundColor White
+            Write-Host -Object " 12. $menuItem12" -ForegroundColor White
+            Write-Host -Object " 13. $menuItem13" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-AriaSuiteLifecycleMenu
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-WorkspaceOneAccessMenu
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-IamMenu
+                }
+                4 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-DriMenu
+                }
+                5 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-IlaMenu
+                }
+                6 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-IomMenu
+                }
+                7 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-InvMenu
+                }
+                8 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-PcaMenu
+                }
+                9 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-PdrMenu
+                }
+                10 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-HrmMenu
+                }
+                11 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-CbwMenu
+                }
+                12 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-CbrMenu
+                }
+                13 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Start-CcmMenu
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+Export-ModuleMember -Function Start-ValidatedSolutionMenu
+
+Function Start-AriaSuiteLifecycleMenu {
+    Try {
+        $jsonSpecFile = "vrslcmDeploySpec.json"
+        $submenuTitle = ("VMware Aria Suite Lifecycle - End-to-End Automation")
+
+        $headingItem01 = "VMware Aria Suite Lifecycle"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-VrslcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-VrslcmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -binaries $binaryPath
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-WorkspaceOneAccessMenu {
+    Try {
+        $jsonSpecFile = "wsaDeploySpec.json"
+        $submenuTitle = ("Cross-Instance Workspace ONE Access - End-to-End Automation")
+
+        $headingItem01 = "Cross-Instance Workspace ONE Access"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-GlobalWsaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Show-PowerValidatedSolutionsOutput -Type QUESTION -Message "Do you wish to deploy a Single Node Workspace ONE Access to conserve resources? (Y/N): " -skipnewline
+                    $singleWSA = Read-Host
+                    $singleWSA = $singleWSA -replace "`t|`n|`r", ""
+                    If ($singleWSA -eq "Y") {
+                        Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary -Standard -workbook $protectedWorkbook
+                    } else {
+                        Invoke-GlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary -workbook $protectedWorkbook
+                    }
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoGlobalWsaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-IamMenu {
+    Try {
+        $protectedJsonSpecFile = "protected-iamDeploySpec.json"
+        $recoveryJsonSpecFile = "recovery-iamDeploySpec.json"
+        $submenuTitle = ("Identity and Access Management - End-to-End Automation")
+
+        $headingItem01 = "Identity and Access Management - Protected Site"
+        $menuitem01 = "Generate JSON Specification File ($protectedJsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        if ($recoveryWorkbook) {
+            $headingItem02 = "Identity and Access Management - Recovery Site"
+            $menuitem10 = "Generate JSON Specification File ($recoveryJsonSpecFile)"
+            $menuitem11 = "End-to-End Deployment"
+            $menuitem12 = "Remove from Environment"
+        }
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            if ($recoveryWorkbook) {
+                Write-Host ""; Write-Host -Object " $headingItem02" -ForegroundColor Yellow; Write-Host ""
+                Write-Host -Object " 10. $menuItem10" -ForegroundColor White
+                Write-Host -Object " 11. $menuItem11" -ForegroundColor White
+                Write-Host -Object " 12. $menuItem12" -ForegroundColor White
+            }
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-IamJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $protectedJsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile) -certificates $certificatePath
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoIamDeployment -jsonFile ($jsonPath + $protectedJsonSpecFile)
+                    anyKey
+                }
+                10 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-IamJsonSpec -workbook $recoveryWorkbook -jsonFile ($jsonPath + $recoveryJsonSpecFile)
+                    anykey
+                }
+                11 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile) -certificates $certificatePath
+                    anyKey
+                }
+                12 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoIamDeployment -jsonFile ($jsonPath + $recoveryJsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-DriMenu {
+    Try {
+        $jsonSpecFile = "driDeploySpec.json"
+        $submenuTitle = ("Developer Ready Infrastructure - End-to-End Automation")
+
+        $headingItem01 = "Developer Ready Infrastructure"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-DriJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-DriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -kubectlPath "C:\Kubectl\bin\"
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoDriDeployment -jsonFile ($jsonPath + $jsonSpecFile) -kubectlPath "C:\Kubectl\bin\"
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-IlaMenu {
+    Try {
+        $jsonSpecFile = "ilaDeploySpec.json"
+        $submenuTitle = ("Intelligent Logging and Analytics - End-to-End Automation")
+
+        $headingItem01 = "Intelligent Logging and Analytics"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-IlaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IlaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoIlaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-IomMenu {
+    Try {
+        $jsonSpecFile = "iomDeploySpec.json"
+        $submenuTitle = ("Intelligent Operations Management - End-to-End Automation")
+
+        $headingItem01 = "Intelligent Operations Management"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-IomJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-IomDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoIomDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-InvMenu {
+    Try {
+        $jsonSpecFile = "invDeploySpec.json"
+        $submenuTitle = ("Intelligent Network Visibility - End-to-End Automation")
+
+        $headingItem01 = "Intelligent Network Visibility"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-InvJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-InvDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoInvDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-PcaMenu {
+    Try {
+        $jsonSpecFile = "pcaDeploySpec.json"
+        $submenuTitle = ("Private Cloud Automation - End-to-End Automation")
+
+        $headingItem01 = "Private Cloud Automation"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-PcaJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-PcaDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath -useContentLibrary
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoPcaDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-PdrMenu {
+    Try {
+        $jsonSpecFile = "pdrDeploySpec.json"
+        $submenuTitle = ("Site Protection and Disaster Recovery - End-to-End Automation")
+
+        $headingItem01 = "Site Protection and Disaster Recovery"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-PdrJsonSpec -protectedWorkbook $protectedWorkbook -recoveryWorkbook $recoveryWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-PdrDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoPdrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-HrmMenu {
+    Try {
+        $jsonSpecFile = "hrmDeploySpec.json"
+        $submenuTitle = ("Health Reporting and Monitoring - End-to-End Automation")
+
+        $headingItem01 = "Health Reporting and Monitoring"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-HrmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-HrmDeployment -jsonFile ($jsonPath + $jsonSpecFile) -certificates $certificatePath -binaries $binaryPath
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoHrmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-CbwMenu {
+    Try {
+        $jsonSpecFile = "cbwDeploySpec.json"
+        $submenuTitle = ("Cloud-Based Workload Protection - End-to-End Automation")
+
+        $headingItem01 = "Cloud-Based Workload Protection"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-CbwJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoCbwDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-CbrMenu {
+    Try {
+        $jsonSpecFile = "cbrDeploySpec.json"
+        $submenuTitle = ("Cloud-Based Ransomware Recovery - End-to-End Automation")
+
+        $headingItem01 = "Cloud-Based Ransomware Recovery"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-CbrJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoCbrDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function Start-CcmMenu {
+    Try {
+        $jsonSpecFile = "ccmDeploySpec.json"
+        $submenuTitle = ("Cross Cloud Mobility - End-to-End Automation")
+
+        $headingItem01 = "Cross Cloud Mobility"
+        $menuitem01 = "Generate JSON Specification File ($jsonSpecFile)"
+        $menuitem02 = "End-to-End Deployment"
+        $menuitem03 = "Remove from Environment"
+
+        Do {
+            Clear-Host
+            if ($headlessPassed) {
+                Write-Host ""; Write-Host -Object $menuHeader  -ForegroundColor Magenta
+            } elseif (Get-InstalledModule -Name WriteAscii -ErrorAction SilentlyContinue) {
+                Write-Host ""; Write-Ascii -InputObject $menuHeader -ForegroundColor Magenta
+            }
+
+            if ($commonObject) {
+                $menuTitle = "Version $utilityBuild | Topology: $($commonObject.environment.topology) | Networking: $($commonObject.environment.networkingModel) | $submenuTitle"
+            } else {
+                $menuTitle = "$submenuTitle"
+            }
+            Write-Host ""; Write-Host -Object " $menuTitle" -ForegroundColor Cyan
+            if ($commonObject) {
+                Write-Host " Router Address: $($commonObject.topOfRack.spine_public_ip) | Testbed Name: $($commonObject.environment.name) | Testbed Owner: $($commonObject.environment.owner) | Infrastructure Cluster: $($commonObject.infrastructureVC.cluster) |" -foregroundcolor Green -nonewline
+                Write-Host " Cluster Memory Utilization: $clusterMemoryUsage%" -ForegroundColor $clusterColour
+            }
+
+            Write-Host ""; Write-Host -Object " $headingItem01" -ForegroundColor Yellow; Write-Host ""
+            Write-Host -Object " 01. $menuItem01" -ForegroundColor White
+            Write-Host -Object " 02. $menuItem02" -ForegroundColor White
+            Write-Host -Object " 03. $menuItem03" -ForegroundColor White
+
+            Write-Host -Object ''
+            $menuInput = if ($clioptions) {Get-NextSolutionOption} else { Read-Host -Prompt ' Select Option (or B to go Back) to Return to Previous Menu' }
+            $menuInput = $MenuInput -replace "`t|`n|`r",""
+            if ($MenuInput -like "0*") {$MenuInput = ($MenuInput -split("0"),2)[1]}
+            Switch ($menuInput) {
+                1 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Export-CcmJsonSpec -workbook $protectedWorkbook -jsonFile ($jsonPath + $jsonSpecFile)
+                    anykey
+                }
+                2 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-CcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                3 {
+                    Clear-Host; Write-Host `n " $menuTitle" -Foregroundcolor Cyan; Write-Host ''
+                    Invoke-UndoCcmDeployment -jsonFile ($jsonPath + $jsonSpecFile)
+                    anyKey
+                }
+                B {
+                    Clear-Host
+                    Break
+                }
+            }
+        }
+        Until ($MenuInput -eq 'b')
+    } Catch {
+        Debug-ExceptionWriter -object $_
+    }
+}
+
+Function anyKey {
+    Write-Host ''; Write-Host -Object ' Press any key to continue/return to menu...' -ForegroundColor Yellow; Write-Host '';
+	if ($headlessPassed) {
+		$response = if (!$clioptions) { Read-Host } else { "" }
+	} else {
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+	}
+}
+
+Function Get-NextSolutionOption {
+    <#
+        .SYNOPSIS
+        Function to get the next option from the list of provided option. It also calculates the time taken to run all options.
+    #>
+
+	$Script:indexMax = $clioptions.Length - 1
+	# $status = Search-PTLogForFailure
+	# if ($status) {
+        if ($Script:currentIndex -le $indexMax) {
+            $Script:nextValue = $clioptions[$currentIndex]
+            $Script:currentIndex = $currentIndex + 1
+            if ($nextValue -like 'wait*'){
+                $time = [int]$nextValue.split('wait')[1]
+                Start-Sleep $time
+                Get-NextSolutionOption
+            } else {
+                return $nextValue
+                Break
+            }
+        }  else {
+            $Script:end_time = Get-Date
+            $Script:time_diff = $end_time - $start_time
+            Exit
+        }
+    # } else {
+    #     $Global:end_time = Get-Date
+    #     $time_diff = $Global:end_time - $Global:start_time
+    #     LogMessage -type INFO -message "Time to Run all options = $($time_diff.Hours) Hours : $($time_diff.Minutes) Minutes : $($time_diff.Seconds) Seconds"
+    #     LogMessage -type INFO -message "Error encountered when running option $($clioptions[$currentIndex - 1]). Quitting..."
+	# 	Exit
+    # }
+}
+
+#EndRegion                                     E N D  O F  M E N U S                                        ###########
 #######################################################################################################################
