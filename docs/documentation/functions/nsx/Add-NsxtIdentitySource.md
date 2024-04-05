@@ -14,8 +14,7 @@ Add-NsxtIdentitySource [-server] <String> [-user] <String> [-pass] <String> [-sd
 
 ## Description
 
-The `Add-NsxtIdentitySource` cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the NSX
-Manager.
+The `Add-NsxtIdentitySource` cmdlets adds Active Directory over LDAP/LDAPS as an Identity Provider to the NSX Manager.
 The cmdlet connects to SDDC Manager using the -server, -user, and -password values:
 
 - Validates that network connectivity and authentication is possible to SDDC Manager
@@ -28,7 +27,7 @@ The cmdlet connects to SDDC Manager using the -server, -user, and -password valu
 ### Example 1
 
 ```powershell
-Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
+Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-nsx-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
 ```
 
 This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAP
@@ -36,7 +35,7 @@ This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Mana
 ### Example 2
 
 ```powershell
-Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
+Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-nsx-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
 ```
 
 This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAPS.

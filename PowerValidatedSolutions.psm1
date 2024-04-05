@@ -2181,11 +2181,11 @@ Function Add-NsxtIdentitySource {
         - Adds the Active Directory Domain as an Identity Provider if not already present
 
         .EXAMPLE
-        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
+        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-nsx-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDn "dc=sfo,dc=rainpole,dc=io" -protocol ldap
         This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAP
 
         .EXAMPLE
-        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-vsphere-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
+        Add-NsxtIdentitySource -server sfo-vcf01.sfo.rainpole.io -user administrator@vsphere.local -pass VMw@re1! -sddcDomain sfo-m01 -domain sfo.rainpole.io -domainBindUser svc-nsx-ad -domainBindPass VMw@re1! -dcMachineName sfo-ad01 -baseDN "dc=sfo,dc=rainpole,dc=io" -protocol ldaps -certificate F:\certificates\Root64.cer
         This example adds the sfo.rainpole.io domain as an Identity Provider to NSX Manager using LDAPS.
 
         .PARAMETER server
@@ -2246,37 +2246,46 @@ Function Add-NsxtIdentitySource {
     }
 
     Try {
-        if (Test-VCFConnection -server $server) {
-            if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
-                if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
-                    if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
-                        if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
-                            if (!(Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain })) {
-                                if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
-                                    if ($protocol -eq "ldaps") {
-                                        New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAPS -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass -certificate $certificate | Out-Null
-                                    } else {
-                                        New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAP -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass | Out-Null
-                                    }
-                                    if (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }) {
-                                        if ((Get-NsxtLdapStatus -id $domain).result -ne "FAILURE") {
-                                            Write-Output "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): SUCCESSFUL"
+        if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
+            $checkAdAuthentication = Test-ADAuthentication -user $domainBindUser -pass $domainBindPass -server $domain -domain $domain -ErrorAction SilentlyContinue
+            if ($checkAdAuthentication[1] -match "Authentication Successful") {
+                if (Test-VCFConnection -server $server) {
+                    if (Test-VCFAuthentication -server $server -user $user -pass $pass) {
+                        if (($vcfNsxDetails = Get-NsxtServerDetail -fqdn $server -username $user -password $pass -domain $sddcDomain)) {
+                            if (Test-NSXTConnection -server $vcfNsxDetails.fqdn) {
+                                if (Test-NSXTAuthentication -server $vcfNsxDetails.fqdn -user $vcfNsxDetails.adminUser -pass $vcfNsxDetails.adminPass) {
+                                    if (!(Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain })) {
+                                        if (Test-Connection -ComputerName ($dcMachineName + "." + $domain) -Quiet -Count 1) {
+                                            if ($protocol -eq "ldaps") {
+                                                New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAPS -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass -certificate $certificate | Out-Null
+                                            } else {
+                                                New-NsxtLdap -dcMachineName $dcMachineName -protocol LDAP -startTtls false -domain $domain -baseDn $baseDn -bindUser ($domainBindUser + "@" + $domain ) -bindPassword $domainBindPass | Out-Null
+                                            }
+                                            if (Get-NsxtLdap | Where-Object { $_.domain_name -eq $domain }) {
+                                                if ((Get-NsxtLdapStatus -id $domain).result -ne "FAILURE") {
+                                                    Write-Output "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): SUCCESSFUL"
+                                                } else {
+                                                    Write-Error "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain) error ($((Get-NsxtLdapStatus -id $domain).errors.error_type)): POST_VALIDATION_FAILED"
+                                                }
+                                            } else {
+                                                Write-Error "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
+                                            }
                                         } else {
-                                            Write-Error "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain) error ($((Get-NsxtLdapStatus -id $domain).errors.error_type)): POST_VALIDATION_FAILED"
+                                            Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
                                         }
                                     } else {
-                                        Write-Error "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain): POST_VALIDATION_FAILED"
+                                        Write-Warning "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain), already exists: SKIPPED"
                                     }
-                                } else {
-                                    Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
                                 }
-                            } else {
-                                Write-Warning "Adding Identity Source to NSX Manager ($($vcfNsxDetails.fqdn)) named ($domain), already exists: SKIPPED"
                             }
                         }
                     }
                 }
+            } else {
+                Write-Error "Unable to authenticate to Active Directory with user ($domainBindUser) and password ($domainBindPass), check details: PRE_VALIDATION_FAILED"
             }
+        } else {
+            Write-Error "Unable to communicate with Active Directory Domain Controller ($dcMachineName), check details: PRE_VALIDATION_FAILED"
         }
     } Catch {
         Debug-ExceptionWriter -object $_
@@ -28987,12 +28996,12 @@ Function Test-ADAuthentication {
         }
         $principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext -ArgumentList $argumentList -ErrorAction SilentlyContinue
         if ($null -eq $principalContext) {
-            Write-Error "$domain\$user - AD Authentication Failed"
+            Write-Output "$domain\$user - AD Authentication Failed"
         }
         if ($principalContext.ValidateCredentials($user, $pass)) {
             Write-Output "$domain\$user - AD Authentication Successful"
         } else {
-            Write-Error "$domain\$user - AD Authentication Failed"
+            Write-Output "$domain\$user - AD Authentication Failed"
         }
     } Catch {
         Debug-ExceptionWriter -object $_

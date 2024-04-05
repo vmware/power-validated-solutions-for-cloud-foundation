@@ -1,5 +1,12 @@
 # Release History
 
+## v2.10.0
+
+> Release Date: Unreleased
+
+- Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
+- Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
+
 ## v2.9.0
 
 > Release Date: 2024-03-26
