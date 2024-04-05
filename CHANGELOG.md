@@ -4,6 +4,20 @@
 
 > Release Date: Unreleased
 
+- Added `Start-ValidatedSolutionMenu` cmdlet to load the Validated Solution main menu.
+- Added `Start-AriaSuiteLifecycleMenu` cmdlet to load the VMware Aria Suite Lifecycle sub-menu.
+- Added `Start-WorkspaceOneAccessMenu` cmdlet to load the Workspace ONE Access sub-menu.
+- Added `Start-IamMenu` cmdlet to load the Identity and Access Management sub-menu.
+- Added `Start-DriMenu` cmdlet to load the Developer Ready Infrastructure sub-menu.
+- Added `Start-IlaMenu` cmdlet to load the Intelligent Logging and Analytics sub-menu.
+- Added `Start-IomMenu` cmdlet to load the Intelligent Operations Management sub-menu.
+- Added `Start-InvMenu` cmdlet to load the Intelligent Network Visibility sub-menu.
+- Added `Start-PcaMenu` cmdlet to load the Private Cloud Automation sub-menu.
+- Added `Start-PdrMenu` cmdlet to load the Site Protection and Disaster Recovery sub-menu.
+- Added `Start-HrmMenu` cmdlet to load the Health Reporting and Monitoring sub-menu.
+- Added `Start-CbwMenu` cmdlet to load the Cloud-Based Workload Protection sub-menu.
+- Added `Start-CbrMenu` cmdlet to load the Cloud-Based Ransomware Recovery sub-menu.
+- Added `Start-CcmMenu` cmdlet to load the Cross Cloud Mobility sub-menu.
 - Fixed `Test-ADAuthentication` cmdlet to pass failure message as an output rather than error message so it can be evaluated.
 - Enhanced `Add-NsxtIdentitySource` cmdlet to verify the Active Directory credentials are valid.
 
